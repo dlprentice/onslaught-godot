@@ -113,7 +113,12 @@ package licence expression is `GPL-3.0-only`.
 | `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/ClockSimulation.cs` (the level-start order: base time, PreRun, MainLoop) | `src/game.cpp` (`CGame::RunLevel`, `PreRun`) | GPL-3.0-only (in Stuart's release) |
 | `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/UnitData.cs`, `Physics/PhysicsRegistry.cs`, `Physics/PhysicsRegistry.Families.cs` (the definitions the script builds: units, features, hazards; the other families' names) | `src/WorldPhysicsManager.h` (`CUnitData`, `CFeatureData`, `CHazardData`, `UPhysicsManager`), `src/WorldPhysicsManager.cpp` (the unit setters, `MapMountName`), `src/CPhysicsScriptStatements.h` (the statements' `Execute`, the values' `Load` and `Apply`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/UnitData.cs`, `Physics/PhysicsRegistry.cs` (the definitions the script builds: units, features, hazards) | `src/WorldPhysicsManager.h` (`CUnitData`, `CFeatureData`, `CHazardData`, `UPhysicsManager`), `src/WorldPhysicsManager.cpp` (the unit setters, `MapMountName`), `src/CPhysicsScriptStatements.h` (the statements' `Execute`, the values' `Load` and `Apply`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/WeaponData.cs` (CWeaponData, CLaunchAngle, CWeaponModeData: physics-script constructors, setters, SetLaunchSequence/SetLaunchAngle, SetRound) | `src/WorldPhysicsManager.h`, `src/WorldPhysicsManager.cpp` (`CWeaponModeData::SetRound`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/RoundData.cs` (CRoundData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/SpawnerData.cs` (CSpawnerData: constructor, SetThingName, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority
 
