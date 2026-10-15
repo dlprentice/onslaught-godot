@@ -181,4 +181,140 @@ public sealed class HeightField
         float r = 1.0f / m;
         return new FVector(nx * r, ny * r, -1.0f * r);
     }
+
+    private float[]? _cellMax;
+    private float[]? _cellMin;
+
+    /// <summary>
+    /// CMap::InitQuickCollisionMap (00490e30, end of CGame::PostLoadProcess): each 8 x 8 sample cell's highest and lowest
+    /// height (9 x 9 samples, edges shared), scaled.
+    /// </summary>
+    public void InitQuickCollisionMap()
+    {
+        _cellMax = new float[64 * 64];
+        _cellMin = new float[64 * 64];
+        int cell = 0;
+        for (int y = 0; y < 512; y += 8)
+        {
+            for (int x = 0; x < 512; x += 8)
+            {
+                short low = 32767;
+                short high = -32768;
+                for (int dy = 0; dy <= 8; ++dy)
+                {
+                    for (int dx = 0; dx <= 8; ++dx)
+                    {
+                        short height = GetHeightSample(x + dx, y + dy);
+                        if (height < low)
+                        {
+                            low = height;
+                        }
+
+                        if (height > high)
+                        {
+                            high = height;
+                        }
+                    }
+                }
+
+                _cellMax[cell] = HeightScale * high;
+                _cellMin[cell] = HeightScale * low;
+                ++cell;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The quick-collision test of one point (HitsCell, inlined in 00490a40): inside the map, below a cell's lowest
+    /// height misses, above its highest hits, between them the bilinear height (narrowed to a short) decides; outside,
+    /// anything above 0 hits. The packing bias is 0.4999/256 (bits 3afff2e5).
+    /// </summary>
+    private bool HitsCell(FVector pos)
+    {
+        float bias = BitConverter.Int32BitsToSingle(0x3afff2e5);
+        float packedX = pos.X - bias + 49152.0f;
+        float packedY = pos.Y - bias + 49152.0f;
+        int x = BitConverter.SingleToInt32Bits(packedX);
+        int y = BitConverter.SingleToInt32Bits(packedY);
+        if (((x | y) & 0x3e0000) == 0)
+        {
+            int cell = ((y >> 5) & 0xfc0) + ((x >> 11) & 0x3f);
+            if (pos.Z < _cellMin![cell])
+            {
+                return false;
+            }
+
+            if (pos.Z > _cellMax![cell])
+            {
+                return true;
+            }
+
+            return (short)InterpolatedHeight(x, y) * HeightScale < pos.Z;
+        }
+
+        return pos.Z > 0;
+    }
+
+    /// <summary>
+    /// CMap::Unknown490a40 (00490a40): a sampled trace along the line. Steps of a tenth of its length (2 at most, then
+    /// floor(length / 2) + 1 checks), inclusive of the last, so it can look past the end; a step that hits is retraced
+    /// from the step before at a tenth of the step, down to steps of 0.01, and the hit is that step's point. With
+    /// <paramref name="includeWater"/>, points at or above the water level hit too. As compiled: the step is
+    /// length * 0.1f; the normalise reuses the stored squared length.
+    /// </summary>
+    public bool LineHits(FVector start, FVector end, out FVector hit, bool includeWater)
+    {
+        float water = WaterLevel;
+        var direction = new FVector(end.X - start.X, end.Y - start.Y, end.Z - start.Z);
+        float squared = (direction.X * direction.X) + (direction.Y * direction.Y) + (direction.Z * direction.Z);
+        float length = MathF.Sqrt(squared);
+        int checks = 11;
+        float step = length * 0.1f;
+        if (step > 2.0f)
+        {
+            step = 2.0f;
+            checks = (int)Math.Floor((double)(length * 0.5f)) + 1;
+        }
+
+        float m = MathF.Sqrt(squared);
+        if (m != 0)
+        {
+            float inverse = 1.0f / m;
+            direction = new FVector(inverse * direction.X, inverse * direction.Y, inverse * direction.Z);
+        }
+
+        direction = new FVector(direction.X * step, direction.Y * step, direction.Z * step);
+        FVector position = start;
+        for (int check = 0; check <= checks; ++check)
+        {
+            bool collision = includeWater && position.Z >= water;
+            if (!collision)
+            {
+                collision = HitsCell(position);
+            }
+
+            if (collision)
+            {
+                if (step <= 0.01f)
+                {
+                    hit = position;
+                    return true;
+                }
+
+                if (LineHits(position - direction, position, out hit, includeWater))
+                {
+                    return true;
+                }
+
+                // Retail logs "Warning: LOS return FALSE in lower step ..." here.
+                hit = position;
+                return true;
+            }
+
+            position = new FVector(position.X + direction.X, position.Y + direction.Y, direction.Z + position.Z);
+        }
+
+        hit = default;
+        return false;
+    }
 }

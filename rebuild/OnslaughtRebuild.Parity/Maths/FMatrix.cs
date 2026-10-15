@@ -134,6 +134,29 @@ public struct FMatrix
         new FVector((Row2.X * m.Row0.X) + (Row2.Y * m.Row1.X) + (Row2.Z * m.Row2.X),
             (Row2.X * m.Row0.Y) + (Row2.Y * m.Row1.Y) + (Row2.Z * m.Row2.Y),
             (Row2.X * m.Row0.Z) + (Row2.Y * m.Row1.Z) + (Row2.Z * m.Row2.Z)));
+
+
+    /// <summary>
+    /// operator* as retail's out-of-line copy computes it (0040d320, CTree::UpdateFallingTree's call): this times
+    /// <paramref name="m"/>, each element summing its three products in its own order (rows done 2, 1, 0).
+    /// </summary>
+    public readonly FMatrix MultiplyOutOfLine(FMatrix m)
+    {
+        FVector r0 = Row0, r1 = Row1, r2 = Row2;
+        var c2 = new FVector(
+            ((r2.Z * m.Row2.X) + (r2.Y * m.Row1.X)) + (r2.X * m.Row0.X),
+            ((r2.X * m.Row0.Y) + (r2.Z * m.Row2.Y)) + (r2.Y * m.Row1.Y),
+            ((r2.Z * m.Row2.Z) + (r2.Y * m.Row1.Z)) + (r2.X * m.Row0.Z));
+        var c1 = new FVector(
+            ((r1.Z * m.Row2.X) + (r1.Y * m.Row1.X)) + (r1.X * m.Row0.X),
+            ((r1.X * m.Row0.Y) + (r1.Z * m.Row2.Y)) + (r1.Y * m.Row1.Y),
+            ((r1.X * m.Row0.Z) + (r1.Z * m.Row2.Z)) + (r1.Y * m.Row1.Z));
+        var c0 = new FVector(
+            ((r0.Y * m.Row1.X) + (r0.X * m.Row0.X)) + (r0.Z * m.Row2.X),
+            ((r0.Z * m.Row2.Y) + (r0.Y * m.Row1.Y)) + (r0.X * m.Row0.Y),
+            ((r0.Z * m.Row2.Z) + (r0.Y * m.Row1.Z)) + (r0.X * m.Row0.Z));
+        return new FMatrix(c0, c1, c2);
+    }
 }
 
 /// <summary>CEulerAngles: yaw, pitch and roll.</summary>

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Adapted from bea-decomp src/tree.h and src/tree.cpp (CTree::Init 004f6080, SetThingType). Not in Stuart's release.
+// Adapted from bea-decomp src/tree.h and src/tree.cpp (CTree::Init 004f6080, SetThingType, CFallingTree's constructor
+// 004f5f60, CreateFallingTree 004f69b0, Hit 004f6aa0, UpdateFallingTree 004f6b80, HandleEvent 004f7050). Float forms read
+// from the pristine executable (74154bfa...). Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
@@ -17,18 +19,159 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.Tree | ThingType.Stationary);
 
+    /// <summary>TREE_FALL: the falling tree's next step.</summary>
+    public const int FallEvent = 3000;
+
+    /// <summary>TREE_COLLIDE: half a second into its fall it collides with everything.</summary>
+    public const int CollideEvent = 3001;
+
+    /// <summary>
+    /// sOrientations: the 32 yaws of n * (PI / 16) (a float constant), as CTree::Init's MakeRotationYawF stores them:
+    /// the angle, its cosine and its sine each a float.
+    /// </summary>
+    private static readonly FMatrix[] Orientations = MakeOrientations();
+
+    private static FMatrix[] MakeOrientations()
+    {
+        var o = new FMatrix[32];
+        float pi16 = BitConverter.Int32BitsToSingle(0x3e490fdb);
+        for (int n = 0; n < 32; n++)
+        {
+            float yaw = n * pi16;
+            float c = (float)X87.Cos(yaw);
+            float sn = (float)X87.Sin(yaw);
+            o[n] = new FMatrix(new FVector(c, -sn, 0.0f), new FVector(sn, c, 0.0f), new FVector(0.0f, 0.0f, 1.0f));
+        }
+
+        return o;
+    }
+
+    /// <summary>mFalling: the fall, once it has started.</summary>
+    public FallingTree? Falling;
+
     /// <summary>
     /// CTree::Hit (004f6aa0): a standing tree hit by something that can destroy trees (an explosion only within its
     /// current radius) falls away from it.
     /// </summary>
     public override void Hit(Thing other, Collision.CollisionReport? report)
     {
-        if (!other.IsA(ThingType.CanDestroyTrees))
+        if (!other.IsA(ThingType.CanDestroyTrees) || Falling is not null)
         {
             return;
         }
 
-        throw new NotSupportedException("CTree::Hit: falling trees (CreateFallingTree) are not ported");
+        FVector dir = Pos - other.Pos;
+        if (other.IsA(ThingType.Explosion))
+        {
+            throw new NotSupportedException("CTree::Hit: explosions (their current radius) are not ported");
+        }
+
+        dir.Normalise();
+        CreateFallingTree(dir);
+    }
+
+    /// <summary>CreateFallingTree (004f69b0): it falls away along dir, colliding with everything half a second later.</summary>
+    public void CreateFallingTree(FVector dir)
+    {
+        if (Falling is not null)
+        {
+            return;
+        }
+
+        Falling = new FallingTree(Orientations[Variation], GetRadius() * 2, dir) { StartTime = -1.0f };
+        Context.Events.AddEventIn(0.5f, CollideEvent, this);
+        UpdateFallingTree();
+    }
+
+    /// <summary>
+    /// UpdateFallingTree (004f6b80): while it turns, a trace from just below its base to its top (plus 0.5) against the
+    /// ground; on a hit it bounces back (the angle loses half the speed, the speed is scaled by -0.2) and it stops once
+    /// the speed is under 0.01. Otherwise the angle advances, the speed grows by 0.005 and the start orientation turns by
+    /// the angle about the fall's axis; stopped, it dies five seconds later. The ground-hit particle effect (speed above
+    /// 0.05, taller than 3) is drawing only.
+    /// </summary>
+    public void UpdateFallingTree()
+    {
+        bool carryOn = true;
+        if (Falling is not { } f)
+        {
+            return;
+        }
+
+        f.Unknown8C = f.StartOrientation;
+        if (f.Speed > 0)
+        {
+            FVector pos = Pos;
+            FVector start = pos;
+            start.Z -= 0.2f;
+            float h = -f.Height;
+            FMatrix o = f.StartOrientation;
+            var d = new FVector(o.Row0.Z * h, o.Row1.Z * h, o.Row2.Z * h);
+            var end = new FVector(d.X + pos.X, d.Y + pos.Y, d.Z + pos.Z + 0.5f);
+            bool hit = Context.Map.LineHits(start, end, out _, includeWater: false);
+            if (hit)
+            {
+                if (f.Speed > 0.05f && f.Height > 3.0f)
+                {
+                    Context.Skip("CTree::UpdateFallingTree: the \"Tree Ground Hit Effect\" particle effect");
+                }
+
+                f.Angle -= f.Speed * 0.5f;
+                f.Speed *= -0.2f;
+            }
+
+            // fabs(speed) < 0.01 compares with a double constant.
+            if (Math.Abs(f.Speed) < 0.01 && hit)
+            {
+                carryOn = false;
+            }
+        }
+
+        if (carryOn)
+        {
+            f.Angle = f.Speed + f.Angle;
+            f.Speed += 0.005f;
+
+            // As compiled (004f6e2b..004f6f35): the sine is stored as a float; 1 - cos is taken from fcos unrounded.
+            float a = f.Angle;
+            float s = (float)X87.Sin(a);
+            float t = (float)X87.Sub(1.0, X87.Cos(a));
+            FVector ax = f.Axis;
+            float xx = ax.X * ax.X, yy = ax.Y * ax.Y, zz = ax.Z * ax.Z;
+            float xy = ax.Y * ax.X, xz = ax.Z * ax.X, yz = ax.Z * ax.Y;
+            float xs = ax.X * s, ys = ax.Y * s, zs = ax.Z * s;
+            float xyt = xy * t;
+            float xzt = xz * t;
+            float yzt = yz * t;
+            var r = new FMatrix(
+                new FVector(1.0f - ((zz + yy) * t), xyt + zs, xzt - ys),
+                new FVector(xyt - zs, 1.0f - ((zz + xx) * t), yzt + xs),
+                new FVector(xzt + ys, yzt - xs, 1.0f - ((yy + xx) * t)));
+            f.StartOrientation = r.MultiplyOutOfLine(f.Orientation);
+            Context.Events.AddEvent(FallEvent, this, Events.EventManager.NextFrame);
+        }
+        else
+        {
+            f.StartTime = Context.Events.Time;
+            Context.Events.AddEventIn(5.0f, ThingEvent.StartDieProcess, this);
+        }
+    }
+
+    /// <summary>HandleEvent (004f7050): the fall's steps; half a second in, it collides with everything.</summary>
+    public override void HandleEvent(Events.Event e)
+    {
+        switch (e.EventNum)
+        {
+            case FallEvent:
+                UpdateFallingTree();
+                break;
+            case CollideEvent:
+                Seeker!.SetCollisionMask(0xffffffff);
+                break;
+            default:
+                base.HandleEvent(e);
+                break;
+        }
     }
 
     /// <summary>
@@ -96,4 +239,40 @@ internal sealed class NoSubject : Mesh.IRenderSubject
     public bool HasMotionController => false;
 
     public bool RenderUseHierarchy(int partNumber) => true;
+}
+
+/// <summary>CFallingTree: a tree's fall away from what hit it.</summary>
+public sealed class FallingTree
+{
+    /// <summary>The constructor (004f5f60): the axis is dir ^ (0, 0, -1), normalised; the speed starts at 0.02.</summary>
+    public FallingTree(FMatrix ori, float height, FVector dir)
+    {
+        StartOrientation = ori;
+        Angle = 0;
+        Speed = 0;
+        Orientation = ori;
+        Unknown8C = ori;
+        Height = height;
+        Dir = dir;
+        Axis = FVector.Cross(dir, new FVector(0, 0, -1.0f));
+        Axis.Normalise();
+        Speed = 0.02f;
+    }
+
+    public float Height;
+    public float Angle;
+    public float Speed;
+    public FVector Dir;
+
+    /// <summary>mAxis: the fall's axis, normalised.</summary>
+    public FVector Axis;
+
+    public FMatrix Orientation;
+    public FMatrix StartOrientation;
+
+    /// <summary>mUnknown8C: the orientation before this step (drawn between it and the start orientation).</summary>
+    public FMatrix Unknown8C;
+
+    /// <summary>mStartTime: -1 until it lands, then the time it stopped (it fades over five seconds).</summary>
+    public float StartTime;
 }

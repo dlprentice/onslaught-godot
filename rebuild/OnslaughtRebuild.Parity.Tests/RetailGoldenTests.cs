@@ -70,7 +70,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int PresentByPresentFloor = 3600;
 
     /// <summary>The last sampled Present (every 50) the run matches the virtual-DS golden to (never lowered).</summary>
-    private const int VirtualDsFloor = 3300;
+    private const int VirtualDsFloor = 3850;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 3598;
@@ -80,11 +80,12 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
     /// <summary>
     /// Level 100 run Present by Present against B's virtual-DS golden (level100.vds-a.probes: retail with virtual
-    /// DirectSound status, the audio model the port and the core run; probes EVT, FT and RNG every 50 Presents). The
+    /// DirectSound status, the audio model the port and the core run; probes EVT, FT, RNG, SC, LVL and the battle engine's
+    /// POS and LIFE every 50 Presents). The
     /// sampled Presents must match through <see cref="VirtualDsFloor"/>; the first difference after it is reported. The
-    /// tape's input from Present 3300 is not wired, so the comparison stops there.
+    /// golden replays C's tape from Present 3300 and runs to Present 10000.
     /// </summary>
-    [RetailGoldenFact("vds/level100.vds-a.probes")]
+    [RetailGoldenFact("vds/level100.vds-a.probes", Level100TapeFile)]
     public void Level100RunMatchesTheVirtualDsGolden()
     {
         var golden = new Dictionary<(long Present, string Name), string>();
@@ -98,11 +99,13 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         }
 
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        session.Tape = Level100Tape();
+        long last = golden.Keys.Max(k => k.Present);
         static string Hex(byte[] b) => Convert.ToHexString(b).ToLowerInvariant();
         string? first = null;
         long matched = 0;
-        string stopped = "ran to Present 3300";
-        while (session.PresentCount < 3300)
+        string stopped = $"ran to Present {last}";
+        while (session.PresentCount < last)
         {
             try
             {
@@ -123,13 +126,28 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             string ourEvt = Hex(BitConverter.GetBytes(session.Context.Events.Time));
             string ourFt = Hex(BitConverter.GetBytes(session.Game.Loop.FrameTime));
             string ourRng = Hex(BitConverter.GetBytes(session.Context.Random.Value));
-            if (evt == ourEvt && golden[(p, "FT")] == ourFt && golden[(p, "RNG")].StartsWith(ourRng, StringComparison.Ordinal))
+            var ours = new Dictionary<string, string>
+            {
+                ["SC"] = Hex(BitConverter.GetBytes(session.Game.Score)),
+                ["LVL"] = Hex(BitConverter.GetBytes(session.Game.CurrentLevel)),
+            };
+            if (session.Game.GetPlayer(0)?.BattleEngine is OnslaughtRebuild.Parity.Things.Unit be)
+            {
+                ours["POS"] = Hex([.. BitConverter.GetBytes(be.Pos.X), .. BitConverter.GetBytes(be.Pos.Y), .. BitConverter.GetBytes(be.Pos.Z)]);
+                ours["LIFE"] = Hex([.. BitConverter.GetBytes(be.Life), .. BitConverter.GetBytes(be.Energy)]);
+            }
+
+            string? other = ours.Where(kv => golden.TryGetValue((p, kv.Key), out string? g) && g != kv.Value)
+                .Select(kv => $"{kv.Key} {golden[(p, kv.Key)]}/{kv.Value}").FirstOrDefault();
+            if (evt == ourEvt && golden[(p, "FT")] == ourFt && golden[(p, "RNG")].StartsWith(ourRng, StringComparison.Ordinal)
+                && other is null)
             {
                 matched = p;
             }
             else
             {
-                first = $"Present {p}: EVT {evt}/{ourEvt}, FT {golden[(p, "FT")]}/{ourFt}, RNG {golden[(p, "RNG")]}/{ourRng} (retail/ours)";
+                first = $"Present {p}: EVT {evt}/{ourEvt}, FT {golden[(p, "FT")]}/{ourFt}, RNG {golden[(p, "RNG")]}/{ourRng}"
+                    + $"{(other is null ? "" : ", " + other)} (retail/ours)";
             }
         }
 

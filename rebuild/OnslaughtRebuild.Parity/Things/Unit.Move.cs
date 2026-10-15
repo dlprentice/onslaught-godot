@@ -447,7 +447,9 @@ public abstract partial class Unit
 
         if (UnitData?.Spawners.Count > 0)
         {
-            throw new NotSupportedException("CUnit::Shutdown of a unit with spawners is not ported");
+            // ~CSpawner only releases the squad it is assembling; a spawner sets one only when it spawns, and every
+            // path that starts a spawner throws in this core, so deleting the idle spawners changes nothing.
+            Context.Skip("CUnit::Shutdown: delete the unit's idle spawners");
         }
 
         Context.World.UnitNB.Remove(this);
