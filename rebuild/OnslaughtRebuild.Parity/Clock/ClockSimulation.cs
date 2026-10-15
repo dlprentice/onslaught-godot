@@ -31,8 +31,10 @@ public sealed class ClockSimulation : IParitySimulation
     private IEnumerator<int>? _mainLoop;
     private bool _levelStarted;
 
-    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent, long runLevelPresent = 2)
+    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent, long runLevelPresent = 2,
+        bool loadingScreenAfterPreRun = true)
     {
+        LoadingScreenAfterPreRun = loadingScreenAfterPreRun;
         ArgumentOutOfRangeException.ThrowIfLessThan(runLevelPresent, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, runLevelPresent);
         ArgumentOutOfRangeException.ThrowIfLessThan(levelStartPresent, baseReadPresent);
@@ -44,6 +46,13 @@ public sealed class ClockSimulation : IParitySimulation
     }
 
     public int Level { get; }
+
+    /// <summary>
+    /// Whether the loading screen still exists after PreRun, so its 100% render Presents once. With -skipfmv (or a level
+    /// without an intro FMV) it does; when the intro FMV plays, RestartLoopRunLevel's SetLoading(FALSE) before it has
+    /// released the loading screen, RenderLoadingScreen returns at once and MainLoop's first Present is the next one.
+    /// </summary>
+    public bool LoadingScreenAfterPreRun { get; }
 
     /// <summary>
     /// The Present after which CGame takes the level (mCurrentLevel is -1 until then): Present 2 in the per-Present
@@ -100,8 +109,11 @@ public sealed class ClockSimulation : IParitySimulation
                 // CONSOLE.SetLoadingFraction(1.0f) right after PreRun brings the loading bar to 100%, where
                 // RenderLoadingScreen skips its 0.05 s throttle: one Present before the first MainLoop. (The fractions
                 // between the base read and PreRun are throttled: no Present has moved the clock since the last one.)
-                _clock.Present();
-                continue;
+                if (LoadingScreenAfterPreRun)
+                {
+                    _clock.Present();
+                    continue;
+                }
             }
 
             _mainLoop ??= _game.MainLoop().GetEnumerator();

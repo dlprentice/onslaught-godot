@@ -153,7 +153,8 @@ public sealed partial class Game : Monitor, IMainLoopHost
 
     /// <summary>
     /// The timing-relevant part of CGame::InitRestartLoop, in retail order: the event manager is reset, the game is
-    /// PRE_RUNNING with FINISHED_PRE_RUN scheduled mPreRunTime from now, and the random stream is made.
+    /// PRE_RUNNING with FINISHED_PRE_RUN scheduled mPreRunTime from now, the two fear grids are made (each scheduling its
+    /// rebuild), and the random stream is made.
     /// </summary>
     public void InitRestartLoop()
     {
@@ -166,8 +167,24 @@ public sealed partial class Game : Monitor, IMainLoopHost
         State = GameState.PreRunning;
         Events.AddEventIn(PreRunTime, (int)GameEvent.FinishedPreRun, this);
         AdvanceFrame = false;
+
+        // game.cpp:505: each grid's constructor rebuilds it and schedules event 1000 a second on.
+        ForsetiFearGrid = new FearGrid(Events, 0);
+        MuspellFearGrid = new FearGrid(Events, 1);
         RandomStream = new SeedUniformRandomNumberStream(123456);
     }
+
+    /// <summary>
+    /// mSettings (SFrontEndSettings): the fields things read. CGame is a static object, so they start zero; the front
+    /// end fills them for a career level (what -level N leaves there is not measured yet).
+    /// </summary>
+    public FrontEndSettings Settings { get; } = new();
+
+    /// <summary>mForsetiFearGrid: made in InitRestartLoop.</summary>
+    public FearGrid? ForsetiFearGrid { get; private set; }
+
+    /// <summary>mMuspellFearGrid.</summary>
+    public FearGrid? MuspellFearGrid { get; private set; }
 
     /// <summary>The level start's timing (RestartLoopRunLevel, loading fraction 0.4): mBaseTime from the clock.</summary>
     public void StartLevelTiming() => Loop.StartLevelTiming();
@@ -267,4 +284,16 @@ public static class MessageBoxEvents
 {
     /// <summary>ALLOWED_TO_PLAY_MESSAGES (3003), scheduled by CGame::StartPlayingState (0046fef2).</summary>
     public const int AllowedToPlayMessages = 3003;
+}
+
+/// <summary>SFrontEndSettings: the fields the ported things read.</summary>
+public sealed class FrontEndSettings
+{
+    /// <summary>mInvertSides: player 1 and 2 swap starts.</summary>
+    public bool InvertSides;
+
+    /// <summary>mPlayer1Configuration: the battle engine configuration player 1 starts with.</summary>
+    public int Player1Configuration;
+
+    public int Player2Configuration;
 }

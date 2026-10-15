@@ -30,9 +30,14 @@ public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
         init.InitCst.MaxCollision = CollisionLevel.Mesh;
         Data = init.FeatureData;
         MeshData? mesh = null;
-        if (Data?.MeshName is { } name)
+        if (Data?.MeshName is { } name && !Context.Meshes.TryGetValue(Encoding.ASCII.GetString(name), out mesh))
         {
-            Context.Meshes.TryGetValue(Encoding.ASCII.GetString(name), out mesh);
+            throw new InvalidOperationException($"mesh '{Encoding.ASCII.GetString(name)}' is not in the level resource file");
+        }
+
+        if (Data?.MeshName is null)
+        {
+            Context.Skip("CRTMesh::Init without a name (the engine's default mesh)");
         }
 
         RenderThing = new RenderThing(Context, mesh, this);

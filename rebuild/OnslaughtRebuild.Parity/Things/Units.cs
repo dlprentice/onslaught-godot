@@ -126,8 +126,9 @@ public sealed class Building(ThingContext context) : Unit(context)
     public override void SetThingType(uint t) => base.SetThingType(
         t | ThingType.Unknown40000000 | ThingType.CanBeWalkedOn | ThingType.Building | ThingType.Stationary);
 
-    /// <summary>CBuilding::InitRenderThing: the unit's mesh and its rubble (RTID 4).</summary>
-    public override void InitRenderThing(InitThing init) => RenderThing = MakeMeshRenderThing(init.Stats!.Mesh);
+    /// <summary>CBuilding::InitRenderThing: "&lt;mesh&gt;.msh" and its rubble "&lt;rubble&gt;.msh" (RTID 4, CRTBuilding).</summary>
+    public override void InitRenderThing(InitThing init) =>
+        RenderThing = MakeMeshRenderThing([.. init.Stats!.Mesh!, .. ".msh"u8.ToArray()]);
 
     public override void Init(InitThing init)
     {
@@ -231,7 +232,10 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
         init.InitCst.MaxCollision = CollisionLevel.ApproxGeometryShapes;
         base.Init(init);
         Context.Skip("CAirGuide");
-        Context.Skip("CPlaneAI constructor (its mode is taken as not launched)");
+        // CPlaneAI's mode is 2 (launched) only for a plane a unit spawned with an emitter to follow (CUnitAI::Unknown7);
+        // every plane the world file places starts in mode 0 or 1. Spawned planes take the launch branch once spawners
+        // and the AI are ported.
+        Context.Skip("CPlaneAI constructor (a placed plane: not launched)");
         SetAnimMode(AnimModeByName("launch"), true, true);
         WingState = 1;
         LaunchTime = 0;

@@ -35,7 +35,7 @@ public sealed class UnitWeaponInstance(int index, int type, int mount)
 }
 
 /// <summary>CUnit: a unit with physics-script data, weapons, AI, life and shields.</summary>
-public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
+public abstract partial class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
 {
     public UnitData? UnitData;
     public float Life = 1.0f;
@@ -53,6 +53,9 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
     public float UnknownEC;
     public float UnknownF4;
 
+    /// <summary>mUnknown220: the barrel part the pitch turns.</summary>
+    public MeshPart? Unknown220;
+
     /// <summary>mUnknown224: one of the weapons turns a barrel.</summary>
     public bool HasBarrel;
 
@@ -65,8 +68,8 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
     public object? AI;
 
-    /// <summary>mSquad: the squad the unit belongs to (set before Init by the squad that spawns it).</summary>
-    public ComplexThing? Squad;
+    /// <summary>mSquad: the squad the unit belongs to (null during its own Init when a squad spawns it; SetSquad after).</summary>
+    public Squad? Squad;
 
     /// <summary>mSegments: a building's destructable segments controller (not ported; its presence only).</summary>
     public bool HasSegments;
@@ -109,7 +112,11 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
         }
     }
 
-    /// <summary>The mesh a unit's CRTMesh shows (CUnit::Init's SpawnRenderThing for every behaviour but buildings).</summary>
+    /// <summary>
+    /// CRTMesh::Init's CMesh::GetMesh(name): the loaded mesh whose own name matches, ignoring case. Retail loads the mesh
+    /// file from disk when the level's resource file lacks it ("not found in level resource file"); that never happens
+    /// for a complete resource file, so it throws here.
+    /// </summary>
     protected RenderThing? MakeMeshRenderThing(byte[]? meshName)
     {
         if (meshName is null)
@@ -118,14 +125,9 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
         }
 
         string name = Encoding.ASCII.GetString(meshName);
-        if (name.EndsWith(".msh", StringComparison.OrdinalIgnoreCase))
-        {
-            name = name[..^4];
-        }
-
         if (!Context.Meshes.TryGetValue(name, out MeshData? mesh))
         {
-            throw new InvalidOperationException($"mesh '{name}' is not loaded");
+            throw new InvalidOperationException($"mesh '{name}' is not in the level resource file");
         }
 
         return new RenderThing(Context, mesh, this);
@@ -167,7 +169,8 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
                         {
                             HasBarrel = true;
                             weapon.TurnsBarrel = true;
-                            Context.Skip("CEulerAngles(FMatrix) pitch of the barrel part (mUnknownF4)");
+                            UnknownF4 = EulerAngles.FromMatrix(part.Orientation).Pitch;
+                            Unknown220 = part;
                         }
 
                         part = part.Parent;

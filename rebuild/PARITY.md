@@ -58,6 +58,20 @@ Porting notes for the parity core:
   (`HeightField.Normal`; off the map it returns retail's (0, 0, 1)).
 - Float expressions keep the decompilation's association order. With float operands at 24-bit precision control,
   C# float arithmetic in the same order gives retail's bits; double operands go through `X87`.
+- The C runtime's `rand()` does not reach the probes in level 100: retail's callers over the 10,000-Present
+  golden-640 run (C's detour on `rand`, 348,459 calls) are the particle descriptors (render-paced, about 342,000),
+  `CSnow::Init` at load (4,100) and `CSoundManager::PlayEffect` (26, sound parameters only). `CrtRand` must still be
+  exact, in per-Present order, for render captures and sound. This holds per level: rerun the detour on each new
+  level before relying on it.
+- The mesh port (`Mesh/`) covers the resource-file reader (`CMesh::Deserialize`, the level's packed `m_*.aya` mesh
+  files), not `CMesh::InitFromMem` (loose `.msh` files, versions 2.01-2.07, with its inline quaternion helper). A
+  complete level resource file never takes that path; if a later milestone needs it, check its quaternion helper's
+  compiled evaluation on the real FPU first.
+- Loading-screen Presents are harness-dependent: CConsole::RenderLoadingScreen presents only when GetSysTimeFloat()
+  has moved 0.05 s, and under the replay shim time moves only at a Present or a spin escape (2,000,000 timer calls), so
+  the Present count of a loading segment (boot, level load) depends on how often the loading code polls the timers.
+  Those counts are observed constants from the retail runs; exact modelling starts at the first front-end Process or
+  the first MainLoop (lead's rule, 2026-10-15). No draw comes from timer polling, so the RNG is unaffected.
 - `.aya` positions such as the world's resource offset are positions in the decompressed stream (a packed file
   cannot seek, so `InitFromFile`'s start skip becomes a `Skip` after the first block).
 
