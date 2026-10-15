@@ -93,7 +93,8 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
             if (FirstGoodie && NumShown > 0 && x[0] >= 0.45f)
             {
                 FirstGoodie = false;
-                box.Create(0, 10, false, MessageBoxOption.Ok, 0);
+                // TEXT id 0x37416e9: the first goodie's explanation.
+                frontEnd.ShowMessage(320f, 270f, 350f, t => t.ById(0x37416e9), 0, 10, MessageBoxOption.Ok, 0);
                 box.SetOnDismiss(FrontEndPage.None, 0);
             }
             bool fast = frontEnd.Clock.GetSysTimeFloat() < FastUntil;

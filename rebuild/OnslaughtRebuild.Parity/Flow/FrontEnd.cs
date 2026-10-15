@@ -234,6 +234,23 @@ public sealed class FrontEnd : IButtonReceiver
     /// <inheritdoc cref="SmallFont"/>
     public Text.FrontEndTexts? Texts { get; set; }
 
+    /// <summary>The normal font (<c>FONT_NORMAL</c>, font22.512), from the host; the message box's buttons are measured in it.</summary>
+    public Text.BitmapFont? NormalFont { get; set; }
+
+    /// <summary>
+    /// Opens the message box with its layout when the host supplied the fonts and texts (then its render takes mouse
+    /// clicks), else without. <paramref name="text"/> is read only when the layout is made, as retail reads it as
+    /// Create's argument.
+    /// </summary>
+    public void ShowMessage(float x, float y, float width, Func<Text.FrontEndTexts, string> text, uint timeout, uint fadeTime,
+        MessageBoxOption option, int question)
+    {
+        if (SmallFont is { } small && NormalFont is { } normal && Texts is { } texts)
+            MessageBox.Create(x, y, width, text(texts), small, normal, timeout, fadeTime, false, option, question);
+        else
+            MessageBox.Create(timeout, fadeTime, false, option, question);
+    }
+
     /// <summary>The front end's video player, from the host.</summary>
     public IFrontEndVideo? Video { get; set; }
 
@@ -646,9 +663,8 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>
     /// <c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time; when the scene starts, the
     /// pages' render logic (in a transition the higher-numbered page first, the arriving page at the transition's
-    /// fraction and the leaving one at its complement; otherwise the active page at 1); then one Present.
-    /// Not modelled: the common page's render (drawing) and the message box's render (its yes/no mouse handling hit-tests
-    /// the laid-out text, so it comes with the font metrics).
+    /// fraction and the leaving one at its complement; otherwise the active page at 1), then the message box's (when the
+    /// host supplied the normal font and texts); then one Present. The common page's render is drawing only.
     /// </summary>
     private bool Render()
     {
@@ -678,6 +694,7 @@ public sealed class FrontEnd : IButtonReceiver
             {
                 this[ActivePage].Render(1f, FrontEndPage.None);
             }
+            if (NormalFont is { } normal && Texts is { } texts) MessageBox.Render(normal, texts);
         }
         Clock.Present();
         return started;

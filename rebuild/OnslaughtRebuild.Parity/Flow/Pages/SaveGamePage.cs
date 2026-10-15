@@ -3,6 +3,7 @@
 
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Numerics;
+using Fet = OnslaughtRebuild.Parity.Text.FrontEndText;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
 
@@ -135,7 +136,18 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
 
     private void Show(uint timeout, MessageBoxOption option, int question, Text text)
     {
-        frontEnd.MessageBox.Create(timeout, 10, false, option, question);
+        // The boxes that take clicks get their layout (FEPSaveGame.cpp's Create calls); the timed "saved" box has none.
+        float width = text is Text.TooManySaves or Text.Overwrite ? 300f : 400f;
+        Func<OnslaughtRebuild.Parity.Text.FrontEndTexts, string>? source = text switch
+        {
+            Text.CouldNotDelete => t => t.PcText(0x76),
+            Text.TooManySaves => t => t.GetText(Fet.TooManySaves),
+            Text.Overwrite => t => t.GetText(Fet.OverwriteSaveGame),
+            Text.SaveError => t => t.GetText(Fet.SaveError),
+            _ => null,
+        };
+        if (source is null) frontEnd.MessageBox.Create(timeout, 10, false, option, question);
+        else frontEnd.ShowMessage(320f, 240f, width, source, timeout, 10, option, question);
         LastText = text;
     }
 
