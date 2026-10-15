@@ -155,6 +155,35 @@ public sealed class ClockTests
         }
     }
 
+    /// <summary>
+    /// C's per-Present retail run of level 100 (golden-640: -level 100 -skipfmv -forcewindowed -res 640 480, probes
+    /// after every Present 1..3400): the level is taken and its base time read after Present 2, PreRun's 60 ticks run in
+    /// the same gap, Present 3 is the loading screen at 100% (EVT 3.0, FT 0) and MainLoop starts with Present 4.
+    /// </summary>
+    [RetailFileFact("golden-640/level100.perpresent-3400.probes")]
+    public void Level100PerPresentEventTimeFrameTimeAndLevelMatchEveryPresent()
+    {
+        // The RNG probe reads "null" before the stream exists; the clock run does not model it.
+        string text = string.Join('\n', File.ReadAllLines(RetailData.File("golden-640/level100.perpresent-3400.probes"))
+            .Where(l => !l.Contains(" RNG ", StringComparison.Ordinal))) + "\n";
+        ProbeTrace golden = ProbeTrace.Parse(text);
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 2, levelStartPresent: 2);
+        var ours = new ProbeTrace();
+        while (sim.PresentCount < 3_400)
+        {
+            sim.AdvanceToNextPresent();
+            sim.ReadProbes(sim.PresentCount, ours);
+        }
+
+        TraceComparison comparison = TraceComparison.Compare(golden, ours);
+        foreach (string name in new[] { ProbeCatalog.EventTime, ProbeCatalog.FrameTime, ProbeCatalog.Level })
+        {
+            ProbeComparison probe = comparison.Probes.Single(p => p.Name == name);
+            Assert.True(probe.Exact, $"{name}: {probe}");
+            Assert.Equal(3_400, probe.ReferenceSamples);
+        }
+    }
+
     private static double PresentsPerTwoTicks(List<int> renderCounts) => 2.0 * renderCounts.Sum() / renderCounts.Count;
 
     /// <summary>num / den rounded once to a 24-bit significand, ties to even (positive values).</summary>
@@ -178,5 +207,17 @@ public sealed class ClockTests
         }
 
         return (float)Math.ScaleB((double)kept, e + extra);
+    }
+}
+
+/// <summary>A <see cref="RetailDataFactAttribute"/> that also needs one file of the retail data.</summary>
+public sealed class RetailFileFactAttribute : FactAttribute
+{
+    public RetailFileFactAttribute(string relative)
+    {
+        if (RetailData.Root is null || !File.Exists(RetailData.File(relative)))
+        {
+            Skip = $"retail parity data file {relative} not found (set ONSLAUGHT_PARITY_DATA)";
+        }
     }
 }

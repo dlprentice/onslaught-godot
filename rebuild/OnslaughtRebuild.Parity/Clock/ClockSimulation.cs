@@ -31,14 +31,25 @@ public sealed class ClockSimulation : IParitySimulation
     private IEnumerator<int>? _mainLoop;
     private bool _levelStarted;
 
-    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent)
+    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent, long runLevelPresent = 2)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(runLevelPresent, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, runLevelPresent);
         ArgumentOutOfRangeException.ThrowIfLessThan(levelStartPresent, baseReadPresent);
+        Level = level;
+        RunLevelPresent = runLevelPresent;
         BaseReadPresent = baseReadPresent;
         LevelStartPresent = levelStartPresent;
-        _game = new ParityGame(_clock, _events, new NullGameServices(_clock.Present)) { CurrentLevel = level };
+        _game = new ParityGame(_clock, _events, new NullGameServices(_clock.Present)) { CurrentLevel = -1 };
     }
+
+    public int Level { get; }
+
+    /// <summary>
+    /// The Present after which CGame takes the level (mCurrentLevel is -1 until then): Present 2 in the per-Present
+    /// retail run of level 100 (C, golden-640), the first of the loading frames when there are any.
+    /// </summary>
+    public long RunLevelPresent { get; }
 
     public long BaseReadPresent { get; }
 
@@ -64,6 +75,11 @@ public sealed class ClockSimulation : IParitySimulation
                 if (_clock.PresentCount == 1)
                 {
                     _clock.GetSysTimeFloat(); // the boot's first call: CPCPlatform's first_seen
+                }
+
+                if (_clock.PresentCount == RunLevelPresent)
+                {
+                    _game.CurrentLevel = Level;
                 }
 
                 if (_clock.PresentCount == BaseReadPresent)
