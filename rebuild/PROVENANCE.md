@@ -125,6 +125,7 @@ package licence expression is `GPL-3.0-only`.
 | `Physics/SpawnerData.cs` (CSpawnerData: constructor, SetThingName, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/BattleEngineData.cs` (CBattleEngineData, UBattleEngineDataManager, UBattleEngineConfigurations::GetConfiguration) | `src/BattleEngineDataManager.h`, `src/BattleEngineDataManager.cpp`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
 
 ## Authority
 
