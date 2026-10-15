@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FrontEnd.cpp, src/frontend.h and src/FrontEndPage.h (CFrontEnd, CFrontEndPage).
 
+using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Platform;
 
@@ -70,19 +71,6 @@ public sealed class InertPage : FrontEndPageBase
 {
 }
 
-/// <summary>
-/// The clock and Present counter the flow runs on. A stand-in for the parity platform clock (rebuild Parity/Clock, M2):
-/// <see cref="GetSysTimeFloat"/> is CPCPlatform's float time, <see cref="QueryPerformanceCounter"/> the counter the
-/// frame timer reads, and <see cref="Present"/> is the only call that advances the counter and, on the shim's clock, time.
-/// </summary>
-public interface IFlowClock
-{
-    float GetSysTimeFloat();
-    long QueryPerformanceCounter();
-    void Present();
-    long PresentCount { get; }
-}
-
 /// <summary>A button action delivered to the front end by a controller's flush (<c>CFrontEnd::ReceiveButtonAction</c>).</summary>
 public readonly record struct FrontEndButton(int Port, int Button, float Value);
 
@@ -141,7 +129,7 @@ public sealed class FrontEnd : IButtonReceiver
 
     private readonly FrontEndPageBase[] _pages = new FrontEndPageBase[(int)FrontEndPage.PageCount];
 
-    public FrontEnd(IFlowClock clock, FrontEndTiming timing, ControllerContext controls)
+    public FrontEnd(PlatformClock clock, FrontEndTiming timing, ControllerContext controls)
     {
         Clock = clock;
         Timing = timing;
@@ -150,7 +138,7 @@ public sealed class FrontEnd : IButtonReceiver
         for (int page = 0; page < _pages.Length; page++) _pages[page] = new InertPage();
     }
 
-    public IFlowClock Clock { get; }
+    public PlatformClock Clock { get; }
     public FrontEndTiming Timing { get; }
     public ControllerContext Controls { get; }
     public PlatformInput Platform => Controls.Input;
@@ -198,6 +186,12 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary><c>CFrontEnd::SetLanguage</c> (0x00466ab0): the text set changes; the options page's cached text is presentation.</summary>
     public void SetLanguage(int language) => Language = language;
 
+    /// <summary>The process's C runtime random state (one per process, shared with the simulation), from the host.</summary>
+    public Crt.CrtRand? Crt { get; set; }
+
+    /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
+    public string SaveGameName { get; set; } = "";
+
     /// <summary>The storage-device page (<c>mFEPDevSelect</c>), once registered.</summary>
     public Pages.DevSelectPage? DevSelect { get; set; }
 
@@ -209,6 +203,9 @@ public sealed class FrontEnd : IButtonReceiver
 
     /// <summary>Forgets player 0's port (the intro page does this on entry).</summary>
     public void ForgetPlayer0() => Player0Port = -1;
+
+    /// <summary><c>RECONNECT_INTERFACE</c>: player 0's and player 1's controller-reconnect prompts.</summary>
+    public ReconnectInterface[] Reconnect { get; } = [new(), new()];
 
     /// <summary>The sounds the front end plays (<c>EFrontEndSound</c>); recorded for the host, not modelled further.</summary>
     public List<FrontEndSound> SoundsPlayed { get; } = [];
@@ -238,20 +235,23 @@ public sealed class FrontEnd : IButtonReceiver
     /// The part of <c>CFrontEnd::Init</c> (0x004662a0) that sets up the page machine's run: a controller per port with
     /// the front end as the controlled object, the input buffers flushed, the counter, quit and render time reset, and
     /// the start page entered. The caller decides the start page and then runs the loop with the front end marked
-    /// running (<c>gInFrontEnd</c>).
+    /// running (<c>gInFrontEnd</c>). Returns false, as <c>Init</c> does, when any page's <c>Init</c> failed; every page
+    /// still initialises first (<c>ok &amp;= Init()</c>).
     /// </summary>
-    public void Begin(FrontEndPage startPage)
+    public bool Begin(FrontEndPage startPage)
     {
-        // Every page initialises, in page order, before the controllers exist.
-        foreach (FrontEndPageBase page in _pages) page.Init();
+        bool ok = true;
+        foreach (FrontEndPageBase page in _pages) ok &= page.Init();
+        if (!ok) return false;
+        SupervisorMode = true;
         for (int port = 0; port < ControllerPorts; port++) Controllers[port] = new Controller(port, 1, this);
         Platform.FlushInputBuffers();
-        SupervisorMode = true;
         Counter = 0f;
         Quit = QuitRunning;
         LastRenderTime = -100f;
         Enter(startPage);
         Platform.Window.FrontEndRunning = true;
+        return true;
     }
 
     /// <summary>
@@ -367,7 +367,8 @@ public sealed class FrontEnd : IButtonReceiver
     /// the controllers flush and deliver their button actions, the frame step is filtered from the clock, a transition
     /// in progress advances (and completes once it reaches its time), every page processes in page order, and the
     /// message box processes. Not modelled: the event manager, particles, sound, music and video updates
-    /// (presentation), the inactivity quit (playable demo only) and the reconnect interface (always connected on PC).
+    /// (presentation), the inactivity quit (playable demo only), and the second player's reconnect check on the
+    /// multiplayer start page (not ported).
     /// </summary>
     public void Process(bool platformQuit = false)
     {
@@ -379,6 +380,9 @@ public sealed class FrontEnd : IButtonReceiver
         if (platformQuit) Quit = QuitToSystem;
 
         foreach (Controller? controller in Controllers) controller?.Flush(Controls);
+
+        // A disconnected player 0 holds the front end until the controller is back.
+        if (Player0Port != -1 && !Reconnect[0].Process() && Reconnect[0].State != ReconnectState.Ok) return;
 
         Timing.Update(Clock.GetSysTimeFloat());
 
@@ -431,6 +435,43 @@ public sealed class FrontEnd : IButtonReceiver
         bool started = BeginScene();
         Clock.Present();
         return started;
+    }
+}
+
+/// <summary><c>CReconnectInterface::EState</c>.</summary>
+public enum ReconnectState
+{
+    Ok = 0,
+    Disconnected = 1,
+    Reconnected = 2,
+    Resuming = 3,
+}
+
+/// <summary>
+/// <c>CReconnectInterface</c> (reconnectinterface.cpp): the prompt to reconnect a removed controller. PC controllers are
+/// never removed, so on PC its state only ever goes back to <see cref="ReconnectState.Ok"/>.
+/// </summary>
+public sealed class ReconnectInterface
+{
+    public ReconnectState State { get; private set; }
+
+    /// <summary><c>Reset</c> (0x00527960).</summary>
+    public void Reset(ReconnectState state) => State = state;
+
+    /// <summary><c>Process</c> (0x00527c50): true once the player has pressed start after reconnecting.</summary>
+    public bool Process()
+    {
+        switch (State)
+        {
+            case ReconnectState.Disconnected:
+                State = ReconnectState.Reconnected;
+                return false;
+            case ReconnectState.Resuming:
+                // The interface takes control only after a disconnection, which a PC controller never has.
+                throw new NotSupportedException("Resuming from a controller disconnection is not ported (PC controllers never disconnect).");
+            default:
+                return false;
+        }
     }
 }
 

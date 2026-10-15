@@ -9,6 +9,11 @@ namespace OnslaughtRebuild.Parity.Flow.Pages;
 /// The title page (<c>CFEPIntro</c>): select or a click anywhere goes to the main menu; 30 seconds idle quits the front
 /// end to the attract videos. Entering it forgets player 0's port.
 /// </summary>
+/// <remarks>
+/// Not modelled: question 0's answer, which sets the stress-test switch and quits to the attract videos (no caller that
+/// asks question 0 on this page is identified), and the render's splash easing and title flash (presentation;
+/// <c>Render</c> 0x0051b840, unverified). <c>mUnknown10</c> is written but never read, so it is left out.
+/// </remarks>
 public sealed class IntroPage(FrontEnd frontEnd) : FrontEndPageBase
 {
     /// <summary><c>mUnknown0c</c>: while set, select does nothing and the idle timer stands still.</summary>
@@ -68,11 +73,13 @@ public sealed class IntroPage(FrontEnd frontEnd) : FrontEndPageBase
         frontEnd.ProcessMouseClickInRect(0f, 0f, width, width, FrontEndButtons.MenuSelect);
     }
 
-    /// <summary><c>CFEPIntro::TransitionNotification</c> (0x0051be70): the timers restart and player 0 is forgotten.</summary>
+    /// <summary><c>CFEPIntro::TransitionNotification</c> (0x0051be70): the timers restart, player 0 is forgotten and both reconnect prompts reset.</summary>
     public override void TransitionNotification(FrontEndPage from)
     {
         StartTime = frontEnd.Clock.GetSysTimeFloat();
         frontEnd.ForgetPlayer0();
+        frontEnd.Reconnect[0].Reset(ReconnectState.Ok);
+        frontEnd.Reconnect[1].Reset(ReconnectState.Ok);
         PressStart = 0f;
     }
 }
