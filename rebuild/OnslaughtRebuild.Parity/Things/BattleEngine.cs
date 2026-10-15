@@ -32,11 +32,8 @@ public enum BattleEngineState
 /// CBattleEngine: the player's machine. Init and the two targeting events are ported as far as they draw and schedule;
 /// the walker and jet parts, weapons, cockpit, sounds and targeting maths are counted as not ported.
 /// </summary>
-public sealed class BattleEngine(ThingContext context) : Unit(context, Oid.BattleEngine)
+public sealed partial class BattleEngine(ThingContext context) : Unit(context, Oid.BattleEngine)
 {
-    /// <summary>CBattleEngine::Move (004081c0, which calls CActor::Move directly): not ported yet (counted).</summary>
-    public override void Move() => Context.Skip("CBattleEngine::Move (004081c0; the movement is not ported yet)");
-
     public int ConfigurationId;
     public BattleEngineData? Configuration;
     public BattleEngineState State;
@@ -82,7 +79,7 @@ public sealed class BattleEngine(ThingContext context) : Unit(context, Oid.Battl
         ConfigurationId = init.ConfigurationId;
         Configuration = null;
         UpdateConfiguration();
-        Context.Skip("CBattleEngineWalkerPart and CBattleEngineJetPart");
+        InitMovement();
         Life = Configuration!.Life;
         Energy = Configuration.Energy;
         if (init.PlaneMode != 0)
@@ -113,6 +110,7 @@ public sealed class BattleEngine(ThingContext context) : Unit(context, Oid.Battl
         Zoom = 1.0f;
         PoweredUp = true;
         ShieldRegeneration = 0;
+        InitMovementAfterUnit();
         Context.Skip("CBattleEngine::MassiveHackPutUsInRightMesh");
         Context.Events.AddEvent(BattleEngineEvent.CalcUnitOverCrosshair, this,
             Context.Events.Time + (Context.Random.FloatRandom() * 0.2f) + 0.1f);

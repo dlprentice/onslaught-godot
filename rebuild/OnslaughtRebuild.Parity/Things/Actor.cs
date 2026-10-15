@@ -113,7 +113,10 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
     /// <summary>DeclareOnGround (virtual: the dropship overrides it).</summary>
     public virtual void DeclareOnGround() => LastTimeOnGround = Context.Events.Time;
 
-    public void DeclareInWater() => LastTimeInWater = Context.Events.Time;
+    public virtual void DeclareInWater() => LastTimeInWater = Context.Events.Time;
+
+    /// <summary>CActor::DeclareOnObject (00402020).</summary>
+    public virtual void DeclareOnObject(Thing? onObject) => LastTimeOnObject = Context.Events.Time;
 
     /// <summary>
     /// CActor::Move: the old place, the velocity added, then down to the ground (sliding along it with TF_SLIDE, else on
@@ -122,7 +125,10 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
     /// lags its move by one). The slide's dot product is compiled (n.Z*v.Z + n.Y*v.Y) + n.X*v.X (00401760..00401778).
     /// The developer-mode speed warning is off.
     /// </summary>
-    public virtual void Move()
+    public virtual void Move() => ActorMove();
+
+    /// <summary>CActor::Move itself, for a class whose Move calls it past its parents' (CBattleEngine's).</summary>
+    protected void ActorMove()
     {
         LastMoveTime = Context.Events.Time;
         OldPos = Pos;

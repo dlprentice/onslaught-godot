@@ -69,6 +69,30 @@ public struct FMatrix
         new FVector(Row0.Y, Row1.Y, Row2.Y),
         new FVector(Row0.Z, Row1.Z, Row2.Z));
 
+    /// <summary>
+    /// FMatrix::MakeRotation(SINT yaw, SINT pitch, SINT roll) (004f8140, in Unit.cpp): angles in 4096ths of a turn; the
+    /// roll's matrix, then the pitch's times it, then the yaw's times that. With zero angles the -sin(0) entries leave
+    /// signed zeros (Row0.Y is +0, so CEulerAngles of it has a -0 yaw).
+    /// </summary>
+    public static FMatrix MakeRotation(int yaw, int pitch, int roll)
+    {
+        const float Step = 6.28318530717958f / 4096;
+        float r = roll * Step;
+        float sr = (float)X87.Sin(r);
+        var m = new FMatrix(new FVector((float)X87.Cos(r), 0.0f, sr), new FVector(0.0f, 1.0f, 0.0f),
+            new FVector(-(float)X87.Sin(r), 0.0f, (float)X87.Cos(r)));
+        float pa = pitch * Step;
+        float cp = (float)X87.Cos(pa);
+        float sp = (float)X87.Sin(pa);
+        var p = new FMatrix(new FVector(1.0f, 0.0f, 0.0f), new FVector(0.0f, cp, -(float)X87.Sin(pa)),
+            new FVector(0.0f, sp, (float)X87.Cos(pa)));
+        m = p.Multiply(m);
+        float yw = yaw * Step;
+        p = new FMatrix(new FVector((float)X87.Cos(yw), -(float)X87.Sin(yw), 0.0f),
+            new FVector((float)X87.Sin(yw), (float)X87.Cos(yw), 0.0f), new FVector(0.0f, 0.0f, 1.0f));
+        return p.Multiply(m);
+    }
+
     /// <summary>operator*(FMatrix).</summary>
     public readonly FMatrix Multiply(FMatrix m) => new(
         new FVector((Row0.X * m.Row0.X) + (Row0.Y * m.Row1.X) + (Row0.Z * m.Row2.X),

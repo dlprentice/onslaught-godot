@@ -144,6 +144,11 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     /// <summary>CUnit::Init.</summary>
     public override void Init(InitThing init)
     {
+        // ori.MakeRotation(0, 0, 0), then CEulerAngles(ori) into the current orientation and mUnknown12C: the identity
+        // gives -0 yaw and roll (Unit.cpp:88..91).
+        FMatrix identity = FMatrix.MakeRotation(0, 0, 0);
+        CurrentOrientation = EulerAngles.FromMatrix(identity);
+        Unknown12C = EulerAngles.FromMatrix(identity);
         init.InitCst.IgnoreThing = init.SpawnedBy;
         UnitData = init.Stats;
         HasBarrel = false;

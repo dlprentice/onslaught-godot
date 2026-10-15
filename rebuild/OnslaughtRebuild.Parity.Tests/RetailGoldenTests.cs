@@ -48,6 +48,9 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The Presents our level-100 run matches so far (raised as it reaches further; never lowered).</summary>
     private const int RandomStreamMatchedFloor = 187;
 
+    /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
+    private const int BattleEngineMatchedFloor = 187;
+
     /// <summary>
     /// Level 100's random stream against retail's at every Present (level100.perpresent-3600.probes: RNG is the
     /// stream's mValue and mSeed, EVT the event manager's time). Each retail Present is matched to our state after the
@@ -148,6 +151,41 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         ("mUnknown120", 0x120, b => Words(b.Unknown120)),
         ("mUnknown12C", 0x12c, b => Words(b.Unknown12C)),
         ("mZoom", 0x2c8, b => Words(b.Zoom)),
+        ("mOrientation.Row0", 60, b => Words(b.Orientation.Row0)),
+        ("mOrientation.Row1", 76, b => Words(b.Orientation.Row1)),
+        ("mOrientation.Row2", 92, b => Words(b.Orientation.Row2)),
+        ("mShields", 256, b => Words(b.Shields)),
+        ("mState", 608, b => [(uint)StateNumber(b.State)]),
+        ("mYawvel/Rollvel/Pitchvel", 632, b => Words(b.Yawvel, b.Rollvel, b.Pitchvel)),
+        ("mDesiredZoom/OldZoom", 716, b => Words(b.DesiredZoom, b.OldZoom)),
+        ("mOldLife..mZoomOutTime", 728, b => Words(b.OldLife, b.OldEnergy, b.LowArmourStartTime, b.LowEnergyStartTime, b.DangerStartTime, b.ZoomOutTime)),
+        ("mTakeOffTime/AugValue", 756, b => Words(b.TakeOffTime, b.AugValue)),
+        ("mNotMovingCount", 784, b => [(uint)b.NotMovingCount]),
+        ("mInSafeCollisionPlace", 788, b => [b.InSafeCollisionPlace ? 1u : 0u]),
+        ("mSafePosTime", 1112, b => Words(b.SafePosTime)),
+        ("mCurrentSafeTry/Cloaked", 1192, b => [(uint)b.CurrentSafeTry, b.Cloaked ? 1u : 0u]),
+        ("mShakes", 1208, b => Words(b.YawShake, b.PitchShake, b.RollShake, b.ShakeR)),
+        ("mPlayed*Sound", 1300, b => Words(b.PlayedIncomingWarheadSound, b.PlayedAmmunitionDepletedSound, b.PlayedWeaponOverheatedSound)),
+        ("mStoreValue", 1324, b => Words(b.StoreValue)),
+        ("mPoweredUp", 1408, b => [b.PoweredUp ? 1u : 0u]),
+        ("mOldEulerAngles", 1424, b => Words(b.OldEulerAngles)),
+        ("mStealth/DesiredStealth", 1496, b => Words(b.Stealth, b.DesiredStealth)),
+        ("mVibration..WeaponOverheatedTime", 1540, b => Words(b.Vibration, b.AmmoDepletedTime, b.WeaponOverheatedTime)),
+        ("mEngineState/Old/ThrustersOn", 1584, b => [(uint)b.EngineState, (uint)b.OldEngineState, b.ThrustersOn ? 1u : 0u]),
+    ];
+
+    /// <summary>EBattleEngineState's values: the C# enum keeps retail's order.</summary>
+    private static int StateNumber(BattleEngineState state) => (int)state;
+
+    /// <summary>CBattleEngineWalkerPart's fields (76 bytes, BEW), as the parity core models them.</summary>
+    private static readonly (string Name, int Offset, Func<BattleEngine, uint[]> Ours)[] WalkerFields =
+    [
+        ("mCurrentWeapon", 16, b => [(uint)b.WalkerPart!.CurrentWeapon]),
+        ("mShieldsRecharging", 20, b => [b.WalkerPart!.ShieldsRecharging ? 1u : 0u]),
+        ("mWalkCycle/OldWalkCycle", 36, b => Words(b.WalkerPart!.WalkCycle, b.WalkerPart.OldWalkCycle)),
+        ("mLastStartHard*Time", 44, b => Words(b.WalkerPart!.LastStartHardRightTime, b.WalkerPart.LastStartHardLeftTime, b.WalkerPart.LastStartHardForwardTime, b.WalkerPart.LastStartHardBackwardTime)),
+        ("mLastMoveX/YVal", 60, b => Words(b.WalkerPart!.LastMoveXVal, b.WalkerPart.LastMoveYVal)),
+        ("mDoingDashCount", 68, b => [(uint)b.WalkerPart!.DoingDashCount]),
     ];
 
     /// <summary>
@@ -161,9 +199,10 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     {
         (ThingContext context, ParityGame game) = LevelLoadTests.Level100Run();
         var engine = (BattleEngine)game.GetPlayer(0)!.BattleEngine!;
+        var tables = new[] { ("BEO", BattleEngineFields), ("BEW", WalkerFields) };
         var states = new Dictionary<uint, (int Update, uint[][] Fields)>();
         void Record(int u) => states[BitConverter.SingleToUInt32Bits(context.Events.Time)] =
-            (u, [.. BattleEngineFields.Select(f => f.Ours(engine))]);
+            (u, [.. tables.SelectMany(t => t.Item2).Select(f => f.Ours(engine))]);
         Record(0);
         int update = 0;
         string stopped = "ran to retail's last probe";
@@ -183,58 +222,67 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             Record(update);
         }
 
-        var firstDifference = new string?[BattleEngineFields.Length];
+        var all = tables.SelectMany(t => t.Item2.Select(f => (Probe: t.Item1, f.Name, f.Offset))).ToArray();
+        var firstDifference = new string?[all.Length];
         int compared = 0;
-        uint? evt = null;
-        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("level100.beobj-perpresent-3600.probes")!))
+
+        // Each Present's lines start with its BEO, BEW and BEJ and give its EVT after them: read the times first.
+        string path = RetailGolden.File("level100.beobj-perpresent-3600.probes")!;
+        var times = new Dictionary<int, uint>();
+        foreach (string line in System.IO.File.ReadLines(path))
         {
             string[] f = line.Split(' ');
-            if (f.Length != 4 || f[0] != "P" || f[3] == "null")
+            if (f.Length == 4 && f[0] == "P" && f[2] == "EVT" && f[3] != "null")
+            {
+                times[int.Parse(f[1])] = BitConverter.ToUInt32(Convert.FromHexString(f[3]));
+            }
+        }
+
+        var counted = new HashSet<int>();
+        foreach (string line in System.IO.File.ReadLines(path))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length != 4 || f[0] != "P" || f[2] is not ("BEO" or "BEW") || f[3] == "null")
             {
                 continue;
             }
 
-            if (f[2] == "EVT")
+            int present = int.Parse(f[1]);
+            if (!times.TryGetValue(present, out uint evt) || !states.TryGetValue(evt, out (int Update, uint[][] Fields) ours))
             {
-                evt = BitConverter.ToUInt32(Convert.FromHexString(f[3]));
-                continue;
-            }
-
-            if (f[2] != "BEO" || evt is null)
-            {
-                continue;
-            }
-
-            if (!states.TryGetValue(evt.Value, out (int Update, uint[][] Fields) ours))
-            {
-                stopped += $"; retail's Present {f[1]} is past our run";
+                stopped += $"; retail's Present {present} is past our run";
                 break;
             }
 
             byte[] retail = Convert.FromHexString(f[3]);
-            for (int k = 0; k < BattleEngineFields.Length; k++)
+            for (int k = 0; k < all.Length; k++)
             {
-                if (firstDifference[k] is not null)
+                if (all[k].Probe != f[2] || firstDifference[k] is not null)
                 {
                     continue;
                 }
 
                 uint[] mine = ours.Fields[k];
-                uint[] theirs = [.. Enumerable.Range(0, mine.Length).Select(j => BitConverter.ToUInt32(retail, BattleEngineFields[k].Offset + (4 * j)))];
+                uint[] theirs = [.. Enumerable.Range(0, mine.Length).Select(j => BitConverter.ToUInt32(retail, all[k].Offset + (4 * j)))];
                 if (!mine.SequenceEqual(theirs))
                 {
-                    firstDifference[k] = $"Present {f[1]} (U{ours.Update}): retail {string.Join(' ', theirs.Select(x => x.ToString("x8")))}, ours {string.Join(' ', mine.Select(x => x.ToString("x8")))}";
+                    firstDifference[k] = $"Present {present} (U{ours.Update}): retail {string.Join(' ', theirs.Select(x => x.ToString("x8")))}, ours {string.Join(' ', mine.Select(x => x.ToString("x8")))}";
                 }
             }
 
-            compared++;
-            evt = null;
+            if (counted.Add(present))
+            {
+                compared++;
+            }
         }
 
         output.WriteLine($"{stopped}; {compared} Presents compared");
-        for (int k = 0; k < BattleEngineFields.Length; k++)
+        for (int k = 0; k < all.Length; k++)
         {
-            output.WriteLine($"{BattleEngineFields[k].Name,-22} {firstDifference[k] ?? "matches throughout"}");
+            output.WriteLine($"{all[k].Probe} {all[k].Name,-34} {firstDifference[k] ?? "matches throughout"}");
         }
+
+        Assert.True(compared >= BattleEngineMatchedFloor, $"{compared} Presents compared, below {BattleEngineMatchedFloor}");
+        Assert.All(firstDifference, d => Assert.Null(d));
     }
 }
