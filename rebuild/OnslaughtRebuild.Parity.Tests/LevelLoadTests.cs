@@ -117,4 +117,26 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
 
         output.WriteLine($"base world 1: {ours.Count} draws, {ourNonTree.Count} outside trees, all at retail's numbers and sites");
     }
+
+    [GameDataFact]
+    public void TheBaseWorldsThingsAreInTheMapWhoAndRadiusQueriesFindThem()
+    {
+        ThingContext context = Level100Context(out LevelResources resources);
+        var loader = new WorldLoader(context, resources, new StandInSpawner(context));
+        loader.Load(1, isBase: true);
+
+        List<Thing> things = context.World.Things.ToList();
+        Assert.All(things.Where(t => (t.Flags & ThingFlags.InMapWho) != 0), t => Assert.InRange(t.MapWhoEntry.SectorIn.Layer, 0, 4));
+        Assert.Equal(13, things.Count(t => (t.Flags & ThingFlags.InMapWho) == 0)); // the influence map's nodes
+        Unit turret = things.OfType<Cannon>().First();
+        var found = new List<Thing>();
+        for (MapWhoEntry? e = context.MapWho.GetFirstEntryWithinRadius(turret.Pos, 1.0f); e is not null;
+             e = context.MapWho.GetNextEntryWithinRadius())
+        {
+            found.Add(e.Thing);
+        }
+
+        Assert.Contains(turret, found);
+        output.WriteLine($"{things.Count} things, {context.World.BigThings.Size} big; {found.Count} near the first turret");
+    }
 }

@@ -81,6 +81,11 @@ public abstract class Thing : Monitor
     /// <summary>mThingType.</summary>
     public uint ThingTypeBits;
 
+    /// <summary>mMapWhoEntry: the thing's place in the map-who grid.</summary>
+    public MapWhoEntry MapWhoEntry => _mapWhoEntry ??= new MapWhoEntry(this);
+
+    private MapWhoEntry? _mapWhoEntry;
+
     /// <summary>mRenderThing: the mesh render thing, when the thing has one.</summary>
     public RenderThing? RenderThing;
 
@@ -120,10 +125,13 @@ public abstract class Thing : Monitor
 
         if ((Flags & ThingFlags.InMapWho) != 0)
         {
-            // mMapWhoEntry.Init, then the big-things test on its sector layer: a big thing joins WORLD's big-things list
-            // (an SPtrSet Append, which takes a node from the shared pool and so moves later free-list order).
-            Context.Skip("CMapWhoEntry::Init (the map-who entry)");
-            Context.Skip("WORLD.GetBigThingsNB().Append when the map-who layer is under USE_BIGLIST_FOR (pool node not taken)");
+            MapWhoEntry.Init(Context.MapWho, Pos, init.ForceRadius);
+            if (MapWhoEntry.SectorIn.Layer < MapWho.UseBigListFor)
+            {
+                Context.World.BigThings.Append(this);
+                Flags |= ThingFlags.IsBigThing;
+            }
+
             InitCollisionSeekingThing(init.InitCst);
         }
 
@@ -270,6 +278,9 @@ public abstract class Thing : Monitor
         }
 
         base.Shutdown();
+
+        // `delete this`: the embedded map-who entry's destructor takes the thing off the grid.
+        _mapWhoEntry?.RemoveFromMap(Context.MapWho);
     }
 
     /// <summary>CThing::HandleEvent.</summary>

@@ -71,4 +71,36 @@ public sealed class HeightFieldTests
 
         Assert.Equal(new FVector(0, 0, 1), h.Normal(new FVector(600, 10, 0)));
     }
+
+    [GameDataFact]
+    public void TheWaterLevelLiesWithinTheTerrainsHeights()
+    {
+        HeightField h = Level100().HeightField;
+        int above = 0, below = 0;
+        float min = float.MaxValue, max = float.MinValue;
+        for (int x = 0; x < 512; x += 2)
+        {
+            for (int y = 0; y < 512; y += 2)
+            {
+                float z = h.Collide(new FVector(x, y, 0));
+                min = MathF.Min(min, z);
+                max = MathF.Max(max, z);
+                if (z < h.WaterLevel)
+                {
+                    above++; // Z points down: smaller is higher, so this ground is above the water
+                }
+                else
+                {
+                    below++;
+                }
+            }
+        }
+
+        Assert.True(above > 0 && below > 0, $"water {h.WaterLevel}, ground {min}..{max}, dry {above}, wet {below}");
+        _output?.WriteLine($"water {h.WaterLevel}, ground {min}..{max}, dry {above}, wet {below}");
+    }
+
+    private readonly Xunit.Abstractions.ITestOutputHelper? _output;
+
+    public HeightFieldTests(Xunit.Abstractions.ITestOutputHelper output) => _output = output;
 }
