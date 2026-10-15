@@ -78,6 +78,8 @@ package licence expression is `GPL-3.0-only`.
 | `Flow/Pages/MainPage.cs` (the main menu) | `src/FEPMain.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/DevSelectPage.cs` (the storage-device page) | `src/FEPDevSelect.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/VirtualKeyboardPage.cs` (the name keyboard) | `src/FEPVirtualKeyboard.cpp`, `src/FEPVirtualKeyboard.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/ReconnectInterface.cs` (the controller-reconnect prompt's state, Reset and Process) | `src/reconnectinterface.cpp`, `src/reconnectinterface.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/SaveGamePage.cs` (the save page: creating and writing the career save, the overwrite question, the cheat codes in the save name) | `src/FEPSaveGame.cpp` (`CFEPSaveGame`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Platform/PlatformInput.cs` (the window's message queue and handling, key state by scan code, KeyOnce and KeyOnceThisFrame) | `src/ltshell.cpp`, `src/ltshell.h` (`PCLTShell::MsgProc`, `HandlingSystemStuff`, key state), `src/PCPlatform.cpp` (`Process`, `KeyOn`, `KeyOnce`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/DirectInputMouse.cs` (the DirectInput mouse polls the level reads) | `src/Controller.cpp` (`InitMouse`, `ShutdownMouse`, `PollMouseMotion`, `PollMouseState`) | GPL-3.0-only (in Stuart's release) |

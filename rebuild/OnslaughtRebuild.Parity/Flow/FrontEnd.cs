@@ -64,6 +64,12 @@ public abstract class FrontEndPageBase
     public virtual void TransitionNotification(FrontEndPage from) { }
     public virtual void ActiveNotification(FrontEndPage from) { }
     public virtual void DeActiveNotification() { }
+
+    /// <summary>
+    /// The part of the page's <c>Render</c> that changes state (mouse hovers and clicks, scroll clamps), called in the
+    /// render's page order; drawing is the host's. <paramref name="transition"/> is 1 when settled.
+    /// </summary>
+    public virtual void Render(float transition, FrontEndPage dest) { }
 }
 
 /// <summary>A page with no behaviour (<c>CFEPUnknown</c>, and any page not yet ported).</summary>
@@ -189,6 +195,15 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>The process's C runtime random state (one per process, shared with the simulation), from the host.</summary>
     public Crt.CrtRand? Crt { get; set; }
 
+    /// <summary>
+    /// The game's live options, which a save writes after the career and bindings (<c>CCareer::WriteOptions</c>: the
+    /// display mode, sound and the rest), from the host.
+    /// </summary>
+    public Func<Career.CareerOptions>? CurrentOptions { get; set; }
+
+    /// <summary><c>gAllCheatsEnabled</c> (00679ec1), which the game sets: every cheat counts as active.</summary>
+    public bool AllCheatsEnabled { get; set; }
+
     /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
     public string SaveGameName { get; set; } = "";
 
@@ -235,7 +250,8 @@ public sealed class FrontEnd : IButtonReceiver
     /// The part of <c>CFrontEnd::Init</c> (0x004662a0) that sets up the page machine's run: a controller per port with
     /// the front end as the controlled object, the input buffers flushed, the counter, quit and render time reset, and
     /// the start page entered. The caller decides the start page and then runs the loop with the front end marked
-    /// running (<c>gInFrontEnd</c>). Returns false, as <c>Init</c> does, when any page's <c>Init</c> failed; every page
+    /// running (<c>gInFrontEnd</c>). Not modelled: the reset of <c>GAME.mRenderFrameNumber</c> (a presentation
+    /// counter). Returns false, as <c>Init</c> does, when any page's <c>Init</c> failed; every page
     /// still initialises first (<c>ok &amp;= Init()</c>).
     /// </summary>
     public bool Begin(FrontEndPage startPage)
@@ -428,50 +444,75 @@ public sealed class FrontEnd : IButtonReceiver
         return true;
     }
 
-    /// <summary><c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time, then one Present.</summary>
+    /// <summary>
+    /// <c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time; when the scene starts, the
+    /// pages' render logic (in a transition the higher-numbered page first, the arriving page at the transition's
+    /// fraction and the leaving one at its complement; otherwise the active page at 1); then one Present.
+    /// Not modelled: the common page's render (drawing) and the message box's render (its yes/no mouse handling hit-tests
+    /// the laid-out text, so it comes with the font metrics).
+    /// </summary>
     private bool Render()
     {
         LastRenderTime = Clock.GetSysTimeFloat();
         bool started = BeginScene();
+        if (started)
+        {
+            // x87: the quotient is stored to a float; 0/0 (an instant change) is NaN and passes both clamps.
+            float trans = (float)X87.Div(TransitionCount, TransitionTime);
+            if (trans > 1f) trans = 1f;
+            else if (trans < 0f) trans = 0f;
+            if (ActivePage == FrontEndPage.Transition)
+            {
+                float back = (float)X87.Sub(1f, trans);
+                if (TransitionTo > TransitionFrom)
+                {
+                    this[TransitionTo].Render(trans, TransitionFrom);
+                    this[TransitionFrom].Render(back, TransitionTo);
+                }
+                else
+                {
+                    this[TransitionFrom].Render(back, TransitionTo);
+                    this[TransitionTo].Render(trans, TransitionFrom);
+                }
+            }
+            else
+            {
+                this[ActivePage].Render(1f, FrontEndPage.None);
+            }
+        }
         Clock.Present();
         return started;
     }
-}
 
-/// <summary><c>CReconnectInterface::EState</c>.</summary>
-public enum ReconnectState
-{
-    Ok = 0,
-    Disconnected = 1,
-    Reconnected = 2,
-    Resuming = 3,
-}
+    /// <summary><c>CFrontEnd::GetCursorStateInRect</c> (0x004693d0): the cursor moved this frame and is inside.</summary>
+    public bool GetCursorStateInRect(float left, float top, float right, float bottom) =>
+        !MessageBox.IsInteractive && Platform.Mouse.InRect(left, top, right, bottom, Platform.KeyTrap is not null);
 
-/// <summary>
-/// <c>CReconnectInterface</c> (reconnectinterface.cpp): the prompt to reconnect a removed controller. PC controllers are
-/// never removed, so on PC its state only ever goes back to <see cref="ReconnectState.Ok"/>.
-/// </summary>
-public sealed class ReconnectInterface
-{
-    public ReconnectState State { get; private set; }
+    /// <summary><c>CFrontEnd::MouseClickedInRect</c> (0x00469400): a left click inside, consumed.</summary>
+    public bool MouseClickedInRect(float left, float top, float right, float bottom) =>
+        !MessageBox.IsInteractive && Platform.Mouse.ClickedInRect(left, top, right, bottom, Platform.KeyTrap);
 
-    /// <summary><c>Reset</c> (0x00527960).</summary>
-    public void Reset(ReconnectState state) => State = state;
+    /// <summary><c>CFrontEnd::MouseOverRect</c> (0x00469430): the cursor moved and is inside; the move is consumed.</summary>
+    public bool MouseOverRect(float left, float top, float right, float bottom) =>
+        !MessageBox.IsInteractive && Platform.Mouse.OverRect(left, top, right, bottom, Platform.KeyTrap);
 
-    /// <summary><c>Process</c> (0x00527c50): true once the player has pressed start after reconnecting.</summary>
-    public bool Process()
+    /// <summary>
+    /// The click on the help line's arrow from <c>CFEPCommon::RenderHelpText</c> (0x00453140): help 1, 2, 3 and 6 show
+    /// a back arrow at the left, the others a select arrow at the right; both slide in with the transition. Nothing
+    /// while a reconnect prompt is up or the message box is interactive. The help text itself is drawing.
+    /// </summary>
+    public void RenderHelpArrow(int help, float transition)
     {
-        switch (State)
-        {
-            case ReconnectState.Disconnected:
-                State = ReconnectState.Reconnected;
-                return false;
-            case ReconnectState.Resuming:
-                // The interface takes control only after a disconnection, which a PC controller never has.
-                throw new NotSupportedException("Resuming from a controller disconnection is not ported (PC controllers never disconnect).");
-            default:
-                return false;
-        }
+        if (Reconnect[0].State != ReconnectState.Ok) return;
+        if (Reconnect[1].State != ReconnectState.Ok && ActivePage == FrontEndPage.MultiplayerStart) return;
+        bool back = help is 1 or 2 or 3 or 6;
+        if (MessageBox.IsInteractive) return;
+        // x87: each step is stored to a float.
+        float ofs = (float)X87.Sub(1f, transition);
+        ofs = (float)X87.Mul(X87.Mul(ofs, ofs), 3000f);
+        float x = back ? (float)X87.Add(X87.Sub(6f, ofs), 16f) : (float)X87.Add(ofs, 618f);
+        ProcessMouseClickInRect((float)X87.Sub(x, 40f), 415f, (float)X87.Add(x, 40f), 495f,
+            back ? FrontEndButtons.MenuBack : FrontEndButtons.MenuSelect);
     }
 }
 
@@ -480,6 +521,9 @@ public interface INameKeyboard
 {
     /// <summary><c>SetDefaultName</c> (0x0051fff0).</summary>
     void SetDefaultName();
+
+    /// <summary>A save has used the name, so it is no longer the fresh default (<c>m_Fresh = false</c>, from the save page).</summary>
+    void NameUsed();
 }
 
 /// <summary>What other pages call on the level select (<c>CFEPLevelSelect</c>).</summary>

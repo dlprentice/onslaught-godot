@@ -102,6 +102,8 @@ public sealed class VirtualKeyboardPage : FrontEndPageBase, INameKeyboard
         Fresh = true;
     }
 
+    public void NameUsed() => Fresh = false;
+
     /// <summary><c>CFEPVirtualKeyboard::TransitionNotification</c> (0x00520130): entering from the device, save list or main page.</summary>
     public override void TransitionNotification(FrontEndPage from)
     {
