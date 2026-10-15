@@ -46,7 +46,9 @@ Never describe synthetic or source-only behavior as observed Steam behavior.
 Each row names a C# unit of `OnslaughtRebuild.Parity` and the bea-decomp source it adapts. Units built only from
 the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed. Neither is
 `Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
-from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source.
+from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source. Nor is
+`Crt/CrtRand.cs`: the C runtime's `rand`/`srand` behaviour (a per-thread linear congruential state starting at 1),
+measured from the pinned VC6 SP5 LIBCMT's `rand.obj` and `tidtable.obj`, with no runtime code copied.
 
 Licence identifiers (checked 2026-10-15): Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`) ships the GPL version 3 text
 in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
@@ -89,6 +91,7 @@ package licence expression is `GPL-3.0-only`.
 | `Clock/EventClock.cs` (the event manager's time) | `src/eventmanager.cpp` (`CEventManager::AdvanceTime`, `Init`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/ClockSimulation.cs` (the level-start order: base time, PreRun, MainLoop) | `src/game.cpp` (`CGame::RunLevel`, `PreRun`) | GPL-3.0-only (in Stuart's release) |
+| `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority
 
