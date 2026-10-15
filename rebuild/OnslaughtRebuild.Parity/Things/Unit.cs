@@ -297,9 +297,14 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
             return;
         }
 
-        if (AI is not null)
+        if (AI?.Target.ToRead is { } target)
         {
-            Context.Skip("CUnit::Unknown4fb280 with an AI target (CalculateDesiredPitch)");
+            if (CurrentWeapon?.Mode?.Round is not null)
+            {
+                throw new NotSupportedException("CUnit::Unknown4fb280's aim pitch (CWeapon::CalculateDesiredPitch) is not ported");
+            }
+
+            Unknown20C = Context.Events.Time + 10.0f;
         }
         else if (Unknown20C < Context.Events.Time)
         {

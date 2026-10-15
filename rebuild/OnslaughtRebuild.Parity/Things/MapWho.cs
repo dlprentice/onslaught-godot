@@ -405,14 +405,14 @@ public sealed class MapWho
                 _lineXMajor = true;
                 _lineStepX = delta.X > 0 ? cellSize : -cellSize;
                 _lineStepY = (delta.Y / absX) * cellSize;
-                _lineStepLimit = (int)MathF.Floor(absX / cellSize) + 2;
+                _lineStepLimit = X87.Fist(Math.Floor((double)(absX / cellSize))) + 2;
             }
             else
             {
                 _lineXMajor = false;
                 _lineStepY = delta.Y > 0 ? cellSize : -cellSize;
                 _lineStepX = (delta.X / absY) * cellSize;
-                _lineStepLimit = (int)MathF.Floor(absY / cellSize) + 2;
+                _lineStepLimit = X87.Fist(Math.Floor((double)(absY / cellSize))) + 2;
             }
         }
 

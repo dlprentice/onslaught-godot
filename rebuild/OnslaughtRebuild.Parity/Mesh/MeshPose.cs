@@ -5,6 +5,7 @@
 // rtmesh.cpp is not.
 
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Mesh;
 
@@ -145,12 +146,12 @@ public sealed class MeshPose
 
             time = ma.FrameScaler * time;
             time = ma.Start + time;
-            f0 = (int)Math.Floor(time);
+            f0 = X87.Fist(Math.Floor(time));
             t = time - MathF.Floor(time);
         }
         else
         {
-            f0 = (int)Math.Floor(time);
+            f0 = X87.Fist(Math.Floor(time));
             t = time - MathF.Floor(time);
         }
 

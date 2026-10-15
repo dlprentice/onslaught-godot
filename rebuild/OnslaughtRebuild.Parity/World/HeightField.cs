@@ -5,6 +5,7 @@
 using System.Buffers.Binary;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.World;
 
@@ -125,13 +126,24 @@ public sealed class HeightField
         return 0;
     }
 
-    /// <summary>Normal (0047ec60): the ground normal under a position, from the triangle of its sample square.</summary>
+    /// <summary>
+    /// Normal (0047ec60): the ground normal under a position, from the triangle of its sample square. As compiled (read
+    /// from the instructions of the Steam BEA.exe, SHA-256 74154bfa…, which is the pristine specimen):
+    /// <list type="bullet">
+    /// <item>floorf goes through the CRT's floor and a 64-bit fistp (/QIfist) keeping the low dword, so a huge
+    /// coordinate gives index 0 and carries on instead of saturating;</item>
+    /// <item>the cross product of the two edge vectors is folded against their constant 0 and ±1 components: the
+    /// near triangle's normal is stored as (dzx, dzy, -1) and the far one's as (dzx * -1.0f, dzy * -1.0f, -1), so no
+    /// zero products or subtractions touch the signs of zeros;</item>
+    /// <item>Normalise sums (Y*Y + X*X) + 1, takes fsqrt and multiplies by the reciprocal unless the length is 0.</item>
+    /// </list>
+    /// </summary>
     public FVector Normal(FVector pos)
     {
         float fx = MathF.Floor(pos.X);
-        int ix = (int)fx;
+        int ix = X87.Fist(Math.Floor((double)pos.X));
         float fy = MathF.Floor(pos.Y);
-        int iy = (int)fy;
+        int iy = X87.Fist(Math.Floor((double)pos.Y));
         if (ix < 0 || ix + 1 > 511 || iy < 0 || iy + 1 > 511)
         {
             return new FVector(0, 0, 1.0f);
@@ -142,23 +154,31 @@ public sealed class HeightField
         float d = (pos.Y - fy) + (pos.X - fx);
         int p = (((ix / 8) * 64) + (iy / 8)) * 81;
         float scale = HeightScale;
-        FVector n;
+        float nx;
+        float ny;
         if (d <= 1.0f)
         {
+            // 0047ed46..0047ed89
             int h = _heights[p + (cy * 9) + cx];
-            var a = new FVector(1.0f, 0, (float)(_heights[p + (cy * 9) + cx + 1] - h) * scale);
-            var b = new FVector(0, 1.0f, (float)(_heights[p + ((cy + 1) * 9) + cx] - h) * scale);
-            n = FVector.Cross(b, a);
+            nx = (float)(_heights[p + (cy * 9) + cx + 1] - h) * scale;
+            ny = (float)(_heights[p + ((cy + 1) * 9) + cx] - h) * scale;
         }
         else
         {
+            // 0047ee25..0047ee8a: the far corner's differences, each times -1.0f (0x5d8be0)
             int h = _heights[p + (cy * 9) + cx + 10];
-            var a = new FVector(-1.0f, 0, (float)(_heights[p + ((cy + 1) * 9) + cx] - h) * scale);
-            var b = new FVector(0, -1.0f, (float)(_heights[p + (cy * 9) + cx + 1] - h) * scale);
-            n = FVector.Cross(b, a);
+            nx = ((float)(_heights[p + ((cy + 1) * 9) + cx] - h) * scale) * -1.0f;
+            ny = ((float)(_heights[p + (cy * 9) + cx + 1] - h) * scale) * -1.0f;
         }
 
-        n.Normalise();
-        return n;
+        // 0047ed91..0047ee00 and 0047ee8e..0047eeed
+        float m = MathF.Sqrt(((ny * ny) + (nx * nx)) + 1.0f);
+        if (m == 0)
+        {
+            return new FVector(nx, ny, -1.0f);
+        }
+
+        float r = 1.0f / m;
+        return new FVector(nx * r, ny * r, -1.0f * r);
     }
 }
