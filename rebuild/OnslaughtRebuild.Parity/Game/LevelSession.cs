@@ -19,11 +19,51 @@ namespace OnslaughtRebuild.Parity.Game;
 /// </summary>
 public sealed class LevelSession
 {
-    private LevelSession(ThingContext context, Game game, LevelResources resources)
+    private IEnumerator<int>? _mainLoop;
+    private bool _started;
+
+    private LevelSession(ThingContext context, Game game, LevelResources resources, Clock.PlatformClock clock)
     {
         Context = context;
         Game = game;
         Resources = resources;
+        Clock = clock;
+    }
+
+    /// <summary>The platform clock the game reads; each Flip is a Present.</summary>
+    public Clock.PlatformClock Clock { get; }
+
+    public long PresentCount => Clock.PresentCount;
+
+    /// <summary>
+    /// The next Present, as a <c>-level N -skipfmv</c> start in the retail harness runs it (Clock/ClockSimulation's
+    /// level-100 order, matched to C's golden-640 run): Presents 1 and 2 before the level (the boot's first clock read
+    /// after Present 1); after Present 2 the base time is read and PreRun runs with no Present; Present 3 is the loading
+    /// screen at 100%; MainLoop's frames follow, from Present 4.
+    /// </summary>
+    public void AdvanceToNextPresent()
+    {
+        long before = Clock.PresentCount;
+        if (!_started)
+        {
+            _started = true;
+            Clock.Present();
+            Clock.GetSysTimeFloat();
+            Clock.Present();
+            Game.StartLevelTiming();
+            Game.PreRun();
+            Clock.Present();
+            return;
+        }
+
+        while (Clock.PresentCount == before)
+        {
+            _mainLoop ??= Game.MainLoop().GetEnumerator();
+            if (!_mainLoop.MoveNext())
+            {
+                _mainLoop = null;
+            }
+        }
     }
 
     public ThingContext Context { get; }
@@ -32,19 +72,23 @@ public sealed class LevelSession
 
     public LevelResources Resources { get; }
 
-    /// <summary>Loads level <paramref name="level"/> from the files <paramref name="read"/> returns (name, bytes).</summary>
-    public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read, IMessageVoice? voice = null)
+    /// <summary>
+    /// Loads level <paramref name="level"/> from the files <paramref name="read"/> returns (name, bytes). A renderer
+    /// reads the resource file's other chunks (its textures) through <paramref name="otherChunk"/>.
+    /// </summary>
+    public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read, IMessageVoice? voice = null,
+        Func<uint, Data.ChunkReader, bool>? otherChunk = null)
     {
         (string pname, byte[] pbytes) = read(@"data\default physics.dat");
         PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
         (string bname, byte[] bbytes) = read(@"data\battle engine configurations.dat");
         BattleEngineDataManager battleEngines = BattleEngineDataManager.Load(MemBuffer.FromFile(bname, bbytes));
         (string rname, byte[] rbytes) = read($@"data\Resources\{level}_res_PC.aya");
-        LevelResources resources = LevelResources.Read(rname, rbytes, read);
+        LevelResources resources = LevelResources.Read(rname, rbytes, read, otherChunk: otherChunk);
 
         var clock = new Clock.PlatformClock();
         var events = new EventManager();
-        var services = new ScriptGameServices(NullGameServices.Instance);
+        var services = new ScriptGameServices(new NullGameServices(clock.Present));
         var game = new Game(clock, events, services) { CurrentLevel = level };
         game.InitRestartLoop();
         var pool = new SPtrSetPool();
@@ -79,6 +123,6 @@ public sealed class LevelSession
         game.CreatePlayers(context, multiplayerWorld: false);
         game.AssignPlayersToStarts(context);
         scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
-        return new LevelSession(context, game, resources);
+        return new LevelSession(context, game, resources, clock);
     }
 }

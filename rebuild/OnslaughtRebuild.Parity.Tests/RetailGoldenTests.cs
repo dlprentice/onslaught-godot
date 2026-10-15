@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System.Globalization;
+using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Things;
 using Xunit.Abstractions;
@@ -48,8 +49,85 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The Presents our level-100 run matches so far (raised as it reaches further; never lowered).</summary>
     private const int RandomStreamMatchedFloor = 187;
 
+    /// <summary>The last Present the Present-by-Present run matches retail's clock and random stream to (never lowered).</summary>
+    private const int PresentByPresentFloor = 189;
+
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 187;
+
+    /// <summary>
+    /// Level 100 run Present by Present, as the host draws it (LevelSession.AdvanceToNextPresent: the harness's level
+    /// start, then CGame::MainLoop with its Presents), against retail's probes at the same Present number: the event
+    /// time (EVT), mFrameTime (FT) and the random stream's value (RNG). Present numbers line up without help from the
+    /// recording, so the frames the host renders are retail's.
+    /// </summary>
+    [RetailGoldenFact("level100.perpresent-3600.probes")]
+    public void Level100RunPresentByPresentMatchesRetailsClockAndRandomStream()
+    {
+        LevelSession session = LevelSession.Load(100, GameData.Read);
+        var ours = new Dictionary<long, (uint Evt, uint Ft, int Rng)>();
+        string stopped = "ran to retail's last probe";
+        while (session.PresentCount < 3600)
+        {
+            try
+            {
+                session.AdvanceToNextPresent();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped after Present {session.PresentCount}: {e.Message}";
+                break;
+            }
+
+            ours[session.PresentCount] = (BitConverter.SingleToUInt32Bits(session.Context.Events.Time),
+                BitConverter.SingleToUInt32Bits(session.Game.Loop.FrameTime), session.Context.Random.Value);
+        }
+
+        int compared = 0;
+        string? first = null;
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("level100.perpresent-3600.probes")!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length != 4 || f[0] != "P" || f[2] is not ("EVT" or "FT" or "RNG") || f[3] == "null")
+            {
+                continue;
+            }
+
+            long present = long.Parse(f[1]);
+            if (!ours.TryGetValue(present, out (uint Evt, uint Ft, int Rng) mine))
+            {
+                // Presents 1 and 2 come before the level (the first advance runs to Present 3).
+                if (present < ours.Keys.Min())
+                {
+                    continue;
+                }
+
+                break;
+            }
+
+            byte[] bytes = Convert.FromHexString(f[3]);
+            (long retail, long value) = f[2] switch
+            {
+                "EVT" => (BitConverter.ToUInt32(bytes), mine.Evt),
+                "FT" => (BitConverter.ToUInt32(bytes), mine.Ft),
+                _ => ((long)BitConverter.ToInt32(bytes, 0), (long)mine.Rng),
+            };
+            if (retail != value)
+            {
+                first = $"Present {present} {f[2]}: retail {retail:x}, ours {value:x}";
+                break;
+            }
+
+            if (f[2] == "RNG")
+            {
+                compared = (int)present;
+            }
+        }
+
+        output.WriteLine($"{stopped}; Presents {ours.Keys.Min()}..{compared} match; first difference: {first ?? "none"}");
+        Assert.Null(first);
+        Assert.True(compared >= PresentByPresentFloor, $"matched to Present {compared}, below {PresentByPresentFloor}");
+    }
 
     /// <summary>
     /// Level 100's random stream against retail's at every Present (level100.perpresent-3600.probes: RNG is the

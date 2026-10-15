@@ -29,8 +29,12 @@ public sealed class LevelResources
     /// <param name="bytes">The file as stored.</param>
     /// <param name="meshFile">Reads data\resources\meshes\m_&lt;name&gt;.aya by game path.</param>
     /// <param name="doWeWantMesh">GAME.DoWeWantMesh for optional meshes (null: none is wanted).</param>
+    /// <param name="otherChunk">
+    /// A renderer's reader for the chunks the simulation skips (TEXT and the rest), given the reader just past the tag:
+    /// it returns true when it read the whole chunk, false to have it skipped. Null skips them all.
+    /// </param>
     public static LevelResources Read(string fileName, byte[] bytes, Func<string, (string Name, byte[] Bytes)> meshFile,
-        Func<string, bool>? doWeWantMesh = null)
+        Func<string, bool>? doWeWantMesh = null, Func<uint, ChunkReader, bool>? otherChunk = null)
     {
         var c = new ChunkReader(MemBuffer.FromFile(fileName, bytes));
         var meshes = new Dictionary<string, MeshData>(StringComparer.OrdinalIgnoreCase);
@@ -60,7 +64,7 @@ public sealed class LevelResources
             {
                 worlds = WorldFile.ReadResourcePositions(c);
             }
-            else
+            else if (otherChunk?.Invoke(tag, c) != true)
             {
                 c.Skip();
             }
