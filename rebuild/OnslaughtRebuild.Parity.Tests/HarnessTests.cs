@@ -199,3 +199,22 @@ public sealed class HarnessTests
         }
     }
 }
+
+public sealed class ProbeTraceNullTests
+{
+    [Fact]
+    public void NullProbeValuesParseCompareAndWriteBack()
+    {
+        // Invented values: a sample where the player's battle engine does not exist reports POS and LIFE as null.
+        const string text = "P 50 EVT 00000000\nP 50 POS null\nP 50 LIFE null\nP 100 POS 0000803f0000004000004040\n";
+        ProbeTrace trace = ProbeTrace.Parse(text);
+
+        Assert.True(trace.TryGet(50, ProbeCatalog.Position, out byte[] pos));
+        Assert.Empty(pos);
+        Assert.Equal("null", ProbeCatalog.Describe(ProbeCatalog.Position, pos));
+        var writer = new StringWriter();
+        trace.Write(writer);
+        Assert.Contains("P 50 POS null\n", writer.ToString());
+        Assert.True(TraceComparison.Compare(trace, ProbeTrace.Parse(writer.ToString()), 0).IsOneToOne);
+    }
+}

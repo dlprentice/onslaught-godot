@@ -46,9 +46,17 @@ public static class ProbeCatalog
 
     public static bool IsKnown(string name) => Names.Contains(name);
 
-    /// <summary>A human-readable decoding of a probe's bytes; the comparison itself is always on the bytes.</summary>
+    /// <summary>
+    /// A human-readable decoding of a probe's bytes; the comparison itself is always on the bytes. A null value (no
+    /// bytes) is the harness's "null": the object the probe reads did not exist then (no player battle engine).
+    /// </summary>
     public static string Describe(string name, ReadOnlySpan<byte> bytes)
     {
+        if (bytes.IsEmpty)
+        {
+            return "null";
+        }
+
         static string F(ReadOnlySpan<byte> b, int at) =>
             BinaryPrimitives.ReadSingleLittleEndian(b[at..]).ToString("R", CultureInfo.InvariantCulture);
 
@@ -68,7 +76,9 @@ public static class ProbeCatalog
 /// <summary>
 /// A probe trace: for each sample frame, the raw bytes of each probe. Text form is one line per probe,
 /// <c>P &lt;frame&gt; &lt;NAME&gt; &lt;hex&gt;</c>, as the retail harness writes its golden traces. A frame/name
-/// pair may repeat only with identical bytes (the retail harness logs its final frame twice).
+/// pair may repeat only with identical bytes (the retail harness logs its final frame twice). The value
+/// <c>null</c> means the probe's object did not exist at that sample (for example no player battle engine while it
+/// respawns); it is kept as a value with no bytes, so a candidate must report null there too.
 /// </summary>
 public sealed class ProbeTrace
 {
@@ -94,7 +104,7 @@ public sealed class ProbeTrace
             throw new ArgumentException($"Unknown probe '{name}'.", nameof(name));
         }
 
-        if (bytes.Length != ProbeCatalog.LengthOf(name))
+        if (!bytes.IsEmpty && bytes.Length != ProbeCatalog.LengthOf(name))
         {
             throw new ArgumentException($"Probe {name} needs {ProbeCatalog.LengthOf(name)} bytes, got {bytes.Length}.", nameof(bytes));
         }
@@ -143,7 +153,7 @@ public sealed class ProbeTrace
             byte[] bytes;
             try
             {
-                bytes = Convert.FromHexString(f[3]);
+                bytes = f[3] == "null" ? [] : Convert.FromHexString(f[3]);
             }
             catch (FormatException)
             {
@@ -172,8 +182,8 @@ public sealed class ProbeTrace
             {
                 if (probes.TryGetValue(name, out byte[]? bytes))
                 {
-                    writer.Write(string.Create(CultureInfo.InvariantCulture,
-                        $"P {frame} {name} {Convert.ToHexString(bytes).ToLowerInvariant()}\n"));
+                    string value = bytes.Length == 0 ? "null" : Convert.ToHexString(bytes).ToLowerInvariant();
+                    writer.Write(string.Create(CultureInfo.InvariantCulture, $"P {frame} {name} {value}\n"));
                 }
             }
         }
