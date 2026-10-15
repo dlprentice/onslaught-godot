@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/FEPLevelSelect.cpp and src/FEPLevelSelect.h (reconstructed from the retail program; not
-// in Stuart's release), with FEMouseEdgeSlide from src/FEPGoodies.cpp.
+// in Stuart's release). FEMouseEdgeSlide, from Stuart's FEPGoodies.cpp, is in MouseEdgeSlide.cs.
 
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Numerics;
@@ -153,26 +153,7 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
                 _transition[i, j] = t;
             }
         }
-        Pos = MouseEdgeSlide(state, Pos, 1100f);
-    }
-
-    /// <summary>
-    /// <c>FEMouseEdgeSlide</c> (0x0045d730): with the cursor above y 400 and right of x 540 (or left of x 100), the
-    /// position moves by the cube of the distance; nothing while the message box is interactive or the page is not active.
-    /// </summary>
-    private float MouseEdgeSlide(FrontEndPageState state, float pos, float max)
-    {
-        if (_frontEnd.MessageBox.IsInteractive || state != FrontEndPageState.Active) return pos;
-        Platform.Mouse mouse = _frontEnd.Platform.Mouse;
-        float speed = 0f;
-        if (mouse.X > 540 && mouse.Y < 400) speed = mouse.X - 540;
-        else if (mouse.X < 100 && mouse.Y < 400) speed = mouse.X - 100;
-        float step = _frontEnd.Timing.FrameStep;
-        // x87: left to right, each product rounded to 24 bits, then the sum stored.
-        pos = (float)X87.Add(pos, X87.Mul(X87.Mul(X87.Mul(X87.Mul(step, speed), speed), speed), 0.002f));
-        if (pos < 0f) pos = 0f;
-        if (pos > max) pos = max;
-        return pos;
+        Pos = MouseEdgeSlide.Apply(_frontEnd, state, Pos, 1100f);
     }
 
     /// <summary><c>CFEPLevelSelect::ButtonPressed</c> (0x004606b0). Up and down are swapped on screen: up moves to the next row.</summary>

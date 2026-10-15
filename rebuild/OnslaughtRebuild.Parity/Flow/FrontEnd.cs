@@ -219,6 +219,12 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public Func<string, string?>? CockpitOf { get; set; }
 
+    /// <summary>
+    /// Starts a particle effect by name for a debriefing goodie (<c>PARTICLE_MANAGER.CreateEffect</c>), from the host's
+    /// particle system, whose random draws are its own to model.
+    /// </summary>
+    public Action<string>? CreateGoodieEffect { get; set; }
+
     /// <summary>The front end's video player, from the host.</summary>
     public IFrontEndVideo? Video { get; set; }
 
@@ -363,6 +369,13 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary><c>mFirstRun</c>: true until the first front-end start has entered the title page.</summary>
     public bool FirstRun { get; set; } = true;
 
+    /// <summary>
+    /// <c>performing_stress_test</c> (0083d454), the process's stress-test mode, shared with the game; 0 (off) in play.
+    /// A stress test skips the autosave after a level, and <see cref="Run"/> quits to the attract videos once the
+    /// counter passes 60 (mode 3) or 2 (other modes).
+    /// </summary>
+    public int StressTest { get; set; }
+
     /// <summary><c>CLIPARAMS.mDeveloperMode</c>: off in a retail start.</summary>
     public bool DeveloperMode { get; set; }
 
@@ -386,7 +399,8 @@ public sealed class FrontEnd : IButtonReceiver
     /// </list>
     /// The first start, or one from the attract videos, goes to the title page. A start after a level goes to the
     /// debriefing, through the save page (an autosave, success to the debriefing at 50) unless the autosave is pretend,
-    /// a stress test or the auto-configuration test is running, or all cheats are on. Race levels (901-905) go to the
+    /// a stress test is running, or all cheats are on (the auto-configuration test, which also skips it, is off in
+    /// play: <c>CLIPARAMS.mAutoConfigTest</c> is set only by its switch). Race levels (901-905) go to the
     /// goodies instead, and multiplayer levels (850-879) to the multiplayer page.
     /// Not modelled: loading the front end's data, text, video, sound and music (presentation, the host's), the event
     /// manager, and the Xbox dashboard return (<c>mGoStraightToDeviceSelectScreen</c>, never set on PC).
@@ -418,7 +432,7 @@ public sealed class FrontEnd : IButtonReceiver
         }
         else
         {
-            bool save = AutoSave != AutoSaveMode.Pretend && !AllCheatsEnabled;
+            bool save = AutoSave != AutoSaveMode.Pretend && StressTest == 0 && !AllCheatsEnabled;
             if (SelectedLevel > 900 && SelectedLevel < 906)
                 StartWithAutosave(save, FrontEndPage.Goodies);
             else if (SelectedLevel >= 850 && SelectedLevel < 880)
@@ -478,13 +492,18 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>
     /// <c>CFrontEnd::Run</c> (0x004684d0): nothing once the game has been told to quit (-1); otherwise start, process and
     /// render until a page sets the quit value, shut down, and return it (-1 quit, -3 attract videos, or a level to play).
+    /// A stress test ends the run after each iteration once the counter is past its limit.
     /// </summary>
     public int Run(FrontEndEntry entry)
     {
         if (Quit == QuitToSystem) return QuitToSystem;
         if (!Init(entry)) return QuitToSystem;
         Platform.Window.FrontEndRunning = true;
-        while (Step()) { }
+        while (Quit == QuitRunning)
+        {
+            Step();
+            if (StressTest > 0 && Counter > (StressTest == 3 ? 60f : 2f)) Quit = QuitAttract;
+        }
         Shutdown();
         Platform.Window.FrontEndRunning = false;
         return Quit;

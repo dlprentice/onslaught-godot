@@ -108,6 +108,29 @@ public sealed class FrontEndInitTests
     }
 
     [Fact]
+    public void AStressTestSkipsTheAutosaveAndEndsTheRunOnTheCounter()
+    {
+        Rig r = new();
+        r.FrontEnd.FirstRun = false;
+        r.FrontEnd.AutoSave = AutoSaveMode.Normal;
+        r.FrontEnd.StressTest = 1;
+        Assert.True(r.FrontEnd.Init(FrontEndEntry.Start));
+        Assert.Equal(FrontEndPage.Debriefing, r.FrontEnd.ActivePage);
+
+        foreach ((int mode, float limit) in new[] { (1, 2f), (3, 60f) })
+        {
+            Rig run = new();
+            run.FrontEnd.StressTest = mode;
+            long before = run.FrontEnd.Clock.PresentCount;
+            Assert.Equal(FrontEnd.QuitAttract, run.FrontEnd.Run(FrontEndEntry.Start));
+            Assert.True(run.FrontEnd.Counter > limit);
+            // The counter grows by 50 frame steps a process (a sixtieth, then the filtered thirtieths), so the run is
+            // short; every iteration that ran presented once.
+            Assert.InRange(run.FrontEnd.Clock.PresentCount - before, 1, (long)(limit / 0.8f) + 2);
+        }
+    }
+
+    [Fact]
     public void RunEndsWithShutdownAndReturnsTheQuitValue()
     {
         Rig r = new();
