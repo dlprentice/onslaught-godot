@@ -41,14 +41,16 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
     public bool CareerWasInProgress { get; private set; }
     public float StartTime { get; private set; }
 
-    /// <summary><c>gSaveFromOptions</c> (006799d0): set by the options page's save; the success text changes, and every save clears it.</summary>
+    /// <summary>
+    /// <c>gSaveFromOptions</c> (006799d0): set by the options page's save; the success text changes. CreateSave clears it
+    /// on every path that reaches its end (FEPSaveGame.cpp:574; in the pristine executable 74154bfa…, four
+    /// <c>mov [006799d0], bl</c> at 0x465290, 0x465350, 0x4653c5 and 0x465482 against one read at 0x465088), not on
+    /// its early returns.
+    /// </summary>
     public bool SaveFromOptions { get; set; }
 
     /// <summary>The text of the last box this page created.</summary>
     public Text? LastText { get; private set; }
-
-    /// <summary><c>gAllCheatsEnabled</c> (00679ec1), which the game sets.</summary>
-    public bool AllCheatsEnabled { get; set; }
 
     /// <summary><c>CFEPSaveGame::Init</c> (0x00464620).</summary>
     public override bool Init()
@@ -139,7 +141,7 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
 
     /// <summary>
     /// <c>CFEPSaveGame::CreateSave</c> (0x00464c50). An autosave may overwrite its own save; a new save may not, and
-    /// asks first when the name (compared case-insensitively, the last match winning) is already used.
+    /// asks first when the name (compared as <c>_wcsicmp</c> does, the last match winning) is already used.
     /// </summary>
     public void CreateSave()
     {
@@ -165,7 +167,7 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
         int saveNumber = -1;
         for (int i = 0; i < card.NumSaves; i++)
         {
-            if (string.Equals(card.GetSaveName(i), name, StringComparison.OrdinalIgnoreCase)) saveNumber = i;
+            if (MemoryCard.WcsIEquals(card.GetSaveName(i), name)) saveNumber = i;
         }
         if (saveNumber != -1 && !allowedOverwrite)
         {
@@ -253,11 +255,14 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
     /// <c>CFEPSaveGame::IsCheatActive</c> (0x00465490): every cheat with all cheats enabled; otherwise the save's name
     /// contains the code, case-sensitively, after <c>FromWCHAR</c> keeps each character's low byte (ending at a zero).
     /// </summary>
-    public bool IsCheatActive(int cheat)
+    public bool IsCheatActive(int cheat) => CheatActive(frontEnd.SaveGameName, frontEnd.AllCheatsEnabled, cheat);
+
+    /// <summary><see cref="IsCheatActive"/> for a save name and the all-cheats flag.</summary>
+    public static bool CheatActive(string saveName, bool allCheatsEnabled, int cheat)
     {
-        if (AllCheatsEnabled) return true;
+        if (allCheatsEnabled) return true;
         List<byte> name = [];
-        foreach (char c in frontEnd.SaveGameName)
+        foreach (char c in saveName)
         {
             byte b = (byte)c;
             if (b == 0) break;

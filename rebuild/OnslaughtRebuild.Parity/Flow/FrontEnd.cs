@@ -64,6 +64,12 @@ public abstract class FrontEndPageBase
     public virtual void TransitionNotification(FrontEndPage from) { }
     public virtual void ActiveNotification(FrontEndPage from) { }
     public virtual void DeActiveNotification() { }
+
+    /// <summary>
+    /// The part of the page's <c>Render</c> that changes state (mouse hovers and clicks, scroll clamps), called in the
+    /// render's page order; drawing is the host's. <paramref name="transition"/> is 1 when settled.
+    /// </summary>
+    public virtual void Render(float transition, FrontEndPage dest) { }
 }
 
 /// <summary>A page with no behaviour (<c>CFEPUnknown</c>, and any page not yet ported).</summary>
@@ -194,6 +200,9 @@ public sealed class FrontEnd : IButtonReceiver
     /// display mode, sound and the rest), from the host.
     /// </summary>
     public Func<Career.CareerOptions>? CurrentOptions { get; set; }
+
+    /// <summary><c>gAllCheatsEnabled</c> (00679ec1), which the game sets: every cheat counts as active.</summary>
+    public bool AllCheatsEnabled { get; set; }
 
     /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
     public string SaveGameName { get; set; } = "";
@@ -435,13 +444,75 @@ public sealed class FrontEnd : IButtonReceiver
         return true;
     }
 
-    /// <summary><c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time, then one Present.</summary>
+    /// <summary>
+    /// <c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time; when the scene starts, the
+    /// pages' render logic (in a transition the higher-numbered page first, the arriving page at the transition's
+    /// fraction and the leaving one at its complement; otherwise the active page at 1); then one Present.
+    /// Not modelled: the common page's render (drawing) and the message box's render (its yes/no mouse handling hit-tests
+    /// the laid-out text, so it comes with the font metrics).
+    /// </summary>
     private bool Render()
     {
         LastRenderTime = Clock.GetSysTimeFloat();
         bool started = BeginScene();
+        if (started)
+        {
+            // x87: the quotient is stored to a float; 0/0 (an instant change) is NaN and passes both clamps.
+            float trans = (float)X87.Div(TransitionCount, TransitionTime);
+            if (trans > 1f) trans = 1f;
+            else if (trans < 0f) trans = 0f;
+            if (ActivePage == FrontEndPage.Transition)
+            {
+                float back = (float)X87.Sub(1f, trans);
+                if (TransitionTo > TransitionFrom)
+                {
+                    this[TransitionTo].Render(trans, TransitionFrom);
+                    this[TransitionFrom].Render(back, TransitionTo);
+                }
+                else
+                {
+                    this[TransitionFrom].Render(back, TransitionTo);
+                    this[TransitionTo].Render(trans, TransitionFrom);
+                }
+            }
+            else
+            {
+                this[ActivePage].Render(1f, FrontEndPage.None);
+            }
+        }
         Clock.Present();
         return started;
+    }
+
+    /// <summary><c>CFrontEnd::GetCursorStateInRect</c> (0x004693d0): the cursor moved this frame and is inside.</summary>
+    public bool GetCursorStateInRect(float left, float top, float right, float bottom) =>
+        !MessageBox.IsInteractive && Platform.Mouse.InRect(left, top, right, bottom, Platform.KeyTrap is not null);
+
+    /// <summary><c>CFrontEnd::MouseClickedInRect</c> (0x00469400): a left click inside, consumed.</summary>
+    public bool MouseClickedInRect(float left, float top, float right, float bottom) =>
+        !MessageBox.IsInteractive && Platform.Mouse.ClickedInRect(left, top, right, bottom, Platform.KeyTrap);
+
+    /// <summary><c>CFrontEnd::MouseOverRect</c> (0x00469430): the cursor moved and is inside; the move is consumed.</summary>
+    public bool MouseOverRect(float left, float top, float right, float bottom) =>
+        !MessageBox.IsInteractive && Platform.Mouse.OverRect(left, top, right, bottom, Platform.KeyTrap);
+
+    /// <summary>
+    /// The click on the help line's arrow from <c>CFEPCommon::RenderHelpText</c> (0x00453140): help 1, 2, 3 and 6 show
+    /// a back arrow at the left, the others a select arrow at the right; both slide in with the transition. Nothing
+    /// while a reconnect prompt is up or the message box is interactive. The help text itself is drawing.
+    /// </summary>
+    public void RenderHelpArrow(int help, float transition)
+    {
+        if (Reconnect[0].State != ReconnectState.Ok) return;
+        if (Reconnect[1].State != ReconnectState.Ok && ActivePage == FrontEndPage.MultiplayerStart) return;
+        bool back = help is 1 or 2 or 3 or 6;
+        if (MessageBox.IsInteractive) return;
+        // x87: each step is stored to a float.
+        float ofs = (float)X87.Sub(1f, transition);
+        ofs = (float)X87.Mul(X87.Mul(ofs, ofs), 3000f);
+        float x = back ? (float)X87.Add(X87.Sub(6f, ofs), 16f) : (float)X87.Add(ofs, 618f);
+        ProcessMouseClickInRect((float)X87.Sub(x, 40f), 415f, (float)X87.Add(x, 40f), 495f,
+            back ? FrontEndButtons.MenuBack : FrontEndButtons.MenuSelect);
     }
 }
 

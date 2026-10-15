@@ -53,9 +53,10 @@ public sealed class SaveGameTests
         Assert.False(r.Keyboard.Fresh);
         Assert.Equal(FrontEndPage.LevelSelect, r.FrontEnd.ActivePage);
 
-        // The saved career loads back as the one saved, except that a load to play keeps its own two volumes, and a
-        // blank career's screen position, packed into the top bytes of two kill counts with no kills, reads -128:
-        // out of range, so the load resets it to 0 (byte 0x80 at the top of each count).
+        // The saved career loads back as the one saved, except for two things. A load to play keeps its own two volumes.
+        // And the screen position is packed into the top bytes of two kill counts: a blank career's are 0x00
+        // (record bytes 9207 and 9211, file bytes 9209 and 9213), which reads as -128. That is out of range, so the
+        // load resets the position to 0, which stores 0x80 there; only a career saved after a load carries 0x80.
         OnslaughtRebuild.Parity.Career.Career loaded = new(CareerRecord.Constructed());
         Assert.True(CareerSaveGame.Load(loaded, file, suggestNextLevel: true).Loaded);
         Assert.Equal((-128, -128), (r.FrontEnd.Career.GetScreenPosX(), r.FrontEnd.Career.GetScreenPosY()));
@@ -63,7 +64,10 @@ public sealed class SaveGameTests
         byte[] saved = r.FrontEnd.Career.Record.Bytes.ToArray(), back = loaded.Record.Bytes.ToArray();
         int[] differing = [.. Enumerable.Range(0, saved.Length).Where(k => saved[k] != back[k])];
         Assert.All(differing, k => Assert.True(k is >= 9204 and < 9224 || k is >= 9356 and < 9364, $"byte {k} differs"));
-        Assert.Equal(2, differing.Count(k => k < 9224));
+        Assert.Equal([9207, 9211], differing.Where(k => k < 9224));
+        Assert.Equal((0x00, 0x00), (saved[9207], saved[9211]));
+        Assert.Equal((0x00, 0x00), (file[2 + 9207], file[2 + 9211]));
+        Assert.Equal((0x80, 0x80), (back[9207], back[9211]));
     }
 
     [Fact]
@@ -109,6 +113,14 @@ public sealed class SaveGameTests
     }
 
     [Fact]
+    public void SaveNamesCompareAsCLocaleWcsicmp()
+    {
+        Assert.True(MemoryCard.WcsIEquals("Bea Ab1", "bEA aB1"));
+        Assert.False(MemoryCard.WcsIEquals("\u00e9t\u00e9", "\u00c9T\u00c9"));
+        Assert.False(MemoryCard.WcsIEquals("BEA 1", "BEA 1 "));
+    }
+
+    [Fact]
     public void ThePretendAutosaveNeverSaves()
     {
         Rig r = new(AutoSaveMode.Pretend);
@@ -130,7 +142,7 @@ public sealed class SaveGameTests
         // FromWCHAR keeps the low byte: U+0100 ends the name there.
         r.FrontEnd.SaveGameName = "AĀMALLOY";
         Assert.False(r.Save.IsCheatActive(0));
-        r.Save.AllCheatsEnabled = true;
+        r.FrontEnd.AllCheatsEnabled = true;
         Assert.True(r.Save.IsCheatActive(5));
     }
 }
