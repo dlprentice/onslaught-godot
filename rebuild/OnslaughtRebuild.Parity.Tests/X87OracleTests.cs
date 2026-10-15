@@ -65,6 +65,9 @@ public sealed class X87OracleTests
             return ((float)expected == (float)actual || (double.IsNaN(expected) && double.IsNaN(actual)),
                 $"{a[i]:R}, {b[i]:R}: oracle {expected:R}, model {actual:R} (as floats)");
         });
+        // The overall ceiling is a property of this table's input mix and seed (about 15% of the sin/cos inputs lie
+        // between 2 pi and 1e4); the real statement is per range: about 0.13% differ within +-2 pi and about 10.6% up to
+        // 1e4, where fsin and fcos reduce their argument with a 66-bit pi (X87.Sin, PARITY.md).
         double ceiling = op == "atan2_d" ? 0.001 : 0.02;
         Assert.True(doubleDifferences <= ceiling * a.Length,
             $"{op}: {doubleDifferences} of {a.Length} differ at double precision, above the measured ceiling {ceiling:P1}");

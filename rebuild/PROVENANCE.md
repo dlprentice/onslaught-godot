@@ -14,14 +14,15 @@ and retained-particle claims retain their narrower dated evidence boundaries.
 Summary: the licence boundary, permitted evidence, and authority order for the
 `rebuild/` reconstruction lane, plus what the current slice actually covers.
 
-`rebuild/` is a GPL-3.0-or-later, source- and reverse-engineering-informed
-reconstruction. It is not a clean-room lane. The root MIT license does not
+`rebuild/` is a GPL-3.0, source- and reverse-engineering-informed reconstruction, distributed as a whole under
+GPL-3.0-only because many of its files adapt Stuart's version-3-only release (see *Licence identifiers* below). It is
+not a clean-room lane. The root MIT license does not
 relicense this subtree or the pinned `references/Onslaught` source.
 
 ## Permitted evidence and inputs
 
-- Stuart Gillam's pinned GPL source may be read, ported, and adapted with its
-  license and attribution preserved.
+- Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`), pinned, may be read, ported, and adapted with its GPL licence and attribution
+  preserved.
 - The Steam retail executable and Ghidra database establish released static
   identities and deltas from the reference source.
 - Controlled copied-runtime observations establish measured behavior.
@@ -45,14 +46,23 @@ Never describe synthetic or source-only behavior as observed Steam behavior.
 Each row names a C# unit of `OnslaughtRebuild.Parity` and the bea-decomp source it adapts. Units built only from
 the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed. Neither is
 `Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
-from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source.
+from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source. Nor is
+`Crt/CrtRand.cs`: the C runtime's `rand`/`srand` behaviour (a per-thread linear congruential state starting at 1),
+measured from the pinned VC6 SP5 LIBCMT's `rand.obj` and `tidtable.obj`, with no runtime code copied.
 
-Licence identifiers (checked 2026-10-15): Stuart Gillam's release (`references/Onslaught`) ships the GPL version 3 text
+Licence identifiers (checked 2026-10-15): Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`) ships the GPL version 3 text
 in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
 source, directly or through bea-decomp, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Units adapted from
 bea-decomp code that is not in his release (reconstructed from the retail program, such as the random stream) and
 original rebuild code keep the rebuild's `GPL-3.0-or-later`, which may be combined with GPL-3.0-only code. The table's
 licence column applies this rule per unit.
+
+Audit of the earlier rebuild (2026-10-15): every file outside `OnslaughtRebuild.Parity` that cites Stuart's source (a
+`references/Onslaught` path, a `.cpp`/`.h` file and line, or his name) was moved from `GPL-3.0-or-later` to
+`GPL-3.0-only`: 144 files across Core, Core.Tests, Client, Client.Tests, Godot and one tool. The rule is a deliberate
+superset (a test that only cites his code for an expected value is marked too), because 3.0-only is the narrower grant
+and combines with or-later code; files that cite nothing of his keep `GPL-3.0-or-later`. Every rebuild project's
+package licence expression is `GPL-3.0-only`.
 
 | C# unit | Adapted from bea-decomp | Licence |
 | --- | --- | --- |
@@ -74,6 +84,19 @@ licence column applies this rule per unit.
 | `Platform/ControlBindings.cs` (the control bindings as raw 32-byte records, the default table, the career's configurable block) | `src/PCController.cpp` (`CONTROL_BINDINGS`), `src/Controller.cpp` (`SControlBinding` constructors), `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
 | `Platform/Controller.cs` (key, mouse and joystick mapping to button actions at flush, auto-repeat, routing to the controlled object, the cursor's draw-back) | `src/Controller.cpp` (`CController`, `UpdateMouseCentre`), `src/Controller.h`, `src/PCController.cpp` (`CPCController`) | GPL-3.0-only (in Stuart's release) |
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
+| `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
+| `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-or-later (the map texture and map files are not in Stuart's release) |
+| `World/InitThingRecord.cs` (placement records, class ids, battle engine configuration names) | `src/InitThing.h`, `src/InitThing.cpp` (`CInitThing` and derived `Load`, `SpawnInitThing`), `src/oids.h`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
+| `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
+| `Clock/EventClock.cs` (the event manager's time) | `src/eventmanager.cpp` (`CEventManager::AdvanceTime`, `Init`) | GPL-3.0-only (in Stuart's release) |
+| `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
+| `Clock/ClockSimulation.cs` (the level-start order: base time, PreRun, MainLoop) | `src/game.cpp` (`CGame::RunLevel`, `PreRun`) | GPL-3.0-only (in Stuart's release) |
+| `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority
 
