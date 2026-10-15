@@ -438,7 +438,8 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
     {
         if (IsDying)
         {
-            float turn = UnitData!.TurnRate / 3.0f;
+            // `/ 3.0f` compiles as a multiply by the float 1/3 (0x3eaaaaab at 005d8608, 00402fc5).
+            float turn = UnitData!.TurnRate * 0.33333334f;
             Unknown12C = new EulerAngles(turn, turn, turn);
         }
 
@@ -457,11 +458,12 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
             Velocity = Velocity * Unknown73();
         }
 
-        Context.Skip("CAirUnit::Move's speed magnitude (its sum order is unchecked)");
+        // Read from the instructions (Steam BEA.exe = the pristine specimen): X*X + Y*Y, then + Z*Z, fsqrt (004030d7..
+        // 004030f6); the cap's `/ 20.0f` is a multiply by 0.05f (005d8584, 0040311a), then max / speed scales each axis.
         float speed = (float)X87.Sqrt((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z));
         if (speed > 0)
         {
-            float max = Unknown111() / 20.0f;
+            float max = Unknown111() * 0.05f;
             if (speed > max)
             {
                 Velocity = Velocity * (max / speed);
@@ -650,8 +652,7 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
         base.Move();
 
         Context.Skip("CPlane::Move's speed magnitude (its sum order is unchecked)");
-        // Retail's precision control is 24 bits: each operation rounds to a float. The port (clang) keeps this sum in
-        // extended precision and lands 1-2 ulps away in some updates (B's CPlane moves, U60); retail is not measured here.
+        // As compiled (004d1e91..004d1eb0): X*X + Y*Y, then + Z*Z, fsqrt, used from the register for each product.
         float speed = (float)X87.Sqrt((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z));
         Velocity = new FVector(speed * Orientation.Row0.Y, speed * Orientation.Row1.Y, speed * Orientation.Row2.Y);
     }
