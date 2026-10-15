@@ -94,17 +94,43 @@ package licence expression is `GPL-3.0-only`.
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
+| `Containers/SPtrSet.cs` (the shared node pool, SPtrSet, ListIterator) | `src/SPtrSet.h`, `src/SPtrSet.cpp` (`GenericSPtrSet`, `GenericListIterator`) | GPL-3.0-only (in Stuart's release) |
+| `Mesh/MeshData.cs`, `Mesh/MeshPart.cs` (mesh and part records, the emitter, part and animation-mode queries) | `src/mesh.cpp`, `src/mesh.h`, `src/MeshPart.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Mesh/MeshPose.cs` (the render thing's pose and its emitter lookup) | `src/MeshPose.cpp`, `src/meshpose.h`, `src/MeshRenderer.cpp`, `src/rtmesh.cpp` (`CRTMesh::GetRTEmitter`) | GPL-3.0-only (MeshPose and MeshRenderer are in Stuart's release) |
+| `Mesh/MeshVertexBuffer.cs` (the vertex buffer record as the mesh reader skips it) | `src/DXMeshVB.cpp`, `src/DXMeshVB.h` | GPL-3.0-only (in Stuart's release) |
+| `Mesh/MeshPolyBucket.cs` (the part's poly bucket as stored) | `src/PolyBucket.cpp` and its header | GPL-3.0-or-later (not in Stuart's release) |
+| `Mesh/MatrixOps.cs` (FMatrix sum, difference and scale; the 16/48-byte layouts) | `src/maths.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Thing.cs` (CThing, CComplexThing) | `src/thing.h`, `src/thing.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Things/Actor.cs` (CActor) | `src/actor.h`, `src/actor.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Things/InitThing.cs` (CInitCSThing, CInitThing's runtime fields, Copy) | `src/InitThing.h` | GPL-3.0-only (in Stuart's release) |
+| `Things/ThingType.cs` (THING_TYPE_ bits) | `src/ThingType.h`, `src/waypoint.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/RenderThing.cs` (CRTMesh's mesh, pose and emitter lookup) | `src/rtmesh.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Unit.cs` (CUnit) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
-| `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-or-later (the map texture and map files are not in Stuart's release) |
+| `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `World/InitThingRecord.cs` (placement records, class ids, battle engine configuration names) | `src/InitThing.h`, `src/InitThing.cpp` (`CInitThing` and derived `Load`, `SpawnInitThing`), `src/oids.h`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
-| `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
-| `Clock/EventClock.cs` (the event manager's time) | `src/eventmanager.cpp` (`CEventManager::AdvanceTime`, `Init`) | GPL-3.0-only (in Stuart's release) |
+| `Events/EventManager.cs` (the scheduler: pool, buffers, overflow, AddEvent, AdvanceTime, Flush; CScheduledEvent) | `src/eventmanager.cpp`, `src/eventmanager.h`, `src/scheduledevent.cpp`, `src/scheduledevent.h` | GPL-3.0-only (in Stuart's release) |
+| `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only (in Stuart's release) |
+| `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |
+| `Game/GameUpdate.cs` (CGame::Update) | `src/game.cpp` (`CGame::Update`) | GPL-3.0-only (in Stuart's release) |
+| `Game/GameRandom.cs` (GAME.Random and FloatRandom, with draw-site logging) | `src/game.h` (`CGame::Random`, `CGame::FloatRandom`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/ClockSimulation.cs` (the level-start order: base time, PreRun, MainLoop) | `src/game.cpp` (`CGame::RunLevel`, `PreRun`) | GPL-3.0-only (in Stuart's release) |
 | `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/UnitData.cs`, `Physics/PhysicsRegistry.cs` (the definitions the script builds: units, features, hazards) | `src/WorldPhysicsManager.h` (`CUnitData`, `CFeatureData`, `CHazardData`, `UPhysicsManager`), `src/WorldPhysicsManager.cpp` (the unit setters, `MapMountName`), `src/CPhysicsScriptStatements.h` (the statements' `Execute`, the values' `Load` and `Apply`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/WeaponData.cs` (CWeaponData, CLaunchAngle, CWeaponModeData: physics-script constructors, setters, SetLaunchSequence/SetLaunchAngle, SetRound) | `src/WorldPhysicsManager.h`, `src/WorldPhysicsManager.cpp` (`CWeaponModeData::SetRound`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/RoundData.cs` (CRoundData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/SpawnerData.cs` (CSpawnerData: constructor, SetThingName, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority
 

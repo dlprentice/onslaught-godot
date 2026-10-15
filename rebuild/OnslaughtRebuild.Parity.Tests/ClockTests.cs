@@ -73,9 +73,10 @@ public sealed class ClockTests
     }
 
     [Fact]
-    public void TheEventClockStoresCountTimesTheTick()
+    public void TheEventManagerStoresCountTimesTheTick()
     {
-        var events = new EventClock();
+        var events = new OnslaughtRebuild.Parity.Events.EventManager();
+        events.Init();
         for (int count = 1; count <= 20_000; count++)
         {
             events.AdvanceTime();
@@ -87,7 +88,7 @@ public sealed class ClockTests
     [Fact]
     public void MainLoopRendersOnceOrTwicePerTickAtThirtyPresentsASecond()
     {
-        var sim = new ClockSimulation(level: 100, baseReadPresent: 100, levelStartPresent: 100, preRunTicks: 60);
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 100, levelStartPresent: 100);
         var renderCounts = new List<int>();
         int lastTicks = sim.Events.FrameCount;
         for (int i = 0; i < 10_000; i++)
@@ -102,10 +103,12 @@ public sealed class ClockTests
 
         // Each MainLoop is one tick (0.05 s) and Presents until the clock has passed the next frame boundary; with a
         // Present every 1/30 s that is 1 or 2 Presents, 3 Presents per 2 ticks.
-        Assert.All(renderCounts.Skip(1), r => Assert.InRange(r, 1, 2));
-        Assert.Equal(3.0, PresentsPerTwoTicks(renderCounts.Skip(200).Take(6000).ToList()));
-        // The pre-run's 60 ticks, then 2 ticks per 3 Presents over the 9,900 Presents after the level start: with
-        // mBaseTime read at the first MainLoop's Present there is nothing to catch up.
+        // The first two samples are the pre-run's ticks (seen at the loading screen's Present) and the first MainLoop
+        // pass, before any pass has finished rendering.
+        Assert.All(renderCounts.Skip(2), r => Assert.InRange(r, 1, 2));
+        Assert.Equal(3.0, PresentsPerTwoTicks(renderCounts.Skip(201).Take(6000).ToList()));
+        // The pre-run's 60 ticks (FINISHED_PRE_RUN), then 2 ticks per 3 Presents after the level start (the loading
+        // screen's Present and 9,899 MainLoop Presents): mBaseTime was read just before, so there is nothing to catch up.
         Assert.Equal(60 + 9_900 * 2 / 3, sim.Events.FrameCount);
     }
 
@@ -116,9 +119,10 @@ public sealed class ClockTests
         for (long k = 1; k <= 10_000; k++)
         {
             sim.AdvanceToNextPresent();
-            if (k > 3100)
+            if (k > 3101)
             {
-                // GetSysTimeFloat counts from Present 1, and FT is read at the render before Present k.
+                // GetSysTimeFloat counts from Present 1, and FT is read at the render before Present k (Present 3101 is
+                // the loading screen's, after the pre-run).
                 float expected = Round24(new BigInteger((k - 2) * PlatformClock.QpcTicksPerPresent),
                     new BigInteger(PlatformClock.QpcFrequency));
                 Assert.Equal(expected, sim.Loop.FrameTime);
@@ -130,7 +134,7 @@ public sealed class ClockTests
     public void Level100GoldenEventTimeFrameTimeAndLevelMatchEverySample()
     {
         ProbeTrace golden = ProbeTrace.Load(RetailData.File("golden/m100-or.retail.probes"));
-        var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100, preRunTicks: 60);
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100);
         // The clock reads no input, so the run needs no tape: Present by Present, sampling as the harness does.
         var ours = new ProbeTrace();
         while (sim.PresentCount < 10_000)
@@ -148,6 +152,35 @@ public sealed class ClockTests
             ProbeComparison probe = comparison.Probes.Single(p => p.Name == name);
             Assert.True(probe.Exact, $"{name}: {probe}");
             Assert.Equal(200, probe.ReferenceSamples);
+        }
+    }
+
+    /// <summary>
+    /// C's per-Present retail run of level 100 (golden-640: -level 100 -skipfmv -forcewindowed -res 640 480, probes
+    /// after every Present 1..3400): the level is taken and its base time read after Present 2, PreRun's 60 ticks run in
+    /// the same gap, Present 3 is the loading screen at 100% (EVT 3.0, FT 0) and MainLoop starts with Present 4.
+    /// </summary>
+    [RetailFileFact("golden-640/level100.perpresent-3400.probes")]
+    public void Level100PerPresentEventTimeFrameTimeAndLevelMatchEveryPresent()
+    {
+        // The RNG probe reads "null" before the stream exists; the clock run does not model it.
+        string text = string.Join('\n', File.ReadAllLines(RetailData.File("golden-640/level100.perpresent-3400.probes"))
+            .Where(l => !l.Contains(" RNG ", StringComparison.Ordinal))) + "\n";
+        ProbeTrace golden = ProbeTrace.Parse(text);
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 2, levelStartPresent: 2);
+        var ours = new ProbeTrace();
+        while (sim.PresentCount < 3_400)
+        {
+            sim.AdvanceToNextPresent();
+            sim.ReadProbes(sim.PresentCount, ours);
+        }
+
+        TraceComparison comparison = TraceComparison.Compare(golden, ours);
+        foreach (string name in new[] { ProbeCatalog.EventTime, ProbeCatalog.FrameTime, ProbeCatalog.Level })
+        {
+            ProbeComparison probe = comparison.Probes.Single(p => p.Name == name);
+            Assert.True(probe.Exact, $"{name}: {probe}");
+            Assert.Equal(3_400, probe.ReferenceSamples);
         }
     }
 
@@ -174,5 +207,17 @@ public sealed class ClockTests
         }
 
         return (float)Math.ScaleB((double)kept, e + extra);
+    }
+}
+
+/// <summary>A <see cref="RetailDataFactAttribute"/> that also needs one file of the retail data.</summary>
+public sealed class RetailFileFactAttribute : FactAttribute
+{
+    public RetailFileFactAttribute(string relative)
+    {
+        if (RetailData.Root is null || !File.Exists(RetailData.File(relative)))
+        {
+            Skip = $"retail parity data file {relative} not found (set ONSLAUGHT_PARITY_DATA)";
+        }
     }
 }

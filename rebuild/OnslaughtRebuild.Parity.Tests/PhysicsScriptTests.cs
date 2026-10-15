@@ -27,3 +27,30 @@ public sealed class PhysicsScriptTests
         Assert.Contains(script.Statements, s => s.Type == PhysicsStatementType.Unit && s.NameText == "Control Tower");
     }
 }
+
+public sealed class PhysicsRegistryTests
+{
+    [GameDataFact]
+    public void TheLevel100UnitsHaveTheirBehaviours()
+    {
+        PhysicsRegistry r = PhysicsRegistry.Build(PhysicsScriptTests.Load());
+
+        Assert.Equal(0, r.SkippedValues);
+        Assert.Equal(160, r.Units.Count);
+        UnitBehaviour Of(string name) => r.GetUnitData(System.Text.Encoding.ASCII.GetBytes(name))!.Behaviour;
+        Assert.Equal(UnitBehaviour.Building, Of("Control Tower"));
+        Assert.Equal(UnitBehaviour.Turret, Of("SAT Turret"));
+        Assert.Equal(UnitBehaviour.GroundUnit, Of("Target Tank"));
+        Assert.Equal(UnitBehaviour.Dropship, Of("U-17 Highside Transporter"));
+        Assert.Equal(UnitBehaviour.Fighter, Of("Air Trainer"));
+        Assert.Equal(UnitBehaviour.SimpleBuilding, Of("Forseti City Building 1"));
+    }
+
+    [GameDataFact]
+    public void UnitNamesAreUniqueSoEachStatementAppliesToItsOwnDefinition()
+    {
+        PhysicsScript script = PhysicsScriptTests.Load();
+        var names = script.Statements.Where(s => s.Type == PhysicsStatementType.Unit).Select(s => s.NameText).ToList();
+        Assert.Equal(names.Count, names.Distinct(StringComparer.Ordinal).Count());
+    }
+}

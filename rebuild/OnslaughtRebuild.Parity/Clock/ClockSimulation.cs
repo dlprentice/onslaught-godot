@@ -1,64 +1,69 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The level-start order (base time, CGame::PreRun, then CGame::MainLoop until quit) follows bea-decomp src/game.cpp
-// (CGame::RunLevel), in Stuart's release.
+// The level-start order (InitRestartLoop, the base time read, CGame::PreRun, then CGame::MainLoop until quit) follows
+// bea-decomp src/game.cpp (CGame::RunLevel, RestartLoopRunLevel), in Stuart's release.
 
 using System.Buffers.Binary;
+using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Game;
+using ParityGame = OnslaughtRebuild.Parity.Game.Game;
 
 namespace OnslaughtRebuild.Parity.Clock;
 
 /// <summary>
-/// M2: the game's clock and main loop with no game behind them, driven Present by Present like the retail harness. It
-/// reads the clock probes (EVT, FT and LVL) and nothing else. The pre-level Presents (boot, front end, loading screens)
-/// are G's flow work (M6); until they exist this simulation Presents through them and is told where the level starts:
+/// M2: CGame's clock, event manager and main loop with none of the world behind them, driven Present by Present like
+/// the retail harness. It reads the clock probes (EVT, FT and LVL) and nothing else. The pre-level Presents (boot, front
+/// end, loading screens) are G's flow work (M6); until they exist this simulation Presents through them and is told
+/// where the level starts:
 /// <list type="bullet">
 /// <item>the boot's first GetSysTimeFloat call follows Present 1 (the golden's frame times require it);</item>
+/// <item>CGame::InitRestartLoop resets the event manager and schedules FINISHED_PRE_RUN mPreRunTime ahead;</item>
 /// <item>mBaseTime is read at <see cref="BaseReadPresent"/>;</item>
-/// <item>CGame::PreRun runs <see cref="PreRunTicks"/> ticks with no Present (until FINISHED_PRE_RUN at
-/// mPreRunTime 3.0 s);</item>
-/// <item>the first MainLoop starts at <see cref="LevelStartPresent"/>.</item>
+/// <item>CGame::PreRun runs at <see cref="LevelStartPresent"/> and ticks with no Present until FINISHED_PRE_RUN fires
+/// (tick 60: its buffer is floor((3.0 - 0.001) * 20) = 59);</item>
+/// <item>the loading screen's 100% render Presents once (it is not throttled), then the first MainLoop starts.</item>
 /// </list>
 /// </summary>
-public sealed class ClockSimulation : IParitySimulation, IMainLoopHost
+public sealed class ClockSimulation : IParitySimulation
 {
     private readonly PlatformClock _clock = new();
-    private readonly EventClock _events = new();
-    private readonly GameLoop _loop;
+    private readonly EventManager _events = new();
+    private readonly ParityGame _game;
     private IEnumerator<int>? _mainLoop;
     private bool _levelStarted;
 
-    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent, int preRunTicks = 60)
+    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent, long runLevelPresent = 2)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(runLevelPresent, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, runLevelPresent);
         ArgumentOutOfRangeException.ThrowIfLessThan(levelStartPresent, baseReadPresent);
         Level = level;
+        RunLevelPresent = runLevelPresent;
         BaseReadPresent = baseReadPresent;
         LevelStartPresent = levelStartPresent;
-        PreRunTicks = preRunTicks;
-        _loop = new GameLoop(_clock);
+        _game = new ParityGame(_clock, _events, new NullGameServices(_clock.Present)) { CurrentLevel = -1 };
     }
 
-    /// <summary>CGame's level number, from the command line at boot.</summary>
     public int Level { get; }
+
+    /// <summary>
+    /// The Present after which CGame takes the level (mCurrentLevel is -1 until then): Present 2 in the per-Present
+    /// retail run of level 100 (C, golden-640), the first of the loading frames when there are any.
+    /// </summary>
+    public long RunLevelPresent { get; }
 
     public long BaseReadPresent { get; }
 
     public long LevelStartPresent { get; }
 
-    public int PreRunTicks { get; }
-
     public PlatformClock Clock => _clock;
 
-    public EventClock Events => _events;
+    public EventManager Events => _events;
 
-    public GameLoop Loop => _loop;
+    public ParityGame Game => _game;
+
+    public GameLoop Loop => _game.Loop;
 
     public long PresentCount => _clock.PresentCount;
-
-    QuitType IMainLoopHost.Quit => QuitType.None;
-
-    bool IMainLoopHost.Paused => false;
-
-    bool IMainLoopHost.FreeCameraOn => false;
 
     public void AdvanceToNextPresent()
     {
@@ -72,9 +77,15 @@ public sealed class ClockSimulation : IParitySimulation, IMainLoopHost
                     _clock.GetSysTimeFloat(); // the boot's first call: CPCPlatform's first_seen
                 }
 
+                if (_clock.PresentCount == RunLevelPresent)
+                {
+                    _game.CurrentLevel = Level;
+                }
+
                 if (_clock.PresentCount == BaseReadPresent)
                 {
-                    _loop.StartLevelTiming();
+                    _game.InitRestartLoop();
+                    _game.StartLevelTiming();
                 }
 
                 if (_clock.PresentCount < LevelStartPresent)
@@ -83,16 +94,17 @@ public sealed class ClockSimulation : IParitySimulation, IMainLoopHost
                     continue;
                 }
 
-                _events.Init();
-                for (int i = 0; i < PreRunTicks; i++)
-                {
-                    _events.AdvanceTime(); // CGame::PreRun's Updates: no render, no Present
-                }
-
+                _game.PreRun();
                 _levelStarted = true;
+
+                // CONSOLE.SetLoadingFraction(1.0f) right after PreRun brings the loading bar to 100%, where
+                // RenderLoadingScreen skips its 0.05 s throttle: one Present before the first MainLoop. (The fractions
+                // between the base read and PreRun are throttled: no Present has moved the clock since the last one.)
+                _clock.Present();
+                continue;
             }
 
-            _mainLoop ??= _loop.MainLoop(this).GetEnumerator();
+            _mainLoop ??= _game.MainLoop().GetEnumerator();
             if (!_mainLoop.MoveNext())
             {
                 _mainLoop = null;
@@ -114,38 +126,10 @@ public sealed class ClockSimulation : IParitySimulation, IMainLoopHost
         BinaryPrimitives.WriteSingleLittleEndian(buffer, _events.Time);
         trace.Add(frame, ProbeCatalog.EventTime, buffer);
         buffer = new byte[4];
-        BinaryPrimitives.WriteSingleLittleEndian(buffer, _loop.FrameTime);
+        BinaryPrimitives.WriteSingleLittleEndian(buffer, _game.Loop.FrameTime);
         trace.Add(frame, ProbeCatalog.FrameTime, buffer);
         buffer = new byte[4];
-        BinaryPrimitives.WriteInt32LittleEndian(buffer, Level);
+        BinaryPrimitives.WriteInt32LittleEndian(buffer, _game.CurrentLevel);
         trace.Add(frame, ProbeCatalog.Level, buffer);
     }
-
-    void IMainLoopHost.ResetMouseTransientState()
-    {
-    }
-
-    QuitType IMainLoopHost.Process() => QuitType.None;
-
-    bool IMainLoopHost.InactivityMeansQuitGame() => false;
-
-    void IMainLoopHost.EnterAttractMode()
-    {
-    }
-
-    void IMainLoopHost.SetQuit(QuitType quit)
-    {
-    }
-
-    void IMainLoopHost.Update() => _events.AdvanceTime();
-
-    void IMainLoopHost.AfterUpdate()
-    {
-    }
-
-    void IMainLoopHost.Render(int numRenders)
-    {
-    }
-
-    void IMainLoopHost.Flip() => _clock.Present();
 }
