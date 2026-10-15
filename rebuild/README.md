@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: parked (2026-10-15) — superseded by the native source port of the decompilation
-Last updated: 2026-10-15 (parked by David; state at tag archive/godot-rebuild-20260926)
+Last updated: 2026-10-15 (parked by David; state at the old tag archive/godot-rebuild-20260926, now private)
 Summary: the Godot/C# reconstruction as it stood when parked, kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -10,7 +10,7 @@ thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 
 David parked this lane on 2026-10-15. The faithful cross-platform game is now a native source port of the
 byte-matching decompilation (private bea-decomp); a future remake would fork that port. The code here is the state
-at tag archive/godot-rebuild-20260926: C# only and built in code, Level 100 winnable through the player-input
+at the old tag archive/godot-rebuild-20260926 (kept in the private RE archive since the history flatten): C# only and built in code, Level 100 winnable through the player-input
 surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in the Godot
 host). Its retail-data decoders, determinism notes and RE contract citations remain useful reference; the sections
 below describe that state, not current work.

@@ -15,7 +15,7 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
-**Parked 2026-10-15.** These grades describe the Godot rebuild at tag archive/godot-rebuild-20260926. Parity work now belongs to the native source port of the decompilation.
+**Parked 2026-10-15.** These grades describe the Godot rebuild at its parking point (the old tag archive/godot-rebuild-20260926, now in the private RE archive). Parity work now belongs to the native source port of the decompilation.
 
 ## Authority order (from PROVENANCE.md)
 
