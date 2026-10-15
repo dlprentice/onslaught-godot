@@ -179,4 +179,51 @@ public sealed class BitmapFont : IFontMetrics
     }
 
     public int TextWidth(string text) => GetTextExtent(text).Width;
+
+    /// <summary><c>GetHeight</c>: the cell size.</summary>
+    public int Height => CellSize;
+
+    /// <summary>
+    /// <c>WordWrap</c> (0x00465a20): for each character, the line so far plus the whole word starting there is measured
+    /// (a space followed by one of "!?;:" stays in the word; a word is at most 99 characters); once that is at least
+    /// <paramref name="width"/> wide the line ends (trailing spaces dropped) and a new one starts. A space never starts a
+    /// line. At most 40 lines; past that the last line is reused.
+    /// </summary>
+    public List<string> WordWrap(string text, float width)
+    {
+        const string punctuation = "!?;:";
+        int len = text.IndexOf('\0') is var z && z >= 0 ? z : text.Length;
+        char[][] fill = [.. Enumerable.Range(0, 40).Select(_ => new char[len + 2])];
+        int col = 0, line = 0;
+        for (int pos = 0; pos < len; pos++)
+        {
+            int w = 0;
+            while (true)
+            {
+                if (pos + w == len) break;
+                if (text[pos + w] == ' ' && pos + w + 1 < len && !punctuation.Contains(text[pos + w + 1])) break;
+                if (w > 98) break;
+                w++;
+            }
+            string tmp = new string(fill[line], 0, col) + text.Substring(pos, w);
+            if (GetTextExtent(tmp).Width >= width)
+            {
+                while (col > 0 && fill[line][col - 1] == ' ') col--;
+                fill[line][col] = '\0';
+                col = 0;
+                line++;
+                if (line >= 40) line--;
+            }
+            char ch = text[pos];
+            if (ch != ' ' || col != 0) fill[line][col++] = ch;
+        }
+        fill[line][col] = '\0';
+        List<string> lines = [];
+        for (int l = 0; l <= line; l++)
+        {
+            int end = Array.IndexOf(fill[l], '\0');
+            lines.Add(new string(fill[l], 0, end < 0 ? fill[l].Length : end));
+        }
+        return lines;
+    }
 }

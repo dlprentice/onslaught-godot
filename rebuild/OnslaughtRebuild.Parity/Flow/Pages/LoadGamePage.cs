@@ -3,6 +3,7 @@
 
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Numerics;
+using Fet = OnslaughtRebuild.Parity.Text.FrontEndText;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
 
@@ -125,7 +126,10 @@ public sealed class LoadGamePage(FrontEnd frontEnd) : FrontEndPageBase
 
     private void Show(uint timeout, MessageBoxOption option, Text text)
     {
-        frontEnd.MessageBox.Create(timeout, 10, false, option, 0);
+        // The continue boxes get their layout (FEPLoadGame.cpp's Create calls); the timed "loaded" box has none.
+        if (text == Text.LoadDone) frontEnd.MessageBox.Create(timeout, 10, false, option, 0);
+        else frontEnd.ShowMessage(320f, 240f, 400f,
+            t => t.GetText(text == Text.BadSaveVersion ? Fet.BadSaveVersion : Fet.LoadInvalid), timeout, 10, option, 0);
         LastText = text;
     }
 }

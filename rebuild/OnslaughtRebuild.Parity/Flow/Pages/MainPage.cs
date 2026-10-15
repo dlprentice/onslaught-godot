@@ -140,14 +140,14 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
         switch (Selected)
         {
             case 0:
-                if (inProgress) frontEnd.MessageBox.Create(0, 10, false, MessageBoxOption.YesNo, MessageBoxQuestion.NewCareer);
+                if (inProgress) frontEnd.ShowMessage(320f, 240f, 300f, t => t.GetText(Text.FrontEndText.AbandonCareer), 0, 10, MessageBoxOption.YesNo, MessageBoxQuestion.NewCareer);
                 else StartNewCareer();
                 break;
             case 1:
                 frontEnd.SetPage(FrontEndPage.LevelSelect, 70);
                 break;
             case 2:
-                if (inProgress) frontEnd.MessageBox.Create(0, 10, false, MessageBoxOption.YesNo, MessageBoxQuestion.LoadCareer);
+                if (inProgress) frontEnd.ShowMessage(320f, 240f, 300f, t => t.GetText(Text.FrontEndText.AbandonCareer), 0, 10, MessageBoxOption.YesNo, MessageBoxQuestion.LoadCareer);
                 else OpenLoad(0);
                 break;
             case 8:
@@ -174,7 +174,8 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
                 break;
             case 6:
                 frontEnd.MessageBox.Kill();
-                frontEnd.MessageBox.Create(0, 10, false, MessageBoxOption.YesNo, MessageBoxQuestion.Quit);
+                // Localization_GetStringById(0xe4): a PC text, from the player's executable through the host.
+                frontEnd.ShowMessage(320f, 240f, 400f, t => t.PcText(0xe4), 0, 10, MessageBoxOption.YesNo, MessageBoxQuestion.Quit);
                 frontEnd.MessageBox.SetOnDismiss(FrontEndPage.Main, 0);
                 break;
         }
