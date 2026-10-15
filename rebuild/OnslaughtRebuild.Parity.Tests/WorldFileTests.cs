@@ -45,12 +45,18 @@ public sealed class WorldFileTests(ITestOutputHelper output)
         output.WriteLine($"scripts ({w.Scripts.Count}): {string.Join(", ", w.Scripts.Select(s => $"{Encoding.ASCII.GetString(s.Name)}[{s.Code.Instructions.Count}]"))}");
         output.WriteLine($"named meshes: {w.NamedMeshes.Count}");
         output.WriteLine($"things: {w.Things.Count}");
-        foreach (IGrouping<int, ThingRecord> g in w.Things.GroupBy(t => t.Type).OrderBy(g => g.Key))
+        for (int i = 0; i < w.Things.Count; i++)
         {
-            output.WriteLine($"  oid {g.Key}: {g.Count()}  {string.Join(", ", g.Select(t => t.PhysicsNameText.Length > 0 ? t.PhysicsNameText : Encoding.ASCII.GetString(t.Init.Name)).Distinct().Take(12))}");
+            ThingRecord t = w.Things[i];
+            output.WriteLine($"  [{i}] oid {t.Type} '{t.PhysicsNameText}' name '{Encoding.ASCII.GetString(t.Init.Name)}' script '{Encoding.ASCII.GetString(t.Init.Script)}' dies {t.DiesOn} target {t.Init.Target} active {t.Init.Active}");
         }
 
         output.WriteLine($"tree groups {w.TreeGroups.Count} ({w.TreeGroups.Sum(g => g.Count)} trees), tree types {w.TreeTypes.Count} ({w.TreeTypes.Sum(t => t.Trees.Count)} trees)");
+        foreach (TreeType t in w.TreeTypes)
+        {
+            output.WriteLine($"  tree type '{Encoding.ASCII.GetString(t.Name)}': {t.Trees.Count}, variants {string.Join(",", t.Trees.Select(x => x.Variant).Distinct().Order())}");
+        }
+
         output.WriteLine($"influence map v{w.InfluenceMap.Version}: {w.InfluenceMap.Nodes.Count} nodes, {w.InfluenceMap.Links.Count} links");
         output.WriteLine($"waypoint paths {w.WaypointPaths.Count}: {string.Join(", ", w.WaypointPaths.Select(p => $"{Encoding.ASCII.GetString(p.Name)}({p.ThingIndices.Count})"))}");
         output.WriteLine($"timings {w.Timings}");

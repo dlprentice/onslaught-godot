@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/world.cpp (CWorld::LoadWorld 0050b9c0, LoadHeader 0050d4c0, LoadScripts 0050ac70,
 // Deserialize 0050b780), src/engine.cpp (CEngine::LoadAllNamedMeshes 00449dc0), src/InfluenceMap.cpp
 // (CInfluenceMap::Load), src/WaypointManager.cpp (CWaypointManager::Load 00505ae0, CWaypointPath::Load 00505960) and
-// src/NavigationMap.cpp (COccupancyGrid::Load 004be050, SkipLegacy 004bdff0, SkipHeader 004be170). Not in Stuart's
-// release.
+// src/NavigationMap.cpp (COccupancyGrid::Load 004be050, SkipLegacy 004bdff0, SkipHeader 004be170). engine.cpp is in
+// Stuart's release, hence GPL-3.0-only.
 
 using System.Text;
 using OnslaughtRebuild.Parity.Data;
@@ -192,6 +192,9 @@ public sealed class WorldFile
                     diesOn = file.ReadInt32();
                     break;
                 default:
+                    // Retail reads this record only when SpawnThing(type) made a thing; a class id it cannot make
+                    // would leave the record unread and the rest of the file misread. Every id in the shipped worlds
+                    // spawns (all 66 level files read to their ends), so the record is always read here.
                     init = InitThingRecord.Load(kind, Version, file);
                     break;
             }
