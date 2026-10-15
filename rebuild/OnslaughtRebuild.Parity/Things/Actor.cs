@@ -46,8 +46,9 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
         OldPos = init.Pos;
         if (init.OrientationType == OrientationType.EulerAngles)
         {
-            // CActor::Init's inline copy of the rotation (00401255..0040131a) is not yet checked against
-            // CComplexThing::Init's register use; it feeds the previous orientation only.
+            // CActor::Init's inline copy (00401255..00401316, pristine 74154bfa) stores and keeps the same values as
+            // CComplexThing::Init's (cos/sin yaw, cos roll and cos pitch to floats; sin roll and sin pitch on the stack)
+            // in the same order, so FromYawPitchRoll's sequence applies.
             OldOrientation = FMatrix.FromYawPitchRoll(init.Yaw, init.Pitch, init.Roll);
         }
         else if (init.OrientationType == OrientationType.DirectionCosineMatrix)
