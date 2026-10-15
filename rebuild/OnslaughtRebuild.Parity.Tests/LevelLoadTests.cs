@@ -305,11 +305,11 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// The PreRun event schedule against the native port's log (l100-prerun-events.txt): every AddEvent (event number and
-    /// the absolute time it received, as float bits) and every dispatch, Update by Update through U60, compared in order.
-    /// CCSPersistentThing's events are left out on both sides (its Init is counted as not ported). A measurement: it
-    /// reports the first divergence with the lines around it, and asserts the matched prefix never shrinks below
-    /// <see cref="PreRunEventsMatchedFloor"/>.
+    /// The PreRun event schedule against the native port's log (l100-prerun-events.txt): every AddEvent (event number,
+    /// target class and the absolute time it received, as float bits) and every dispatch, Update by Update through U60,
+    /// compared in order. The classes not ported yet (<see cref="UnportedEventClasses"/>) are left out on both sides,
+    /// keeping the others' order. A measurement: it reports the first divergence with the lines around it, and asserts
+    /// the matched prefix never shrinks below <see cref="PreRunEventsMatchedFloor"/>.
     /// </summary>
     [PortLogFact]
     public void PreRunEventsFollowRetailsLog()
@@ -323,7 +323,13 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         {
             foreach (EventLogEntry e in context.Events.Log!)
             {
-                ours.Add(e.Kind == 'A' ? $"A U{update} ev {e.EventNum} t {e.TimeBits:x8}" : $"F U{update} ev {e.EventNum}");
+                string target = RetailClass(e.Target);
+                if (UnportedEventClasses.Contains(target))
+                {
+                    continue;
+                }
+
+                ours.Add(e.Kind == 'A' ? $"A U{update} ev {e.EventNum} {target} t {e.TimeBits:x8}" : $"F U{update} ev {e.EventNum} {target}");
             }
 
             context.Events.Log!.Clear();
@@ -352,12 +358,12 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         {
             string[] f = line.Split(' ');
             if (f.Length < 5 || f[0] is not ("A" or "F") || f[1].Length < 2 || f[1][0] != 'U' || f[2] != "ev"
-                || !int.TryParse(f[1][1..], out int u) || u == 0 || u > update || f[4] == "CCSPersistentThing")
+                || !int.TryParse(f[1][1..], out int u) || u == 0 || u > update || UnportedEventClasses.Contains(f[4]))
             {
                 continue;
             }
 
-            retail.Add(f[0] == "A" ? $"A {f[1]} ev {f[3]} t {f[6]}" : $"F {f[1]} ev {f[3]}");
+            retail.Add(f[0] == "A" ? $"A {f[1]} ev {f[3]} {f[4]} t {f[6]}" : $"F {f[1]} ev {f[3]} {f[4]}");
         }
 
         int matched = 0;
@@ -369,14 +375,31 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         output.WriteLine($"PreRun events: {stopped}; retail {retail.Count} lines, ours {ours.Count}; matched prefix {matched}");
         for (int i = Math.Max(0, matched - 6); i < Math.Min(matched + 6, Math.Max(retail.Count, ours.Count)); i++)
         {
-            output.WriteLine($"{i,5} {(i == matched ? ">>" : "  ")} retail {(i < retail.Count ? retail[i] : "-"),-34} ours {(i < ours.Count ? ours[i] : "-")}");
+            output.WriteLine($"{i,5} {(i == matched ? ">>" : "  ")} retail {(i < retail.Count ? retail[i] : "-"),-50} ours {(i < ours.Count ? ours[i] : "-")}");
         }
 
         Assert.True(matched >= PreRunEventsMatchedFloor, $"matched prefix {matched} fell below {PreRunEventsMatchedFloor}");
     }
 
+    /// <summary>Retail's class name for an event target (the port's log names the C++ class).</summary>
+    private static string RetailClass(string? type) => type switch
+    {
+        null => "(null)",
+        "IScript" => "IScript",
+        "Game" => "CDXGame",
+        "ScriptVm" => "CVM",
+        _ => "C" + type,
+    };
+
+    /// <summary>The event targets not ported yet, left out of the event comparison on both sides.</summary>
+    private static readonly HashSet<string> UnportedEventClasses =
+    [
+        "CCSPersistentThing", "CAnimation", "CHLCollisionDetector", "CRadarWarningReceiver", "CDXCockpit", "CPanCamera",
+        "CMCBattleEngine",
+    ];
+
     /// <summary>The PreRun event lines matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunEventsMatchedFloor = 8;
+    private const int PreRunEventsMatchedFloor = 5643;
 
     /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
     private const int PreRunMatchedFloor = 306;
