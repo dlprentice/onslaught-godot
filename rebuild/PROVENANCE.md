@@ -14,8 +14,9 @@ and retained-particle claims retain their narrower dated evidence boundaries.
 Summary: the licence boundary, permitted evidence, and authority order for the
 `rebuild/` reconstruction lane, plus what the current slice actually covers.
 
-`rebuild/` is a GPL-3.0-or-later, source- and reverse-engineering-informed
-reconstruction. It is not a clean-room lane. The root MIT license does not
+`rebuild/` is a GPL-3.0, source- and reverse-engineering-informed reconstruction, distributed as a whole under
+GPL-3.0-only because many of its files adapt Stuart's version-3-only release (see *Licence identifiers* below). It is
+not a clean-room lane. The root MIT license does not
 relicense this subtree or the pinned `references/Onslaught` source.
 
 ## Permitted evidence and inputs
@@ -53,6 +54,13 @@ source, directly or through bea-decomp, are therefore marked `SPDX-License-Ident
 bea-decomp code that is not in his release (reconstructed from the retail program, such as the random stream) and
 original rebuild code keep the rebuild's `GPL-3.0-or-later`, which may be combined with GPL-3.0-only code. The table's
 licence column applies this rule per unit.
+
+Audit of the earlier rebuild (2026-10-15): every file outside `OnslaughtRebuild.Parity` that cites Stuart's source (a
+`references/Onslaught` path, a `.cpp`/`.h` file and line, or his name) was moved from `GPL-3.0-or-later` to
+`GPL-3.0-only`: 144 files across Core, Core.Tests, Client, Client.Tests, Godot and one tool. The rule is a deliberate
+superset (a test that only cites his code for an expected value is marked too), because 3.0-only is the narrower grant
+and combines with or-later code; files that cite nothing of his keep `GPL-3.0-or-later`. Every rebuild project's
+package licence expression is `GPL-3.0-only`.
 
 | C# unit | Adapted from bea-decomp | Licence |
 | --- | --- | --- |
