@@ -63,6 +63,10 @@ licence column applies this rule per unit.
 | `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) | GPL-3.0-only (in Stuart's release) |
 | `Flow/FrontEnd.cs` (the front end's page machine: page changes and transitions, button routing, the filtered frame step, one Present per iteration) | `src/FrontEnd.cpp`, `src/frontend.h`, `src/FrontEndPage.h` (`CFrontEnd`, `CFrontEndPage`); button ids from `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
 | `Flow/FrontEndMessageBox.cs` (the front end's message box: create, fades, timeout, yes/no, dismiss page) | `src/FEMessBox.cpp`, `src/FEMessBox.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/MemoryCard.cs` (the PC's save folder as the memory card: one device, its saves, create, write, read, delete) | `src/PCMemoryCard.cpp` (`CPCMemoryCard`), `src/MemoryCard.h` (return codes) | GPL-3.0-only (in Stuart's release) |
+| `Flow/Pages/IntroPage.cs` (the title page) | `src/FEPIntro.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/MainPage.cs` (the main menu) | `src/FEPMain.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/DevSelectPage.cs` (the storage-device page) | `src/FEPDevSelect.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Platform/PlatformInput.cs` (the window's message queue and handling, key state by scan code, KeyOnce and KeyOnceThisFrame) | `src/ltshell.cpp`, `src/ltshell.h` (`PCLTShell::MsgProc`, `HandlingSystemStuff`, key state), `src/PCPlatform.cpp` (`Process`, `KeyOn`, `KeyOnce`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/DirectInputMouse.cs` (the DirectInput mouse polls the level reads) | `src/Controller.cpp` (`InitMouse`, `ShutdownMouse`, `PollMouseMotion`, `PollMouseState`) | GPL-3.0-only (in Stuart's release) |
