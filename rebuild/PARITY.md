@@ -49,14 +49,15 @@ processes identical at every captured Present):
 
 | Constant | Present | What retail shows |
 | --- | --- | --- |
-| `LoadingScreenFirst` | 2204 | the loading screen after the opening film |
-| `FrontEndFirstPresent` | 2286 | the title page's first frame (its background video) |
+| `LoadingScreenFirst` | 2204 | the loading screen after the opening film (Present 2204, by capture) |
+| `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts; Presents 2286 and 2287 show the title page's background before it |
 | `TitleLastPresent` | 3188 | the title page's last frame with no input; the attract videos follow at 3189 |
 
-Modelled on top of them: the title page's 30 s timeout ends the front end 901 Presents after the Present count
-seen by the page's entry notification (`CFEPIntro::TransitionNotification`, which `CFrontEnd::Init` runs twice);
-3188 - 900 = 2288, so two Presents fall inside `CFrontEnd::Init` before that notification. C's probe of the Present
-count at `CFrontEnd::Init` and at the notification confirms or refutes this. Open.
+Measured (M6 boot, 2026-10-15; C's code breakpoints logging completed Presents, two retail processes identical):
+`CFrontEnd::Init` starts at 2287 completed Presents. Both of its `CFEPIntro::TransitionNotification` calls and its
+first `CFrontEnd::Process` run at 2287, then one `Process` per Present. The title page's 30 s timeout quits in the
+`Process` at 3188 = 2287 + 901, as the flow models it (`ThirtySecondsIdleOnTheTitleQuitsToTheAttractVideos`): from
+the front end's first `Process` on, retail and the model agree to the Present.
 
 Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its
 138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
