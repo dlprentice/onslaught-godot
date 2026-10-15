@@ -370,10 +370,29 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
                 break;
             case UnitEvent.Event4003:
             {
-                Unknown110 = 0; // mUnknown110: a player's camera was within 50
-                // For each player with a camera: d.Y*d.Y + d.X*d.X + d.Z*d.Z < 2500 sets the flag. The cameras are not
-                // ported, so the flag stays false (counted).
-                Context.Skip("CUnit UNIT_EVENT_4003: the players' camera distance (cameras not ported)");
+                // mUnknown110: a player's camera is within 50. Compiled order (004f98d5..004f98f6): d = mPos - camera,
+                // then (d.Z*d.Z + d.X*d.X) + d.Y*d.Y < 2500, each operation at 24 bits.
+                Unknown110 = 0;
+                for (int i = 0; i < 2; i++)
+                {
+                    if (Context.Game?.GetPlayer(i) is not null && Context.Game.GetCurrentCamera(i) is { } camera)
+                    {
+                        FVector c = camera.GetPos();
+                        float dx = Pos.X - c.X;
+                        float dy = Pos.Y - c.Y;
+                        float dz = Pos.Z - c.Z;
+                        if ((dz * dz) + (dx * dx) + (dy * dy) < 2500.0f)
+                        {
+                            Unknown110 = 1;
+                        }
+                    }
+                }
+
+                if (Context.Game is null)
+                {
+                    Context.Skip("CUnit UNIT_EVENT_4003: no game, so no players' cameras");
+                }
+
                 float delay = Context.Random.FloatRandom() + 3.0f;
                 Context.Events.AddEventIn(delay, UnitEvent.Event4003, this, EventPriority.StartOfFrame, null,
                     e as ScheduledEvent);

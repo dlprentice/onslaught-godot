@@ -196,21 +196,10 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         scripts.Waypoints = spawner.Waypoints;
         new WorldLoader(context, resources, spawner).Load(100, isBase: false);
 
-        // CGame::PostLoadProcess (game.cpp:783): each player takes the battle engine of the last start with its number.
-        var playerEngines = new ActiveReader<Thing>[game.Players];
-        for (int i = 0; i < game.Players; i++)
-        {
-            playerEngines[i] = new ActiveReader<Thing>();
-            for (Thing? t = context.World.StartNB.First(); t is not null; t = context.World.StartNB.Next())
-            {
-                if (t is Start start && start.PlayerNumber == i + 1)
-                {
-                    playerEngines[i].SetReader(start.PlayerObject.ToRead);
-                }
-            }
-        }
-
-        scripts.Player = n => n < game.Players ? (true, playerEngines[n].ToRead) : (false, null);
+        // CGame::LoadLevel's players after the load (game.cpp:716), then PostLoadProcess's start positions (783).
+        game.CreatePlayers(multiplayerWorld: false);
+        game.AssignPlayersToStarts(context);
+        scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
         return (context, game);
     }
 
@@ -315,6 +304,80 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         Assert.True(matched >= PreRunMatchedFloor, $"matched prefix {matched} fell below {PreRunMatchedFloor}: {divergence}");
     }
 
+    /// <summary>
+    /// The PreRun event schedule against the native port's log (l100-prerun-events.txt): every AddEvent (event number and
+    /// the absolute time it received, as float bits) and every dispatch, Update by Update through U60, compared in order.
+    /// CCSPersistentThing's events are left out on both sides (its Init is counted as not ported). A measurement: it
+    /// reports the first divergence with the lines around it, and asserts the matched prefix never shrinks below
+    /// <see cref="PreRunEventsMatchedFloor"/>.
+    /// </summary>
+    [PortLogFact]
+    public void PreRunEventsFollowRetailsLog()
+    {
+        (ThingContext context, ParityGame game) = Level100Run();
+        var ours = new List<string>();
+        context.Events.Log = [];
+        int update = 0;
+        string stopped = "ran all 60";
+        void Take()
+        {
+            foreach (EventLogEntry e in context.Events.Log!)
+            {
+                ours.Add(e.Kind == 'A' ? $"A U{update} ev {e.EventNum} t {e.TimeBits:x8}" : $"F U{update} ev {e.EventNum}");
+            }
+
+            context.Events.Log!.Clear();
+        }
+
+        while (game.State == Game.GameState.PreRunning && update < 60)
+        {
+            update++;
+            try
+            {
+                game.Update();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped in U{update}: {e.Message}";
+                break;
+            }
+            finally
+            {
+                Take();
+            }
+        }
+
+        var retail = new List<string>();
+        foreach (string line in File.ReadLines(PortLogs.File("l100-prerun-events.txt")))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length < 5 || f[0] is not ("A" or "F") || f[1].Length < 2 || f[1][0] != 'U' || f[2] != "ev"
+                || !int.TryParse(f[1][1..], out int u) || u == 0 || u > update || f[4] == "CCSPersistentThing")
+            {
+                continue;
+            }
+
+            retail.Add(f[0] == "A" ? $"A {f[1]} ev {f[3]} t {f[6]}" : $"F {f[1]} ev {f[3]}");
+        }
+
+        int matched = 0;
+        while (matched < Math.Min(retail.Count, ours.Count) && retail[matched] == ours[matched])
+        {
+            matched++;
+        }
+
+        output.WriteLine($"PreRun events: {stopped}; retail {retail.Count} lines, ours {ours.Count}; matched prefix {matched}");
+        for (int i = Math.Max(0, matched - 6); i < Math.Min(matched + 6, Math.Max(retail.Count, ours.Count)); i++)
+        {
+            output.WriteLine($"{i,5} {(i == matched ? ">>" : "  ")} retail {(i < retail.Count ? retail[i] : "-"),-34} ours {(i < ours.Count ? ours[i] : "-")}");
+        }
+
+        Assert.True(matched >= PreRunEventsMatchedFloor, $"matched prefix {matched} fell below {PreRunEventsMatchedFloor}");
+    }
+
+    /// <summary>The PreRun event lines matched so far (raised as the handlers are ported; never lowered).</summary>
+    private const int PreRunEventsMatchedFloor = 8;
+
     /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunMatchedFloor = 198;
+    private const int PreRunMatchedFloor = 306;
 }
