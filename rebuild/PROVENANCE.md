@@ -87,6 +87,11 @@ package licence expression is `GPL-3.0-only`.
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
 | `Containers/SPtrSet.cs` (the shared node pool, SPtrSet, ListIterator) | `src/SPtrSet.h`, `src/SPtrSet.cpp` (`GenericSPtrSet`, `GenericListIterator`) | GPL-3.0-only (in Stuart's release) |
+| `Mesh/MeshData.cs`, `Mesh/MeshPart.cs` (mesh and part records, the emitter, part and animation-mode queries) | `src/mesh.cpp`, `src/mesh.h`, `src/MeshPart.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Mesh/MeshPose.cs` (the render thing's pose and its emitter lookup) | `src/MeshPose.cpp`, `src/meshpose.h`, `src/MeshRenderer.cpp`, `src/rtmesh.cpp` (`CRTMesh::GetRTEmitter`) | GPL-3.0-only (MeshPose and MeshRenderer are in Stuart's release) |
+| `Mesh/MeshVertexBuffer.cs` (the vertex buffer record as the mesh reader skips it) | `src/DXMeshVB.cpp`, `src/DXMeshVB.h` | GPL-3.0-only (in Stuart's release) |
+| `Mesh/MeshPolyBucket.cs` (the part's poly bucket as stored) | `src/PolyBucket.cpp` and its header | GPL-3.0-or-later (not in Stuart's release) |
+| `Mesh/MatrixOps.cs` (FMatrix sum, difference and scale; the 16/48-byte layouts) | `src/maths.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
