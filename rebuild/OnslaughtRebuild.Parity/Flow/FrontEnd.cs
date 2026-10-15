@@ -126,8 +126,11 @@ public sealed class FrontEndTiming
 /// process with its filtered frame step, and the run loop of one process and one Present per iteration
 /// (<c>CFrontEnd::Run</c> 0x004684d0). Pages not yet ported are <see cref="InertPage"/>.
 /// </summary>
-public sealed class FrontEnd
+public sealed class FrontEnd : IButtonReceiver
 {
+    /// <summary><c>NUM_CONTROLLER_PORTS</c>.</summary>
+    public const int ControllerPorts = 2;
+
     public const int QuitRunning = -2;
     public const int QuitToSystem = -1;
     public const int QuitAttract = -3;
@@ -138,17 +141,69 @@ public sealed class FrontEnd
 
     private readonly FrontEndPageBase[] _pages = new FrontEndPageBase[(int)FrontEndPage.PageCount];
 
-    public FrontEnd(IFlowClock clock, FrontEndTiming timing, PlatformInput platform)
+    public FrontEnd(IFlowClock clock, FrontEndTiming timing, ControllerContext controls)
     {
         Clock = clock;
         Timing = timing;
-        Platform = platform;
+        Controls = controls;
+        MessageBox = new FrontEndMessageBox(this);
         for (int page = 0; page < _pages.Length; page++) _pages[page] = new InertPage();
     }
 
     public IFlowClock Clock { get; }
     public FrontEndTiming Timing { get; }
-    public PlatformInput Platform { get; }
+    public ControllerContext Controls { get; }
+    public PlatformInput Platform => Controls.Input;
+
+    /// <summary><c>FEMESSBOX</c>.</summary>
+    public FrontEndMessageBox MessageBox { get; }
+
+    /// <summary><c>mControllers</c>: one per port, created when the front end begins.</summary>
+    public Controller?[] Controllers { get; } = new Controller?[ControllerPorts];
+
+    bool IButtonReceiver.CanBeControlledWhenInPause => true;
+    ControlType IButtonReceiver.ControlType => ControlType.FrontEnd;
+
+    void IButtonReceiver.ReceiveButtonAction(Controller from, int button, float value) =>
+        ReceiveButtonAction(new FrontEndButton(PortOf(from), button, value));
+
+    /// <summary><c>GetPortFromController</c>: the controller's port, or 0 if it is not one of the front end's.</summary>
+    public int PortOf(Controller controller)
+    {
+        for (int port = 0; port < ControllerPorts; port++)
+        {
+            if (ReferenceEquals(Controllers[port], controller)) return port;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// The part of <c>CFrontEnd::Init</c> (0x004662a0) that sets up the page machine's run: a controller per port with
+    /// the front end as the controlled object, the input buffers flushed, the counter, quit and render time reset, and
+    /// the start page entered. The caller decides the start page and then runs the loop with the front end marked
+    /// running (<c>gInFrontEnd</c>).
+    /// </summary>
+    public void Begin(FrontEndPage startPage)
+    {
+        for (int port = 0; port < ControllerPorts; port++) Controllers[port] = new Controller(port, 1, this);
+        Platform.FlushInputBuffers();
+        Counter = 0f;
+        Quit = QuitRunning;
+        LastRenderTime = -100f;
+        Enter(startPage);
+        Platform.Window.FrontEndRunning = true;
+    }
+
+    /// <summary>
+    /// <c>CFrontEnd::ProcessMouseClickInRect</c> (0x00469390): nothing while the message box is interactive; otherwise a
+    /// left click inside raises <paramref name="button"/> from controller 0. Returns whether the cursor is inside.
+    /// </summary>
+    public bool ProcessMouseClickInRect(float left, float top, float right, float bottom, int button)
+    {
+        if (MessageBox.IsInteractive) return false;
+        return Platform.Mouse.DispatchClickInRect(left, top, right, bottom, Platform.KeyTrap,
+            () => ReceiveButtonAction(new FrontEndButton(0, button, 1f)));
+    }
 
     /// <summary>
     /// Whether a render's scene starts (<c>PLATFORM.BeginScene</c>). Each render presents whether or not it started, and
@@ -219,8 +274,9 @@ public sealed class FrontEnd
     /// <c>CFrontEnd::ReceiveButtonAction</c> (0x004669a0): the first port to press select becomes player 0 and other
     /// ports are then ignored (except on the multiplayer start page). Nothing reaches a page during a transition.
     /// </summary>
-    public void ReceiveButtonAction(FrontEndButton action, IFrontEndMessageBox? messageBox = null)
+    public void ReceiveButtonAction(FrontEndButton action)
     {
+        IFrontEndMessageBox messageBox = MessageBox;
         if (Player0Port == -1 && action.Button == ButtonMenuSelect)
         {
             Player0Port = action.Port;
@@ -235,7 +291,7 @@ public sealed class FrontEnd
             AllLevelsCheatActive = !AllLevelsCheatActive;
             this[ActivePage].ButtonPressed(action.Button, action.Value);
         }
-        else if (messageBox is { IsInteractive: true })
+        else if (messageBox.IsInteractive)
         {
             messageBox.ButtonPressed(action.Button, action.Value);
         }
@@ -248,10 +304,12 @@ public sealed class FrontEnd
     /// <summary>
     /// <c>CFrontEnd::Process</c> (0x00466ba0): the mouse's transient state and the key-up flags clear, the counter
     /// advances by the previous step, the platform handles the window's messages (a quit request ends the front end),
-    /// the controllers deliver their button actions, the frame step is filtered from the clock, a transition in progress
-    /// advances (and completes once it reaches its time), and every page processes in page order.
+    /// the controllers flush and deliver their button actions, the frame step is filtered from the clock, a transition
+    /// in progress advances (and completes once it reaches its time), every page processes in page order, and the
+    /// message box processes. Not modelled: the event manager, particles, sound, music and video updates
+    /// (presentation), the inactivity quit (playable demo only) and the reconnect interface (always connected on PC).
     /// </summary>
-    public void Process(IReadOnlyList<FrontEndButton> buttons, bool platformQuit = false, IFrontEndMessageBox? messageBox = null)
+    public void Process(bool platformQuit = false)
     {
         Platform.Mouse.ResetTransientState();
         Platform.ClearKeyWasUp();
@@ -260,7 +318,7 @@ public sealed class FrontEnd
         Platform.Process(Clock.QueryPerformanceCounter());
         if (platformQuit) Quit = QuitToSystem;
 
-        foreach (FrontEndButton button in buttons) ReceiveButtonAction(button, messageBox);
+        foreach (Controller? controller in Controllers) controller?.Flush(Controls);
 
         Timing.Update(Clock.GetSysTimeFloat());
 
@@ -290,7 +348,7 @@ public sealed class FrontEnd
             _pages[page].Process(state);
         }
 
-        messageBox?.Process();
+        MessageBox.Process();
     }
 
     /// <summary>
@@ -298,9 +356,9 @@ public sealed class FrontEnd
     /// scene. Every render presents (<c>CFrontEnd::RenderEnd</c> flips whether or not the scene started), so a frame
     /// usually costs one Present. Returns false once the front end has quit.
     /// </summary>
-    public bool Step(IReadOnlyList<FrontEndButton> buttons, bool platformQuit = false, IFrontEndMessageBox? messageBox = null)
+    public bool Step(bool platformQuit = false)
     {
-        Process(buttons, platformQuit, messageBox);
+        Process(platformQuit);
         if (Quit != QuitRunning) return false;
         while (!Render()) { }
         return true;

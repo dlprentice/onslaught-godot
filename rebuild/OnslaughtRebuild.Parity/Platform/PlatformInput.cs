@@ -26,8 +26,10 @@ public readonly record struct WindowMessage(int Message, int WParam, int LParam)
 /// Tape events are posted with <see cref="PostKeyMessage"/> and <see cref="PostMouseMessage"/> at Present boundaries.
 /// </summary>
 /// <remarks>
-/// Not modelled yet: <c>WM_CHAR</c> (which <c>TranslateMessage</c> generates and only a key trap reads), the console's
-/// key binds (<c>CONSOLE.HandleBind</c>), joysticks, and the inactive-window path (<c>GetMessage</c>).
+/// Assumed constant in play: <c>CLIPARAMS.mAutoConfigTest</c> is false (it is set only by its command-line switch,
+/// CLIParams.cpp:280), so the key and mouse gating on it never applies; the window is active and ready; the D3D device
+/// is not lost. Not modelled yet: <c>WM_CHAR</c> (which <c>TranslateMessage</c> generates and only a key trap reads),
+/// the console's key binds (<c>CONSOLE.HandleBind</c>), joysticks, and the inactive-window path (<c>GetMessage</c>).
 /// </remarks>
 public sealed class PlatformInput
 {
@@ -76,10 +78,13 @@ public sealed class PlatformInput
         _queue.Enqueue(new WindowMessage((int)message, wParam, (y << 16) | (x & 0xffff)));
 
     /// <summary>
-    /// <c>CPCPlatform::Process</c> (0x00515880): handles every queued message, then the empty-queue step. That step
-    /// asks the frame timer for the time elapsed since its last check; when none has passed (no Present since, on the
-    /// shim's clock) it returns early, otherwise it starts a new frame's list of keys read once.
-    /// <paramref name="performanceCounter"/> is the platform clock's QueryPerformanceCounter reading.
+    /// <c>CPCPlatform::Process</c> (0x00515880), which calls <c>PCLTShell::HandlingSystemStuff</c> (0x00512490) until it
+    /// returns false: each call handles one queued message, and the call that finds the queue empty does the frame step.
+    /// That step (ltshell.cpp:730-844) returns early when <c>0.0f == fElapsedAppTime &amp;&amp; m_bFrameMoving</c>, where the
+    /// elapsed time is the frame timer's since its last check. <c>m_bFrameMoving</c> is always true (set once, in the
+    /// D3D application's constructor, d3dapp.cpp:165), and the elapsed time is zero exactly when the performance counter
+    /// has not moved, so the step returns early when no Present has happened since the last check; otherwise it starts
+    /// a new frame's list of keys read once. <paramref name="performanceCounter"/> is the platform clock's reading.
     /// </summary>
     public void Process(long performanceCounter)
     {

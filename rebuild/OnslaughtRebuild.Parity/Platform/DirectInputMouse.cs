@@ -7,7 +7,9 @@ namespace OnslaughtRebuild.Parity.Platform;
 /// The DirectInput mouse the level reads (Controller.cpp). The device stands in for DirectInput as the replay harness
 /// drives it: <see cref="AddMouseDelta"/> adds a tape's M event, and the first device-state read after it takes the
 /// summed movement and wheel (REPORT-6's rule), so later reads in the same frame see none. The button bits are the
-/// current state and persist.
+/// current state and persist. They use the harness's convention (0x01 left, 0x02 right, 0x04 middle), standing in for
+/// DirectInput's <c>rgbButtons[0..2] &amp; 0x80</c>. Not modelled: the re-acquire loop after a failed read (the device
+/// never fails here), and <c>CLIPARAMS.mAutoConfigTest</c>, which is false in play.
 /// </summary>
 public sealed class DirectInputMouse(Mouse mouse, PlatformWindow window)
 {
