@@ -242,6 +242,17 @@ public sealed class DevSelectPage(FrontEnd frontEnd) : FrontEndPageBase
         StartTime = (float)X87.Add(frontEnd.Clock.GetSysTimeFloat(), 2.0);
     }
 
+    /// <summary>
+    /// The state-changing part of <c>CFEPDevSelect::Render</c> (0x00458ee0): the help line's arrows. (The "no device"
+    /// box it creates and kills needs a card number of -2, which the PC never has.)
+    /// </summary>
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        if (Card != -2 || frontEnd.MessageBox.BeingDisplayed) frontEnd.RenderHelpArrow(5, transition);
+        if (frontEnd.SuccessPage == FrontEndPage.Debriefing) frontEnd.RenderHelpArrow(3, transition);
+        else frontEnd.RenderHelpArrow(frontEnd.SaveMode ? 2 : 1, transition);
+    }
+
     /// <summary><c>CFEPDevSelect::SetCurrentCard</c> (0x00459810).</summary>
     public void SetCurrentCard(int card)
     {
