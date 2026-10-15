@@ -96,6 +96,7 @@ package licence expression is `GPL-3.0-only`.
 | `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only (in Stuart's release) |
 | `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |
 | `Game/GameUpdate.cs` (CGame::Update) | `src/game.cpp` (`CGame::Update`) | GPL-3.0-only (in Stuart's release) |
+| `Game/GameRandom.cs` (GAME.Random and FloatRandom, with draw-site logging) | `src/game.h` (`CGame::Random`, `CGame::FloatRandom`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/ClockSimulation.cs` (the level-start order: base time, PreRun, MainLoop) | `src/game.cpp` (`CGame::RunLevel`, `PreRun`) | GPL-3.0-only (in Stuart's release) |
 | `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-or-later (not in Stuart's release) |

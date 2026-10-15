@@ -32,9 +32,20 @@ public sealed class SeedUniformRandomNumberStream
     /// <summary>mSeed (+0x04): the seed the stream was made with.</summary>
     public int Seed { get; }
 
+    /// <summary>Draws made since the stream was created (retail keeps no count; it localises divergences).</summary>
+    public long Draws { get; private set; }
+
+    /// <summary>When set, each draw appends (draw number from 1, the caller's site) for comparison with a retail log.</summary>
+    public List<(long Draw, string Site)>? Log { get; set; }
+
     /// <summary>Draws the next value and returns its magnitude.</summary>
-    public int Next()
+    public int Next() => Next("");
+
+    /// <summary>Next, recording <paramref name="site"/> in <see cref="Log"/> when it is set.</summary>
+    public int Next(string site)
     {
+        Draws++;
+        Log?.Add((Draws, site));
         unchecked
         {
             int hi = Value / Q;
