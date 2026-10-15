@@ -100,6 +100,47 @@ public static class X87
     /// </summary>
     public static double Atan2(double y, double x) => Math.Atan2(y, x);
 
+    /// <summary>
+    /// asin as VC6's runtime computes it (__CIasin 0055dcb0, which code compiled by VC6 calls with the argument in st0):
+    /// fpatan(x, fsqrt((1 + x) * (1 - x))), whose add, subtract, multiply and square root round to the caller's 24 bits
+    /// and whose fpatan does not; |x| = 1 gives the extended pi/2 with the sign of x; |x| &gt; 1, NaN and infinities
+    /// the indefinite NaN. Its exit (00561547) rounds the result to double whenever the control word is not 0x27F and
+    /// the sticky inexact flag is set (always, in the game). The fpatan is approximated by Math.Atan2, which differs from
+    /// the double-rounded extended result in the last bit of a double now and then (see <see cref="Atan2"/>).
+    /// </summary>
+    public static double Asin(double x)
+    {
+        if (double.IsNaN(x) || Math.Abs(x) > 1)
+        {
+            return double.NaN;
+        }
+
+        if (Math.Abs(x) == 1)
+        {
+            return x > 0 ? Math.PI / 2 : -Math.PI / 2;
+        }
+
+        return Atan2(x, AsinAcosRoot(x));
+    }
+
+    /// <summary>acos as VC6's runtime computes it (__CIacos 0055f380): fpatan(fsqrt((1 + x) * (1 - x)), x); see <see cref="Asin"/>.</summary>
+    public static double Acos(double x)
+    {
+        if (double.IsNaN(x) || Math.Abs(x) > 1)
+        {
+            return double.NaN;
+        }
+
+        if (Math.Abs(x) == 1)
+        {
+            return x > 0 ? 0 : Math.PI;
+        }
+
+        return Atan2(AsinAcosRoot(x), x);
+    }
+
+    private static double AsinAcosRoot(double x) => Sqrt(Mul(Add(1, x), Sub(1, x)));
+
     /// <summary>Rounds <paramref name="value"/> to a 24-bit significand, ties to even, keeping its exponent.</summary>
     public static double Round24(double value) => Round24(value, 0);
 

@@ -256,6 +256,14 @@ static void PrintMoveReport(int hit, const Move *mv, const Report *r)
 	for (int k = 0; k < 6; k++) PrintV(&r->mNormals[k]);
 }
 
+// VC6's runtime asin and acos take their argument in st0 and return in st0 (__CIasin 0055dcb0, __CIacos 0055f380).
+static double CallCI(uint32_t fn, double x)
+{
+	double r;
+	__asm__ volatile("fldl %1\n\tcall *%2\n\tfstpl %0" : "=m"(r) : "m"(x), "r"(fn) : "eax", "ecx", "edx", "memory", "cc");
+	return r;
+}
+
 typedef int16_t *(__attribute__((thiscall)) *StartLineFn)(void *, FVector *, FVector *);
 typedef int16_t *(__attribute__((thiscall)) *NextLineFn)(void *, int32_t);
 typedef int16_t *(__attribute__((thiscall)) *StartSphereFn)(void *, FVector *, float);
@@ -417,6 +425,18 @@ int main(int argc, char **argv)
 			PrintV(&st);
 			PrintV(&mv);
 			PrintV(&r.mNormals[r.mNumContacts]);
+		}
+		else if ((!strcmp(name, "asin") || !strcmp(name, "acos")) && n >= 2)
+		{
+			// The argument as a double (two words, low first); the result's double bits.
+			double x, r;
+			uint64_t bits = (uint64_t)w[0] | ((uint64_t)w[1] << 32), out;
+			memcpy(&x, &bits, 8);
+			SetCw(sControlWord);
+			r = CallCI(!strcmp(name, "asin") ? 0x0055dcb0 : 0x0055f380, x);
+			SetCw(saved);
+			memcpy(&out, &r, 8);
+			printf(" %08x %08x", (uint32_t)out, (uint32_t)(out >> 32));
 		}
 		else if (!strcmp(name, "meshes"))
 		{

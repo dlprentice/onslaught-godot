@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/Occupancy.h and src/NavigationMap.cpp (COccupancy: RemoveUnit 004bc3e0, AddUnit 004bc480,
 // ClearSteep 004bc8d0, ApplyStatic 004bcbf0, BuildStatic 004bcd60, Rasterize 004bd5c0, BuildStaticShadows 004bd9e0)
-// and src/maths.h (FVector::Elevation). Not in Stuart's release.
+// and src/maths.h (FVector::Elevation, through VC6's runtime asin). Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Numerics;
@@ -67,13 +67,15 @@ public static class Occupancy
     private static float Height(HeightField map, int x, int y) => map.HeightScale * map.GetHeightSample(x, y);
 
     /// <summary>
-    /// FVector::Elevation: asinf(Z / |v|), 0 for a zero vector. The asin is the double one rounded to float here; it goes
-    /// on D's oracle list.
+    /// The cell's slope, n.Elevation() + PI / 2, as ClearSteep (004bca4f..004bca70) and Rasterize (004bd8a5..004bd8c6)
+    /// compile it: the out-of-line Magnitude (004026b0), Z / m rounded to 24 bits, VC6's runtime asin on it (a double,
+    /// <see cref="X87.Asin"/>) and pi/2 (a float constant) added in the register, so the result rounds to 24 bits
+    /// once. A zero normal gives pi/2.
     /// </summary>
-    private static float Elevation(FVector n)
+    private static float Slope(FVector n)
     {
-        float m = n.Magnitude();
-        return m > 0.0f ? (float)Math.Asin(n.Z / m) : 0.0f;
+        float m = Collision.Geometry.MagnitudeOutOfLine(n);
+        return m > 0.0f ? (float)X87.Add(X87.Asin(n.Z / m), Pi / 2) : Pi / 2;
     }
 
     /// <summary>The cell test ClearSteep and Rasterize share: under water closes on all grids, too steep on each.</summary>
@@ -88,7 +90,7 @@ public static class Occupancy
         }
         else
         {
-            float slope = Elevation(map.Normal(pos)) + (Pi / 2);
+            float slope = Slope(map.Normal(pos));
             if (slope > Grid(s, 0).MaxSlope)
             {
                 Grid(s, 0).ClearCross(x, y);

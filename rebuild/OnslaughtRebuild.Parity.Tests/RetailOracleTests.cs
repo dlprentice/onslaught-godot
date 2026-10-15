@@ -6,6 +6,7 @@ using OnslaughtRebuild.Parity.Collision;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Things;
 using Xunit.Abstractions;
 
@@ -557,6 +558,51 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
 
         output.WriteLine(shown.ToString());
         RetailOracle.WriteOurs("collide", ourLines);
+        Assert.Empty(mismatches);
+    }
+
+    /// <summary>
+    /// X87.Asin and X87.Acos against VC6's runtime (__CIasin, __CIacos) at 0x007F: as stored to a float and as occupancy's
+    /// slope uses asin (one 24-bit rounding of it plus pi/2), every result must match. The double result itself may
+    /// differ in its last bit where fpatan's extended result rounds differently from Math.Atan2; those are counted.
+    /// </summary>
+    [RetailOracleFact("asin")]
+    public void AsinAndAcosMatchTheRetailRuntime()
+    {
+        const float HalfPi = 1.57079637f;
+        int lastBit = 0;
+        var mismatches = new List<string>();
+        foreach ((string function, uint[] w, string expected) in RetailOracle.Cases("asin"))
+        {
+            double x = BitConverter.UInt64BitsToDouble(w[0] | ((ulong)w[1] << 32));
+            string[] e = expected.Split(' ');
+            double retail = BitConverter.UInt64BitsToDouble(uint.Parse(e[1], NumberStyles.HexNumber)
+                | ((ulong)uint.Parse(e[2], NumberStyles.HexNumber) << 32));
+            double ours = function == "asin" ? X87.Asin(x) : X87.Acos(x);
+            if (BitConverter.DoubleToInt64Bits(ours) == BitConverter.DoubleToInt64Bits(retail))
+            {
+                continue;
+            }
+
+            long ulps = Math.Abs(BitConverter.DoubleToInt64Bits(ours) - BitConverter.DoubleToInt64Bits(retail));
+            bool sameFloat = (float)ours == (float)retail;
+            bool sameSlope = X87.Add(ours, HalfPi) == X87.Add(retail, HalfPi);
+            if (ulps == 1 && sameFloat && sameSlope)
+            {
+                lastBit++;
+            }
+            else
+            {
+                mismatches.Add($"{function}({x:R}): retail {retail:R}, ours {ours:R} ({ulps} ulps)");
+            }
+        }
+
+        output.WriteLine($"{lastBit} results differ in the last bit of the double only");
+        foreach (string m in mismatches.Take(10))
+        {
+            output.WriteLine(m);
+        }
+
         Assert.Empty(mismatches);
     }
 }
