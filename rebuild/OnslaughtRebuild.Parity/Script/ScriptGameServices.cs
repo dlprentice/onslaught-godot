@@ -80,7 +80,6 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
 
     public void ShowLevelEndMenu() => inner.ShowLevelEndMenu();
 
-    public void GotoPanView(int player, float panTime) => inner.GotoPanView(player, panTime);
 
     public void HandleGameEvent(GameEvent gameEvent, Event e) => inner.HandleGameEvent(gameEvent, e);
 

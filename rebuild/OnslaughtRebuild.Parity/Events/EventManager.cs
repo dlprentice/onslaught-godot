@@ -265,12 +265,15 @@ public sealed class EventManager
         Log?.Add(new EventLogEntry('A', eventNum, toCall?.GetType().Name, BitConverter.SingleToUInt32Bits(time),
             (int)priority, dropped));
 
-    /// <summary>A dispatch: retail calls HandleEvent only when the target is still alive.</summary>
-    private void Dispatch(ScheduledEvent e, Monitor? toCall)
+    /// <summary>
+    /// A dispatch: retail calls HandleEvent only when the target is still alive. The log records the priority list it
+    /// came from (the overflow list's as 0).
+    /// </summary>
+    private void Dispatch(ScheduledEvent e, Monitor? toCall, int priority)
     {
         if (toCall is not null)
         {
-            Log?.Add(new EventLogEntry('F', e.EventNum, toCall.GetType().Name, 0, 0, null));
+            Log?.Add(new EventLogEntry('F', e.EventNum, toCall.GetType().Name, 0, priority, null));
             toCall.HandleEvent(e);
         }
     }
@@ -312,7 +315,7 @@ public sealed class EventManager
                 ScheduledEvent e = list[i];
                 Monitor? toCall = e.ToCall;
                 e.BeingReused = false;
-                Dispatch(e, toCall);
+                Dispatch(e, toCall, j);
                 TotalEventsProcessed++;
             }
         }
@@ -324,7 +327,7 @@ public sealed class EventManager
             Monitor? toCall = e.ToCall;
             e.BeingReused = false;
             _currentProcessOverflowEventNum++;
-            Dispatch(e, toCall);
+            Dispatch(e, toCall, 0);
             TotalEventsProcessed++;
         }
 
@@ -406,7 +409,7 @@ public sealed class EventManager
 
 /// <summary>
 /// One line of <see cref="EventManager.Log"/>: 'A' for an AddEvent call (the absolute time it received as float bits,
-/// the priority, and why nothing was scheduled, if so) or 'F' for a dispatch.
+/// the priority, and why nothing was scheduled, if so) or 'F' for a dispatch (with the priority list it came from).
 /// </summary>
 public readonly record struct EventLogEntry(char Kind, int EventNum, string? Target, uint TimeBits, int Priority, string? Dropped)
 {

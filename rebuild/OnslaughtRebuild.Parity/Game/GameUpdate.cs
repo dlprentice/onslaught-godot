@@ -74,8 +74,6 @@ public interface IGameServices
     /// <summary>The level-end menu (lost, multiplayer won or drawn) once the end count runs down.</summary>
     void ShowLevelEndMenu();
 
-    /// <summary>mPlayer[player]->GotoPanView(time).</summary>
-    void GotoPanView(int player, float panTime);
 
     /// <summary>SCRIPT_EVENT_NB.PostEvent(name).</summary>
     void PostScriptEvent(string name);
@@ -345,9 +343,6 @@ public sealed class NullGameServices : IGameServices
     {
     }
 
-    public void GotoPanView(int player, float panTime)
-    {
-    }
 
     public void PostScriptEvent(string name)
     {

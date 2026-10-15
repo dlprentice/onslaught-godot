@@ -264,7 +264,7 @@ public sealed partial class Game : Monitor, IMainLoopHost
         State = GameState.Panning;
         for (int i = 0; i < Players; i++)
         {
-            _services.GotoPanView(i, PanTime);
+            _player[i]?.GotoPanView(this, PanTime);
         }
 
         Events.AddEventIn(PanTime, (int)GameEvent.FinishedPanning, this);

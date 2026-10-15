@@ -197,7 +197,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         new WorldLoader(context, resources, spawner).Load(100, isBase: false);
 
         // CGame::LoadLevel's players after the load (game.cpp:716), then PostLoadProcess's start positions (783).
-        game.CreatePlayers(multiplayerWorld: false);
+        game.CreatePlayers(context, multiplayerWorld: false);
         game.AssignPlayersToStarts(context);
         scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
         return (context, game);
@@ -230,9 +230,9 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// The 60 PreRun Updates after level 100's load, draw by draw against the native port's trace (draw number, Update,
-    /// retail function). A measurement while PreRun's handlers are being ported: it reports the first divergence and
-    /// asserts the matched prefix never shrinks below <see cref="PreRunMatchedFloor"/>.
+    /// The first 100 Updates after level 100's load (PreRun's 60, then panning), draw by draw against the native port's
+    /// trace (draw number, Update, retail function). A measurement while the handlers are being ported: it reports the
+    /// first divergence and asserts the matched prefix never shrinks below <see cref="PreRunMatchedFloor"/>.
     /// </summary>
     [PortLogFact]
     public void PreRunDrawsFollowRetailsTrace()
@@ -241,8 +241,8 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         SeedUniformRandomNumberStream random = context.Random;
         var updateOfDraw = new List<int>();
         int update = 0;
-        string stopped = "ran all 60";
-        while (game.State == Game.GameState.PreRunning && update < 60)
+        string stopped = $"ran all {TraceUpdates}";
+        while (update < TraceUpdates)
         {
             update++;
             long before = random.Draws;
@@ -274,7 +274,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
             }
 
             int u = int.Parse(f[1][1..]);
-            if (u <= 60)
+            if (u <= TraceUpdates)
             {
                 retail.Add((long.Parse(f[0]), u, f[2], f[3].Split(' ')[0]));
             }
@@ -307,8 +307,10 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// <summary>
     /// The PreRun event schedule against the native port's log (l100-prerun-events.txt): every AddEvent (event number,
     /// target class and the absolute time it received, as float bits) and every dispatch, Update by Update through U60,
-    /// compared in order. The classes not ported yet (<see cref="UnportedEventClasses"/>) are left out on both sides,
-    /// keeping the others' order. A measurement: it reports the first divergence with the lines around it, and asserts
+    /// compared in order, with each AddEvent's priority list. The classes not ported yet (<see cref="UnportedEventClasses"/>)
+    /// are left out on both sides, keeping the others' order. The port's trace logs no dispatch from the middle- and
+    /// end-of-frame lists (its breakpoint at eventmanager.cpp:341 catches the start-of-frame pass only: none of the 1,275
+    /// AddEvents with priority 1 or 2 has a dispatch line), so ours leave those out too. A measurement: it reports the first divergence with the lines around it, and asserts
     /// the matched prefix never shrinks below <see cref="PreRunEventsMatchedFloor"/>.
     /// </summary>
     [PortLogFact]
@@ -318,24 +320,26 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         var ours = new List<string>();
         context.Events.Log = [];
         int update = 0;
-        string stopped = "ran all 60";
+        string stopped = $"ran all {TraceUpdates}";
         void Take()
         {
             foreach (EventLogEntry e in context.Events.Log!)
             {
                 string target = RetailClass(e.Target);
-                if (UnportedEventClasses.Contains(target))
+                if (UnportedEventClasses.Contains(target) || (e.Kind == 'F' && e.Priority != 0))
                 {
                     continue;
                 }
 
-                ours.Add(e.Kind == 'A' ? $"A U{update} ev {e.EventNum} {target} t {e.TimeBits:x8}" : $"F U{update} ev {e.EventNum} {target}");
+                ours.Add(e.Kind == 'A'
+                    ? $"A U{update} ev {e.EventNum} {target} t {e.TimeBits:x8} p {e.Priority}"
+                    : $"F U{update} ev {e.EventNum} {target}");
             }
 
             context.Events.Log!.Clear();
         }
 
-        while (game.State == Game.GameState.PreRunning && update < 60)
+        while (update < TraceUpdates)
         {
             update++;
             try
@@ -363,7 +367,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
                 continue;
             }
 
-            retail.Add(f[0] == "A" ? $"A {f[1]} ev {f[3]} {f[4]} t {f[6]}" : $"F {f[1]} ev {f[3]} {f[4]}");
+            retail.Add(f[0] == "A" ? $"A {f[1]} ev {f[3]} {f[4]} t {f[6]} p {f[^1]}" : $"F {f[1]} ev {f[3]} {f[4]}");
         }
 
         int matched = 0;
@@ -394,13 +398,15 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// <summary>The event targets not ported yet, left out of the event comparison on both sides.</summary>
     private static readonly HashSet<string> UnportedEventClasses =
     [
-        "CCSPersistentThing", "CAnimation", "CHLCollisionDetector", "CRadarWarningReceiver", "CDXCockpit", "CPanCamera",
-        "CMCBattleEngine",
+        "CCSPersistentThing", "CAnimation", "CHLCollisionDetector", "CRadarWarningReceiver", "CDXCockpit", "CMCBattleEngine",
     ];
 
+    /// <summary>The Updates the native port's level-100 logs cover: PreRun's 60, then panning (state 2) to U100.</summary>
+    private const int TraceUpdates = 100;
+
     /// <summary>The PreRun event lines matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunEventsMatchedFloor = 5643;
+    private const int PreRunEventsMatchedFloor = 9237;
 
     /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunMatchedFloor = 306;
+    private const int PreRunMatchedFloor = 499;
 }
