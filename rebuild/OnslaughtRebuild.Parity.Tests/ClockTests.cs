@@ -73,9 +73,10 @@ public sealed class ClockTests
     }
 
     [Fact]
-    public void TheEventClockStoresCountTimesTheTick()
+    public void TheEventManagerStoresCountTimesTheTick()
     {
-        var events = new EventClock();
+        var events = new OnslaughtRebuild.Parity.Events.EventManager();
+        events.Init();
         for (int count = 1; count <= 20_000; count++)
         {
             events.AdvanceTime();
@@ -87,7 +88,7 @@ public sealed class ClockTests
     [Fact]
     public void MainLoopRendersOnceOrTwicePerTickAtThirtyPresentsASecond()
     {
-        var sim = new ClockSimulation(level: 100, baseReadPresent: 100, levelStartPresent: 100, preRunTicks: 60);
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 100, levelStartPresent: 100);
         var renderCounts = new List<int>();
         int lastTicks = sim.Events.FrameCount;
         for (int i = 0; i < 10_000; i++)
@@ -104,7 +105,7 @@ public sealed class ClockTests
         // Present every 1/30 s that is 1 or 2 Presents, 3 Presents per 2 ticks.
         Assert.All(renderCounts.Skip(1), r => Assert.InRange(r, 1, 2));
         Assert.Equal(3.0, PresentsPerTwoTicks(renderCounts.Skip(200).Take(6000).ToList()));
-        // The pre-run's 60 ticks, then 2 ticks per 3 Presents over the 9,900 Presents after the level start: with
+        // The pre-run's 60 ticks (FINISHED_PRE_RUN), then 2 ticks per 3 Presents over the 9,900 Presents after the level start: with
         // mBaseTime read at the first MainLoop's Present there is nothing to catch up.
         Assert.Equal(60 + 9_900 * 2 / 3, sim.Events.FrameCount);
     }
@@ -130,7 +131,7 @@ public sealed class ClockTests
     public void Level100GoldenEventTimeFrameTimeAndLevelMatchEverySample()
     {
         ProbeTrace golden = ProbeTrace.Load(RetailData.File("golden/m100-or.retail.probes"));
-        var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100, preRunTicks: 60);
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100);
         // The clock reads no input, so the run needs no tape: Present by Present, sampling as the harness does.
         var ours = new ProbeTrace();
         while (sim.PresentCount < 10_000)
