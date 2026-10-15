@@ -37,6 +37,18 @@ Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and
 138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
 missing at the first sample.
 
+Measured (M1, 2026-10-15): `X87` against oracle tables from a VC6 SP5 `/O2 /QIfist` harness run under Wine at
+`_PC_24` on this host (Intel i7-13700HX), 10^6 inputs per operation including specials. Add, subtract, multiply,
+divide and square root on double operands, float square root and atan2, double-to-float conversion, `/QIfist`'s
+64-bit fistp and `_ftol` match every result. Float operators match on float operands. `fsin`, `fcos` and `fpatan`
+match every result once stored to a float; stored to a double they differ in the last bits for about 0.13% of
+arguments within ±2π (the double rounding of the FPU's 64-bit result) and about 10% up to ±10^4 (`fsin`'s 66-bit π),
+a measured ceiling, not exactness. The oracle also shows that VC6 at `/O2` does not round a `(float)` cast of a
+double held in a register, so ports follow the compiled instruction sequence, not the source casts.
+
+Measured (M3 start, 2026-10-15): the ported random stream contains all 139 distinct RNG values of the level-100
+golden from seed 123456: 1,537 draws by Present 50, 2,470 by Present 3300 and 22,068 by Present 10000.
+
 ## The earlier rebuild's grades
 
 These grades describe the earlier fixed-point rebuild at its parking point (the old tag archive/godot-rebuild-20260926, now in the private RE archive).
