@@ -238,7 +238,10 @@ public sealed partial class PhysicsRegistry
         }
     }
 
-    /// <summary>CreateRoundValue's classes. The percentages divide in float (fdiv at 24-bit precision).</summary>
+    /// <summary>
+    /// CreateRoundValue's classes. VC6 compiles the percentages' `/ 100.0f` as a multiply by the float 0.01f (0x3c23d70a): CRoundRearm
+    /// 004382ca, CRoundGravity 0043853a and CRoundFlakInaccuracy 0043883a in the pristine exe.
+    /// </summary>
     private bool ApplyRoundValue(RoundData? d, int type, byte[] body)
     {
         var r = new ValueReader(body);
@@ -254,7 +257,7 @@ public sealed partial class PhysicsRegistry
                 return true;
             }
             case 5: { float v = r.Float(); r.End(); if (d is not null) d.TurnRate = v; return true; }
-            case 6: { float v = r.Float(); r.End(); if (d is not null) d.Gravity = v / 100.0f; return true; }
+            case 6: { float v = r.Float(); r.End(); if (d is not null) d.Gravity = v * 0.01f; return true; }
             case 7: { float v = r.Float(); r.End(); if (d is not null) d.BounceFactor = v; return true; }
             case 8: { byte[] v = r.String(); r.End(); d?.SetEffect(v); return true; }
             case 9: { byte[] v = r.String(); r.End(); d?.SetExplosion(v); return true; }
@@ -262,12 +265,12 @@ public sealed partial class PhysicsRegistry
             case 11: { float v = r.Float(); r.End(); if (d is not null) d.Wiggle = v; return true; }
             case 12: { float v = r.Float(); r.End(); if (d is not null) d.Radius = v; return true; }
             case 13: { r.End(); if (d is not null) d.Flak = 1; return true; }
-            case 14: { float v = r.Float(); r.End(); if (d is not null) d.FlakInaccuracy = v / 100.0f; return true; }
+            case 14: { float v = r.Float(); r.End(); if (d is not null) d.FlakInaccuracy = v * 0.01f; return true; }
             case 15: { float v = r.Float(); r.End(); if (d is not null) d.SeekAngle = v; return true; }
             case 16: { r.End(); if (d is not null) d.Beam = 1; return true; }
             case 17: { float v = r.Float(); r.End(); if (d is not null) d.SoundMaterial = ToSint(v); return true; }
             case 18: { r.End(); if (d is not null) d.WeirdoSeek = 1; return true; }
-            case 19: { float v = r.Float(); r.End(); if (d is not null) d.Rearm = v / 100.0f; return true; }
+            case 19: { float v = r.Float(); r.End(); if (d is not null) d.Rearm = v * 0.01f; return true; }
             case 20: { byte[] v = r.String(); r.End(); d?.CopyFrom(GetRoundData(v)); return true; }
             case 21: { float v = r.Float(); r.End(); if (d is not null) d.SeekTerminationTime = v; return true; }
             case 22: { float v = r.Float(); r.End(); if (d is not null) d.Missile = v != 0.0f ? 1 : 0; return true; }
