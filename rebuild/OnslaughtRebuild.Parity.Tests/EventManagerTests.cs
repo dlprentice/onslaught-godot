@@ -191,6 +191,24 @@ public sealed class EventManagerTests
     }
 
     [Fact]
+    public void TheWorldFilesPanTimeSetsWhenPlayStarts()
+    {
+        // Level 100's world file: pre-run 3, pan 6 (CWorld::LoadWorld runs after InitRestartLoop).
+        var events = new EventManager();
+        var game = new ParityGame(new PlatformClock(), events) { CurrentLevel = 100 };
+        game.InitRestartLoop();
+        game.SetPreRunTime(3.0f);
+        game.SetPanTime(6.0f);
+        game.PreRun();
+        while (game.State == GameState.Panning)
+        {
+            game.Update();
+        }
+
+        Assert.Equal(180, events.FrameCount); // FINISHED_PANNING 6.0 s after tick 60: buffer 60 + 119
+    }
+
+    [Fact]
     public void APausedGameDoesNotTickUnlessSteppedOneFrame()
     {
         var game = new ParityGame(new PlatformClock(), new EventManager());

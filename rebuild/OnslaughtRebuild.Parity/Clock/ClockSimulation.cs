@@ -18,9 +18,9 @@ namespace OnslaughtRebuild.Parity.Clock;
 /// <item>the boot's first GetSysTimeFloat call follows Present 1 (the golden's frame times require it);</item>
 /// <item>CGame::InitRestartLoop resets the event manager and schedules FINISHED_PRE_RUN mPreRunTime ahead;</item>
 /// <item>mBaseTime is read at <see cref="BaseReadPresent"/>;</item>
-/// <item>CGame::PreRun ticks with no Present until FINISHED_PRE_RUN fires (tick 60: its buffer is
-/// floor((3.0 - 0.001) * 20) = 59);</item>
-/// <item>the first MainLoop starts at <see cref="LevelStartPresent"/>.</item>
+/// <item>CGame::PreRun runs at <see cref="LevelStartPresent"/> and ticks with no Present until FINISHED_PRE_RUN fires
+/// (tick 60: its buffer is floor((3.0 - 0.001) * 20) = 59);</item>
+/// <item>the loading screen's 100% render Presents once (it is not throttled), then the first MainLoop starts.</item>
 /// </list>
 /// </summary>
 public sealed class ClockSimulation : IParitySimulation
@@ -31,14 +31,25 @@ public sealed class ClockSimulation : IParitySimulation
     private IEnumerator<int>? _mainLoop;
     private bool _levelStarted;
 
-    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent)
+    public ClockSimulation(int level, long baseReadPresent, long levelStartPresent, long runLevelPresent = 2)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(runLevelPresent, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(baseReadPresent, runLevelPresent);
         ArgumentOutOfRangeException.ThrowIfLessThan(levelStartPresent, baseReadPresent);
+        Level = level;
+        RunLevelPresent = runLevelPresent;
         BaseReadPresent = baseReadPresent;
         LevelStartPresent = levelStartPresent;
-        _game = new ParityGame(_clock, _events, new NullGameServices(_clock.Present)) { CurrentLevel = level };
+        _game = new ParityGame(_clock, _events, new NullGameServices(_clock.Present)) { CurrentLevel = -1 };
     }
+
+    public int Level { get; }
+
+    /// <summary>
+    /// The Present after which CGame takes the level (mCurrentLevel is -1 until then): Present 2 in the per-Present
+    /// retail run of level 100 (C, golden-640), the first of the loading frames when there are any.
+    /// </summary>
+    public long RunLevelPresent { get; }
 
     public long BaseReadPresent { get; }
 
@@ -66,6 +77,11 @@ public sealed class ClockSimulation : IParitySimulation
                     _clock.GetSysTimeFloat(); // the boot's first call: CPCPlatform's first_seen
                 }
 
+                if (_clock.PresentCount == RunLevelPresent)
+                {
+                    _game.CurrentLevel = Level;
+                }
+
                 if (_clock.PresentCount == BaseReadPresent)
                 {
                     _game.InitRestartLoop();
@@ -80,6 +96,12 @@ public sealed class ClockSimulation : IParitySimulation
 
                 _game.PreRun();
                 _levelStarted = true;
+
+                // CONSOLE.SetLoadingFraction(1.0f) right after PreRun brings the loading bar to 100%, where
+                // RenderLoadingScreen skips its 0.05 s throttle: one Present before the first MainLoop. (The fractions
+                // between the base read and PreRun are throttled: no Present has moved the clock since the last one.)
+                _clock.Present();
+                continue;
             }
 
             _mainLoop ??= _game.MainLoop().GetEnumerator();

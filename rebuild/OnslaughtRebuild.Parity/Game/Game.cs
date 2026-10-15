@@ -94,6 +94,48 @@ public sealed partial class Game : Monitor, IMainLoopHost
     /// <summary>mPanTime: 3.0f from InitRestartLoop.</summary>
     public float PanTime { get; set; } = 3.0f;
 
+    /// <summary>mSGradeScore: the world file's S-grade score.</summary>
+    public int SGradeScore { get; private set; }
+
+    /// <summary>mDGradeScore: the world file's D-grade score.</summary>
+    public int DGradeScore { get; private set; }
+
+    /// <summary>mTimeLimit (seconds).</summary>
+    public float TimeLimit { get; private set; }
+
+    /// <summary>mFullScoreTime (seconds).</summary>
+    public float FullScoreTime { get; private set; }
+
+    /// <summary>mPercentageScoreTime (seconds).</summary>
+    public float PercentageScoreTime { get; private set; }
+
+    /// <summary>mScorePercentage.</summary>
+    public float ScorePercentage { get; private set; }
+
+    /// <summary>mLevelStartTime: the world's time of day at the start (version 49+, real world only).</summary>
+    public float LevelStartTime { get; private set; }
+
+    // CWorld::LoadWorld's setters (game.h inlines). It calls them after the waypoints when (!base) || (base_level == -1),
+    // so after InitRestartLoop's 3.0 defaults: base world 1 sets them first, then the real world overwrites them. The
+    // pre-run event is already scheduled by then, so only the pan time changes the level's timing.
+    public void SetPreRunTime(float time) => PreRunTime = time;
+
+    public void SetPanTime(float time) => PanTime = time;
+
+    public void SetSGradeScore(int score) => SGradeScore = score;
+
+    public void SetDGradeScore(int score) => DGradeScore = score;
+
+    public void SetTimeLimit(float time) => TimeLimit = time;
+
+    public void SetFullScoreTime(float time) => FullScoreTime = time;
+
+    public void SetPercentageScoreTime(float time) => PercentageScoreTime = time;
+
+    public void SetScorePercentage(float percentage) => ScorePercentage = percentage;
+
+    public void SetLevelStartTime(float time) => LevelStartTime = time;
+
     /// <summary>mUpdateFrameNumber: CGame::Update calls since construction.</summary>
     public int UpdateFrameNumber { get; private set; }
 

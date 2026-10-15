@@ -5,6 +5,7 @@
 
 using System.Buffers.Binary;
 using System.Text;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Physics;
 
@@ -29,12 +30,6 @@ public sealed class HazardData(byte[] name)
     public byte[]? SoundName;
     public float Radius = 1.0f;
     public float Damage;
-}
-
-/// <summary>A registry entry for the families whose values are not ported yet: its name only, so positions match.</summary>
-public sealed class NamedDefinition(byte[] name)
-{
-    public byte[] Name { get; } = name;
 }
 
 /// <summary>
@@ -285,7 +280,7 @@ public sealed partial class PhysicsRegistry
             }
             case 19: { float v = r.Float(); r.End(); if (unit is not null) unit.Threat = v; return true; }
             case 20: { float v = r.Float(); r.End(); if (unit is not null) unit.Importance = v; return true; }
-            case 21: { float v = r.Float(); r.End(); if (unit is not null) unit.SoundMaterial = (int)v; return true; }
+            case 21: { float v = r.Float(); r.End(); if (unit is not null) unit.SoundMaterial = X87.Fist(v); return true; }
             case 22: { float v = r.Float(); r.End(); if (unit is not null) unit.StrafeChange = v; return true; }
             case 23: { float v = r.Float(); r.End(); if (unit is not null) unit.MaxTargetRange = v; return true; }
             case 24: return UnitString(unit, ref r, 0);
@@ -343,7 +338,7 @@ public sealed partial class PhysicsRegistry
             case 58: { byte[] v = r.String(); r.End(); if (unit is not null) unit.StompExplosion = GetExplosionIndex(v); return true; }
             case 59: { float v = r.Float(); r.End(); if (unit is not null) unit.DeployDamageMultiplier = v; return true; }
             case 60: { float v = r.Float(); r.End(); if (unit is not null) unit.StandingLegPlacementArea = v; return true; }
-            case 61: { float v = r.Float(); r.End(); if (unit is not null) unit.MaxLegsLifted = (int)v; return true; }
+            case 61: { float v = r.Float(); r.End(); if (unit is not null) unit.MaxLegsLifted = X87.Fist(v); return true; }
             case 62: return UnitFlag(ref r, v => { if (unit is not null) unit.Indiscriminate = v; });
             case 63: return UnitString(unit, ref r, 12);
             case 64: return UnitString(unit, ref r, 10);
