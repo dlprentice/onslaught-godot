@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using OnslaughtRebuild.Parity;
+using OnslaughtRebuild.Parity.Clock;
 
 namespace OnslaughtRebuild.Headless;
 
@@ -16,7 +17,9 @@ public static class ParityCommand
     public static int Run(string[] args, TextWriter output, TextWriter error)
     {
         string? tapePath = null, goldenPath = null, outPath = null, simulationName = "unimplemented";
-        long frames = 10_000, frameOffset = 0;
+        long frames = 10_000, frameOffset = 0, levelStart = 3100;
+        long? baseRead = null;
+        int level = 100;
         int every = 50;
         try
         {
@@ -31,6 +34,9 @@ public static class ParityCommand
                     case "--frames": frames = Number(args, ref i, 1, MaximumFrames); break;
                     case "--every": every = (int)Number(args, ref i, 1, 1_000_000); break;
                     case "--frame-offset": frameOffset = Number(args, ref i, -MaximumFrames, MaximumFrames); break;
+                    case "--level": level = (int)Number(args, ref i, 0, 999); break;
+                    case "--level-start": levelStart = Number(args, ref i, 1, MaximumFrames); break;
+                    case "--base-read": baseRead = Number(args, ref i, 1, MaximumFrames); break;
                     case "--help": PrintHelp(output); return 0;
                     default: throw new ArgumentException($"Unknown parity argument: {args[i]}");
                 }
@@ -45,6 +51,7 @@ public static class ParityCommand
             IParitySimulation simulation = simulationName switch
             {
                 "unimplemented" => new UnimplementedSimulation(),
+                "clock" => new ClockSimulation(level, baseRead ?? levelStart, levelStart),
                 _ => throw new ArgumentException($"Unknown parity simulation '{simulationName}'."),
             };
 
@@ -107,7 +114,8 @@ public static class ParityCommand
     private static void PrintHelp(TextWriter output)
     {
         output.WriteLine("OnslaughtRebuild.Headless parity --tape <retail tape> [--golden <probes>] [--out <trace>]");
-        output.WriteLine("  [--frames 10000] [--every 50] [--frame-offset 0] [--sim unimplemented]");
+        output.WriteLine("  [--frames 10000] [--every 50] [--frame-offset 0] [--sim unimplemented|clock]");
+        output.WriteLine("  clock (M2: EVT, FT and LVL only): [--level 100] [--level-start 3100] [--base-read <level start>]");
         output.WriteLine("  Exit 0 = every probe equal at every golden sample with no frame offset (1:1); 2 = differences; 1 = error.");
     }
 }
