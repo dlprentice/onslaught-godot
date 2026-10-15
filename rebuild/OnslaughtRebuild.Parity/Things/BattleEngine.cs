@@ -85,8 +85,8 @@ public sealed class BattleEngine(ThingContext context) : Unit(context, Oid.Battl
 
         init.InitCst.MaxCollision = CollisionLevel.ApproxGeometryShapes; // not multiplayer
         bool muspell = init.Allegiance == 1;
-        RenderThing = MakeMeshRenderThing(System.Text.Encoding.ASCII.GetBytes(muspell ? "m_be1" : "f_be1"));
-        OtherMeshRenderThing = MakeMeshRenderThing(System.Text.Encoding.ASCII.GetBytes(muspell ? "m_be2" : "f_be2"));
+        RenderThing = MakeMeshRenderThing(System.Text.Encoding.ASCII.GetBytes(muspell ? "m_be1.msh" : "f_be1.msh"));
+        OtherMeshRenderThing = MakeMeshRenderThing(System.Text.Encoding.ASCII.GetBytes(muspell ? "m_be2.msh" : "f_be2.msh"));
         ThrusterFrames = RenderThing!.CountEmitters("Thruster");
         EngineFrames = OtherMeshRenderThing!.CountEmitters("Engine");
         if (AnimModeByName("LegMotion") != -1)

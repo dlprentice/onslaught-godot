@@ -120,8 +120,10 @@ public abstract class Thing : Monitor
 
         if ((Flags & ThingFlags.InMapWho) != 0)
         {
-            // mMapWhoEntry.Init, the big-things test on its sector layer and InitCollisionSeekingThing.
-            Context.Skip("CThing::Init map-who entry and big-things list");
+            // mMapWhoEntry.Init, then the big-things test on its sector layer: a big thing joins WORLD's big-things list
+            // (an SPtrSet Append, which takes a node from the shared pool and so moves later free-list order).
+            Context.Skip("CMapWhoEntry::Init (the map-who entry)");
+            Context.Skip("WORLD.GetBigThingsNB().Append when the map-who layer is under USE_BIGLIST_FOR (pool node not taken)");
             InitCollisionSeekingThing(init.InitCst);
         }
 

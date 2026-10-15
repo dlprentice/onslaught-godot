@@ -30,7 +30,9 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 
         name.AddRange(".MSH"u8.ToArray());
         MeshName = name.ToArray();
+        // CreateRenderThing(2): a CRTTree, whose mesh the simulation never queries (named, not loaded, here).
         RenderThing = new RenderThing(Context, null, null!);
+        Context.Skip("CRTTree::Init (the tree's render thing, kept without its mesh)");
         string text = System.Text.Encoding.ASCII.GetString(MeshName);
         if (text.StartsWith("fern", StringComparison.OrdinalIgnoreCase) || text.StartsWith("bush", StringComparison.OrdinalIgnoreCase))
         {
