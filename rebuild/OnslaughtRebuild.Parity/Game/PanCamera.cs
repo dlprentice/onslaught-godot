@@ -102,6 +102,7 @@ public sealed class PanCamera : Camera
     private readonly float _startTime;
     private readonly float _length;
     private FVector _pos;
+    private FMatrix _orientation = FMatrix.Identity;
 
     public PanCamera(ThingContext context, Thing? forThing, BSpline curve, float length)
     {
@@ -112,9 +113,19 @@ public sealed class PanCamera : Camera
         _length = length;
         _pos = new FVector(0, 0, 0);
         Update();
+        OldPos = _pos;
+        OldOrientation = _orientation;
     }
 
     public override FVector GetPos() => _pos;
+
+    /// <summary>GetOrientation (00419d70): facing the thing, from the last update.</summary>
+    public override FMatrix GetOrientation() => _orientation;
+
+    /// <summary>The previous update's position and orientation (mOldPos, mOldOrientation), for the render's interpolation.</summary>
+    public FVector OldPos { get; private set; }
+
+    public FMatrix OldOrientation { get; private set; } = FMatrix.Identity;
 
     /// <summary>
     /// Update: at (now - start) / length along the curve (stopping, with no further update, past 1), the thing's
@@ -122,6 +133,8 @@ public sealed class PanCamera : Camera
     /// </summary>
     public void Update()
     {
+        OldPos = _pos;
+        OldOrientation = _orientation;
         float val = (_context.Events.Time - _startTime) / _length;
         if (val > 1.0f)
         {
@@ -132,6 +145,17 @@ public sealed class PanCamera : Camera
         if (_forThing.ToRead is { } thing)
         {
             _pos = thing.Pos + pos;
+
+            // The view faces the thing: FMatrix(Azimuth, Elevation, 0). Presentation only (nothing in the simulation
+            // reads it); its float sequence is not checked against retail's.
+            FVector toThem = thing.Pos - _pos;
+            float m = Collision.Geometry.MagnitudeOutOfLine(toThem);
+            if (m != 0.0f)
+            {
+                float azimuth = -(float)Numerics.X87.Atan2(toThem.X, toThem.Y);
+                float elevation = (float)Numerics.X87.Asin(toThem.Z / m);
+                _orientation = FMatrix.FromYawPitchRoll(azimuth, elevation, 0.0f);
+            }
         }
 
         _context.Events.AddEvent(UpdateCamera, this, EventManager.NextFrame, EventPriority.EndOfFrame);

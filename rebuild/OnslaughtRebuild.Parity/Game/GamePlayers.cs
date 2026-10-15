@@ -22,6 +22,12 @@ public abstract class Camera : Monitor
 {
     public abstract FVector GetPos();
 
+    /// <summary>GetOrientation: the view's axes (local Y forward, local -Z up); a renderer reads it.</summary>
+    public virtual FMatrix GetOrientation() => FMatrix.Identity;
+
+    /// <summary>GetZoom: the tangent of half the horizontal view (1 is 90 degrees across).</summary>
+    public virtual float GetZoom() => 1.0f;
+
     /// <summary>delete camera (SetCurrentCamera releasing the old one).</summary>
     public virtual void Release() => Destroy();
 }
@@ -53,6 +59,12 @@ public sealed class ThingCamera : Camera
 
         return thing.Pos;
     }
+
+    /// <summary>GetOrientation (00418d80): the thing's, or the identity without one.</summary>
+    public override FMatrix GetOrientation() => _forThing.ToRead?.GetOrientation() ?? FMatrix.Identity;
+
+    /// <summary>GetZoom (00418eb0): a battle engine's zoom, otherwise 1.</summary>
+    public override float GetZoom() => _forThing.ToRead is Things.BattleEngine engine ? engine.Zoom : 1.0f;
 }
 
 /// <summary>CPlayer: a player's number (from 1), battle engine and view.</summary>

@@ -156,51 +156,8 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// <summary>Level 100 as retail starts it: CGame::InitRestartLoop, then CWorld::Load(100) with the real spawner.</summary>
     internal static (ThingContext Context, ParityGame Game) Level100Run()
     {
-        (string pname, byte[] pbytes) = GameData.Read(@"data\default physics.dat");
-        PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
-        (string bname, byte[] bbytes) = GameData.Read(@"data\battle engine configurations.dat");
-        BattleEngineDataManager battleEngines = BattleEngineDataManager.Load(MemBuffer.FromFile(bname, bbytes));
-        (string rname, byte[] rbytes) = GameData.Read(@"data\Resources\100_res_PC.aya");
-        LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
-
-        var clock = new Clock.PlatformClock();
-        var events = new EventManager();
-        var services = new ScriptGameServices(NullGameServices.Instance);
-        var game = new ParityGame(clock, events, services) { CurrentLevel = 100 };
-        game.InitRestartLoop();
-        var pool = new SPtrSetPool();
-        pool.Init(SPtrSetPool.RetailBlockSize);
-        SeedUniformRandomNumberStream random = game.RandomStream!;
-        random.Log = [];
-        var context = new ThingContext(pool, events, random, resources.HeightField, physics)
-        {
-            BattleEngines = battleEngines,
-            Game = game,
-        };
-        foreach ((string name, Mesh.MeshData mesh) in resources.Meshes)
-        {
-            context.Meshes[name] = mesh;
-        }
-
-        // CGame::InitRestartLoop's script part: SCRIPT_EVENT_NB.Init (game.cpp:366) and the message box (384), before
-        // the load; TEXT is the English language file.
-        ScriptRuntime scripts = ScriptRuntime.Of(context);
-        scripts.EventNB.Init();
-        services.Runtime = scripts;
-        TextDatabase text = TextDatabase.Load(GameData.Read(TextDatabase.FileName(0, americanText: false)).Bytes);
-        scripts.Text = text;
-        scripts.MessageBox = new Script.MessageBox(context, text, new UnmodelledVoice());
-
-        var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
-        scripts.Spawner = spawner;
-        scripts.Waypoints = spawner.Waypoints;
-        new WorldLoader(context, resources, spawner).Load(100, isBase: false);
-
-        // CGame::LoadLevel's players after the load (game.cpp:716), then PostLoadProcess's start positions (783).
-        game.CreatePlayers(context, multiplayerWorld: false);
-        game.AssignPlayersToStarts(context);
-        scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
-        return (context, game);
+        LevelSession session = LevelSession.Load(100, GameData.Read);
+        return (session.Context, session.Game);
     }
 
     [PortLogFact]
