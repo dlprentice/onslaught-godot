@@ -343,7 +343,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     }
 
     /// <summary>Retail's class name for an event target (the port's log names the C++ class).</summary>
-    private static string RetailClass(string? type) => type switch
+    internal static string RetailClass(string? type) => type switch
     {
         null => "(null)",
         "IScript" => "IScript",
@@ -353,7 +353,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     };
 
     /// <summary>The event targets not ported yet, left out of the event comparison on both sides.</summary>
-    private static readonly HashSet<string> UnportedEventClasses =
+    internal static readonly HashSet<string> UnportedEventClasses =
     [
         "CCSPersistentThing", "CHLCollisionDetector", "CRadarWarningReceiver", "CDXCockpit", "CMCBattleEngine",
     ];

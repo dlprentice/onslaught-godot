@@ -628,7 +628,7 @@ public sealed partial class BattleEngine
 
     /// <summary>
     /// MouseLookActive (inline on the PC): a walker on the ground or an object, powered and alive, in a running game,
-    /// with its turn bound to a mouse axis. The game reaches it only once play starts.
+    /// with its turn (CONTROL_BINDINGS[1]) bound to a mouse axis for its player.
     /// </summary>
     private bool MouseLookActive()
     {
@@ -638,15 +638,62 @@ public sealed partial class BattleEngine
             return false;
         }
 
-        throw new NotSupportedException("CBattleEngine's mouse look (the controller bindings are not wired to the level yet)");
+        if (Bindings.InputType(1, 0) is not (Platform.PushType.MouseAxisMinus or Platform.PushType.MouseAxisPlus))
+        {
+            return false;
+        }
+
+        return IsOnGround() || IsOnObject();
     }
 
-    /// <summary>UpdateMouseLookAngles (00407540): only with mouse look active; otherwise only its frame count moves.</summary>
+    /// <summary>The level's control bindings (CONTROL_BINDINGS): the defaults until a career's options are loaded.</summary>
+    public static Platform.ControlBindings Bindings { get; set; } = Platform.ControlBindings.Defaults();
+
+    /// <summary>
+    /// UpdateMouseLookAngles (00407540): each call counts a frame; with mouse look active, a call straight after the last
+    /// active one turns the engine by the mouse's offset from the window's centre (yaw, and half as much pitch, inverted
+    /// unless the career inverts Y), rebuilds the orientation and clamps the pitch to the ground's pitch -0.9..+0.6;
+    /// every active call recentres the mouse.
+    /// </summary>
     private void UpdateMouseLookAngles()
     {
+        MouseLookState m = Context.MouseLook;
+        m.Frame++;
         if (!MouseLookActive())
         {
             return;
         }
+
+        if (m.Frame == m.LastFrame + 1)
+        {
+            float k = m.Sensitivity * 0.002f;
+            CurrentOrientation.Yaw -= (float)(m.MouseX - (m.WindowWidth / 2)) * k;
+            float pitch = (float)(m.MouseY - (m.WindowHeight / 2)) * k * 0.5f;
+            if (m.InvertY)
+            {
+                CurrentOrientation.Pitch += pitch;
+            }
+            else
+            {
+                CurrentOrientation.Pitch -= pitch;
+            }
+
+            Orientation = ShakenOrientation();
+            OldOrientation = Orientation;
+            Context.Skip("CBattleEngine::UpdateMouseLookAngles's ground pitch (MakeRotationYawF and its orders are unchecked)");
+            float groundPitch = GroundPitch();
+            if (CurrentOrientation.Pitch - groundPitch > 0.6f)
+            {
+                CurrentOrientation.Pitch = groundPitch + 0.6f;
+            }
+            else if (CurrentOrientation.Pitch - groundPitch < -0.9f)
+            {
+                CurrentOrientation.Pitch = groundPitch - 0.9f;
+            }
+        }
+
+        m.MouseX = m.WindowWidth / 2;
+        m.MouseY = m.WindowHeight / 2;
+        m.LastFrame = m.Frame;
     }
 }

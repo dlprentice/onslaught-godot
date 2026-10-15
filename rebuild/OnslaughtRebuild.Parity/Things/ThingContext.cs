@@ -85,6 +85,9 @@ public sealed class ThingContext(
 
     public void Skip(string what) => NotPorted[what] = NotPorted.GetValueOrDefault(what) + 1;
 
+    /// <summary>The PC's mouse look: CBattleEngine::UpdateMouseLookAngles's statics and the platform's mouse.</summary>
+    public MouseLookState MouseLook { get; } = new();
+
 }
 
 /// <summary>CWorld's runtime sets, in retail's member order (world.h): what each Init adds itself to.</summary>
@@ -111,4 +114,21 @@ public sealed class WorldRegistry(SPtrSetPool pool)
     public int[] CountersA { get; } = new int[26];
 
     public int[] CountersB { get; } = new int[26];
+}
+
+/// <summary>
+/// The state the PC's mouse look reads and keeps: UpdateMouseLookAngles's frame counters (006601f8 and 00622f0c, from
+/// 0 and 2), MOUSE_X and MOUSE_Y (the platform's cursor, recentred after each look), the window's size, the options'
+/// mouse sensitivity (gMouseSensitivity, 7 by default) and the career's invert-Y setting for player 1.
+/// </summary>
+public sealed class MouseLookState
+{
+    public int Frame;
+    public int LastFrame = 2;
+    public int WindowWidth = 640;
+    public int WindowHeight = 480;
+    public int MouseX = 320;
+    public int MouseY = 240;
+    public float Sensitivity = 7.0f;
+    public bool InvertY;
 }
