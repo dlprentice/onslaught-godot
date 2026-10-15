@@ -83,4 +83,31 @@ public struct EulerAngles(float yaw, float pitch, float roll)
     public float Yaw = yaw;
     public float Pitch = pitch;
     public float Roll = roll;
+
+    /// <summary>
+    /// CEulerAngles(const FMatrix &amp;) (0044adb0, read from the pristine specimen 74154bfa): the pitch is asin(Row2.Y)
+    /// through the CRT's _CIasin (0055dcb0), which keeps the caller's 24-bit precision control (0x5615a5 ORs 0x7f into
+    /// the old control word), so 1 + x, 1 - x, their product and its square root each round to 24 bits before fpatan;
+    /// the 64-bit result is compared with ±π and stored as a float. Yaw and roll are fpatan of the matrix entries.
+    /// </summary>
+    public static EulerAngles FromMatrix(FMatrix m)
+    {
+        double x = m.Row2.Y;
+        double asin = x is > 1.0 or < -1.0 || double.IsNaN(x)
+            ? double.NaN
+            : X87.Atan2(x, X87.Sqrt(X87.Mul(X87.Add(1.0, x), X87.Sub(1.0, x))));
+        var e = new EulerAngles { Pitch = (float)asin };
+        if (asin < MathF.PI && asin > -MathF.PI)
+        {
+            e.Yaw = (float)X87.Atan2(-m.Row0.Y, m.Row1.Y);
+            e.Roll = (float)X87.Atan2(-m.Row2.X, m.Row2.Z);
+        }
+        else
+        {
+            e.Yaw = 0;
+            e.Roll = 0;
+        }
+
+        return e;
+    }
 }

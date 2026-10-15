@@ -77,6 +77,9 @@ public sealed class InitThing
     public InitCollision InitCst = new();
     public int Allegiance = 2;
     public int Target;
+
+    /// <summary>mTarget once CWorld::LoadWorld has turned the stored index into the thing it names (world.cpp:773).</summary>
+    public Thing? TargetThing;
     public float ForceRadius = -1;
     public byte[] Script = [];
     public byte[] Name = [];
@@ -98,7 +101,8 @@ public sealed class InitThing
     public byte[] UnitName = [];
     public int Mode;
 
-    // CStartInitThing
+    // CStartInitThing (PlaneMode and PlayerNumber) and CBattleEngineInitThing (ConfigurationId and PlaneMode)
+    public int ConfigurationId;
     public int PlaneMode;
     public int PlayerNumber = 1;
 

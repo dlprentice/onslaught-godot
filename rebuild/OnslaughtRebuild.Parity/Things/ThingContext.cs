@@ -7,6 +7,7 @@ using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.Script;
 using OnslaughtRebuild.Parity.World;
+using ParityGame = OnslaughtRebuild.Parity.Game.Game;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -42,6 +43,12 @@ public sealed class ThingContext(
     /// <summary>The world's runtime registries (CWorld's sets), made with the context's pool.</summary>
     public WorldRegistry World { get; } = new(pool);
 
+    /// <summary>UBattleEngineDataManager: the battle engine configurations.</summary>
+    public BattleEngineDataManager? BattleEngines { get; set; }
+
+    /// <summary>UBattleEngineConfigurations: the world header's configuration names.</summary>
+    public IReadOnlyList<byte[]> WorldBattleEngineConfigurations { get; set; } = [];
+
     /// <summary>CThing::sThingCount: the next thing's number (ResetThingCounter at each level load).</summary>
     public int NextThingNumber { get; set; }
 
@@ -50,6 +57,12 @@ public sealed class ThingContext(
 
     /// <summary>The render frame number CRTMesh poses compare against (1 or more during the load).</summary>
     public int RenderFrameNumber { get; set; } = 2;
+
+    /// <summary>GAME: the fear grids, the front-end settings and the rest of CGame a thing reads (set by the world wiring).</summary>
+    public ParityGame? Game { get; set; }
+
+    /// <summary>INFLUENCEMAP (set by the world wiring).</summary>
+    public InfluenceMap? InfluenceMap { get; set; }
 
     /// <summary>Calls into subsystems that are not ported yet.</summary>
     public SortedDictionary<string, int> NotPorted { get; } = new(StringComparer.Ordinal);
@@ -73,6 +86,9 @@ public sealed class WorldRegistry(SPtrSetPool pool)
     public SPtrSet<Thing> Waypoints { get; } = new(pool);
     public SPtrSet<Thing> NamedThings { get; } = new(pool);
     public SPtrSet<Thing> ObjectiveThings { get; } = new(pool);
+
+    /// <summary>mSetD0: the safe sides (CSafeSide::Init adds itself at the head; CUnit::FindNearestSafeSide walks it).</summary>
+    public SPtrSet<Thing> SafeSides { get; } = new(pool);
     public SPtrSet<Thing> BigThings { get; } = new(pool);
 
     /// <summary>mCountersA/B: units per behaviour, by allegiance (Forseti, Muspell).</summary>

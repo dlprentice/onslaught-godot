@@ -31,6 +31,7 @@ public static class Oid
     public const int ComplexThing = 40;
     public const int SpawnPoint = 41;
     public const int Start = 15;
+    public const int Waypoint = 18;
 }
 
 /// <summary>

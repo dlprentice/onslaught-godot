@@ -109,6 +109,10 @@ package licence expression is `GPL-3.0-only`.
 | `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Things/LevelResources.cs` (the resource file's MESH, ERES and WRES chunks) | `src/ResourceAccumulator.cpp` (`ReadResources`) | GPL-3.0-only (in Stuart's release) |
+| `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
@@ -131,6 +135,7 @@ package licence expression is `GPL-3.0-only`.
 | `Physics/SpawnerData.cs` (CSpawnerData: constructor, SetThingName, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/BattleEngineData.cs` (CBattleEngineData, UBattleEngineDataManager, UBattleEngineConfigurations::GetConfiguration) | `src/BattleEngineDataManager.h`, `src/BattleEngineDataManager.cpp`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
 
 ## Authority
 

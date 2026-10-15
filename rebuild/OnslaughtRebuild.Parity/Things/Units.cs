@@ -126,8 +126,9 @@ public sealed class Building(ThingContext context) : Unit(context)
     public override void SetThingType(uint t) => base.SetThingType(
         t | ThingType.Unknown40000000 | ThingType.CanBeWalkedOn | ThingType.Building | ThingType.Stationary);
 
-    /// <summary>CBuilding::InitRenderThing: the unit's mesh and its rubble (RTID 4).</summary>
-    public override void InitRenderThing(InitThing init) => RenderThing = MakeMeshRenderThing(init.Stats!.Mesh);
+    /// <summary>CBuilding::InitRenderThing: "&lt;mesh&gt;.msh" and its rubble "&lt;rubble&gt;.msh" (RTID 4, CRTBuilding).</summary>
+    public override void InitRenderThing(InitThing init) =>
+        RenderThing = MakeMeshRenderThing([.. init.Stats!.Mesh!, .. ".msh"u8.ToArray()]);
 
     public override void Init(InitThing init)
     {
