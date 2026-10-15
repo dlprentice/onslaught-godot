@@ -70,6 +70,8 @@ package licence expression is `GPL-3.0-only`.
 | `Career/CareerTables.cs` (level structure, episode hint lists, goodie thresholds) | `src/Career.cpp` (`level_structure`, `UpdateGoodieStates`), `src/FEPGoodies.cpp` (`goodies[]`) | GPL-3.0-only (in Stuart's release) |
 | `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) | GPL-3.0-only (in Stuart's release) |
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
+| `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
 
 ## Authority
 
