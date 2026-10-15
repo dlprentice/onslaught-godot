@@ -103,10 +103,12 @@ public sealed class ClockTests
 
         // Each MainLoop is one tick (0.05 s) and Presents until the clock has passed the next frame boundary; with a
         // Present every 1/30 s that is 1 or 2 Presents, 3 Presents per 2 ticks.
-        Assert.All(renderCounts.Skip(1), r => Assert.InRange(r, 1, 2));
-        Assert.Equal(3.0, PresentsPerTwoTicks(renderCounts.Skip(200).Take(6000).ToList()));
-        // The pre-run's 60 ticks (FINISHED_PRE_RUN), then 2 ticks per 3 Presents over the 9,900 Presents after the level start: with
-        // mBaseTime read at the first MainLoop's Present there is nothing to catch up.
+        // The first two samples are the pre-run's ticks (seen at the loading screen's Present) and the first MainLoop
+        // pass, before any pass has finished rendering.
+        Assert.All(renderCounts.Skip(2), r => Assert.InRange(r, 1, 2));
+        Assert.Equal(3.0, PresentsPerTwoTicks(renderCounts.Skip(201).Take(6000).ToList()));
+        // The pre-run's 60 ticks (FINISHED_PRE_RUN), then 2 ticks per 3 Presents after the level start (the loading
+        // screen's Present and 9,899 MainLoop Presents): mBaseTime was read just before, so there is nothing to catch up.
         Assert.Equal(60 + 9_900 * 2 / 3, sim.Events.FrameCount);
     }
 
@@ -117,9 +119,10 @@ public sealed class ClockTests
         for (long k = 1; k <= 10_000; k++)
         {
             sim.AdvanceToNextPresent();
-            if (k > 3100)
+            if (k > 3101)
             {
-                // GetSysTimeFloat counts from Present 1, and FT is read at the render before Present k.
+                // GetSysTimeFloat counts from Present 1, and FT is read at the render before Present k (Present 3101 is
+                // the loading screen's, after the pre-run).
                 float expected = Round24(new BigInteger((k - 2) * PlatformClock.QpcTicksPerPresent),
                     new BigInteger(PlatformClock.QpcFrequency));
                 Assert.Equal(expected, sim.Loop.FrameTime);
