@@ -47,7 +47,7 @@ the parity harness's own formats (tape, probe trace, comparator, runner) adapt n
 
 | C# unit | Adapted from bea-decomp |
 | --- | --- |
-| (none yet) | |
+| `OnslaughtRebuild.Parity/Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` |
 
 ## Authority
 
