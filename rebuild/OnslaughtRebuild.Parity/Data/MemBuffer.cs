@@ -134,8 +134,46 @@ public sealed class MemBuffer
     public int ReadInt32()
     {
         Span<byte> b = stackalloc byte[4];
-        int got = Read(b);
-        return got == 4 ? BinaryPrimitives.ReadInt32LittleEndian(b) : throw new EndOfStreamException(FileName);
+        return Read(b) == 4 ? BinaryPrimitives.ReadInt32LittleEndian(b) : throw new EndOfStreamException(FileName);
+    }
+
+    public short ReadInt16()
+    {
+        Span<byte> b = stackalloc byte[2];
+        return Read(b) == 2 ? BinaryPrimitives.ReadInt16LittleEndian(b) : throw new EndOfStreamException(FileName);
+    }
+
+    public float ReadSingle() => BitConverter.Int32BitsToSingle(ReadInt32());
+
+    public byte ReadByte()
+    {
+        Span<byte> b = stackalloc byte[1];
+        return Read(b) == 1 ? b[0] : throw new EndOfStreamException(FileName);
+    }
+
+    /// <summary>The game's <c>char len; Read(name, len)</c> strings: a signed length byte, then that many bytes.</summary>
+    public byte[] ReadCountedString()
+    {
+        int length = (sbyte)ReadByte();
+        if (length < 0)
+        {
+            throw new InvalidDataException($"{FileName}: negative string length at {Position - 1}.");
+        }
+
+        var text = new byte[length];
+        return Read(text) == length ? text : throw new EndOfStreamException(FileName);
+    }
+
+    /// <summary>The game's do/while byte loops: bytes up to and including a zero, returned without it.</summary>
+    public byte[] ReadZeroTerminated()
+    {
+        var text = new List<byte>();
+        for (byte b = ReadByte(); b != 0; b = ReadByte())
+        {
+            text.Add(b);
+        }
+
+        return text.ToArray();
     }
 
     private static byte[] Inflate(string name, byte[] packed)
