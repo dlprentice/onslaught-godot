@@ -49,11 +49,14 @@ public sealed class RetailChainTests
     private static (FrontEnd FrontEnd, PlatformInput Input) NewFrontEnd(PlatformClock clock)
     {
         PlatformInput input = new(new PlatformWindow());
-        ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
+        ControlBindings bindings = ControlBindings.Defaults();
+        ControllerContext controls = new(bindings, input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
         FrontEnd frontEnd = new(clock, new FrontEndTiming(), controls);
-        frontEnd.Career.Blank();
+
+        // WinMain's boot: the shipped defaultoptions.bea loads its bindings and options, and the career is wiped.
+        CareerOptions? options = DefaultOptions.Load(frontEnd.Career, bindings, GameData.Read(DefaultOptions.FileName).Bytes);
         frontEnd.ReadDataFile = path => GameData.Read(path).Bytes;
-        frontEnd.CurrentOptions = () => CareerOptions.Read(new byte[CareerOptions.Size]);
+        frontEnd.CurrentOptions = () => options ?? CareerOptions.Read(new byte[CareerOptions.Size]);
         frontEnd.Video = new NoVideo();
         (string bedName, byte[] bedBytes) = GameData.Read(@"data\battle engine configurations.dat");
         BattleEngineDataManager engines = BattleEngineDataManager.Load(MemBuffer.FromFile(bedName, bedBytes));
@@ -131,7 +134,15 @@ public sealed class RetailChainTests
         Assert.Equal(3504, lastProcess);
         Assert.Equal(100, frontEnd.Quit);
         Assert.Equal("BEA 1", frontEnd.SaveGameName);
-        Assert.Equal(CareerSaveGame.Size, frontEnd.MemoryCard.Folder.Read("BEA 1").Length);
+        byte[] saved = frontEnd.MemoryCard.Folder.Read("BEA 1");
+        Assert.Equal(CareerSaveGame.Size, saved.Length);
+
+        // Retail's own save from the same new-career chain (a contributor's -skipfmv run, the autosave at the configuration
+        // step): byte for byte, career, bindings and options alike. A retail recording, read where present.
+        if (RetailGolden.File("career/after-level-taken-a.bes") is { } retailSave)
+        {
+            Assert.Equal(File.ReadAllBytes(retailSave), saved);
+        }
     }
 
     // quit-path2's mouse events (C's tape on a -skipfmv boot): the title click, Main's Quit item, then Yes.

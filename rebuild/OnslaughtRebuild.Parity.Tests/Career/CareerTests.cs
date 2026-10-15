@@ -2,6 +2,7 @@
 
 using System.Buffers.Binary;
 using OnslaughtRebuild.Parity.Career;
+using OnslaughtRebuild.Parity.Platform;
 using Xunit;
 
 namespace OnslaughtRebuild.Parity.Tests.Career;
@@ -23,6 +24,38 @@ public sealed class CareerTests
     }
 
     private static OnslaughtRebuild.Parity.Career.Career NewCareer() => OnslaughtRebuild.Parity.Career.Career.Constructed();
+
+    [Fact]
+    public void TheBootOptionsLoadAppliesAWholeFileAndAlwaysBlanksTheCareer()
+    {
+        byte[] gold = File.ReadAllBytes(FixturePath);
+        byte[] defaults = ControlBindings.Defaults().SaveConfigurable();
+
+        // A whole file: its bindings and options are taken, then the career is wiped (Blank keeps the loaded volumes).
+        OnslaughtRebuild.Parity.Career.Career career = NewCareer();
+        ControlBindings bindings = ControlBindings.Defaults();
+        CareerOptions? options = DefaultOptions.Load(career, bindings, gold);
+        Assert.NotNull(options);
+        Assert.Equal(gold.AsSpan(2 + CareerRecord.Size, CareerSaveGame.BindingsSize).ToArray(), bindings.SaveConfigurable());
+        OnslaughtRebuild.Parity.Career.Career loaded = NewCareer();
+        CareerSaveGame.Load(loaded, gold, suggestNextLevel: false);
+        loaded.Blank();
+        Assert.Equal(loaded.Record.Bytes.ToArray(), career.Record.Bytes.ToArray());
+        OnslaughtRebuild.Parity.Career.Career blank = NewCareer();
+        blank.Blank();
+
+        // No file, a short read or a wrong version: nothing is taken, and the career is still wiped.
+        byte[] wrongVersion = (byte[])gold.Clone();
+        wrongVersion[0] ^= 1;
+        foreach (byte[]? file in new[] { null, gold[..^1], wrongVersion })
+        {
+            career = NewCareer();
+            bindings = ControlBindings.Defaults();
+            Assert.Null(DefaultOptions.Load(career, bindings, file));
+            Assert.Equal(defaults, bindings.SaveConfigurable());
+            Assert.Equal(blank.Record.Bytes.ToArray(), career.Record.Bytes.ToArray());
+        }
+    }
 
     [Fact]
     public void TheSaveIsTheStampTheCareerTheBindingsAndTheOptions()
