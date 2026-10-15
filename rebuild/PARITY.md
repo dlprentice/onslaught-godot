@@ -58,6 +58,11 @@ Porting notes for the parity core:
   (`HeightField.Normal`; off the map it returns retail's (0, 0, 1)).
 - Float expressions keep the decompilation's association order. With float operands at 24-bit precision control,
   C# float arithmetic in the same order gives retail's bits; double operands go through `X87`.
+- The C runtime's `rand()` does not reach the probes in level 100: retail's callers over the 10,000-Present
+  golden-640 run (C's detour on `rand`, 348,459 calls) are the particle descriptors (render-paced, about 342,000),
+  `CSnow::Init` at load (4,100) and `CSoundManager::PlayEffect` (26, sound parameters only). `CrtRand` must still be
+  exact, in per-Present order, for render captures and sound. This holds per level: rerun the detour on each new
+  level before relying on it.
 - `.aya` positions such as the world's resource offset are positions in the decompressed stream (a packed file
   cannot seek, so `InitFromFile`'s start skip becomes a `Skip` after the first block).
 

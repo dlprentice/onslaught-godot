@@ -101,7 +101,8 @@ public sealed class InitThing
     public byte[] UnitName = [];
     public int Mode;
 
-    // CStartInitThing
+    // CStartInitThing (PlaneMode and PlayerNumber) and CBattleEngineInitThing (ConfigurationId and PlaneMode)
+    public int ConfigurationId;
     public int PlaneMode;
     public int PlayerNumber = 1;
 

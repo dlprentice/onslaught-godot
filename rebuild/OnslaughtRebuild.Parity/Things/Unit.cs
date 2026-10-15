@@ -35,7 +35,7 @@ public sealed class UnitWeaponInstance(int index, int type, int mount)
 }
 
 /// <summary>CUnit: a unit with physics-script data, weapons, AI, life and shields.</summary>
-public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
+public abstract partial class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
 {
     public UnitData? UnitData;
     public float Life = 1.0f;
@@ -109,7 +109,11 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
         }
     }
 
-    /// <summary>The mesh a unit's CRTMesh shows (CUnit::Init's SpawnRenderThing for every behaviour but buildings).</summary>
+    /// <summary>
+    /// CRTMesh::Init's CMesh::GetMesh(name): the loaded mesh whose own name matches, ignoring case. Retail loads the mesh
+    /// file from disk when the level's resource file lacks it ("not found in level resource file"); that never happens
+    /// for a complete resource file, so it throws here.
+    /// </summary>
     protected RenderThing? MakeMeshRenderThing(byte[]? meshName)
     {
         if (meshName is null)
@@ -118,14 +122,9 @@ public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor
         }
 
         string name = Encoding.ASCII.GetString(meshName);
-        if (name.EndsWith(".msh", StringComparison.OrdinalIgnoreCase))
-        {
-            name = name[..^4];
-        }
-
         if (!Context.Meshes.TryGetValue(name, out MeshData? mesh))
         {
-            throw new InvalidOperationException($"mesh '{name}' is not loaded");
+            throw new InvalidOperationException($"mesh '{name}' is not in the level resource file");
         }
 
         return new RenderThing(Context, mesh, this);

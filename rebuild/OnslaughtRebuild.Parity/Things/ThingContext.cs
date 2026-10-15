@@ -43,6 +43,12 @@ public sealed class ThingContext(
     /// <summary>The world's runtime registries (CWorld's sets), made with the context's pool.</summary>
     public WorldRegistry World { get; } = new(pool);
 
+    /// <summary>UBattleEngineDataManager: the battle engine configurations.</summary>
+    public BattleEngineDataManager? BattleEngines { get; set; }
+
+    /// <summary>UBattleEngineConfigurations: the world header's configuration names.</summary>
+    public IReadOnlyList<byte[]> WorldBattleEngineConfigurations { get; set; } = [];
+
     /// <summary>CThing::sThingCount: the next thing's number (ResetThingCounter at each level load).</summary>
     public int NextThingNumber { get; set; }
 
