@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="OnslaughtRebuild.Core/OnslaughtRebuild.Core.csproj" />
+  <Project Path="OnslaughtRebuild.Client/OnslaughtRebuild.Client.csproj" />
+  <Project Path="OnslaughtRebuild.Godot/OnslaughtRebuild.Godot.csproj" />
+</Solution>

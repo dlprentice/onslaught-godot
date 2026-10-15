@@ -1,0 +1,95 @@
+* text=auto
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+LICENSE text eol=lf
+
+# Source/docs/scripts: keep LF
+*.c text eol=lf
+*.cc text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+*.cs text eol=lf
+*.xaml text eol=lf
+*.csproj text eol=lf
+*.props text eol=lf
+*.targets text eol=lf
+*.slnx text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.jsonl text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.py text eol=lf
+*.java text eol=lf
+*.sh text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.toml text eol=lf
+*.tmpl text eol=lf
+*.txt text eol=lf
+*.patch text eol=lf
+*.csv text eol=lf
+*.tsv text eol=lf
+
+# Windows-native project files/scripts: keep CRLF
+*.sln text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+
+# The native companion's Godot solution is authored on Linux.
+companion/OnslaughtToolkit.Godot/OnslaughtToolkit.Godot.sln text eol=lf
+
+# Runtime/reference game text: keep Windows line endings in working trees
+game/**/*.msl text eol=crlf
+game/**/*.txt text eol=crlf
+game/**/*.stf text eol=crlf
+game/**/*.par text eol=crlf
+game/**/*.sfx text eol=crlf
+game/**/*.htm text eol=crlf
+game/**/*.xml text eol=crlf
+game/**/*.h text eol=crlf
+game/**/*.log text eol=crlf
+game/**/*.LOG text eol=crlf
+game/cardid.txt text eol=crlf
+game/steam_appid.txt -text
+
+# Binary and game/runtime artifacts: never line-ending convert
+*.aya -text
+*.bea -text
+*.bes -text
+*.bik -text
+*.bmp -text
+*.dds -text
+*.dll -text
+*.exe -text
+*.fbx -text
+*.gif -text
+*.gz -text
+*.gzf -text
+*.ico -text
+*.jpg -text
+*.jpeg -text
+*.mp3 -text
+*.mp4 -text
+*.ogg -text
+*.png -text
+*.tga -text
+*.vid -text
+*.wav -text
+*.webp -text
+*.zip -text

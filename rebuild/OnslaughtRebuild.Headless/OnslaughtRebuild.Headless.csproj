@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OnslaughtRebuild.Headless</RootNamespace>
+    <AssemblyName>OnslaughtRebuild.Headless</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnslaughtRebuild.Client\OnslaughtRebuild.Client.csproj" />
+    <ProjectReference Include="..\OnslaughtRebuild.Core\OnslaughtRebuild.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\scenarios\*.json" Link="scenarios\%(Filename)%(Extension)" CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Godot\Assets\Level100\StaticWorld\level100-static-world.json"
+             Link="Assets\Level100\StaticWorld\level100-static-world.json"
+             CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Core\Assets\Level110\level110-static-world.json"
+             Link="Assets\Level110\level110-static-world.json"
+             CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+</Project>

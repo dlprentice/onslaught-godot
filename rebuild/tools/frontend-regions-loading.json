@@ -1,0 +1,9 @@
+{
+  "background-upper": [0, 0, 640, 200],
+  "background-lower": [0, 200, 640, 395],
+  "loading-text": [264, 396, 372, 424],
+  "progress-bar": [76, 421, 566, 450],
+  "progress-bar-ends": [76, 421, 200, 450],
+  "progress-bar-middle": [240, 421, 400, 450],
+  "below-bar": [0, 450, 640, 480]
+}

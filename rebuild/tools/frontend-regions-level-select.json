@@ -1,0 +1,23 @@
+{
+  "bg-top-centre": [200, 0, 580, 60],
+  "bg-lower-centre": [200, 455, 500, 480],
+  "guide-vertical": [120, 200, 127, 400],
+  "guide-horizontal": [180, 176, 500, 184],
+  "header-bar": [182, 60, 598, 96],
+  "header-title-text": [295, 66, 480, 94],
+  "header-bracket-left": [172, 30, 210, 130],
+  "header-bracket-right": [560, 30, 606, 135],
+  "emblem-topleft": [40, 15, 165, 195],
+  "episode-text": [125, 128, 245, 155],
+  "level-name-text": [125, 156, 380, 182],
+  "column-labels": [155, 182, 540, 208],
+  "arc-left": [30, 180, 120, 470],
+  "arc-right": [560, 180, 640, 470],
+  "node-current": [118, 290, 180, 352],
+  "node-graph-left": [180, 290, 300, 352],
+  "node-graph-middle": [300, 260, 480, 380],
+  "node-graph-right": [480, 260, 600, 380],
+  "sweep-arcs": [110, 185, 300, 465],
+  "chevron-left": [0, 430, 48, 478],
+  "chevron-right": [594, 430, 640, 478]
+}

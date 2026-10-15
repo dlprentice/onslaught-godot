@@ -1,0 +1,19 @@
+{
+  "bg-top-centre": [200, 0, 580, 60],
+  "bg-lower-centre": [140, 455, 500, 480],
+  "guide-vertical": [120, 200, 127, 400],
+  "guide-horizontal": [140, 176, 500, 184],
+  "header-bar": [182, 60, 598, 96],
+  "header-title-text": [255, 66, 520, 94],
+  "arc-left": [20, 180, 128, 420],
+  "arc-right": [532, 180, 640, 420],
+  "emblem-topleft": [40, 20, 180, 200],
+  "list-panel-frame": [124, 126, 534, 136],
+  "list-panel-left-edge": [124, 136, 136, 398],
+  "list-rows": [130, 131, 508, 400],
+  "scrollbar": [506, 130, 532, 400],
+  "name-field": [124, 404, 534, 456],
+  "name-text": [280, 410, 380, 450],
+  "chevron-left": [0, 430, 48, 478],
+  "chevron-right": [594, 430, 640, 478]
+}

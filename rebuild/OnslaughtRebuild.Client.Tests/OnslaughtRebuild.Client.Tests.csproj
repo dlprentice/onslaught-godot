@@ -1,0 +1,242 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OnslaughtRebuild.Client.Tests</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnslaughtRebuild.Client\OnslaughtRebuild.Client.csproj" />
+    <ProjectReference Include="..\OnslaughtRebuild.Core\OnslaughtRebuild.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\TestSupport\Level100TestActorDefinitions.cs"
+             Link="TestSupport\Level100TestActorDefinitions.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\Level100AudioCatalog.cs"
+             Link="godot-audio-source\Level100AudioCatalog.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\Level100HudPresentation.cs"
+             Link="godot-hud-source\Level100HudPresentation.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\Level100MessagePlaybackState.cs"
+             Link="godot-hud-source\Level100MessagePlaybackState.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\Level100MessageSchedule.cs"
+             Link="godot-hud-source\Level100MessageSchedule.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\Level100TerrainCompositor.cs"
+             Link="godot-terrain-source\Level100TerrainCompositor.cs" />
+    <!-- The deterministic half of the cold-start media lane. Both files are
+         deliberately free of Godot types so the sequence can be tested without
+         an engine: the capture rig suppresses the intro (as retail's -skipfmv
+         does), so these tests are the only thing standing between the intro
+         path and silent rot. -->
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailStartupSchedule.cs"
+             Link="godot-startup-source\RetailStartupSchedule.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailStartupMediaIndex.cs"
+             Link="godot-startup-source\RetailStartupMediaIndex.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailCareerLoadAdapter.cs"
+             Link="godot-startup-source\RetailCareerLoadAdapter.cs" />
+    <!-- CFEPIntro this+0x18 clock. Godot-free so the click-to-start prompt
+         blink can be pinned without an engine; DrawClickToStart is the consumer. -->
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartPrompt.cs"
+             Link="godot-startup-source\RetailClickToStartPrompt.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartTitle.cs"
+             Link="godot-startup-source\RetailClickToStartTitle.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartSlide.cs"
+             Link="godot-startup-source\RetailClickToStartSlide.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartGlyphs.cs"
+             Link="godot-startup-source\RetailClickToStartGlyphs.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartSplash.cs"
+             Link="godot-startup-source\RetailClickToStartSplash.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailAttractLoop.cs"
+             Link="godot-startup-source\RetailAttractLoop.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailFmvSkip.cs"
+             Link="godot-startup-source\RetailFmvSkip.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailFrontendScenePath.cs"
+             Link="godot-startup-source\RetailFrontendScenePath.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartInput.cs"
+             Link="godot-startup-source\RetailClickToStartInput.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartOverlay.cs"
+             Link="godot-startup-source\RetailClickToStartOverlay.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartProcess.cs"
+             Link="godot-startup-source\RetailClickToStartProcess.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailClickToStartProcessHead.cs"
+             Link="godot-startup-source\RetailClickToStartProcessHead.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuHitTest.cs"
+             Link="godot-startup-source\RetailMainMenuHitTest.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuWritingScroll.cs"
+             Link="godot-startup-source\RetailMainMenuWritingScroll.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuWritingColor.cs"
+             Link="godot-startup-source\RetailMainMenuWritingColor.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuWritingZ.cs"
+             Link="godot-startup-source\RetailMainMenuWritingZ.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLanguageSine.cs"
+             Link="godot-startup-source\RetailMainMenuLanguageSine.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLanguageBlink.cs"
+             Link="godot-startup-source\RetailMainMenuLanguageBlink.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLanguageChevronColor.cs"
+             Link="godot-startup-source\RetailMainMenuLanguageChevronColor.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLabelColor.cs"
+             Link="godot-startup-source\RetailMainMenuLabelColor.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLabelText.cs"
+             Link="godot-startup-source\RetailMainMenuLabelText.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLabelDest.cs"
+             Link="godot-startup-source\RetailMainMenuLabelDest.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuRowY.cs"
+             Link="godot-startup-source\RetailMainMenuRowY.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLanguagePitch.cs"
+             Link="godot-startup-source\RetailMainMenuLanguagePitch.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuSelectorBarColor.cs"
+             Link="godot-startup-source\RetailMainMenuSelectorBarColor.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuSelectorBarZ.cs"
+             Link="godot-startup-source\RetailMainMenuSelectorBarZ.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlay.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlay.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlayZ.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlayZ.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlayFont.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlayFont.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlayFlags.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlayFlags.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlayEnable.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlayEnable.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlayWiden.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlayWiden.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuVersionOverlayTail.cs"
+             Link="godot-startup-source\RetailMainMenuVersionOverlayTail.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuTitleLogoShadow.cs"
+             Link="godot-startup-source\RetailMainMenuTitleLogoShadow.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuTitleLogoShadowZ.cs"
+             Link="godot-startup-source\RetailMainMenuTitleLogoShadowZ.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuTitleLogoZ.cs"
+             Link="godot-startup-source\RetailMainMenuTitleLogoZ.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuSelectedIconColor.cs"
+             Link="godot-startup-source\RetailMainMenuSelectedIconColor.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuSelectedIconShadow.cs"
+             Link="godot-startup-source\RetailMainMenuSelectedIconShadow.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuRightTwinOverlay.cs"
+             Link="godot-startup-source\RetailMainMenuRightTwinOverlay.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuRightTwinShadow.cs"
+             Link="godot-startup-source\RetailMainMenuRightTwinShadow.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuRightDecorShadow.cs"
+             Link="godot-startup-source\RetailMainMenuRightDecorShadow.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuRightDecorOverlay.cs"
+             Link="godot-startup-source\RetailMainMenuRightDecorOverlay.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLeftDecorShadow.cs"
+             Link="godot-startup-source\RetailMainMenuLeftDecorShadow.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLeftDecorOverlay.cs"
+             Link="godot-startup-source\RetailMainMenuLeftDecorOverlay.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLeftTwinShadow.cs"
+             Link="godot-startup-source\RetailMainMenuLeftTwinShadow.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailMainMenuLeftTwinOverlay.cs"
+             Link="godot-startup-source\RetailMainMenuLeftTwinOverlay.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectSlidingBorders.cs"
+             Link="godot-startup-source\RetailLevelSelectSlidingBorders.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectFsub148.cs"
+             Link="godot-startup-source\RetailLevelSelectFsub148.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectFsub10.cs"
+             Link="godot-startup-source\RetailLevelSelectFsub10.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLater148.cs"
+             Link="godot-startup-source\RetailLevelSelectLater148.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLaterEsp94.cs"
+             Link="godot-startup-source\RetailLevelSelectLaterEsp94.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLaterOne.cs"
+             Link="godot-startup-source\RetailLevelSelectLaterOne.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLater610.cs"
+             Link="godot-startup-source\RetailLevelSelectLater610.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLater60.cs"
+             Link="godot-startup-source\RetailLevelSelectLater60.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLaterEsp94One.cs"
+             Link="godot-startup-source\RetailLevelSelectLaterEsp94One.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLater20.cs"
+             Link="godot-startup-source\RetailLevelSelectLater20.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLaterFadd20.cs"
+             Link="godot-startup-source\RetailLevelSelectLaterFadd20.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailLevelSelectLaterFsub20.cs"
+             Link="godot-startup-source\RetailLevelSelectLaterFsub20.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailFrontendCursor.cs"
+             Link="godot-startup-source\RetailFrontendCursor.cs" />
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailFeMessBox.cs"
+             Link="godot-startup-source\RetailFeMessBox.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\tests_shared\fixtures\gold_career_save.bin"
+             Link="fixtures\gold_career_save.bin"
+             CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Client\**\*.cs"
+             Exclude="..\OnslaughtRebuild.Client\bin\**;..\OnslaughtRebuild.Client\obj\**"
+             Link="client-source\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Client\OnslaughtRebuild.Client.csproj"
+             Link="client-project\OnslaughtRebuild.Client.csproj"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\Assets\Level100\StaticWorld\level100-static-world.json"
+             Link="Assets\Level100\StaticWorld\level100-static-world.json"
+             CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Core\Assets\Level110\level110-static-world.json"
+             Link="Assets\Level110\level110-static-world.json"
+             CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Godot\Assets\Level100\StaticWorld\level100-static-world-animation.json"
+             Link="Assets\Level100\StaticWorld\level100-static-world-animation.json"
+             CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Godot\FirstFlightHud.cs"
+             Link="godot-hud-layout-source\FirstFlightHud.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\FirstFlightGame.cs"
+             Link="godot-pause-source\FirstFlightGame.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\RetailFrontendFlow.cs"
+             Link="godot-pause-source\RetailFrontendFlow.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\RetailFrontendFlow.Cursor.cs"
+             Link="godot-pause-source\RetailFrontendFlow.Cursor.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\RetailStartupSequence.cs"
+             Link="godot-pause-source\RetailStartupSequence.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <!-- FEP_OPTIONS lives in a partial. RetailFrontendPageFillEvidenceTests has
+         to see its page renderer too, because the "the frontend is showing the
+         raw D3D clear colour" reading of #147 named the options root by name. -->
+    <Content Include="..\OnslaughtRebuild.Godot\RetailFrontendFlow.Options.cs"
+             Link="godot-pause-source\RetailFrontendFlow.Options.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\RetailFrontendFlow.Cutscene.cs"
+             Link="godot-pause-source\RetailFrontendFlow.Cutscene.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\FirstFlightPauseMenu.cs"
+             Link="godot-pause-source\FirstFlightPauseMenu.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\Level100Audio.cs"
+             Link="godot-pause-source\Level100Audio.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\tools\materialize_retail_assets.py"
+             Link="godot-pause-source\materialize_retail_assets.py"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\Level100WaterAsset.cs"
+             Link="godot-water-source\Level100WaterAsset.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Godot\Level100SunAsset.cs"
+             Link="godot-sun-source\Level100SunAsset.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+    <!-- ParticleQuadSizeConventionTests reads the effect construction sites to
+         check every sprite size is an authored Radius taken through the one
+         owner. It cannot instantiate the Godot type, so it asserts on source. -->
+    <Content Include="..\OnslaughtRebuild.Godot\FirstFlightWorldView.cs"
+             Link="godot-effects-source\FirstFlightWorldView.cs"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

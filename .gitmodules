@@ -1,0 +1,6 @@
+[submodule "references/Onslaught"]
+	path = references/Onslaught
+	url = https://github.com/dlprentice/Onslaught.git
+[submodule "references/AYAResourceExtractor"]
+	path = references/AYAResourceExtractor
+	url = https://github.com/dlprentice/AYAResourceExtractor.git

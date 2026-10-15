@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "Godot.SourceGenerators": {
+        "type": "Direct",
+        "requested": "[4.8.0-dev.6, )",
+        "resolved": "4.8.0-dev.6",
+        "contentHash": "kb6QZaXiPYume0xtCVJQErsEuGZeEM+Zr6vmulYvuUsYsDoVFWenCxjz3DnsOY1ZTYDKm+FLNcimxYImOEiaIg=="
+      },
+      "GodotSharp": {
+        "type": "Direct",
+        "requested": "[4.8.0-dev.6, )",
+        "resolved": "4.8.0-dev.6",
+        "contentHash": "GSQl05YRYISNrqjc0BUqjFX+zQL55IKEty3Rs688GVIFoz94f0f5W3JmEv7g4ux928SIsCse+7XSggLFS7byDw=="
+      },
+      "GodotSharpEditor": {
+        "type": "Direct",
+        "requested": "[4.8.0-dev.6, )",
+        "resolved": "4.8.0-dev.6",
+        "contentHash": "9O9gkzxh0u+M2tHHLcUNnTt+M1pwfMnTiCH7MG29FFEvXZ5eu6WjbKjg7Q1rmp0QxMkx06T0fLNXhDZodJKk+A==",
+        "dependencies": {
+          "GodotSharp": "4.8.0-dev.6"
+        }
+      },
+      "onslaughtrebuild.client": {
+        "type": "Project",
+        "dependencies": {
+          "OnslaughtRebuild.Core": "[1.0.0, )"
+        }
+      },
+      "onslaughtrebuild.core": {
+        "type": "Project"
+      }
+    }
+  }
+}

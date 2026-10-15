@@ -1,0 +1,293 @@
+{
+  "_doc": [
+    "Which frontend pages the capture gate scores against retail, and what each",
+    "scored when it was last measured. Consumed by",
+    "tools/score_frontend_capture.py, which first_flight.py capture calls.",
+    "",
+    "`measured` is the FACT. The gate's ceiling is DERIVED from it as",
+    "min(measured + marginPp, 100) at load time and is deliberately NOT stored",
+    "here - it was, briefly, as 30 values that were each exactly measured + 2.0,",
+    "and two copies of one fact drift. Use `regressionCeilingOverride` on a page",
+    "if some region ever needs a bound other than the blanket margin, with a",
+    "comment saying why. None does today.",
+    "",
+    "A ceiling is NOT a parity claim - title-logo is 31.46% wrong. The canonical",
+    "explanation of that distinction is the module docstring of",
+    "tools/score_frontend_capture.py; do not restate it, point at it.",
+    "",
+    "Ceilings apply to the WORST sample, never the mean - a regression visible at",
+    "one video phase is still a regression.",
+    "",
+    "A STALE `measured` IS A DEAD GATE, AND THAT IS NOT HYPOTHETICAL. From",
+    "8618e773 (2026-07-27) to 2026-07-28 this file held FEP_MAIN@entry FULL FRAME",
+    "= 71.47 while the build measured 7.53 - a ceiling of 73.47 guarding a value",
+    "of 7.53, nine times loose. It could not have failed for any regression short",
+    "of the page not drawing at all. 8618e773 said so in its own message",
+    "('Ceilings are NOT re-derived here') and nothing in npm test notices, so the",
+    "re-derivation is a DELIBERATE ACT that has to be scheduled by a human. Do it",
+    "in the same session as any change that moves these numbers."
+  ],
+  "referenceRoot": "local-lab/retail-reference-pristine/nofmv-frontend-2026-07-26",
+  "_referenceNote": [
+    "The no-skipfmv two-run set. -skipfmv degrades the main menu itself by",
+    "84.18% material, so the older -skipfmv reference could not be used for",
+    "this at all. See local-lab/STARTUP-NOFMV-BASELINE-2026-07-26.md."
+  ],
+  "_measurementProvenance": {
+    "status": "CURRENT",
+    "measuredAtCommit": "fc07fef6",
+    "measuredOn": "2026-07-31",
+    "measuredFromCapture": "local-lab/godot-captures/rescore150-head-mainmenu",
+    "_measuredAtCommitNote": [
+      "Re-derived with tools/score_frontend_capture.py --measure from a capture",
+      "stamped purpose=production, godotSourceCleanliness=clean,",
+      "sourceCommit=fc07fef60df61c73337ebbeac1b4b08ba4c6e3cc, 161/161 shots,",
+      "0 screen mismatches, 0 wrong-size frames, taken from a clean detached",
+      "`git worktree` at that commit (task #150).",
+      "",
+      "STORED VALUES ARE THE PER-REGION MAX OF TWO BACK-TO-BACK CAPTURES of that",
+      "same commit (rescore150-head-mainmenu and -run2), not of one. See",
+      "captureDeterminism: our own run-to-run variance is no longer zero, so a",
+      "ceiling derived from a single run could sit below what a clean rerun of",
+      "the SAME build produces, and would fail on nothing but our own noise.",
+      "",
+      "WHAT THIS REPLACED, AND THE ONE REGRESSION IT RECORDS. The previous values",
+      "were measured at 432c53f7 on 2026-07-28 and were marked STALE at 5e82ae42",
+      "because the released language row, cursor, decor shadow and frontend",
+      "composition changed after them. While STALE the gate scored NOTHING - it",
+      "returned UNSCORED for every run, which is not a pass and was guarding",
+      "nothing at all. Re-measuring at fc07fef6 against the same video-on",
+      "reference set moves 21 of the 30 numbers. Only ONE moved enough to have",
+      "breached its old ceiling:",
+      "",
+      "  FEP_MAIN@settled lang-selector  17.19 -> 25.41  (+8.22pp, BREACH of the",
+      "  19.19 ceiling the stale block implied). This is NOT flake: our own",
+      "  cross-run variance is confined to bg-emblem-topright and does not touch",
+      "  this region, and both HEAD captures read 25.41 exactly. It is a real",
+      "  regression in the released language row, carried forward here as the",
+      "  recorded fact rather than hidden by leaving the gate abstaining.",
+      "",
+      "Also worse, all within the old ceilings: title-logo @settled 29.48 ->",
+      "31.46, @reveal 31.83 -> 33.08; bg-emblem-topright @settled 19.92 ->",
+      "21.23, @reveal 22.97 -> 23.77; version-overlay @reveal 9.12 -> 10.13;",
+      "lang-selector @reveal 61.55 -> 63.53. Better: menu-column @settled 23.35",
+      "-> 19.32, decor-left-arc @settled 12.15 -> 11.33, FEP_MAIN@entry FULL",
+      "FRAME 7.53 -> 7.44 and title-logo 22.17 -> 21.67."
+    ],
+    "captureDeterminism": [
+      "CORRECTED 2026-07-31 (task #150). This block used to claim 'Our own",
+      "contribution to run-to-run variance is 0.00%', measured from two",
+      "byte-identical mainmenu captures of 684c7c52. That is NO LONGER TRUE at",
+      "fc07fef6: two back-to-back production captures of the same commit differ",
+      "on ALL 161 frames. The difference is small and localised - 275 pixels per",
+      "frame (0.09% material at a >2/255 threshold), every one of them inside",
+      "x 418-442, y 4-29, which lies in bg-emblem-topright.",
+      "",
+      "Its effect on the gated statistic is bounded and measured: across the two",
+      "runs, 27 of the 30 numbers are IDENTICAL, and the three that move are",
+      "bg-emblem-topright (<=0.42pp) and the FULL FRAME that contains it",
+      "(<=0.07pp). No other region varies at all.",
+      "",
+      "So the 2.00pp margin still covers our own variance with room to spare -",
+      "but it is now an allowance for measured flake in ONE region as well as",
+      "headroom, and that must not be forgotten the next time someone reasons",
+      "about widening or narrowing it. The mechanism of the 275-pixel wobble is",
+      "NOT established and is not claimed here.",
+      "",
+      "THE MARGIN DOES NOT NEED TO COVER RETAIL'S CROSS-RUN FLOOR, and must not be",
+      "widened on the argument that it should. That floor reaches 8.95% on",
+      "lang-selector @settled and 7.15% on bg-empty-left @settled, both far above",
+      "2.00pp - but the gated statistic is gapPct, which discards floor-unstable",
+      "pixels ONE AT A TIME before counting. The floor is already gone from the",
+      "number the ceiling bounds."
+    ],
+    "marginPp": 2.0
+  },
+  "_windowNote": [
+    "FEP_MAIN is gated as THREE windows rather than one, because retail builds",
+    "the page up in stages and a single window would hide a regression behind",
+    "the stage we are worst at.",
+    "",
+    "Measured 2026-07-27 from the retail run1 burst, region mean RGB:",
+    "  t000014  lang-selector, menu-column and the arcs are ALL exactly the",
+    "           flat fill (23,23,48). Only title-logo and bg-emblem-topright",
+    "           are drawn. Retail's first main-menu frame carries background",
+    "           plus logo plus emblem and NOTHING ELSE.",
+    "  t000524  all chrome present and over-bright (lang-selector 66,82,122)",
+    "  t001020+ settling to its steady value (lang-selector 58,52,74)",
+    "",
+    "SUPERSEDED 2026-07-28, and left here because the reasoning is why the three",
+    "windows exist. This read: 'We draw the entire page on frame 0, which is why",
+    "the entry window scores 76% gap against a retail cross-run floor of 0.24% -",
+    "retail is perfectly reproducible there and we simply differ. That is a real",
+    "defect, tracked separately.' It WAS, and 8618e773 closed it by porting",
+    "retail's 50-frame staged reveal: the entry window is now 7.53% against the",
+    "same 0.24% floor, and seven of its nine named regions are at or under 0.30%.",
+    "",
+    "The three windows earned their keep exactly as intended. A single window",
+    "would have averaged a 76% defect into a ~20% page and hidden it, and the",
+    "same split now keeps the settled window sensitive at its own ~15% scale",
+    "while the entry window gates at 7.53%."
+  ],
+  "pages": [
+    {
+      "id": "FEP_MAIN@entry",
+      "capturePlan": "mainmenu",
+      "shotPrefix": "mainmenu",
+      "reference": {
+        "run": "run1",
+        "prefix": "mm"
+      },
+      "noiseFloor": {
+        "run": "run2",
+        "prefix": "mm"
+      },
+      "regions": "rebuild/tools/frontend-regions-main-menu.json",
+      "samples": [
+        14
+      ],
+      "_measuredNote": [
+        "8618e773 landed retail's 50-frame staged reveal and took this window",
+        "from 'we draw the whole page on frame 0' to 'we draw what retail draws'.",
+        "All ten regions moved and none was re-derived until 2026-07-28. What is",
+        "LEFT here is the honest remainder: the title logo and the top-right",
+        "emblem, the two layers retail forces opaque from frame 0, are still",
+        "21.67% and 12.94% wrong at fc07fef6. Everything else is at or under",
+        "0.30%."
+      ],
+      "measured": {
+        "FULL FRAME": 7.44,
+        "bg-empty-left": 0.01,
+        "bg-emblem-topright": 12.94,
+        "title-logo": 21.67,
+        "lang-selector": 0.0,
+        "menu-column": 0.3,
+        "decor-left-arc": 0.0,
+        "decor-right-arc": 0.0,
+        "decor-right-glyph": 0.0,
+        "version-overlay": 0.23
+      }
+    },
+    {
+      "id": "FEP_MAIN@reveal",
+      "capturePlan": "mainmenu",
+      "shotPrefix": "mainmenu",
+      "reference": {
+        "run": "run1",
+        "prefix": "mm"
+      },
+      "noiseFloor": {
+        "run": "run2",
+        "prefix": "mm"
+      },
+      "regions": "rebuild/tools/frontend-regions-main-menu.json",
+      "samples": [
+        524,
+        1020
+      ],
+      "_measuredNote": [
+        "Seven of ten moved with 8618e773; bg-empty-left, bg-emblem-topright and",
+        "title-logo did not move at all. The worst remaining region is",
+        "lang-selector at 63.53% - retail is brighter there at 524 ms than the",
+        "ported fade model makes it, which 8618e773 recorded as explicitly NOT",
+        "closed rather than scaling a constant until it went away."
+      ],
+      "measured": {
+        "FULL FRAME": 19.67,
+        "bg-empty-left": 6.99,
+        "bg-emblem-topright": 23.77,
+        "title-logo": 33.08,
+        "lang-selector": 63.53,
+        "menu-column": 38.69,
+        "decor-left-arc": 28.21,
+        "decor-right-arc": 22.62,
+        "decor-right-glyph": 19.48,
+        "version-overlay": 10.13
+      }
+    },
+    {
+      "id": "FEP_MAIN@settled",
+      "capturePlan": "mainmenu",
+      "shotPrefix": "mainmenu",
+      "reference": {
+        "run": "run1",
+        "prefix": "mm"
+      },
+      "noiseFloor": {
+        "run": "run2",
+        "prefix": "mm"
+      },
+      "regions": "rebuild/tools/frontend-regions-main-menu.json",
+      "_samplesNote": [
+        "Every settled retail run1 burst offset, not the five the hand",
+        "measurements used. The extra seven cost a few seconds and they are",
+        "the ones that would catch a phase regression that happens to look",
+        "fine at the five offsets a human picked."
+      ],
+      "samples": [
+        1530,
+        2024,
+        2529,
+        3022,
+        3531,
+        4030,
+        4519,
+        5022,
+        5522,
+        6031,
+        6524,
+        7027
+      ],
+      "measured": {
+        "FULL FRAME": 15.38,
+        "bg-empty-left": 5.61,
+        "bg-emblem-topright": 21.23,
+        "title-logo": 31.46,
+        "lang-selector": 25.41,
+        "menu-column": 19.32,
+        "decor-left-arc": 11.33,
+        "decor-right-arc": 7.55,
+        "decor-right-glyph": 21.93,
+        "version-overlay": 7.79
+      }
+    }
+  ],
+  "unscored": [
+    {
+      "id": "FEP_OPTIONS",
+      "capturePlan": "options",
+      "task": "150",
+      "reason": "the missing piece is no longer the reference. Task #150 captured retail's options pages WITH the video backdrop in two runs (local-lab/retail-reference-pristine/nofmv-options-2026-07-31/run1 and run2, 17 burst frames each for optroot/optctrl/optsound/optvideo/credits plus mm), so a noise floor now exists. What blocks gating is OUR side: FrontendCaptureRig's OptionsPlan takes ONE settled shot per page (fep-options-root.png and friends), while this plan pairs frames by millisecond offset from `<prefix>-t<ms>ms.png`. There is nothing to pair against a burst. Gating the options pages needs the rig to sweep them the way it sweeps mainmenu; until then rebuild/tools/compare_options_capture.py's ink-mask IoU is the only options measurement, and it is a text-placement check, not a parity score."
+    },
+    {
+      "id": "FEP_DEVSELECT",
+      "capturePlan": "startup",
+      "task": "115",
+      "reason": "retail's own two runs disagree by 5.8-44.2% material at matched page-entry offsets, so no reconstruction improvement below that is measurable. Gating on it would be theatre."
+    },
+    {
+      "id": "FEP_LEVEL_SELECT",
+      "capturePlan": "startup",
+      "task": "115",
+      "reason": "retail's own two runs disagree by 9.6-62.5% material; best-match offset drifts by a near-constant -2.0 s whose mechanism is not established."
+    },
+    {
+      "id": "FEP_MISSION_BRIEFING",
+      "capturePlan": "startup",
+      "task": "115",
+      "reason": "the no-skipfmv two-run set carries no briefing burst, so there is no second retail run to form a noise floor from."
+    },
+    {
+      "id": "FEP_SELECT_CONFIGURATION",
+      "capturePlan": "startup",
+      "task": "115",
+      "reason": "as FEP_MISSION_BRIEFING - no second retail run in the no-skipfmv set."
+    },
+    {
+      "id": "FEP_LOADING",
+      "capturePlan": "startup",
+      "task": "115",
+      "reason": "as FEP_MISSION_BRIEFING - no second retail run in the no-skipfmv set."
+    }
+  ]
+}

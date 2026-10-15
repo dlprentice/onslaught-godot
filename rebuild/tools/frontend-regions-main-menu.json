@@ -1,0 +1,11 @@
+{
+  "bg-empty-left": [0, 180, 120, 300],
+  "bg-emblem-topright": [380, 0, 640, 200],
+  "title-logo": [60, 55, 560, 250],
+  "lang-selector": [140, 252, 300, 292],
+  "menu-column": [140, 292, 300, 440],
+  "decor-left-arc": [55, 300, 200, 475],
+  "decor-right-arc": [300, 300, 400, 440],
+  "decor-right-glyph": [400, 310, 540, 450],
+  "version-overlay": [0, 452, 220, 480]
+}

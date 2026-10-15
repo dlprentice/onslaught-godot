@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "onslaughtrebuild.core": {
+        "type": "Project"
+      }
+    }
+  }
+}

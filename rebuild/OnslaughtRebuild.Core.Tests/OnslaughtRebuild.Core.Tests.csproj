@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OnslaughtRebuild.Core.Tests</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnslaughtRebuild.Core\OnslaughtRebuild.Core.csproj" />
+    <ProjectReference Include="..\OnslaughtRebuild.Headless\OnslaughtRebuild.Headless.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\TestSupport\Level100TestActorDefinitions.cs"
+             Link="TestSupport\Level100TestActorDefinitions.cs" />
+    <!-- The cold-start media schedule. Deliberately free of Godot types (see the
+         same include in OnslaughtRebuild.Client.Tests), so the one end-to-end
+         run that begins at startup can replay the released beat order without
+         an engine. -->
+    <Compile Include="..\OnslaughtRebuild.Godot\RetailStartupSchedule.cs"
+             Link="godot-startup-source\RetailStartupSchedule.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\scenarios\*.json" Link="scenarios\%(Filename)%(Extension)" CopyToOutputDirectory="Always" />
+    <Content Include="..\..\tests_shared\fixtures\gold_career_save.bin"
+             Link="fixtures\gold_career_save.bin"
+             CopyToOutputDirectory="Always" />
+    <Content Include="..\OnslaughtRebuild.Core\**\*.cs"
+             Exclude="..\OnslaughtRebuild.Core\bin\**;..\OnslaughtRebuild.Core\obj\**"
+             Link="core-source\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\OnslaughtRebuild.Core\OnslaughtRebuild.Core.csproj" Link="core-project\OnslaughtRebuild.Core.csproj" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

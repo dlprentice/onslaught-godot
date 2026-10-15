@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OnslaughtRebuild.Core</RootNamespace>
+    <AssemblyName>OnslaughtRebuild.Core</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>OnslaughtRebuild.Core.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\Level100\level100-heightfield.hfld.bin"
+                      LogicalName="OnslaughtRebuild.Core.Assets.Level100.level100-heightfield.hfld.bin" />
+    <EmbeddedResource Include="Assets\Level100\Scripts\*.mso.bin" />
+    <EmbeddedResource Include="Assets\Level100\level100-contact-owners.json"
+                      LogicalName="OnslaughtRebuild.Core.Assets.Level100.level100-contact-owners.json" />
+    <EmbeddedResource Include="Assets\Level110\level110-heightfield.hfld.bin"
+                      LogicalName="OnslaughtRebuild.Core.Assets.Level110.level110-heightfield.hfld.bin" />
+    <EmbeddedResource Include="Assets\Level110\Scripts\*.mso.bin" />
+    <EmbeddedResource Include="Assets\Level200\level200-heightfield.hfld.bin"
+                      LogicalName="OnslaughtRebuild.Core.Assets.Level200.level200-heightfield.hfld.bin" />
+    <EmbeddedResource Include="Assets\Level200\Scripts\*.mso.bin" />
+    <EmbeddedResource Include="Assets\Level300\level300-heightfield.hfld.bin"
+                      LogicalName="OnslaughtRebuild.Core.Assets.Level300.level300-heightfield.hfld.bin" />
+    <EmbeddedResource Include="Assets\Level300\Scripts\*.mso.bin" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,29 @@
+; Engine configuration file.
+; Edit through source review so the pinned project contract stays explicit.
+
+config_version=5
+
+[application]
+
+config/name="Onslaught Rebuild - Battle Engine Aquila"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.8", "C#", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+
+[dotnet]
+
+project/assembly_name="OnslaughtRebuild.Godot"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.018, 0.024, 0.03, 1)

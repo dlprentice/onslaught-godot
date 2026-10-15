@@ -1,0 +1,17 @@
+{
+  "header-box": [191, 69, 585, 90],
+  "header-title-text": [280, 66, 500, 94],
+  "level-name-text": [174, 120, 360, 150],
+  "body-paragraph-1": [76, 163, 372, 262],
+  "body-paragraph-2": [76, 268, 372, 306],
+  "EXCLUDED-fmv-inset-panel": [378, 176, 583, 329],
+  "bg-sky-top": [150, 0, 600, 55],
+  "bg-scene-bottom": [60, 340, 600, 430],
+  "bg-left-band": [0, 150, 60, 340],
+  "ring-top-left": [0, 0, 120, 60],
+  "ring-right": [560, 60, 640, 420],
+  "ring-bottom-left": [0, 380, 140, 480],
+  "emblem-topleft": [40, 15, 165, 195],
+  "chevron-left": [8, 436, 38, 476],
+  "chevron-right": [602, 435, 634, 475]
+}

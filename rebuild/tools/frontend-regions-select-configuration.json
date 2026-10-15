@@ -1,0 +1,18 @@
+{
+  "header-box": [191, 69, 585, 90],
+  "header-title-text": [243, 66, 534, 94],
+  "unit-name-text": [253, 102, 544, 132],
+  "walker-mode-rows": [275, 208, 404, 258],
+  "jet-mode-rows": [275, 272, 404, 322],
+  "UNDRAWN-unit-render": [64, 152, 256, 344],
+  "UNDRAWN-mode-icons": [445, 180, 545, 212],
+  "UNDRAWN-star-ratings": [444, 228, 548, 320],
+  "bg-sky-top": [150, 0, 600, 55],
+  "bg-scene-bottom": [60, 340, 600, 430],
+  "ring-top-left": [0, 0, 120, 60],
+  "ring-right": [560, 60, 640, 420],
+  "ring-bottom-left": [0, 380, 140, 480],
+  "emblem-topleft": [40, 15, 165, 195],
+  "chevron-left": [8, 436, 38, 476],
+  "chevron-right": [602, 435, 634, 475]
+}

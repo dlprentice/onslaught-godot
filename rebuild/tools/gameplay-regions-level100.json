@@ -1,0 +1,146 @@
+{
+  "_comment": "Level 100 parity measurement boxes, 640x480. THESE ARE DETECTORS, NOT DIAGNOSES. A box mean cannot distinguish 'the same object rendered wrong' from 'a different object occupying those pixels', and on this project that confusion has produced four false diagnoses. Before attributing any box's error to shading, split it by what each image is actually drawing there. See _caveats below for boxes with measured contamination, and tools/cockpit_intersection_mask_probe.py for the geometric-mask technique that replaces a box mean. A region value is either one [x0,y0,x1,y1] rectangle or a LIST of rectangles whose disjoint union is the region; tools/compare_capture.py computes both, and tools/check_region_overlap.py is the gate that keeps the _attributionClean declaration below honest.",
+  "_attributionClean": {
+    "_what": [
+      "The DETECTOR boxes below overlap each other. `acknowledgedOverlaps` is the",
+      "complete measured list, swept 2026-07-28 by tools/check_region_overlap.py,",
+      "which FAILS if this file's real overlaps ever stop matching it. Only the",
+      "first of the three was documented before that sweep. An overlap means a",
+      "change to one subsystem MOVES another subsystem's score, which is how a",
+      "critic credits a builder for work it did not do.",
+      "",
+      "Each name under `regions` is a region in this file that is DISJOINT FROM",
+      "EVERY OTHER REGION IN THAT SET. `parent` is the detector it is derived",
+      "from - `self` where the detector was already disjoint and needed no",
+      "excision. `excises` names the regions cut out of the parent to get there,",
+      "and the checker verifies that parent-minus-excisions is EXACTLY this",
+      "region rather than taking the claim on trust. Scoring work on a subsystem",
+      "uses these; the detectors are kept unchanged beside them so the historical",
+      "series stay comparable, and because reshaping a box silently invalidates",
+      "every number ever quoted against it."
+    ],
+    "acknowledgedOverlaps": [
+      {
+        "a": "terrain mid-band",
+        "b": "threat circle",
+        "pixels": 17100,
+        "note": "38.86% of terrain, 47.37% of threat. Documented since 2026-07-26; the one with a causal proof attached - see the 'terrain mid-band' caveat."
+      },
+      {
+        "a": "horizon ridge",
+        "b": "cockpit frame (right)",
+        "pixels": 1800,
+        "note": "9.38% of the ridge box, 20.00% of the cockpit box. UNDOCUMENTED until the 2026-07-28 sweep; no number has been attributed across it either way, so nothing is withdrawn - but ridge work moved the cockpit box and nobody could have known."
+      },
+      {
+        "a": "horizon ridge",
+        "b": "threat circle",
+        "pixels": 1600,
+        "note": "8.33% of the ridge box, 4.43% of threat. UNDOCUMENTED until the 2026-07-28 sweep."
+      }
+    ],
+    "_whatThisDoesNotCertify": [
+      "MUTUAL DISJOINTNESS IS NOT SUBSYSTEM PURITY. This declaration certifies",
+      "one property only: no pixel is scored by two of these regions, so a change",
+      "inside one cannot move another. It says NOTHING about whether a region",
+      "contains one object or five. Both cockpit boxes remain 19-27% non-cockpit",
+      "by object count and both caveats below still stand in full -",
+      "'cockpit frame (right, clean)' is disjoint from the ridge box and is still",
+      "not a cockpit shading metric. Read the caveat before reading the number."
+    ],
+    "regions": {
+      "sky": {"parent": "self", "excises": [], "pixels": 57200},
+      "cockpit frame (left)": {"parent": "self", "excises": [], "pixels": 9000},
+      "scanner (lower left)": {"parent": "self", "excises": [], "pixels": 15600},
+      "portrait/compass (lower right)": {"parent": "self", "excises": [], "pixels": 15600},
+      "message panel": {"parent": "self", "excises": [], "pixels": 17700},
+      "terrain mid-band (clean)": {"parent": "terrain mid-band", "excises": ["threat circle"], "pixels": 26900},
+      "horizon ridge (clean)": {"parent": "horizon ridge", "excises": ["cockpit frame (right)", "threat circle"], "pixels": 15800},
+      "threat circle (clean)": {"parent": "threat circle", "excises": ["terrain mid-band", "horizon ridge"], "pixels": 17400},
+      "cockpit frame (right, clean)": {"parent": "cockpit frame (right)", "excises": ["horizon ridge"], "pixels": 7200}
+    }
+  },
+  "_caveats": {
+    "cockpit frame (left)": "19-27% NON-COCKPIT. Measured 2026-07-26 by counting the winning part at every pixel of a retail-pose z-buffered raster: this box is Object03 (6,739 px) plus Lsidebit01 (400 px). On the same-surface mask the shading is close; the box mean is dominated by silhouette disagreement, not by shading. Do not read this box as a cockpit shading metric. It does not overlap any other box, so it is in the attribution-clean set as itself - which certifies only that nothing else moves it, NOT that it holds one object.",
+    "cockpit frame (right)": "19% NON-COCKPIT. The box is Object01 (6,125 px) and nothing else, and Object01's shading is correct to 1.5% (retail/build 0.992/0.985/0.985 over 5,566 same-surface px). 1,713 of the box's 9,000 px are bright scene in retail and cockpit in the build, because our Object01 covers 8,856 px against retail's 6,306. R-channel decomposition is exact: +15.89 (build-only) +7.06 (both) +0.99 (neither) -1.86 (retail-only) = +22.08 against a measured 22.1 gap. That deficit is the 2.8774 degree composition residual, and it is the floor on this box. Do not read this box as a cockpit shading metric. SEPARATELY, and measured only on 2026-07-28: its top 30 rows are also inside 'horizon ridge' - 1,800 px, 20% of this box - so ridge work moves it and it moves ridge work. Use 'cockpit frame (right, clean)' when that matters.",
+    "_note": "Neither cockpit box contains Lsidebit02, which sits at y=371..420 below both.",
+    "terrain mid-band": "38.86% CONTAMINATED by 'threat circle'. The two boxes intersect at [230,230,420,320] = 17,100 px of this box's 44,000. Measured 2026-07-26: that 38.9% of the area carries 66% of the box's material pixels (6,511 of 9,836). PROVEN CAUSALLY: commit dba2948e changed ONLY the compass gauge blend, yet moved this box 22.35 -> 20.75; with the threat box excised the real terrain moved 12.36 -> 12.27, i.e. 94% of that 'terrain' win was the compass overlay. Do NOT read this box as a terrain shading metric - use 'terrain mid-band (clean)', which since 2026-07-28 is a real region in this file rather than a description of one. Every historical number for this box, including the 91.15 -> 72.85 -> 65.12 sequence, is a blend of terrain and whatever the compass was doing.",
+    "terrain mid-band (clean)": "'terrain mid-band' minus the 'threat circle' intersection: 26,900 px, no HUD element. This is the box to use for terrain shading work. Expressed as the disjoint union [120,230,230,340] + [420,230,520,340] + [230,320,420,340]; the shape is an inverted U, which is why it could not be a single rectangle and why it existed only as prose in this block until 2026-07-28. HAND-MEASURED at HEAD against retail t025065: 12.36% material / meanD 4.91, mean delta (ours-retail) [-0.77, +0.03, +0.81]. Split at x=320 the G channel FLIPS SIGN - left [-0.27, +0.53, +0.88], right [-1.30, -0.50, +0.73] - at magnitudes under 1.3 DN. That refutes a global-constant shading model rather than proving there is no residual: 12.36% material remains in pixels the threat circle never touches, and it is high-frequency, not an offset.",
+    "threat circle (clean)": "'threat circle' minus its 'terrain mid-band' intersection (17,100 px) and its 'horizon ridge' intersection (1,600 px): 17,400 px, the upper part of the circle only. Added 2026-07-28. NO number has been measured against it yet - it is a shape, not a result, and the first tool to print it prints a first measurement, not a comparison.",
+    "horizon ridge (clean)": "'horizon ridge' minus its 'cockpit frame (right)' intersection (1,800 px) and its 'threat circle' intersection (1,600 px): 15,800 px of the parent's 19,200. Added 2026-07-28. As with 'threat circle (clean)', no number has been measured against it yet.",
+    "cockpit frame (right, clean)": "'cockpit frame (right)' minus the 'horizon ridge' overlap: [580,220,640,340], 7,200 px. Added 2026-07-28. It removes the ridge box's influence and NOTHING ELSE - the 19% non-cockpit object contamination described under 'cockpit frame (right)' is untouched by it and still applies. No number measured against it yet.",
+    "scanner (lower left)": "PHASE-SENSITIVE at t025065, and that is what moved it 45.88 -> 47.97 across 2026-07-27. The tutorial's HUD emphasis brightens RadarOutline over rect (17,368,128x128), which overlaps this box heavily, so the box reads the emphasis SCHEDULE as if it were scanner shading. (This caveat said 'lies ENTIRELY inside this box' until 2026-07-28. Arithmetic on its own two rectangles refutes that: the RadarOutline rect is [17,368,145,496], the box is [20,350,150,470], and they meet on [20,368,145,470] = 12,750 px - 77.8% of the outline rect, 88.9% of the part of it that is on a 640x480 frame at all, and 81.7% of this box. Heavy overlap, not containment. The conclusion below is unaffected; the word was.) Measured 2026-07-27 (task #135) by dumping Core state per engine frame at ce2f6866 and at ad61cb1a under the capture's own input: player pose is BIT-IDENTICAL at the capture tick (yaw 509830 microrad, position 0,0, elevation 2111 mm on both) and the ONLY Core difference is Level100HudEmphasisMask - 0 at ce2f6866, 16 (Radar) at HEAD, because 016ebf38's message-box gate moved the radar emphasis window from ticks 379..561 to 567..755 and tick 752 is 3 ticks from its end. Retail's t025065 is NOT emphasised: our own un-emphasised frames score 45.94-46.08 against it where the emphasised ones score 47.97-52.33. So a change of ~2 points here is the documented ~0.69 s capture-epoch offset showing up, not a scanner defect. Score scanner work on a frame well inside or well outside the emphasis window, or state which state the frame is in.",
+    "_noise floors": "RETAIL'S CROSS-RUN FLOOR IS NOT ONE NUMBER. The widely-quoted 0.02% is real and reproducible, but ONLY for full-frame at level-100 t025065 (verified: pristine-verification-2026-07-26/chain-20260726-164610 vs -164822 = 0.02% material, portrait/compass 0.00%). It does NOT generalise. Measured floors: frontend pages 1.28-5.57% (select-configuration worst); settled-camera level-100 full frame ~0.93%; speaker-portrait frames give portrait/compass 15.6-21.5% because retail's portrait carries a per-run non-deterministic dither. Opening-pan frames labelled 'reference-only (camera in motion)' reach 36.79% and must never be quoted as a floor. ALSO: our own capture self-noise at t025065 is ~2.53% full-frame, so any full-frame improvement under ~2.5 points is not measurable from a single capture pair. NEVER SET A CEILING BELOW THE FLOOR FOR THAT FRAME CLASS: a threshold under the floor manufactures flake, and a gate that goes red for no reason trains people to ignore red, which is strictly worse than a gate that is loose."
+  },
+  "sky": [
+    60,
+    20,
+    580,
+    130
+  ],
+  "horizon ridge": [
+    400,
+    140,
+    640,
+    220
+  ],
+  "terrain mid-band": [
+    120,
+    230,
+    520,
+    340
+  ],
+  "cockpit frame (left)": [
+    0,
+    190,
+    60,
+    340
+  ],
+  "cockpit frame (right)": [
+    580,
+    190,
+    640,
+    340
+  ],
+  "threat circle": [
+    230,
+    130,
+    420,
+    320
+  ],
+  "scanner (lower left)": [
+    20,
+    350,
+    150,
+    470
+  ],
+  "portrait/compass (lower right)": [
+    500,
+    350,
+    630,
+    470
+  ],
+  "message panel": [
+    175,
+    395,
+    470,
+    455
+  ],
+  "terrain mid-band (clean)": [
+    [120, 230, 230, 340],
+    [420, 230, 520, 340],
+    [230, 320, 420, 340]
+  ],
+  "horizon ridge (clean)": [
+    [420, 140, 580, 220],
+    [580, 140, 640, 190]
+  ],
+  "threat circle (clean)": [
+    [230, 130, 400, 230],
+    [400, 130, 420, 140],
+    [400, 220, 420, 230]
+  ],
+  "cockpit frame (right, clean)": [
+    [580, 220, 640, 340]
+  ]
+}

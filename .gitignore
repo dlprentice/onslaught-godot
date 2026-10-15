@@ -1,0 +1,121 @@
+# Public-primary working repo .gitignore
+
+# Build output
+/bin/
+/obj/
+**/bin/
+**/obj/
+/TestResults/
+*.trx
+/node_modules/
+/dist/
+/build/
+/out/
+/coverage/
+/publish/
+/AppPackages/
+/BundleArtifacts/
+/MsixPackages/
+
+# IDE and OS local state
+.vs/
+.idea/
+**/.godot/
+**/.mono/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# a contributor runtime-local state
+/.codex/
+
+# Local validation scratch
+__pycache__/
+*.pyc
+*.pyo
+/.pytest_cache/
+/.artifacts/
+/lore-pack/
+/subagents/
+release/out/
+release/artifacts/
+.tmp*/
+tmp*/
+*.tmp
+*.cache
+
+# Local lab overlays and copied game payloads.
+/mcps/
+/local-lab/
+/local-game/
+/local-rom-input/
+/local-media/
+/local-saves/
+/save-attempts/
+/local-ghidra/
+/local-proofs/
+/Ghidra/
+/ghidra-local/
+/game/
+/media/
+/GameProfiles/
+/PatchBench/
+/reverse-engineering/binary-analysis/scratch/
+
+# Game/runtime payloads and secrets
+.env
+.env.*
+*.exe
+*.dll
+*.bes
+*.bea
+*.bik
+*.vid
+*.gzf
+*.zip
+*.gpr
+*.rep/
+*.gbf
+*.gdt
+
+# These owners are reserved for exact retail-derived rebuild outputs
+# materialized locally from a user-provided installation. Legitimate authored
+# or separately provided assets belong in their normal source-owning path.
+/rebuild/OnslaughtRebuild.Core/Assets/Level100/**
+/rebuild/OnslaughtRebuild.Core/Assets/Level110/**
+/rebuild/OnslaughtRebuild.Core/Assets/Level200/**
+/rebuild/OnslaughtRebuild.Core/Assets/Level300/**
+/rebuild/OnslaughtRebuild.Godot/Assets/Aquila/**
+/rebuild/OnslaughtRebuild.Godot/Assets/Frontend/**
+/rebuild/OnslaughtRebuild.Godot/Assets/Hud/**
+/rebuild/OnslaughtRebuild.Godot/Assets/Level100/**
+/rebuild/OnslaughtRebuild.Godot/Assets/PauseMenu/**
+!/rebuild/OnslaughtRebuild.Godot/Assets/Aquila/README.md
+!/rebuild/OnslaughtRebuild.Godot/Assets/Frontend/README.md
+!/rebuild/OnslaughtRebuild.Godot/Assets/Hud/README.md
+!/rebuild/OnslaughtRebuild.Godot/Assets/Level100/README.md
+!/rebuild/OnslaughtRebuild.Godot/Assets/PauseMenu/README.md
+
+
+# BEA.exe writes runtime logs into its CURRENT WORKING DIRECTORY, not next to
+# its own image. tools/ttd_record.ps1 now pins the CWD to the copied target, but
+# any launcher that forgets will drop these in the repo root, and they are
+# retail-derived runtime output that must never be tracked.
+setuphistory.txt
+cardid.txt
+
+# Agent worktrees and machine-local Claude Code settings. `.claude/worktrees/`
+# holds one FULL CHECKOUT per concurrent writing lane - the isolation mechanism
+# AGENTS.md ## Delegation requires - so a stray `git add -A` while lanes are
+# running would commit entire copies of the repository into itself. That is not
+# hypothetical: this repo has twice had unrelated work swept into a commit by a
+# broad add. `settings.local.json` is per-machine and not shared state.
+.claude/worktrees/
+.worktrees/
+.claude/settings.local.json
+
+# machine-local project data (retail profiles, media, VM media, host attestations); was ~/ProjectData/Onslaught
+/local-data/
+# godot-offscreen evidence and its .gdignore beside the rebuild's project.godot
+/rebuild/OnslaughtRebuild.Godot/local-data/
