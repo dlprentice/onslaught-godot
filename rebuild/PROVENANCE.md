@@ -87,6 +87,7 @@ package licence expression is `GPL-3.0-only`.
 | `Flow/Pages/DebriefingPage.cs` (the debriefing: the new goodies' entrance, the prompt's fade, continuing to the level select) | `src/FEPDebriefing.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/DirectoryPage.cs` (the PC's save list: picking a save to load or delete, its rows and scroll bar under the mouse) | `src/FEPDirectory.cpp`, `src/FEPDirectory.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/LoadGamePage.cs` (the load page: reading the picked save into the career) | `src/FEPLoadGame.cpp` (`CFEPLoadGame`) | GPL-3.0-only (in Stuart's release) |
+| `Flow/SystemFlow.cs` (`CSystem::Run` without `-level`: the front end, the levels it starts and the attract films, in turn, until the front end quits) | `src/System.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Text/TextDatabase.cs` (the language file `data\LANGUAGE\*.DAT` by hashed id; the ids' names from `text.stf`, read from the installation) | `src/text.cpp`, `src/text.h` (`CText`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Text/FrontEndText.cs` (`FET.GetText` for the texts the ported pages measure, with its X-key toggle) | `src/FrontEndText.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Text/BitmapFont.cs` (the bitmap font's cell widths measured from the font texture's alpha, the character map, text extents) | `src/DXFont.cpp`, `src/Font.cpp` (`CDXBitmapFont`) | GPL-3.0-or-later (not in Stuart's release) |
