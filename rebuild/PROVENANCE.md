@@ -65,6 +65,8 @@ licence column applies this rule per unit.
 | `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Platform/PlatformInput.cs` (the window's message queue and handling, key state by scan code, KeyOnce and KeyOnceThisFrame) | `src/ltshell.cpp`, `src/ltshell.h` (`PCLTShell::MsgProc`, `HandlingSystemStuff`, key state), `src/PCPlatform.cpp` (`Process`, `KeyOn`, `KeyOnce`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/DirectInputMouse.cs` (the DirectInput mouse polls the level reads) | `src/Controller.cpp` (`InitMouse`, `ShutdownMouse`, `PollMouseMotion`, `PollMouseState`) | GPL-3.0-only (in Stuart's release) |
+| `Platform/ControlBindings.cs` (the control bindings as raw 32-byte records, the default table, the career's configurable block) | `src/PCController.cpp` (`CONTROL_BINDINGS`), `src/Controller.cpp` (`SControlBinding` constructors), `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
+| `Platform/Controller.cs` (key, mouse and joystick mapping to button actions at flush, auto-repeat, routing to the controlled object, the cursor's draw-back) | `src/Controller.cpp` (`CController`, `UpdateMouseCentre`), `src/Controller.h`, `src/PCController.cpp` (`CPCController`) | GPL-3.0-only (in Stuart's release) |
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority

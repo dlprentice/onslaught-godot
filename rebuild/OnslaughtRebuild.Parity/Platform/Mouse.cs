@@ -47,7 +47,8 @@ public sealed class MouseButton
 /// The Windows mouse as the game keeps it (mouse.cpp, the object after mixermap.obj): the cursor, three buttons and
 /// the wheel, set by the window's mouse messages (<c>HandleMouseMessage</c> 0x005234e0) or, once DirectInput drives the
 /// cursor, by the device polls (<see cref="DirectInputMouse"/>). The front end reads it through rectangle tests.
-/// Buttons are indexed left 0, middle 1, right 2.
+/// Buttons are indexed left 0, middle 1, right 2. <c>CLIPARAMS.mAutoConfigTest</c>, which disables the handler and the
+/// rectangle tests, is false in play and not modelled.
 /// </summary>
 public sealed class Mouse
 {
