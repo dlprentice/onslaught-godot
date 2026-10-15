@@ -1,5 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Career.cpp (CCareer) and src/FEPGoodies.cpp (the goodie thresholds it reads).
+
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Career;
 
@@ -134,7 +136,7 @@ public sealed class Career
         UpdateThingsKilled(end);
         int node = GetNodeFromWorldNo(end.WorldFinished);
         if (node < 0) return;
-        // A float compare of two stored floats; x87 compares them exactly.
+        // x87: fcomp of two stored floats, exact in any precision; the C# float compare is the same.
         if (end.Ranking > Record.NodeRanking(node)) Record.SetNodeRanking(node, end.Ranking);
         Record.SetNodeComplete(node, 1);
         Record.CareerInProgress = 1;
@@ -218,14 +220,18 @@ public sealed class Career
 
     /// <summary>
     /// <c>CCareer::GetGradeFromRanking</c> (0x00421470), as the byte of the one-character string it builds: 'S' for
-    /// exactly 1, 'E' for 0 or less, else 'D' minus floor(f*4). A zero byte ends the string, so the grade is then 0.
+    /// exactly 1, 'E' for 0 or less, else 'D' minus floor(f*4). A zero byte ends the string, so the grade is then 0;
+    /// NaN, infinity and rankings too large for the conversion give 'D' (the conversion's integer indefinite has a zero
+    /// low half).
     /// </summary>
     public static sbyte GradeFromRanking(float ranking)
     {
+        // x87: compares of a float with a float constant are exact, so plain C# compares match.
         if (ranking == 1f) return (sbyte)'S';
         if (ranking <= 0f) return (sbyte)'E';
-        // x87: f * 4.f is exact (a power of two) unless it overflows; floorf then the /QIfist conversion.
-        int i = Fist(MathF.Floor(ranking * 4f));
+        // x87: f * 4.f rounded to 24 bits in the register's wide exponent range (so a huge ranking stays finite),
+        // floorf (exact on the register value), then the /QIfist conversion.
+        int i = X87.Fist(Math.Floor(X87.Mul(ranking, 4.0)));
         return unchecked((sbyte)('D' - i));
     }
 
@@ -477,16 +483,6 @@ public sealed class Career
         int node = GetNodeFromWorldNo(worldNumber);
         if (node < 0) throw new InvalidOperationException($"The career has no node for world {worldNumber}.");
         return node;
-    }
-
-    /// <summary>
-    /// The /QIfist float-to-int conversion: round to nearest even; NaN and out-of-range values give 0x80000000.
-    /// To be replaced by the shared X87 helper once it lands.
-    /// </summary>
-    private static int Fist(float value)
-    {
-        if (float.IsNaN(value) || value >= 2147483648f || value < -2147483648f) return int.MinValue;
-        return (int)MathF.Round(value, MidpointRounding.ToEven);
     }
 }
 

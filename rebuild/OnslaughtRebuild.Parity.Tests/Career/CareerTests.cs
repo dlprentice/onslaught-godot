@@ -208,8 +208,17 @@ public sealed class CareerTests
     [InlineData(0.99f, 'A')]
     [InlineData(1.1f, '@')]
     [InlineData(float.NaN, 'D')]
+    [InlineData(float.Epsilon, 'D')]
+    [InlineData(0.24999999f, 'D')]
+    [InlineData(float.MaxValue, 'D')]
+    [InlineData(float.PositiveInfinity, 'D')]
+    [InlineData(17f, '\0')]
     public void GradesFollowTheGameRule(float ranking, char grade) =>
         Assert.Equal((sbyte)grade, OnslaughtRebuild.Parity.Career.Career.GradeFromRanking(ranking));
+
+    [Fact]
+    public void NegativeZeroIsAnEGrade() =>
+        Assert.Equal((sbyte)'E', OnslaughtRebuild.Parity.Career.Career.GradeFromRanking(BitConverter.Int32BitsToSingle(unchecked((int)0x80000000))));
 
     [Fact]
     public void SBeatsEveryGradeAndALowerLetterIsBetter()
