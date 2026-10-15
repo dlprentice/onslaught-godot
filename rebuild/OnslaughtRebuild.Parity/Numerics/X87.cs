@@ -76,6 +76,30 @@ public static class X87
         return Round24(s, remainder / (2 * s));
     }
 
+    /// <summary>
+    /// The value fsin leaves in the register for <paramref name="x"/>, approximated to double precision. Precision
+    /// control does not apply to fsin: it produces a 64-bit significand, rounded where it is stored or by the next
+    /// arithmetic operation. Finite arguments of magnitude 2^63 or more are left unchanged; infinities give NaN.
+    /// </summary>
+    /// <remarks>
+    /// Measured against the VC6 oracle on this host's CPU (Intel i7-13700HX), 10^6 inputs: stored to a float, every
+    /// result matches. Stored to a double, about 0.13% of results within ±2π differ in the last bits (the double
+    /// rounding of fsin's 64-bit result), and about 10% up to ±10^4, where fsin reduces its argument with a 66-bit π.
+    /// A float result, or a product or sum rounded to 24 bits, is unaffected except near a 24-bit tie.
+    /// </remarks>
+    public static double Sin(double x) =>
+        double.IsInfinity(x) ? double.NaN : Math.Abs(x) >= 9.2233720368547758e18 ? x : Math.Sin(x);
+
+    /// <summary>The value fcos leaves in the register, approximated to double precision (see <see cref="Sin"/>).</summary>
+    public static double Cos(double x) =>
+        double.IsInfinity(x) ? double.NaN : Math.Abs(x) >= 9.2233720368547758e18 ? x : Math.Cos(x);
+
+    /// <summary>
+    /// The value fpatan leaves in the register for atan2(y, x), approximated to double precision. Stored to a float every
+    /// oracle result matches; stored to a double about 0.06% differ by one ulp (see <see cref="Sin"/>).
+    /// </summary>
+    public static double Atan2(double y, double x) => Math.Atan2(y, x);
+
     /// <summary>Rounds <paramref name="value"/> to a 24-bit significand, ties to even, keeping its exponent.</summary>
     public static double Round24(double value) => Round24(value, 0);
 

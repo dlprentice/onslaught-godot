@@ -43,15 +43,25 @@ Never describe synthetic or source-only behavior as observed Steam behavior.
 ## Adapted from bea-decomp
 
 Each row names a C# unit of `OnslaughtRebuild.Parity` and the bea-decomp source it adapts. Units built only from
-the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed.
+the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed. Neither is
+`Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
+from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source.
 
-| C# unit | Adapted from bea-decomp |
-| --- | --- |
-| `Career/Career.cs` (career logic: blank, lookups, end-of-level update, links, goodie states, grades, slots, screen position) | `src/Career.cpp` (`CCareer`) |
-| `Career/CareerRecord.cs` (the 9,404-byte `CCareer` memory layout) | `src/Career.h` (`CCareer`, `CCareerNode`, `CCareerNodeLink`, `CGoodie`) |
-| `Career/CareerSaveGame.cs` (save and options file, version stamp, load) | `src/Career.cpp` (`Save`, `Load`, `SaveAndMarkInProgress`, `SizeOfSaveGame`, `WriteOptions`, `ReadOptions`) |
-| `Career/CareerTables.cs` (level structure, episode hint lists, goodie thresholds) | `src/Career.cpp` (`level_structure`, `UpdateGoodieStates`), `src/FEPGoodies.cpp` (`goodies[]`) |
-| `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) |
+Licence identifiers (checked 2026-10-15): Stuart Gillam's release (`references/Onslaught`) ships the GPL version 3 text
+in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
+source, directly or through bea-decomp, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Units adapted from
+bea-decomp code that is not in his release (reconstructed from the retail program, such as the random stream) and
+original rebuild code keep the rebuild's `GPL-3.0-or-later`, which may be combined with GPL-3.0-only code. The table's
+licence column applies this rule per unit.
+
+| C# unit | Adapted from bea-decomp | Licence |
+| --- | --- | --- |
+| `Career/Career.cs` (career logic: blank, lookups, end-of-level update, links, goodie states, grades, slots, screen position) | `src/Career.cpp` (`CCareer`) | GPL-3.0-only (in Stuart's release) |
+| `Career/CareerRecord.cs` (the 9,404-byte `CCareer` memory layout) | `src/Career.h` (`CCareer`, `CCareerNode`, `CCareerNodeLink`, `CGoodie`) | GPL-3.0-only (in Stuart's release) |
+| `Career/CareerSaveGame.cs` (save and options file, version stamp, load) | `src/Career.cpp` (`Save`, `Load`, `SaveAndMarkInProgress`, `SizeOfSaveGame`, `WriteOptions`, `ReadOptions`) | GPL-3.0-only (in Stuart's release) |
+| `Career/CareerTables.cs` (level structure, episode hint lists, goodie thresholds) | `src/Career.cpp` (`level_structure`, `UpdateGoodieStates`), `src/FEPGoodies.cpp` (`goodies[]`) | GPL-3.0-only (in Stuart's release) |
+| `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) | GPL-3.0-only (in Stuart's release) |
+| `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority
 
