@@ -198,6 +198,9 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary><c>CFrontEnd::SetLanguage</c> (0x00466ab0): the text set changes; the options page's cached text is presentation.</summary>
     public void SetLanguage(int language) => Language = language;
 
+    /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
+    public string SaveGameName { get; set; } = "";
+
     /// <summary>The storage-device page (<c>mFEPDevSelect</c>), once registered.</summary>
     public Pages.DevSelectPage? DevSelect { get; set; }
 
