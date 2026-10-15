@@ -77,6 +77,11 @@ package licence expression is `GPL-3.0-only`.
 | `Platform/ControlBindings.cs` (the control bindings as raw 32-byte records, the default table, the career's configurable block) | `src/PCController.cpp` (`CONTROL_BINDINGS`), `src/Controller.cpp` (`SControlBinding` constructors), `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
 | `Platform/Controller.cs` (key, mouse and joystick mapping to button actions at flush, auto-repeat, routing to the controlled object, the cursor's draw-back) | `src/Controller.cpp` (`CController`, `UpdateMouseCentre`), `src/Controller.h`, `src/PCController.cpp` (`CPCController`) | GPL-3.0-only (in Stuart's release) |
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
+| `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
+| `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-or-later (the map texture and map files are not in Stuart's release) |
 
 ## Authority
 
