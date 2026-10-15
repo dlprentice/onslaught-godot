@@ -55,6 +55,12 @@ public interface IMessageVoice
 
     /// <summary>KILL_VOICE: every instance of the playing voice sample is killed and the sample deleted.</summary>
     void KillVoice();
+
+    /// <summary>
+    /// SOUND.UpdateStatus's part for the voice (CGame's AfterUpdate, each main loop): a voice whose buffer has stopped
+    /// is stopped as a sound event, which tells its message (StopSoundEvent: SampleFinishedPlaying).
+    /// </summary>
+    void UpdateStatus();
 }
 
 /// <summary>CMessage: a radio message queued in the box (an IAudibleThing, so readers watch it).</summary>

@@ -91,7 +91,12 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
 
     public void EnterAttractMode() => inner.EnterAttractMode();
 
-    public void AfterUpdate() => inner.AfterUpdate();
+    /// <summary>SOUND.UpdateStatus (the voice's part) first, then the rest.</summary>
+    public void AfterUpdate()
+    {
+        Runtime?.MessageBox?.Voice.UpdateStatus();
+        inner.AfterUpdate();
+    }
 
     public void Render(int numRenders) => inner.Render(numRenders);
 
@@ -117,6 +122,10 @@ public sealed class UnmodelledVoice : IMessageVoice
         throw new NotSupportedException("the message box's voice timing is not modelled yet");
 
     public void KillVoice()
+    {
+    }
+
+    public void UpdateStatus()
     {
     }
 }

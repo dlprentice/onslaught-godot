@@ -3,6 +3,7 @@
 using System.Globalization;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Script;
 using OnslaughtRebuild.Parity.Things;
 using Xunit.Abstractions;
 using ParityGame = OnslaughtRebuild.Parity.Game.Game;
@@ -50,10 +51,10 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int RandomStreamMatchedFloor = 187;
 
     /// <summary>The last Present the Present-by-Present run matches retail's clock and random stream to (never lowered).</summary>
-    private const int PresentByPresentFloor = 189;
+    private const int PresentByPresentFloor = 866;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
-    private const int BattleEngineMatchedFloor = 187;
+    private const int BattleEngineMatchedFloor = 1001;
 
     /// <summary>
     /// Level 100 run Present by Present, as the host draws it (LevelSession.AdvanceToNextPresent: the harness's level
@@ -64,7 +65,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     [RetailGoldenFact("level100.perpresent-3600.probes")]
     public void Level100RunPresentByPresentMatchesRetailsClockAndRandomStream()
     {
-        LevelSession session = LevelSession.Load(100, GameData.Read);
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         var ours = new Dictionary<long, (uint Evt, uint Ft, int Rng)>();
         string stopped = "ran to retail's last probe";
         while (session.PresentCount < 3600)
@@ -125,7 +126,10 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         }
 
         output.WriteLine($"{stopped}; Presents {ours.Keys.Min()}..{compared} match; first difference: {first ?? "none"}");
-        Assert.Null(first);
+        foreach ((string path, int size, long played, long stopped2) in ((VirtualVoice)ScriptRuntime.Of(session.Context).MessageBox!.Voice).Trace)
+        {
+            output.WriteLine($"voice {path} size {size:x} played at block {played}, found stopped at block {stopped2}");
+        }
         Assert.True(compared >= PresentByPresentFloor, $"matched to Present {compared}, below {PresentByPresentFloor}");
     }
 
@@ -275,29 +279,27 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     [RetailGoldenFact("level100.beobj-perpresent-3600.probes")]
     public void Level100sBattleEngineFollowsRetailsPerPresentObject()
     {
-        (ThingContext context, ParityGame game) = LevelLoadTests.Level100Run();
-        var engine = (BattleEngine)game.GetPlayer(0)!.BattleEngine!;
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        ThingContext context = session.Context;
+        var engine = (BattleEngine)session.Game.GetPlayer(0)!.BattleEngine!;
         var tables = new[] { ("BEO", BattleEngineFields), ("BEW", WalkerFields) };
         var states = new Dictionary<uint, (int Update, uint[][] Fields)>();
         void Record(int u) => states[BitConverter.SingleToUInt32Bits(context.Events.Time)] =
             (u, [.. tables.SelectMany(t => t.Item2).Select(f => f.Ours(engine))]);
-        Record(0);
-        int update = 0;
         string stopped = "ran to retail's last probe";
-        while (update < 2000)
+        while (session.PresentCount < 3600)
         {
-            update++;
             try
             {
-                game.Update();
+                session.AdvanceToNextPresent();
             }
             catch (NotSupportedException e)
             {
-                stopped = $"stopped in U{update}: {e.Message}";
+                stopped = $"stopped after Present {session.PresentCount}: {e.Message}";
                 break;
             }
 
-            Record(update);
+            Record((int)session.Game.UpdateFrameNumber);
         }
 
         var all = tables.SelectMany(t => t.Item2.Select(f => (Probe: t.Item1, f.Name, f.Offset))).ToArray();

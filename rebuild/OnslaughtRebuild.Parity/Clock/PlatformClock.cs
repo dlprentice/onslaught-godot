@@ -65,6 +65,12 @@ public sealed class PlatformClock
         _spin = 0;
     }
 
+    /// <summary>
+    /// The virtual time's steps without counting a timer call (the port's PortClockPeekNs and C's virtual DirectSound
+    /// read it this way): the Presents plus the spin escapes.
+    /// </summary>
+    public long PeekSteps => PresentCount + SpinEscapes;
+
     public long QueryPerformanceCounter() =>
         PresentCount == 0 ? _realQpc : _realQpc + VirtualSteps() * QpcTicksPerPresent;
 

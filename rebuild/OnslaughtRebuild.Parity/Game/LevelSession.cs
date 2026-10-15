@@ -33,6 +33,10 @@ public sealed class LevelSession
     /// <summary>The platform clock the game reads; each Flip is a Present.</summary>
     public Clock.PlatformClock Clock { get; }
 
+    /// <summary>The voice of a run driven Present by Present: the virtual mixer's (<see cref="VirtualVoice"/>).</summary>
+    public static Func<Clock.PlatformClock, IMessageVoice> VirtualVoiceFor(Func<string, (string Name, byte[] Bytes)> read) =>
+        clock => new VirtualVoice(clock, read);
+
     public long PresentCount => Clock.PresentCount;
 
     /// <summary>
@@ -74,9 +78,12 @@ public sealed class LevelSession
 
     /// <summary>
     /// Loads level <paramref name="level"/> from the files <paramref name="read"/> returns (name, bytes). A renderer
-    /// reads the resource file's other chunks (its textures) through <paramref name="otherChunk"/>.
+    /// reads the resource file's other chunks (its textures) through <paramref name="otherChunk"/>. The voice is made on
+    /// the session's clock by <paramref name="voice"/>; without one, a voice stops the run (<see cref="UnmodelledVoice"/>).
+    /// A run driven Present by Present plays voices as the virtual mixer does: <see cref="VirtualVoiceFor"/>.
     /// </summary>
-    public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read, IMessageVoice? voice = null,
+    public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read,
+        Func<Clock.PlatformClock, IMessageVoice>? voice = null,
         Func<uint, Data.ChunkReader, bool>? otherChunk = null)
     {
         (string pname, byte[] pbytes) = read(@"data\default physics.dat");
@@ -112,7 +119,7 @@ public sealed class LevelSession
         services.Runtime = scripts;
         TextDatabase text = TextDatabase.Load(read(TextDatabase.FileName(0, americanText: false)).Bytes);
         scripts.Text = text;
-        scripts.MessageBox = new MessageBox(context, text, voice ?? new UnmodelledVoice());
+        scripts.MessageBox = new MessageBox(context, text, voice?.Invoke(clock) ?? new UnmodelledVoice());
 
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
         scripts.Spawner = spawner;

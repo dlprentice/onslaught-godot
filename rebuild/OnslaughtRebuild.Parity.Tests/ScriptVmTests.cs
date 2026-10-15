@@ -230,6 +230,10 @@ public sealed class ScriptVmTests
         public void KillVoice()
         {
         }
+
+        public void UpdateStatus()
+        {
+        }
     }
 
     [Fact]
