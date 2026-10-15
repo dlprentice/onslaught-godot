@@ -13,17 +13,20 @@ public sealed class RenderThing
     private readonly IRenderSubject _subject;
     private readonly ThingContext _context;
 
-    public RenderThing(ThingContext context, MeshData mesh, IRenderSubject subject)
+    /// <summary>A render thing; <paramref name="mesh"/> is null for kinds whose mesh the simulation never queries.</summary>
+    public RenderThing(ThingContext context, MeshData? mesh, IRenderSubject subject)
     {
         _context = context;
         _subject = subject;
-        Mesh = mesh;
-        Pose = new MeshPose(mesh.NumParts);
+        MeshOrNull = mesh;
+        Pose = mesh is null ? null : new MeshPose(mesh.NumParts);
     }
 
-    public MeshData Mesh { get; }
+    public MeshData? MeshOrNull { get; }
 
-    public MeshPose Pose { get; }
+    public MeshData Mesh => MeshOrNull ?? throw new InvalidOperationException("this render thing has no mesh loaded");
+
+    public MeshPose? Pose { get; }
 
     /// <summary>GetRTEmitter(name, n, pos, ori, TRUE, FALSE): the emitter's position in the thing's own space.</summary>
     public FVector EmitterPos(string name, int n) =>

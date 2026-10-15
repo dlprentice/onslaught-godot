@@ -346,7 +346,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     }
 
     /// <summary>The mesh's animation mode by name (the mesh's GetAnimModeByName), or -1.</summary>
-    public int AnimModeByName(string name) => RenderThing?.Mesh.GetAnimModeByName(name) ?? -1;
+    public int AnimModeByName(string name) => RenderThing?.MeshOrNull?.GetAnimModeByName(name) ?? -1;
 
     /// <summary>CComplexThing::HandleEvent: the script's init and ready events.</summary>
     public override void HandleEvent(Event e)
