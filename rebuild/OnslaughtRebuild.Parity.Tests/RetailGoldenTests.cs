@@ -17,11 +17,11 @@ namespace OnslaughtRebuild.Parity.Tests;
 /// </summary>
 public sealed class RetailGoldenFactAttribute : FactAttribute
 {
-    public RetailGoldenFactAttribute(string file)
+    public RetailGoldenFactAttribute(params string[] files)
     {
-        if (RetailGolden.File(file) is null)
+        if (files.FirstOrDefault(file => RetailGolden.File(file) is null) is { } missing)
         {
-            Skip = $"retail golden '{file}' not found (set ONSLAUGHT_RETAIL_GOLDEN, or ONSLAUGHT_GOLDEN_VDS for vds/)";
+            Skip = $"retail golden '{missing}' not found (set ONSLAUGHT_RETAIL_GOLDEN, ONSLAUGHT_GOLDEN_VDS for vds/ or ONSLAUGHT_BEOBJ_VDS for beobjvds/)";
         }
         else if (GameData.Root is null)
         {
@@ -57,9 +57,11 @@ internal static class RetailGolden
 
 public sealed class RetailGoldenTests(ITestOutputHelper output)
 {
-    /// <summary>C's level-100 tape (golden-640/tapes, the one both per-Present goldens replay from Present 3300), when present.</summary>
-    private static RetailTape? Level100Tape() =>
-        RetailGolden.File("tapes/level100-keys-mouse-10000f.tape") is { } path ? RetailTape.Load(path) : null;
+    /// <summary>C's level-100 tape (golden-640/tapes), which both per-Present goldens replay from Present 3300.</summary>
+    private const string Level100TapeFile = "tapes/level100-keys-mouse-10000f.tape";
+
+    /// <summary>The tape; the tests that replay it require it, so a missing tape skips them rather than diverging.</summary>
+    private static RetailTape Level100Tape() => RetailTape.Load(RetailGolden.File(Level100TapeFile)!);
 
     /// <summary>The Presents our level-100 run matches so far (raised as it reaches further; never lowered).</summary>
     private const int RandomStreamMatchedFloor = 187;
@@ -74,7 +76,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int BattleEngineMatchedFloor = 3598;
 
     /// <summary>The Present through which every compared battle-engine field equals retail's (never lowered).</summary>
-    private const int BattleEngineMatchedThrough = 3477;
+    private const int BattleEngineMatchedThrough = 3600;
 
     /// <summary>
     /// Level 100 run Present by Present against B's virtual-DS golden (level100.vds-a.probes: retail with virtual
@@ -141,7 +143,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// time (EVT), mFrameTime (FT) and the random stream's value (RNG). Present numbers line up without help from the
     /// recording, so the frames the host renders are retail's.
     /// </summary>
-    [RetailGoldenFact("beobjvds/l100.beobj-vds-a.probes")]
+    [RetailGoldenFact("beobjvds/l100.beobj-vds-a.probes", Level100TapeFile)]
     public void Level100RunPresentByPresentMatchesRetailsClockAndRandomStream()
     {
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
@@ -357,7 +359,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// after the update that reached its event time. Reports each field's first difference; asserts the fields matched
     /// so far stay matched through the Presents our run reaches.
     /// </summary>
-    [RetailGoldenFact("beobjvds/l100.beobj-vds-a.probes")]
+    [RetailGoldenFact("beobjvds/l100.beobj-vds-a.probes", Level100TapeFile)]
     public void Level100sBattleEngineFollowsRetailsPerPresentObject()
     {
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
@@ -450,8 +452,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             output.WriteLine($"{all[k].Probe} {all[k].Name,-34} {firstDifference[k] ?? "matches throughout"}");
         }
 
-        // Every field matches through the floor's Present (differences after it are reported, not gated): the tape's
-        // input from Present 3300 is not wired yet, and retail's power-up at Present 2058 is still open.
+        // Every field matches through the floor's Present (differences after it are reported, not gated).
         Assert.True(compared >= BattleEngineMatchedFloor, $"{compared} Presents compared, below {BattleEngineMatchedFloor}");
         Assert.True(firstBad > BattleEngineMatchedThrough, $"a field differs at Present {firstBad}, at or before {BattleEngineMatchedThrough}");
     }

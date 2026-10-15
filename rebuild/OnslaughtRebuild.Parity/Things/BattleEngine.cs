@@ -34,6 +34,34 @@ public enum BattleEngineState
 /// </summary>
 public sealed partial class BattleEngine(ThingContext context) : Unit(context, Oid.BattleEngine)
 {
+    /// <summary>
+    /// CBattleEngine::Hit (00407350): a stuck contact leaves the safe place; dying, it explodes on a unit, tree or
+    /// walkable thing; CUnit's; then, stuck, it stands on a walkable thing and goes back to its current safe position,
+    /// carried along by the other thing's velocity since then.
+    /// </summary>
+    public override void Hit(Thing other, Collision.CollisionReport? report)
+    {
+        if (report!.Stuck)
+        {
+            InSafeCollisionPlace = false;
+        }
+
+        if (IsDying && other.IsA(ThingType.Unit | ThingType.Tree | ThingType.CanBeWalkedOn))
+        {
+            throw new NotSupportedException("CBattleEngine::Hit: Explode (a dying battle engine's crash) is not ported");
+        }
+
+        base.Hit(other, report);
+        if (report.Stuck)
+        {
+            throw new NotSupportedException("CBattleEngine::Hit: the stuck return to a safe position (other things' GetVelocity) is not ported");
+        }
+    }
+
+    /// <summary>GetMaxVelocity (slot 15).</summary>
+    public override float GetMaxVelocity() => 35.0f;
+
+
     public int ConfigurationId;
     public BattleEngineData? Configuration;
     public BattleEngineState State;
@@ -106,7 +134,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
         Visible = false;
         base.Init(init);
-        Context.Skip("CBattleEngine::SetCollisionShape, the cockpit, the radar warning receiver and the stores");
+        SetCollisionShape();
+        Context.Skip("CBattleEngine::Init: the cockpit, the radar warning receiver and the stores");
         Zoom = 1.0f;
         PoweredUp = true;
         ShieldRegeneration = 0;
@@ -116,6 +145,9 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
             Context.Events.Time + (Context.Random.FloatRandom() * 0.2f) + 0.1f);
         HandleAutoAim(null);
     }
+
+    /// <summary>SetCollisionShape (004063b0): a cylinder of the radius and half the centre-of-gravity height.</summary>
+    public void SetCollisionShape() => Seeker!.SetShape(new Collision.CylinderVolume(GetRadius(), COfGHeight() * 0.5f));
 
     /// <summary>CBattleEngine::CalcUnitOverCrossHair: the target search, then (from the event) the next search.</summary>
     public void CalcUnitOverCrossHair(ScheduledEvent? e)

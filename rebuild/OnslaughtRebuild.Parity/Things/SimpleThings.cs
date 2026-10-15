@@ -140,9 +140,9 @@ public sealed class SphereTrigger : ComplexThing
     /// CSphereTrigger::Hit: CComplexThing's (the script hears of it), then a unit is recorded; the first unit hit in a new
     /// frame clears the last frame's list.
     /// </summary>
-    public override void Hit(Thing other)
+    public override void Hit(Thing other, Collision.CollisionReport? report)
     {
-        base.Hit(other);
+        base.Hit(other, report);
 
         if (other.IsA(ThingType.Unit))
         {

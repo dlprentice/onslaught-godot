@@ -25,6 +25,68 @@ public static class UnitEvent
 /// <summary>CUnit: a unit with physics-script data, weapons, AI, life and shields.</summary>
 public abstract partial class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
 {
+    /// <summary>
+    /// CUnit::Hit (004fcc30): the squad's script hears of it; touching a unit sets mUnknown248; a falling unit that met
+    /// something walkable from above (a contact normal within 0.89 of straight down, or with several contacts the sum of
+    /// the first three within 0.69) stands on it.
+    /// </summary>
+    public override void Hit(Thing other, Collision.CollisionReport? report)
+    {
+        if (Squad is { } squad && squad.Script is not null && other.IsA(ThingType.ComplexThing))
+        {
+            squad.Script.Hit((ComplexThing)other);
+        }
+
+        if (other.IsA(ThingType.Unit))
+        {
+            Unknown248 = 1;
+        }
+
+        if (other.IsA(ThingType.CanBeWalkedOn) && report is not null && report.Unknown00 != 0 && Gravity() > 0)
+        {
+            var down = new FVector(0, 0, -1);
+            int num = report.NumContacts;
+            bool onTop = false;
+            for (int i = 0; i < num; i++)
+            {
+                FVector n = report.Normals[i];
+                float alignment = (down.X * n.X) + (down.Y * n.Y) + (down.Z * n.Z);
+                if (alignment > 0.89f)
+                {
+                    onTop = true;
+                }
+            }
+
+            if (!onTop && num > 1)
+            {
+                // Retail sums the first three normals whatever the count.
+                FVector n = report.Normals[0];
+                for (int j = 1; j < 3; j++)
+                {
+                    n += report.Normals[j];
+                }
+
+                n.Normalise();
+                if ((down.X * n.X) + (down.Y * n.Y) + (down.Z * n.Z) > 0.69f)
+                {
+                    onTop = true;
+                }
+            }
+
+            if (onTop)
+            {
+                DeclareOnObject(other);
+                DeclareOnGround();
+            }
+        }
+
+        base.Hit(other, report);
+    }
+
+    /// <summary>GetMaxVelocity (slot 15, unit.obj's copy 004f84b0).</summary>
+    public override float GetMaxVelocity() => 0.2f;
+
+
     public UnitData? UnitData;
     public float Life = 1.0f;
     public float Energy;

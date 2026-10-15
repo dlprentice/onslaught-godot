@@ -154,9 +154,11 @@ public sealed class LevelSession
         scripts.Waypoints = spawner.Waypoints;
         new WorldLoader(context, resources, spawner).Load(level, isBase: false);
 
-        // CGame::LoadLevel's players after the load, then PostLoadProcess's start positions.
+        // CGame::LoadLevel's players after the load, then PostLoadProcess's start positions and its map-who sort (trees
+        // to the back of each sector's list, which orders the collision detectors' scans).
         game.CreatePlayers(context, multiplayerWorld: false);
         game.AssignPlayersToStarts(context);
+        context.MapWho.SortEntries();
         scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
         input.AttachPlayers(game);
         context.Bindings = bindings;

@@ -17,6 +17,35 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.Tree | ThingType.Stationary);
 
+    /// <summary>
+    /// CTree::Hit (004f6aa0): a standing tree hit by something that can destroy trees (an explosion only within its
+    /// current radius) falls away from it.
+    /// </summary>
+    public override void Hit(Thing other, Collision.CollisionReport? report)
+    {
+        if (!other.IsA(ThingType.CanDestroyTrees))
+        {
+            return;
+        }
+
+        throw new NotSupportedException("CTree::Hit: falling trees (CreateFallingTree) are not ported");
+    }
+
+    /// <summary>
+    /// CTree::InitCollisionSeekingThing (004f6480): a tree that seeks collision is a thin cylinder (0.2 by half its
+    /// radius), approximate at most, and does not seek stationary things (other trees among them).
+    /// </summary>
+    public override void InitCollisionSeekingThing(InitCollision init)
+    {
+        if (init.NotSeekCollisionWith != ThingType.Everything)
+        {
+            init.Shape = new Collision.CylinderVolume(0.2f, GetRadius() * 0.5f);
+            init.NotSeekCollisionWith = ThingType.Stationary;
+            init.MaxCollision = CollisionLevel.ApproxGeometryShapes;
+            base.InitCollisionSeekingThing(init);
+        }
+    }
+
     public override void Init(InitThing init)
     {
         Variation = X87.Fist((float)(Context.Random.Random() % 65536) * (1.0f / 2048.0f));   // fistp: rounds to nearest (004f61d2)

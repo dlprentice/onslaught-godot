@@ -18,6 +18,18 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CGroundUnit: a unit on the ground, a full move every fourth frame.</summary>
 public abstract class GroundUnit(ThingContext context) : Unit(context)
 {
+    /// <summary>CGroundUnit::InitCollisionSeekingThing (0047c8e0): without a shape, a sphere of 0.8 of the bounding radius.</summary>
+    public override void InitCollisionSeekingThing(InitCollision init)
+    {
+        if (init.Shape is null)
+        {
+            float radius = GetBoundingRadius();
+            init.Shape = new Collision.SphereVolume(radius * 0.8f);
+        }
+
+        base.InitCollisionSeekingThing(init);
+    }
+
     public float BobPhase;
     public float Bob;
     public float OldBob;
@@ -146,6 +158,10 @@ public abstract class GroundUnit(ThingContext context) : Unit(context)
 /// <summary>CGroundVehicle: tanks and trucks.</summary>
 public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 {
+    /// <summary>GetMaxVelocity (slot 15).</summary>
+    public override float GetMaxVelocity() => 3.5f;
+
+
     public int TiltsWithGround;
 
     /// <summary>COfGHeight (slot 48): 0.1.</summary>
@@ -290,6 +306,10 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
 /// <summary>CBuilding: a building, with its own render thing (mesh and rubble) and destructable segments.</summary>
 public sealed class Building(ThingContext context) : Unit(context)
 {
+    /// <summary>GetMaxVelocity (slot 15, the shared 004bfc60).</summary>
+    public override float GetMaxVelocity() => 0.0f;
+
+
     /// <summary>
     /// CBuilding::StickToGround (004dfd10, shared with CSimpleBuilding by /OPT:ICF): grounded, then lowered to the
     /// water level when it stands above it.
@@ -379,6 +399,10 @@ public sealed class Building(ThingContext context) : Unit(context)
 /// <summary>CSimpleBuilding: a building without segments or AI.</summary>
 public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 {
+    /// <summary>GetMaxVelocity (slot 15, the shared 004bfc60).</summary>
+    public override float GetMaxVelocity() => 0.0f;
+
+
     /// <summary>
     /// CBuilding::StickToGround (004dfd10, shared with CSimpleBuilding by /OPT:ICF): grounded, then lowered to the
     /// water level when it stands above it.
@@ -589,6 +613,30 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
 /// <summary>CPlane (a CSmallAirUnit): fighters and trainers.</summary>
 public sealed class Plane(ThingContext context) : AirUnit(context)
 {
+    /// <summary>
+    /// CPlane::Hit (004d1f10), then CSmallAirUnit::Hit (00403ba0), then CUnit's: unless its unit data's mUnknown11C is
+    /// set, a plane that flies into a unit (not a friendly aircraft) or a tree or walkable thing explodes, and so does a
+    /// dying one.
+    /// </summary>
+    public override void Hit(Thing other, Collision.CollisionReport? report)
+    {
+        if (UnitData!.Retreat == 0)
+        {
+            if ((!other.IsA(ThingType.AirUnit) || other.IsA(ThingType.BattleEngine) || ((Unit)other).Allegiance != Allegiance)
+                && (other.IsA(ThingType.Unit) || other.IsA(ThingType.Tree | ThingType.CanBeWalkedOn)))
+            {
+                throw new NotSupportedException("CPlane::Hit: a crash (ConfirmedKill, SpawnExplosion) is not ported");
+            }
+
+            if (IsDying && (other.IsA(ThingType.Unit) || other.IsA(ThingType.Tree | ThingType.CanBeWalkedOn)))
+            {
+                throw new NotSupportedException("CSmallAirUnit::Hit: a dying aircraft's crash (SpawnExplosion) is not ported");
+            }
+        }
+
+        base.Hit(other, report);
+    }
+
     public int WingState;
     public float LaunchTime;
     public float DeathRoll;
@@ -661,6 +709,17 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
 /// <summary>CDropship (a CBigAirUnit): the U-17 transporter.</summary>
 public sealed class Dropship(ThingContext context) : AirUnit(context)
 {
+    /// <summary>CBigAirUnit::Hit (00403bf0), then CUnit's: a dying one explodes on a walkable thing (unless mUnknown11C).</summary>
+    public override void Hit(Thing other, Collision.CollisionReport? report)
+    {
+        if (UnitData!.Retreat == 0 && IsDying && other.IsA(ThingType.CanBeWalkedOn))
+        {
+            throw new NotSupportedException("CBigAirUnit::Hit: a dying aircraft's crash (SpawnExplosion) is not ported");
+        }
+
+        base.Hit(other, report);
+    }
+
     public bool HasAnchor;
     public bool AnchorFixed;
     public int DoorState;

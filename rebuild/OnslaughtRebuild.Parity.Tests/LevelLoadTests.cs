@@ -349,20 +349,22 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         "IScript" => "IScript",
         "Game" => "CDXGame",
         "ScriptVm" => "CVM",
+        "CollisionSeekingThing" => "CCSPersistentThing",
+        "CollisionDetector" => "CHLCollisionDetector",
         _ => "C" + type,
     };
 
     /// <summary>The event targets not ported yet, left out of the event comparison on both sides.</summary>
     internal static readonly HashSet<string> UnportedEventClasses =
     [
-        "CCSPersistentThing", "CHLCollisionDetector", "CRadarWarningReceiver", "CDXCockpit", "CMCBattleEngine",
+        "CRadarWarningReceiver", "CDXCockpit", "CMCBattleEngine",
     ];
 
     /// <summary>The Updates the native port's level-100 logs cover: PreRun's 60, then panning (state 2) to U100.</summary>
     private const int TraceUpdates = 100;
 
     /// <summary>The PreRun event lines matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunEventsMatchedFloor = 14629;
+    private const int PreRunEventsMatchedFloor = 17169;
 
     /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
     private const int PreRunMatchedFloor = 516;

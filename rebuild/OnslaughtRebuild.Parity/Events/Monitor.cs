@@ -30,6 +30,9 @@ public class Monitor : IListener
     /// <summary>~CMonitor: the same notification when the object is destroyed.</summary>
     public void Destroy() => NotifyReaders();
 
+    /// <summary>mDeletionList's size: the readers watching this monitor.</summary>
+    public int DeletionCount => _deletionList?.Count ?? 0;
+
     internal void AddDeletionEvent(ActiveReader reader) => (_deletionList ??= new List<ActiveReader>()).Add(reader);
 
     internal void RemoveDeletionEvent(ActiveReader reader) => _deletionList?.Remove(reader);

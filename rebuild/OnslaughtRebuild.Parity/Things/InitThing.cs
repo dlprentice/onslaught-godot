@@ -40,6 +40,9 @@ public sealed class InitCollision
     public bool IgnoreAnimationCollision;
     public float RoundLength;
 
+    /// <summary>mShape: the approximate volume to use (null: a sphere of the bounding radius).</summary>
+    public Collision.GeneralVolume? Shape;
+
     /// <summary>CInitCSThing::Initialise: back to the defaults.</summary>
     public void Initialise()
     {

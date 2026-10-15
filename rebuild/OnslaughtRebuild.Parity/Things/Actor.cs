@@ -115,6 +115,28 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
 
     public virtual void DeclareInWater() => LastTimeInWater = Context.Events.Time;
 
+    /// <summary>GetLocalLastFrameMovement (00401550): this frame's move.</summary>
+    public override FVector GetLocalLastFrameMovement() => Pos - OldPos;
+
+    /// <summary>SetVelocity: mVelocity = v.</summary>
+    public override void SetVelocity(FVector v) => Velocity = v;
+
+    /// <summary>
+    /// CActor::Teleport (00401910): the old position is the new one, then CThing's, then the map-who entry is updated
+    /// from the (new) old position, telling the collision detector of a new sector.
+    /// </summary>
+    public override void Teleport(FVector pos)
+    {
+        bool inMap = MapWhoEntry.SectorIn.Layer != -1;
+        Sector previousSector = MapWhoEntry.SectorIn;
+        OldPos = pos;
+        base.Teleport(pos);
+        if (inMap && MapWhoEntry.UpdateEntry(Context.MapWho, OldPos) && Seeker is { } seeker)
+        {
+            seeker.Detector.MovedSector(previousSector, MapWhoEntry.SectorIn);
+        }
+    }
+
     /// <summary>CActor::DeclareOnObject (00402020).</summary>
     public virtual void DeclareOnObject(Thing? onObject) => LastTimeOnObject = Context.Events.Time;
 
@@ -134,6 +156,7 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
         OldPos = Pos;
         OldOrientation = Orientation;
         bool inMap = MapWhoEntry.SectorIn.Layer != -1;
+        Sector previousSector = MapWhoEntry.SectorIn;
 
         Pos.X += Velocity.X;
         Pos.Y += Velocity.Y;
@@ -174,9 +197,9 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
             }
         }
 
-        if (inMap && MapWhoEntry.UpdateEntry(Context.MapWho, OldPos) && HasCollisionSeekingThing)
+        if (inMap && MapWhoEntry.UpdateEntry(Context.MapWho, OldPos) && Seeker is { } seeker)
         {
-            Context.Skip("CCollisionSeekingThing::MovedSector");
+            seeker.Detector.MovedSector(previousSector, MapWhoEntry.SectorIn);
         }
     }
 

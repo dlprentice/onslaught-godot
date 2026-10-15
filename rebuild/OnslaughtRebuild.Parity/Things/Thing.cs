@@ -167,11 +167,12 @@ public abstract class Thing : Monitor, IOccupancyUnit
 
             init.ForThing = this;
             HasCollisionSeekingThing = true;
-            Context.Skip("CCSPersistentThing::Init");
             if (init.MaxCollision == CollisionLevel.Mesh)
             {
                 CollisionMeshVolume = new MeshCollisionVolume(RenderThing, init.UseFixedMeshTransforms, init.IgnoreAnimationCollision);
             }
+
+            Seeker = new CollisionSeekingThing(this, init);
         }
     }
 
@@ -194,6 +195,23 @@ public abstract class Thing : Monitor, IOccupancyUnit
 
     /// <summary>mCollisionSeekingThing != NULL (the collision-seeking things are not ported; this records where one would be).</summary>
     public bool HasCollisionSeekingThing;
+
+    /// <summary>mCollisionSeekingThing (as GetCSPT reads it: always a persistent one here).</summary>
+    public CollisionSeekingThing? Seeker;
+
+    /// <summary>GetLocalLastFrameMovement (slot 25): none for a thing that does not move.</summary>
+    public virtual FVector GetLocalLastFrameMovement() => new(0.0f, 0.0f, 0.0f);
+
+    /// <summary>SetVelocity (slot 28): nothing for a thing without a velocity.</summary>
+    public virtual void SetVelocity(FVector v)
+    {
+    }
+
+    /// <summary>
+    /// GetMotionController() != NULL, for the collision test's dying-building rule: the parity core models no motion
+    /// controllers (a building's destructible segments would make one).
+    /// </summary>
+    public virtual bool HasMotionControllerForCollision() => false;
 
     /// <summary>
     /// The collision-seeking thing's mesh volume (CCollisionSeekingThing::Init makes one when the maximum collision
@@ -348,6 +366,11 @@ public abstract class Thing : Monitor, IOccupancyUnit
     {
         Pos = pos;
         MoveTo(pos);
+    }
+
+    /// <summary>Hit (slot 39): nothing for a plain thing.</summary>
+    public virtual void Hit(Thing other, Collision.CollisionReport? report)
+    {
     }
 
     /// <summary>CThing::AddShutdownEvent.</summary>
@@ -646,7 +669,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     }
 
     /// <summary>CComplexThing::Hit (004f4480): the script hears of a complex thing hitting this one.</summary>
-    public virtual void Hit(Thing other)
+    public override void Hit(Thing other, Collision.CollisionReport? report)
     {
         if (Script is not null && other.IsA(ThingType.ComplexThing))
         {
