@@ -85,6 +85,8 @@ package licence expression is `GPL-3.0-only`.
 | `Flow/Pages/BriefingPage.cs` (the mission briefing: text fade, the briefing video's choice, select and back) | `src/FEPBriefing.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/BeConfigPage.cs` (the Battle Engine configuration page: choosing a configuration, starting the level) | `src/FEPBEConfig.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/DebriefingPage.cs` (the debriefing: the new goodies' entrance, the prompt's fade, continuing to the level select) | `src/FEPDebriefing.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/DirectoryPage.cs` (the PC's save list: picking a save to load or delete, its rows and scroll bar under the mouse) | `src/FEPDirectory.cpp`, `src/FEPDirectory.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/LoadGamePage.cs` (the load page: reading the picked save into the career) | `src/FEPLoadGame.cpp` (`CFEPLoadGame`) | GPL-3.0-only (in Stuart's release) |
 | `Flow/WorldHeaders.cs` (the reader of `data\WorldHeaders.dat`: each level's configurations and wingmen) | `src/FEPBEConfig.cpp` (`Init`, `Load`, `GetCurrentLevel`), `src/FEPWingmen.cpp` (`GetNumWingmen`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Platform/PlatformInput.cs` (the window's message queue and handling, key state by scan code, KeyOnce and KeyOnceThisFrame) | `src/ltshell.cpp`, `src/ltshell.h` (`PCLTShell::MsgProc`, `HandlingSystemStuff`, key state), `src/PCPlatform.cpp` (`Process`, `KeyOn`, `KeyOnce`) | GPL-3.0-only (in Stuart's release) |

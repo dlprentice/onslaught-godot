@@ -28,6 +28,9 @@ public sealed class SaveGameTests
             FrontEnd[FrontEndPage.SaveGame] = Save;
             FrontEnd[FrontEndPage.VirtualKeyboard] = Keyboard;
             FrontEnd.VirtualKeyboard = Keyboard;
+            DirectoryPage directory = new(FrontEnd);
+            FrontEnd[FrontEndPage.Directory] = directory;
+            FrontEnd.Directory = directory;
             FrontEnd.Begin(FrontEndPage.Main);
             Keyboard.SetDefaultName();
             FrontEnd.SaveGameName = "BEA 1";

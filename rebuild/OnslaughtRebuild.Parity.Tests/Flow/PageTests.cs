@@ -24,6 +24,7 @@ public sealed class PageTests
         {
             public void SetDefaultName() => calls.Add("SetDefaultName");
             public void NameUsed() => calls.Add("NameUsed");
+            public void SetName(string name) => calls.Add($"SetName({name})");
         }
 
         private sealed class LevelSelect(List<string> calls) : ILevelSelect

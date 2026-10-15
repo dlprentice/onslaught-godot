@@ -25,6 +25,9 @@ public sealed class VirtualKeyboardTests
         VirtualKeyboardPage keyboard = new(frontEnd) { Font = new TestFont() };
         frontEnd[FrontEndPage.VirtualKeyboard] = keyboard;
         frontEnd.VirtualKeyboard = keyboard;
+        DirectoryPage directory = new(frontEnd);
+        frontEnd[FrontEndPage.Directory] = directory;
+        frontEnd.Directory = directory;
         return (frontEnd, keyboard);
     }
 

@@ -33,6 +33,31 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
 
+Observed and modelled Present schedules (rule for M6 and M7, 2026-10-15). Before the front end's first `Process`,
+retail's Present count is not a property of its logic. The boot videos play on Bink's real clock (the shim cannot
+virtualise Bink without stalling it). The console's loading screen (`CConsole::RenderLoadingScreen`) presents only
+when 0.05 s have passed since its last render, and on the shim's clock (1/30 s per Present) time then moves only
+through the shim's spin escape (2,000,000 hooked timer calls with no Present). So how many loading Presents
+retail makes depends on how often its loading code and threads poll the timers. That boot segment is an observed
+schedule: the rebuild replays the Present counts measured on retail under the harness as calibrated constants, and
+they hold for that harness only. From the front end's first `Process` on, every Present is modelled, and a mismatch
+there is a defect. The same rule applies to level loading if it shows the same mechanism (J and B to check;
+with `-skipfmv` the level-100 golden's main loop starts at Present 3).
+
+The observed boot constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail
+processes identical at every captured Present):
+
+| Constant | Present | What retail shows |
+| --- | --- | --- |
+| `LoadingScreenFirst` | 2204 | the loading screen after the opening film |
+| `FrontEndFirstPresent` | 2286 | the title page's first frame (its background video) |
+| `TitleLastPresent` | 3188 | the title page's last frame with no input; the attract videos follow at 3189 |
+
+Modelled on top of them: the title page's 30 s timeout ends the front end 901 Presents after the Present count
+seen by the page's entry notification (`CFEPIntro::TransitionNotification`, which `CFrontEnd::Init` runs twice);
+3188 - 900 = 2288, so two Presents fall inside `CFrontEnd::Init` before that notification. C's probe of the Present
+count at `CFrontEnd::Init` and at the notification confirms or refutes this. Open.
+
 Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its
 138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
 missing at the first sample.

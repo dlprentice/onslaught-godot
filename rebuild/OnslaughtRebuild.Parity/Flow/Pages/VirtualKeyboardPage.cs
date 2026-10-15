@@ -104,6 +104,31 @@ public sealed class VirtualKeyboardPage : FrontEndPageBase, INameKeyboard
 
     public void NameUsed() => Fresh = false;
 
+    public void SetName(string name)
+    {
+        Name = name;
+        Position = name.Length;
+    }
+
+    /// <summary>
+    /// The state-changing part of <c>CFEPVirtualKeyboard::Render</c> (0x00521100): the save list beside the keyboard
+    /// (drawn as the directory page's, leaving for the directory when the keyboard is the destination); a name picked
+    /// there replaces the name (31 characters at most), fresh again; then the help arrow (select).
+    /// </summary>
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        DirectoryPage directory = _frontEnd.Directory ?? throw new InvalidOperationException("The save list is not registered.");
+        string? picked = directory.RenderSaveFileList(transition, dest == FrontEndPage.VirtualKeyboard ? FrontEndPage.Directory : dest);
+        if (picked is not null)
+        {
+            Name = picked.Length > MaxLength ? picked[..MaxLength] : picked;
+            Position = Name.Length;
+            Fresh = true;
+            _frontEnd.PlaySound(FrontEndSound.Select);
+        }
+        _frontEnd.RenderHelpArrow(5, transition);
+    }
+
     /// <summary><c>CFEPVirtualKeyboard::TransitionNotification</c> (0x00520130): entering from the device, save list or main page.</summary>
     public override void TransitionNotification(FrontEndPage from)
     {

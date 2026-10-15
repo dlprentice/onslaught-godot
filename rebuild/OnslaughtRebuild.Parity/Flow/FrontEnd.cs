@@ -234,6 +234,21 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
     public string SaveGameName { get; set; } = "";
 
+    /// <summary>The save list (<c>mFEPDirectory</c>), once registered.</summary>
+    public Pages.DirectoryPage? Directory { get; set; }
+
+    /// <summary>The load page (<c>mFEPLoadGame</c>), once registered.</summary>
+    public Pages.LoadGamePage? LoadGame { get; set; }
+
+    /// <summary><c>gDisplayResetState</c> (0082b5b0): set while the display settings are being reset; then a load does not rewrite the options file.</summary>
+    public bool DisplayResetState { get; set; }
+
+    /// <summary>
+    /// <c>CFEPOptions::WriteDefaultOptionsFile</c> (0x0051f680): writes <c>defaultoptions.bea</c> with these bytes (a
+    /// failure is only logged); from the host.
+    /// </summary>
+    public Action<byte[]>? WriteDefaultOptions { get; set; }
+
     /// <summary>The storage-device page (<c>mFEPDevSelect</c>), once registered.</summary>
     public Pages.DevSelectPage? DevSelect { get; set; }
 
@@ -725,6 +740,9 @@ public interface INameKeyboard
 
     /// <summary>A save has used the name, so it is no longer the fresh default (<c>m_Fresh = false</c>, from the save page).</summary>
     void NameUsed();
+
+    /// <summary>The load page copies the loaded save's name in, with the cursor at its end (freshness unchanged).</summary>
+    void SetName(string name);
 }
 
 /// <summary>What other pages call on the level select (<c>CFEPLevelSelect</c>).</summary>
