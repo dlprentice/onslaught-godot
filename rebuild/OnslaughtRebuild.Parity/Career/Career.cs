@@ -189,7 +189,7 @@ public sealed class Career
     }
 
     /// <summary><c>CCareerNode::GetParentLinks</c> (0x0041b9f0): every node's lower then higher link that leads to the node.</summary>
-    private IEnumerable<int> ParentLinks(int toNode)
+    public IEnumerable<int> ParentLinks(int toNode)
     {
         for (int node = 0; node < NumNodes; node++)
         {

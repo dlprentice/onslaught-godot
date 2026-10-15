@@ -30,6 +30,27 @@ The tape and probe formats are those of the retail replay harness (tapes and gol
 checkout's ignored `local-data/link-runtime/`); the command exits 0 only when every probe matches at every golden
 sample with no frame offset.
 
+### The front end's host contract
+
+The flow (`OnslaughtRebuild.Parity.Flow`: `FrontEnd` and its pages) owns retail's front-end behaviour and leaves
+presentation and the machine to its host (the Godot host, M7). The host supplies, on `FrontEnd`:
+
+| Member | What it provides |
+| --- | --- |
+| the constructor's `PlatformClock` | the one Present counter and replay timer, shared with the main loop |
+| `ReadDataFile` | the game's data files by retail path (today `data\WorldHeaders.dat`); null when missing |
+| `MemoryCard` (an `ISaveFolder`) | the `savegames` folder: names in listing order, read, write, delete |
+| `CurrentOptions` | the game's live options, written after the career and bindings in every save |
+| `CockpitOf` | a Battle Engine configuration's cockpit mesh, from the owner of that data |
+| `Crt` | the process's C runtime random state (one `CrtRand`, shared with the simulation) |
+| `Video` (an `IFrontEndVideo`) | the front-end video player: which files exist, and opening one at a size |
+| `EndLevelData`, `Settings` | the game's `END_LEVEL_DATA` and front-end settings, shared with the game |
+| `VirtualKeyboardPage.Font` (an `IFontMetrics`) | text widths and glyphs, needed only to type a name |
+
+Drawing, sound and music are the host's. Each page's `Render` override holds only the state its retail render changes
+(mouse hovers and clicks, scroll clamps). Mouse clicks that hit-test laid-out text (the main menu's items, the message
+box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
+
 ## The earlier rebuild (parked state, 2026-09-26)
 
 David parked this lane on 2026-10-15. The faithful cross-platform game is now a native source port of the

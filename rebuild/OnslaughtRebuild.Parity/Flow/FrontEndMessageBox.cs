@@ -93,6 +93,22 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
 
     public void Kill() => BeingDisplayed = false;
 
+    /// <summary>
+    /// <c>CFEMessBox::Init</c> (0x0044d320), at each front-end start: no cursor or choice, times and fades zeroed, not
+    /// displayed, no page on dismissal. The question, option and fade state are left as they were.
+    /// </summary>
+    public void Init()
+    {
+        Cursor = -1;
+        _finalChoice = -1;
+        Time = 0f;
+        Timeout = 0f;
+        FadeCount = 0f;
+        FadeTime = 0f;
+        BeingDisplayed = false;
+        OnDismissPage = FrontEndPage.None;
+    }
+
     /// <summary><c>GetFinalChoice</c>: the answer, or -1; reading it resets it.</summary>
     public int GetFinalChoice()
     {
