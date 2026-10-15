@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/Unit.cpp (CUnit::Unknown77 004fa4b0, UpdateTimer 004fa800, Move 004fa8d0, Unknown92
-// 004fb270) and src/unit.h (Unknown76 00405de0, Unknown109 00405e70), reconstructed; and src/maths.h (AngleDifference,
+// 004fb270, ObeyGravity 004fdc90, IsDeploying 004fde10) and src/unit.h (Unknown72 00405dc0, Unknown73 00405dd0,
+// Unknown76 00405de0, Unknown109 00405e70), reconstructed; and src/maths.h (AngleDifference,
 // Stuart's). Read from the Steam BEA.exe (= the pristine specimen 74154bfa): the constants are float (PI 0x40490fdb,
 // 2PI, PI/2, 0.1f); each operation is one 24-bit rounding in the source's order except where noted.
 
@@ -28,6 +29,18 @@ public abstract partial class Unit
     public float UnknownE4;
 
     public float UnknownF0;
+
+    /// <summary>CUnit::ObeyGravity (004fdc90): not while following an emitter (AI mode 2).</summary>
+    public override bool ObeyGravity() => !(AI is not null && AI.AIMode == 2);
+
+    /// <summary>Unknown72 (slot 72, 00405dc0): the friction on the ground.</summary>
+    public virtual float Unknown72() => 0.25f;
+
+    /// <summary>Unknown73 (slot 73, 00405dd0): the friction in the air.</summary>
+    public virtual float Unknown73() => 0.98f;
+
+    /// <summary>CUnit::IsDeploying (004fde10): deploy states 3, 4 and 5.</summary>
+    public bool IsDeploying() => DeployState is 4 or 3 or 5;
 
     /// <summary>Unknown76 (slot 76): the unit turns towards its target orientation unless preparing a shot or inactive (and alive).</summary>
     public virtual bool Unknown76() => !((Unknown168 != 0 || !Active) && (Flags & ThingFlags.Dying) == 0);

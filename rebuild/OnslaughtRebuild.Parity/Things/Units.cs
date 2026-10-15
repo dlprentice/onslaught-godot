@@ -1,25 +1,115 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/unit.h (the unit classes' SetThingType and GetMoveMultiplier), src/GroundUnit.cpp
-// (CGroundUnit::Init 0047c730), src/GroundVehicle.cpp (CGroundVehicle::Init 0047cfd0), src/Cannon.cpp (CCannon::Init
-// 0041b1a0), src/Building.cpp (CBuilding::Init 00417190, InitRenderThing 004176c0, SetThingType 00417660),
-// src/SimpleBuilding.cpp (CSimpleBuilding::Init 004dfa40, SetThingType), src/AirUnit.cpp (CAirUnit::Init 00402ad0),
+// (CGroundUnit::Init 0047c730, Move 0047c970), src/GroundVehicle.cpp (CGroundVehicle::Init 0047cfd0, Move 0047d1c0),
+// src/Cannon.cpp (CCannon::Init 0041b1a0, Move 0041b370), src/Building.cpp (CBuilding::Init 00417190, InitRenderThing 004176c0, SetThingType 00417660),
+// src/SimpleBuilding.cpp (CSimpleBuilding::Init 004dfa40, Move 004dfaa0, ClipToGround 004dfcb0, Gravity 004dfcc0,
+// SetThingType), src/AirUnit.cpp (CAirUnit::Init 00402ad0),
 // src/Plane.cpp (CPlane::Init 004d19d0) and src/Dropship.cpp (CDropship::Init 00446d70). Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
+
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Things;
 
 /// <summary>CGroundUnit: a unit on the ground, a full move every fourth frame.</summary>
 public abstract class GroundUnit(ThingContext context) : Unit(context)
 {
-    /// <summary>CGroundUnit::Move (0047c970): not ported yet (counted; the unit does not move).</summary>
-    public override void Move() => Context.Skip("CGroundUnit::Move (0047c970) (the movement is not ported yet)");
-
     public float BobPhase;
     public float Bob;
     public float OldBob;
     public int ThrusterLinks;
+
+    /// <summary>
+    /// mUnknown258 (+0x258): it bobs like a hovering unit. Nothing writes it for a ground vehicle and the allocator does
+    /// not clear memory, so retail reads whatever the block held; it is read as 0 here (fresh heap pages are zero).
+    /// OPEN QUESTION, falsifier: the port's movement trace of a vehicle's +0x250/+0x258.
+    /// </summary>
+    public int BobsLikeHover;
+
+    /// <summary>The int CGroundUnit::Move reads at +0x258 as mUnknown258: a cannon's own field there is mAboveWater.</summary>
+    protected virtual bool BobFlagAt258 => BobsLikeHover != 0;
+
+    /// <summary>
+    /// CGroundUnit::Move (0047c970, read from the Steam BEA.exe = the pristine specimen 74154bfa): the guide's requested
+    /// velocity (mUnknown14C * 0.4) as acceleration with the ground friction when on the ground, in water or not obeying
+    /// gravity (and turning), else the air friction; gravity; SINT(multiplier) steps of v = accel + v, v = friction * v;
+    /// the speed along the ground held to Unknown111() * 0.05 (the source's / 20.0f compiles as fmul 0.05f), measured
+    /// fsqrt(vY*vY + vX*vX), scaled by top / speed; then CUnit::Move; then the bob (fsin at full precision, * 0.05f).
+    /// A parachute unit's thrusters (paratroopers) are not ported.
+    /// </summary>
+    public override void Move()
+    {
+        float multiplier = GetMoveMultiplier();
+        int steps = X87.Fist(multiplier);
+        float gravity = 0;
+        if (ObeyGravity())
+        {
+            gravity = Gravity();
+        }
+
+        FVector accel = new(0, 0, 0);
+        float friction = Unknown73();
+        if ((IsOnGround() || IsInWater() || !ObeyGravity()) && Unknown76())
+        {
+            friction = Unknown72();
+            accel = new FVector(Unknown14C.X * 0.4f, Unknown14C.Y * 0.4f, Unknown14C.Z * 0.4f);
+        }
+
+        if (!IsDying && UnitData!.Parachute == 1)
+        {
+            throw new NotSupportedException("CGroundUnit::Move's parachute thrusters are not ported");
+        }
+
+        accel.Z = accel.Z + gravity;
+        for (int step = 0; step < steps; step++)
+        {
+            Velocity.X = accel.X + Velocity.X;
+            Velocity.Y = accel.Y + Velocity.Y;
+            Velocity.Z = accel.Z + Velocity.Z;
+            Velocity.X = friction * Velocity.X;
+            Velocity.Y = friction * Velocity.Y;
+            Velocity.Z = friction * Velocity.Z;
+        }
+
+        float top = Unknown111() * 0.05f;
+        float speed = (float)X87.Sqrt((Velocity.Y * Velocity.Y) + (Velocity.X * Velocity.X));
+        if (speed > top)
+        {
+            float scale = top / speed;
+            float vx = Velocity.X * scale;
+            float vy = Velocity.Y * scale;
+            Velocity.X = vx;
+            Velocity.Y = vy;
+        }
+
+        base.Move();
+
+        if (UnitData!.Hover != 0 || BobFlagAt258)
+        {
+            OldBob = Bob;
+            if (IsDying)
+            {
+                Bob = BobPhase + Bob;
+                BobPhase -= multiplier * 0.005f;
+                return;
+            }
+
+            if (IsDeploying() && BobPhase < 0.1f)
+            {
+                BobPhase = 0;
+                return;
+            }
+
+            BobPhase = (multiplier * 0.1f) + BobPhase;
+            Bob = (float)X87.Mul(X87.Sin(BobPhase), 0.05f);
+            if (BobPhase > 6.28318548f)
+            {
+                BobPhase -= 6.28318548f;
+            }
+        }
+    }
 
     public override float GetMoveMultiplier() => 4.0f;
 
@@ -56,6 +146,41 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 {
     public int TiltsWithGround;
 
+    /// <summary>COfGHeight (slot 48): 0.1.</summary>
+    public override float COfGHeight() => 0.1f;
+
+    /// <summary>
+    /// CGroundVehicle::Move (0047d1c0, read from the Steam BEA.exe = the pristine specimen 74154bfa): a vehicle that
+    /// tilts (obeying gravity, without a buggy controller) takes its target pitch and roll from the ground: forward is
+    /// MakeRotationYawF's Y column, (-sin yaw, cos yaw, 0) from fsin/fcos stored as floats; forward ^ normal, then up =
+    /// that ^ normal, normalised inline ((Z*Z + Y*Y) + X*X, times the reciprocal); pitch = -up.Z; roll = the first
+    /// cross product's Z after FVector::Normalise (out of line, 00406d50: (X*X + Y*Y) + Z*Z). Then CGroundUnit's move.
+    /// </summary>
+    public override void Move()
+    {
+        if (ObeyGravity() && TiltsWithGround != 0)
+        {
+            float yaw = CurrentOrientation.Yaw;
+            var forward = new FVector((float)-X87.Sin(yaw), (float)X87.Cos(yaw), 0.0f);
+            FVector normal = Context.Map.Normal(Pos);
+            forward = FVector.Cross(forward, normal);
+            FVector up = FVector.Cross(forward, normal);
+            float m = (float)X87.Sqrt((up.Z * up.Z) + (up.Y * up.Y) + (up.X * up.X));
+            if (m != 0.0f)
+            {
+                float r = 1.0f / m;
+                up = new FVector(up.X * r, up.Y * r, up.Z * r);
+            }
+
+            Unknown120.Pitch = -up.Z;
+            FVector side = forward;
+            side.Normalise();
+            Unknown120.Roll = side.Z;
+        }
+
+        base.Move();
+    }
+
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.Vehicle);
 
     public override void Init(InitThing init)
@@ -87,6 +212,50 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
     public int State;
     public bool AboveWater;
     public float LastTargetTime;
+
+    /// <summary>
+    /// CGroundUnit::Move reads +0x258, which in a cannon is mAboveWater: a cannon above water runs the hover bob on its
+    /// +0x250/+0x254/+0x25c (its sit-down amount and neighbours, which are the bob fields here, as CGroundUnit::Init
+    /// writes them).
+    /// </summary>
+    protected override bool BobFlagAt258 => AboveWater;
+
+    /// <summary>Gravity (slot 45, the shared 004bfc60): none.</summary>
+    public override float Gravity() => 0.0f;
+
+    /// <summary>GetMaxVelocity (slot 15, the shared 004bfc60): none.</summary>
+    public override float GetMaxVelocity() => 0.0f;
+
+    /// <summary>
+    /// CCannon::Move (0041b370): an active cannon with a target plays "Activate" (unless active or activating) and notes
+    /// the time; without one for ten seconds it plays "Deactivate" (unless inactive or deactivating); then CGroundUnit's.
+    /// </summary>
+    public override void Move()
+    {
+        if (Active && AI!.Target.ToRead is not null)
+        {
+            if (State != 0 && State != 3)
+            {
+                SetAnimMode(AnimModeByName("Activate"), true, false);
+                State = 3;
+            }
+
+            if (AI.Target.ToRead is not null)
+            {
+                LastTargetTime = Context.Events.Time;
+            }
+        }
+        else if (LastTargetTime + 10.0f < Context.Events.Time)
+        {
+            if (State != 1 && State != 2)
+            {
+                SetAnimMode(AnimModeByName("Deactivate"), true, false);
+                State = 2;
+            }
+        }
+
+        base.Move();
+    }
 
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.Emplacement | ThingType.Stationary);
 
