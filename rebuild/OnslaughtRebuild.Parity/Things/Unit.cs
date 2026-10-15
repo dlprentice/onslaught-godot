@@ -19,6 +19,7 @@ public static class UnitEvent
     public const int IncomingMissileWarning = 4002;
     public const int Event4003 = 4003;
     public const int Event4004 = 4004;
+    public const int Event4005 = 4005;
 }
 
 /// <summary>
@@ -68,8 +69,8 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
     public object? AI;
 
-    /// <summary>mSquad: the squad the unit belongs to (set before Init by the squad that spawns it).</summary>
-    public ComplexThing? Squad;
+    /// <summary>mSquad: the squad the unit belongs to (null during its own Init when a squad spawns it; SetSquad after).</summary>
+    public Squad? Squad;
 
     /// <summary>mSegments: a building's destructable segments controller (not ported; its presence only).</summary>
     public bool HasSegments;
@@ -325,12 +326,50 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
             (Context.Random.FloatRandom() * 0.1f) + Context.Events.Time, EventPriority.StartOfFrame, null, e);
     }
 
+    /// <summary>mUnknown110: a player's camera was within 50 at the last UNIT_EVENT_4003.</summary>
+    public bool NearCamera;
+
+    /// <summary>mUnknown218 / mUnknown21C: a countdown UNIT_EVENT_4005 runs down by a step each frame.</summary>
+    public int Unknown218;
+
+    public int Unknown21C = 10;
+
+    /// <summary>CUnit::HandleEvent (004f9820).</summary>
     public override void HandleEvent(Event e)
     {
         switch (e.EventNum)
         {
             case UnitEvent.Event4001:
                 Unknown4fb280(e as ScheduledEvent);
+                break;
+            case UnitEvent.Event4005:
+                if (Unknown218 > 0)
+                {
+                    Unknown218 -= Unknown21C;
+                    Context.Events.AddEvent(UnitEvent.Event4005, this, EventManager.NextFrame, EventPriority.StartOfFrame,
+                        null, e as ScheduledEvent);
+                }
+                else
+                {
+                    Unknown218 = 0;
+                }
+
+                break;
+            case UnitEvent.Event4003:
+            {
+                NearCamera = false;
+                // For each player with a camera: d.Y*d.Y + d.X*d.X + d.Z*d.Z < 2500 sets the flag. The cameras are not
+                // ported, so the flag stays false (counted).
+                Context.Skip("CUnit UNIT_EVENT_4003: the players' camera distance (cameras not ported)");
+                float delay = Context.Random.FloatRandom() + 3.0f;
+                Context.Events.AddEventIn(delay, UnitEvent.Event4003, this, EventPriority.StartOfFrame, null,
+                    e as ScheduledEvent);
+                break;
+            }
+
+            case UnitEvent.Event4004:
+                Context.Skip("CUnit::SpawnExplosion");
+                AddShutdownEvent();
                 break;
             default:
                 base.HandleEvent(e);

@@ -49,6 +49,16 @@ public sealed class ThingContext(
     /// <summary>UBattleEngineConfigurations: the world header's configuration names.</summary>
     public IReadOnlyList<byte[]> WorldBattleEngineConfigurations { get; set; } = [];
 
+    /// <summary>MAP_WHO: made (Create) with the context, as CGame makes it before a level loads (game.cpp:351).</summary>
+    public MapWho MapWho { get; } = CreateMapWho();
+
+    private static MapWho CreateMapWho()
+    {
+        var m = new MapWho();
+        m.Create();
+        return m;
+    }
+
     /// <summary>CThing::sThingCount: the next thing's number (ResetThingCounter at each level load).</summary>
     public int NextThingNumber { get; set; }
 

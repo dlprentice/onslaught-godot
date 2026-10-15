@@ -232,7 +232,10 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
         init.InitCst.MaxCollision = CollisionLevel.ApproxGeometryShapes;
         base.Init(init);
         Context.Skip("CAirGuide");
-        Context.Skip("CPlaneAI constructor (its mode is taken as not launched)");
+        // CPlaneAI's mode is 2 (launched) only for a plane a unit spawned with an emitter to follow (CUnitAI::Unknown7);
+        // every plane the world file places starts in mode 0 or 1. Spawned planes take the launch branch once spawners
+        // and the AI are ported.
+        Context.Skip("CPlaneAI constructor (a placed plane: not launched)");
         SetAnimMode(AnimModeByName("launch"), true, true);
         WingState = 1;
         LaunchTime = 0;

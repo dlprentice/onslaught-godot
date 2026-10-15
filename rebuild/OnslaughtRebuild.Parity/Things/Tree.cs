@@ -30,9 +30,15 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 
         name.AddRange(".MSH"u8.ToArray());
         MeshName = name.ToArray();
-        // CreateRenderThing(2): a CRTTree, whose mesh the simulation never queries (named, not loaded, here).
-        RenderThing = new RenderThing(Context, null, null!);
-        Context.Skip("CRTTree::Init (the tree's render thing, kept without its mesh)");
+        // CreateRenderThing(2): a CRTTree, with the mesh of that name (CMesh::GetMesh, ignoring case); its radius and
+        // bounding box size the tree's map-who entry. Its imposter and slope are rendering only.
+        string meshName = System.Text.Encoding.ASCII.GetString(MeshName);
+        if (!Context.Meshes.TryGetValue(meshName, out Mesh.MeshData? mesh))
+        {
+            throw new InvalidOperationException($"tree mesh '{meshName}' is not in the level resource file");
+        }
+
+        RenderThing = new RenderThing(Context, mesh, NoSubject.Instance);
         string text = System.Text.Encoding.ASCII.GetString(MeshName);
         if (text.StartsWith("fern", StringComparison.OrdinalIgnoreCase) || text.StartsWith("bush", StringComparison.OrdinalIgnoreCase))
         {
@@ -42,4 +48,22 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
         base.Init(init);
         TreeLife = 1.5f;
     }
+}
+
+/// <summary>A render subject for things whose pose the simulation never evaluates (trees).</summary>
+internal sealed class NoSubject : Mesh.IRenderSubject
+{
+    public static readonly NoSubject Instance = new();
+
+    public int RealAnimIndex => -1;
+
+    public float RenderFrame => 0;
+
+    public FVector RenderPos => default;
+
+    public FMatrix RenderOrientation => FMatrix.Identity;
+
+    public bool HasMotionController => false;
+
+    public bool RenderUseHierarchy(int partNumber) => true;
 }

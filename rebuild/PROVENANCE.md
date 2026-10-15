@@ -115,6 +115,12 @@ package licence expression is `GPL-3.0-only`.
 | `Things/LevelResources.cs` (the resource file's MESH, ERES and WRES chunks) | `src/ResourceAccumulator.cpp` (`ReadResources`) | GPL-3.0-only (in Stuart's release) |
 | `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/MapWho.cs` (CMapWho, CMapWhoEntry, CSector; ClipSegmentAgainstAABB3D) | `src/mapwho.h`, `src/mapwho.cpp`, `src/mapwhoentry.h`, `src/MapWhoEntry.cpp`, `src/Geometry.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Unit.SquadUnit.cs` (CUnit's squad, threat, allegiance and target-choice members) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/InfluenceMap.cs` (CInfluenceMap, CInfluenceNode, CInfluenceResidual) | `src/InfluenceMap.h`, `src/InfluenceMap.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Squad.cs` (CSquad, CNormalSquad and its member and path, CRelaxedSquad, the target selector, SpawnSquad/IsSquadBehaviour) | `src/squad.h`, `src/squad.cpp`, `src/SquadNormal.cpp`, `src/SquadRelaxed.cpp`, `src/NormalSquadTargetSelector.cpp`, `src/WorldPhysicsManager.cpp` (`SpawnSquad`, `IsSquadBehaviour`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Game/FearGrid.cs` (CFearGrid) | `src/FearGrid.h`, `src/FearGrid.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/SimpleThings.cs` (CWaypoint, CLevelScriptThing, CSafeSide, CSphereTrigger, CStart, CWaypointManager/CWaypointPath, the loader's spawner) | `src/waypoint.h`, `src/Waypoint.cpp`, `src/LevelScriptThing.cpp`, `src/SafeSide.cpp`, `src/SphereTrigger.cpp`, `src/Start.cpp`, `src/WaypointManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
@@ -125,7 +131,7 @@ package licence expression is `GPL-3.0-only`.
 | `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
 | `Events/EventManager.cs` (the scheduler: pool, buffers, overflow, AddEvent, AdvanceTime, Flush; CScheduledEvent) | `src/eventmanager.cpp`, `src/eventmanager.h`, `src/scheduledevent.cpp`, `src/scheduledevent.h` | GPL-3.0-only (in Stuart's release) |
 | `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only (in Stuart's release) |
-| `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |
+| `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent; CFearGrid creation in InitRestartLoop, game.cpp:505; SFrontEndSettings fields) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |
 | `Game/GameUpdate.cs` (CGame::Update) | `src/game.cpp` (`CGame::Update`) | GPL-3.0-only (in Stuart's release) |
 | `Game/GameRandom.cs` (GAME.Random and FloatRandom, with draw-site logging) | `src/game.h` (`CGame::Random`, `CGame::FloatRandom`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
