@@ -45,6 +45,42 @@ public sealed class RetailChainTests
         (3498, MouseMessage.Move, 617, 454, 0), (3500, MouseMessage.LeftDown, 617, 454, 1), (3504, MouseMessage.LeftUp, 617, 454, 0),
     ];
 
+    /// <summary>The films' Bink headers, read from the player's own installation.</summary>
+    internal sealed class InstalledFilms : IFilmFiles
+    {
+        public FilmHeader? Probe(string name)
+        {
+            byte[] bytes;
+            try
+            {
+                bytes = GameData.Read($@"data\video\{name}.vid").Bytes;
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+
+            return new FilmHeader(BitConverter.ToInt32(bytes, 8), BitConverter.ToInt32(bytes, 28), BitConverter.ToInt32(bytes, 32));
+        }
+    }
+
+    /// <summary>
+    /// The boot up to <c>CFrontEnd::Init</c>: CSystem::Init's films on the harness's pacing (none with -skipfmv), then the
+    /// observed Presents before the front end.
+    /// </summary>
+    internal static PlatformClock Boot(bool skipFmv)
+    {
+        PlatformClock clock = new();
+        clock.GetSysTimeFloat();
+        PlatformInput input = new(new PlatformWindow());
+        ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        input.FlushInputBuffers();
+        BootFilms.Play(player, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: skipFmv, Attract: false));
+        for (int i = 0; i < BootFilms.PresentsAfterFilms; i++) clock.Present();
+        return clock;
+    }
+
     /// <summary>The front end with every page the replays reach, on the given clock.</summary>
     private static (FrontEnd FrontEnd, PlatformInput Input) NewFrontEnd(PlatformClock clock)
     {
@@ -95,12 +131,10 @@ public sealed class RetailChainTests
     [GameDataFact]
     public void TheTitleToLevel100ClickChainSetsEachPageAtRetailsPresent()
     {
-        // The boot before the front end is retail's observed schedule: CFrontEnd::Init starts at 2287 completed Presents,
-        // the first GetSysTimeFloat having come after Present 1.
-        PlatformClock clock = new();
-        clock.Present();
-        clock.GetSysTimeFloat();
-        while (clock.PresentCount < 2287) clock.Present();
+        // The boot: the films (no -skipfmv), then the two observed Presents; CFrontEnd::Init then starts at 2287 completed
+        // Presents, as C measured.
+        PlatformClock clock = Boot(skipFmv: false);
+        Assert.Equal(2287, clock.PresentCount);
 
         (FrontEnd frontEnd, PlatformInput input) = NewFrontEnd(clock);
 
@@ -161,10 +195,8 @@ public sealed class RetailChainTests
     [GameDataFact]
     public void QuitPath2QuitsAtRetailsPresent()
     {
-        PlatformClock clock = new();
-        clock.Present();
-        clock.GetSysTimeFloat();
-        while (clock.PresentCount < 2) clock.Present();
+        PlatformClock clock = Boot(skipFmv: true);
+        Assert.Equal(2, clock.PresentCount);
 
         (FrontEnd frontEnd, PlatformInput input) = NewFrontEnd(clock);
         List<(long Present, FrontEndPage Page, int Time)> pages = [];
@@ -212,10 +244,8 @@ public sealed class RetailChainTests
     [GameDataFact]
     public void LoadPath2SetsEachPageAtRetailsPresent()
     {
-        PlatformClock clock = new();
-        clock.Present();
-        clock.GetSysTimeFloat();
-        while (clock.PresentCount < 2) clock.Present();
+        PlatformClock clock = Boot(skipFmv: true);
+        Assert.Equal(2, clock.PresentCount);
 
         (FrontEnd frontEnd, PlatformInput input) = NewFrontEnd(clock);
         frontEnd.MemoryCard.Folder.Write("BEA 1", File.ReadAllBytes(OnslaughtRebuild.Parity.Tests.Career.CareerTests.FixturePath));
@@ -242,5 +272,39 @@ public sealed class RetailChainTests
             (565L, FrontEndPage.LevelSelect, 0),
             (704L, FrontEndPage.Briefing, 30),
         ], pages);
+    }
+
+    /// <summary>
+    /// The boot films against C's retail boot capture (pres1, two retail processes): the logo's Presents are 1..230 and the
+    /// opening film's 231..2285 (each film one Present before it, its frames but the last, and one after); the two
+    /// observed Presents follow, and the front end starts at 2287.
+    /// </summary>
+    [GameDataFact]
+    public void TheBootFilmsTakeRetailsPresents()
+    {
+        PlatformClock clock = new();
+        PlatformInput input = new(new PlatformWindow());
+        ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        BootFilms.Play(player, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: false, Attract: false));
+        Assert.Equal([("ltlogo", 228, false), ("openingfmv", 2053, false)], player.Trace);
+        Assert.Equal(2285, clock.PresentCount);
+        PlatformClock booted = Boot(skipFmv: false);
+        Assert.Equal(2287, booted.PresentCount);
+        Assert.Equal(2, Boot(skipFmv: true).PresentCount);
+    }
+
+    /// <summary>A mouse click during a film skips it: the frame being drawn is the last, and the film's last Present follows.</summary>
+    [GameDataFact]
+    public void AClickSkipsAFilm()
+    {
+        PlatformClock clock = new();
+        PlatformInput input = new(new PlatformWindow());
+        ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        input.PostMouseMessage(MouseMessage.LeftDown, 10, 10, 1);
+        Assert.True(player.PlayFullscreen("ltlogo", false));
+        Assert.Equal(("ltlogo", 1, true), player.Trace[0]);
+        Assert.Equal(3, clock.PresentCount);
     }
 }

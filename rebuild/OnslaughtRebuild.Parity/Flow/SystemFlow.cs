@@ -15,8 +15,8 @@ public interface ISystemParts
     QuitType RunLevel(int level);
 
     /// <summary>
-    /// <c>FMV.PlayFullscreen(name, ...)</c> for one attract film: true when the player skipped it. The films run on
-    /// Bink's own clock, so their Presents are the observed schedule's (PARITY.md), not modelled.
+    /// <c>FMV.PlayFullscreen(name, ...)</c> for one attract film: true when the player skipped it. <see cref="FilmPlayer"/>
+    /// gives its Presents (one before, one for each frame but the last, one after).
     /// </summary>
     bool PlayAttractFilm(string name);
 

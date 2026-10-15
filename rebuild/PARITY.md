@@ -33,29 +33,33 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
 
-Observed and modelled Present schedules (rule for M6 and M7, 2026-10-15). Before the front end's first `Process`,
-retail's Present count is an observed schedule, not a model output. The boot videos play on Bink's real clock (the
-shim cannot virtualise Bink without stalling it). The loading screens' Present counts are reproducible between
-retail runs but not explained. C logged every Present from 2190 to 2300 at boot and Presents 1-12 of level 100
-(`-skipfmv`), and found:
-- every Present comes from the one frame flip (return address 0x00512644);
-- the shim's spin escape never fired (so it does not drive them);
-- between loading Presents the hooked timers are read 27-151 times, a count that differs between two retail runs
-  while the Presents at which each screen starts and ends do not.
-`CConsole::RenderLoadingScreen`'s 0.05 s throttle should allow a loading Present only every second frame on the
-replay clock; what paces them is an open question (a clock the shim does not hook is the first candidate). So the
-rebuild replays the Present counts measured on retail under the harness as calibrated constants, valid for that
-harness only. From the front end's first `Process` on, every Present is modelled, and a mismatch there is a defect.
-The same rule applies to level loading (J and B to check; with `-skipfmv` the level-100 golden's main loop starts
-at Present 3).
+Observed and modelled Present schedules (rule for M6 and M7, 2026-10-15). The boot films are modelled
+(`Flow/BootFilms.cs`, from CSystem::Init and CDXFMV::Play): retail's default PAL path plays the logo and the opening film
+(the vendor film's tweak is off; the NTSC films are not in the PC release). Each film presents once before its loop,
+once for each frame but the last (Play opens the film synchronously, which decodes frame 1, and ends when Bink's frame
+number reaches the frame count, after drawing the frame decoded then), and once after: the logo's 229 frames take
+Presents 1-230 and the opening film's 2,054 take 231-2285. The counts follow the files' Bink headers, not the clock:
+while a frame is not due Play sleeps, and a sleep never presents. Under C's harness the films are paced by their sound
+tracks on Wine's real-time mixer (C logged every Present from 2190 to 2300: one flip site, 0x00512644, and no spin
+escape), so the waits are not modelled (`HarnessFilmPacing`); B's virtual-clock rule (`BEA_SLEEP_VIRTUAL`, sleeps
+moving the clock) plugs in as another `IFilmPacing`. The splash over the opening film's last frames (from frame 1,934,
+fading in 7 steps a frame) is what C's capture at 2204 shows: the Lost Toys copyright screen at full opacity (Present
+2220, looked at), not a loading screen.
 
-The observed boot constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail
-processes identical at every captured Present):
+Still observed: the two Presents between the films and `CFrontEnd::Init` (Presents 2286 and 2287 of a full boot, the
+only two of a -skipfmv boot), `BootFilms.PresentsAfterFilms`. Their timer reads differ from the films' (1 and 3 against
+140-150), and the loading screens' Present counts are reproducible between retail runs but not explained:
+`CConsole::RenderLoadingScreen`'s 0.05 s throttle should allow a loading Present only every second frame on the replay
+clock, and what paces them is an open question. From the front end's first `Process` on, every Present is modelled,
+and a mismatch there is a defect. The same rule applies to level loading (J and B to check; with `-skipfmv` the
+level-100 golden's main loop starts at Present 3).
+
+The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
+identical at every captured Present):
 
 | Constant | Present | What retail shows |
 | --- | --- | --- |
-| `LoadingScreenFirst` | 2204 | the loading screen after the opening film (Present 2204, by capture) |
-| `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts; Presents 2286 and 2287 show the title page's background before it |
+| `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts (now the films' 2285, modelled, plus the 2 observed); Presents 2286 and 2287 show the title page's background before it |
 | `TitleLastPresent` | 3188 | the title page's last frame with no input; the attract videos follow at 3189 |
 
 Measured (M6 boot, 2026-10-15; C's code breakpoints logging completed Presents, two retail processes identical):
