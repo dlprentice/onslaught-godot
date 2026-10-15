@@ -36,7 +36,8 @@ public static class MessageBoxQuestion
 /// <summary>
 /// The front end's message box (<c>FEMESSBOX</c>): created with a question and its buttons, it fades in, waits (for a
 /// choice, or its timeout when it has no buttons), fades out and closes. While it has buttons it takes the front end's
-/// button actions. Its text layout and alpha are presentation and are not modelled.
+/// button actions. A box created with its layout (position, width, text and font) also takes mouse clicks in its render;
+/// its alpha and drawing are presentation.
 /// </summary>
 public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
 {
@@ -74,6 +75,7 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
     public void Create(uint timeout, uint fadeTime, bool closesOnProgress, MessageBoxOption option, int question)
     {
         if (BeingDisplayed) return;
+        BoxLayout = null;
         Cursor = -1;
         _finalChoice = -1;
         ClosesOnProgress = closesOnProgress;
@@ -91,7 +93,89 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
         BeingDisplayed = true;
     }
 
+    /// <summary>The layout of a box created with its text: centre, width, wrapped lines, line height and height.</summary>
+    public sealed record Layout(float X, float Y, float Width, IReadOnlyList<string> Lines, int LineHeight, float Height);
+
+    /// <summary>The current box's layout, or null when it was created without one (its render then takes no clicks).</summary>
+    public Layout? BoxLayout { get; private set; }
+
+    /// <summary>
+    /// <c>CFEMessBox::Create</c> (0x0044d390) with its layout: the text wraps at the width less 16 in
+    /// <paramref name="font"/>; the height is the lines plus 16, plus one normal-font row for an OK or continue box,
+    /// two for yes and no, or 32 for a progress box.
+    /// </summary>
+    public void Create(float x, float y, float width, string text, Text.BitmapFont font, Text.BitmapFont normalFont,
+        uint timeout, uint fadeTime, bool closesOnProgress, MessageBoxOption option, int question)
+    {
+        if (BeingDisplayed) return;
+        Create(timeout, fadeTime, closesOnProgress, option, question);
+        List<string> lines = font.WordWrap(text, (float)X87.Sub(width, 16f));
+        int lineHeight = font.Height;
+        // x87: float(mLineHeight) * mNumLines + 16, then the button rows' heights, each rounded and stored.
+        float height = (float)X87.Add(X87.Mul(lineHeight, lines.Count), 16f);
+        if (closesOnProgress) height = (float)X87.Add(height, 32f);
+        else if (option is MessageBoxOption.Ok or MessageBoxOption.AContinue) height = (float)X87.Add(height, normalFont.Height);
+        else if (option == MessageBoxOption.YesNo) height = (float)X87.Add(height, normalFont.Height * 2);
+        BoxLayout = new Layout(x, y, width, lines, lineHeight, height);
+    }
+
     public void Kill() => BeingDisplayed = false;
+
+    /// <summary>
+    /// The state-changing part of <c>CFEMessBox::Render</c> (0x0044d6f0), after the pages' render, for a box with a
+    /// layout. An OK or continue box is clicked anywhere inside. Yes and no are rows of the normal font's height below
+    /// the text (yes first); in each, hovering moves the cursor (and then the click is not tested that frame), and a
+    /// click answers and starts the fade-out. The box uses the plain mouse tests, which the box's own interactivity does
+    /// not gate. Its front-end texts are read in retail's order (each read checks the X key).
+    /// </summary>
+    public void Render(Text.BitmapFont normalFont, Text.FrontEndTexts texts)
+    {
+        if (!BeingDisplayed || BoxLayout is not { } layout) return;
+        Platform.PlatformInput platform = frontEnd.Platform;
+        float halfWidth = (float)X87.Mul(layout.Width, 0.5f), halfHeight = (float)X87.Mul(layout.Height, 0.5f);
+        float left = (float)X87.Sub(layout.X, halfWidth), right = (float)X87.Add(layout.X, halfWidth);
+        float top = (float)X87.Sub(layout.Y, halfHeight), bottom = (float)X87.Add(layout.Y, halfHeight);
+        if ((Option is MessageBoxOption.Ok or MessageBoxOption.AContinue or (MessageBoxOption)4)
+            && platform.Mouse.ClickedInRect(left, top, right, bottom, platform.KeyTrap))
+            ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+        if (ClosesOnProgress) return;
+        switch (Option)
+        {
+            case MessageBoxOption.Ok:
+            case MessageBoxOption.AContinue:
+                texts.GetText(Text.FrontEndText.Ok);
+                texts.GetText(Text.FrontEndText.Ok);
+                break;
+            case MessageBoxOption.YesNo:
+            {
+                int rowHeight = normalFont.GetTextExtent(texts.GetText(Cursor != 0 ? Text.FrontEndText.Yes : Text.FrontEndText.No)).Height;
+                for (int c0 = 0; c0 < 2; c0++)
+                {
+                    // x87: the int products, then the adds rounded to 24 bits (0044da24, 0044da97, 0044dc27).
+                    float y = (float)X87.Add(X87.Add(X87.Add((1 - c0) * rowHeight, layout.LineHeight * layout.Lines.Count), top), 8f);
+                    float yBottom = (float)X87.Add(y, rowHeight);
+                    if (platform.Mouse.OverRect(left, y, right, yBottom, platform.KeyTrap))
+                    {
+                        Cursor = c0;
+                        break;
+                    }
+                    if (platform.Mouse.ClickedInRect(left, y, right, yBottom, platform.KeyTrap))
+                    {
+                        frontEnd.PlaySound(FrontEndSound.Select);
+                        Cursor = c0;
+                        _finalChoice = c0;
+                        StartFadeOut();
+                        break;
+                    }
+                }
+                texts.GetText(Text.FrontEndText.Yes);
+                texts.GetText(Text.FrontEndText.Yes);
+                texts.GetText(Text.FrontEndText.No);
+                texts.GetText(Text.FrontEndText.No);
+                break;
+            }
+        }
+    }
 
     /// <summary>
     /// <c>CFEMessBox::Init</c> (0x0044d320), at each front-end start: no cursor or choice, times and fades zeroed, not

@@ -189,7 +189,7 @@ public sealed class DevSelectPage(FrontEnd frontEnd) : FrontEndPageBase
                 if (frontEnd.SaveMode)
                 {
                     frontEnd.PlaySound(FrontEndSound.Select);
-                    frontEnd.MessageBox.Create(0, 10, false, MessageBoxOption.YesNo, MessageBoxQuestion.NoAutoSave);
+                    frontEnd.ShowMessage(320f, 240f, 300f, t => t.GetText(Text.FrontEndText.NoAutoSave), 0, 10, MessageBoxOption.YesNo, MessageBoxQuestion.NoAutoSave);
                 }
                 break;
         }

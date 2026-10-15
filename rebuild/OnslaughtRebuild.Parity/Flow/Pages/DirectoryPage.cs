@@ -69,7 +69,7 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
                 if (frontEnd.SaveMode)
                 {
                     frontEnd.MessageBox.Kill();
-                    frontEnd.MessageBox.Create(0, 10, false, MessageBoxOption.YesNo, MessageBoxQuestion.DeleteSave);
+                    frontEnd.ShowMessage(320f, 240f, 400f, t => t.GetText(Text.FrontEndText.ConfirmSaveGameDelete), 0, 10, MessageBoxOption.YesNo, MessageBoxQuestion.DeleteSave);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
         if (box.GetFinalChoice() != MessageBoxQuestion.Yes) return;
         if (_saves[Cursor] is { } name && frontEnd.MemoryCard.DeleteSave(name) == MemoryCard.Success) return;
         // "Could not delete" (FEX_SAVEGAME_COULD_NOT_DELETE), dismissed with OK.
-        box.Create(0, 10, false, MessageBoxOption.Ok, 0);
+        frontEnd.ShowMessage(320f, 240f, 400f, t => t.GetText(Text.FrontEndText.SaveGameCouldNotDelete), 0, 10, MessageBoxOption.Ok, 0);
     }
 
     /// <summary><c>RefreshSaveFileList</c> (0x0051ad30): the card's save names in its order, and the cursor kept in range.</summary>
