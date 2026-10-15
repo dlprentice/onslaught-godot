@@ -181,4 +181,55 @@ public sealed class RetailChainTests
         Assert.Equal(565, lastProcess);
         Assert.Equal(-1, frontEnd.Quit);
     }
+
+    // load-path2's mouse events (C's tape on a -skipfmv boot): the title click, Main's Load Game item, the directory's
+    // first row (BEA 1), then the level select's forward arrow.
+    private static readonly (int Present, MouseMessage Message, int X, int Y, int WParam)[] LoadTape =
+    [
+        (300, MouseMessage.Move, 320, 240, 0), (302, MouseMessage.LeftDown, 320, 240, 1), (306, MouseMessage.LeftUp, 320, 240, 0),
+        (418, MouseMessage.Move, 217, 344, 0), (420, MouseMessage.LeftDown, 217, 344, 1), (424, MouseMessage.LeftUp, 217, 344, 0),
+        (558, MouseMessage.Move, 165, 146, 0), (560, MouseMessage.LeftDown, 165, 146, 1), (564, MouseMessage.LeftUp, 165, 146, 0),
+        (698, MouseMessage.Move, 617, 454, 0), (700, MouseMessage.LeftDown, 617, 454, 1), (704, MouseMessage.LeftUp, 617, 454, 0),
+    ];
+
+    /// <summary>
+    /// C's load-path2 against retail (-skipfmv, a career saved as BEA 1): SetPage Intro at 2, Main at 306, Directory at
+    /// 424, LoadGame at 564, LevelSelect at 565 and Briefing at 704 (C's lp2 breakpoints on SetPage 0x00466ae0; both
+    /// retail processes equal; the run was capped at Present 920, so no last Process is asserted). The career here is
+    /// the repository's tracked save (retail's file for this run was not kept; the pages need only a career that loads).
+    /// </summary>
+    [GameDataFact]
+    public void LoadPath2SetsEachPageAtRetailsPresent()
+    {
+        PlatformClock clock = new();
+        clock.Present();
+        clock.GetSysTimeFloat();
+        while (clock.PresentCount < 2) clock.Present();
+
+        (FrontEnd frontEnd, PlatformInput input) = NewFrontEnd(clock);
+        frontEnd.MemoryCard.Folder.Write("BEA 1", File.ReadAllBytes(OnslaughtRebuild.Parity.Tests.Career.CareerTests.FixturePath));
+        List<(long Present, FrontEndPage Page, int Time)> pages = [];
+        frontEnd.SetPageTrace = (page, time) => pages.Add((clock.PresentCount, page, time));
+
+        Assert.True(frontEnd.Init(FrontEndEntry.Start));
+        input.Window.FrontEndRunning = true;
+        int next = 0;
+        while (clock.PresentCount < 920)
+        {
+            long present = clock.PresentCount;
+            for (; next < LoadTape.Length && LoadTape[next].Present == present; next++)
+                input.PostMouseMessage(LoadTape[next].Message, LoadTape[next].X, LoadTape[next].Y, LoadTape[next].WParam);
+            Assert.True(frontEnd.Step(), $"the front end ended at {present}");
+        }
+
+        Assert.Equal(
+        [
+            (2L, FrontEndPage.Intro, 0),
+            (306L, FrontEndPage.Main, 50),
+            (424L, FrontEndPage.Directory, 70),
+            (564L, FrontEndPage.LoadGame, 0),
+            (565L, FrontEndPage.LevelSelect, 0),
+            (704L, FrontEndPage.Briefing, 30),
+        ], pages);
+    }
 }
