@@ -18,9 +18,9 @@ namespace OnslaughtRebuild.Parity.Clock;
 /// <item>the boot's first GetSysTimeFloat call follows Present 1 (the golden's frame times require it);</item>
 /// <item>CGame::InitRestartLoop resets the event manager and schedules FINISHED_PRE_RUN mPreRunTime ahead;</item>
 /// <item>mBaseTime is read at <see cref="BaseReadPresent"/>;</item>
-/// <item>CGame::PreRun ticks with no Present until FINISHED_PRE_RUN fires (tick 60: its buffer is
-/// floor((3.0 - 0.001) * 20) = 59);</item>
-/// <item>the first MainLoop starts at <see cref="LevelStartPresent"/>.</item>
+/// <item>CGame::PreRun runs at <see cref="LevelStartPresent"/> and ticks with no Present until FINISHED_PRE_RUN fires
+/// (tick 60: its buffer is floor((3.0 - 0.001) * 20) = 59);</item>
+/// <item>the loading screen's 100% render Presents once (it is not throttled), then the first MainLoop starts.</item>
 /// </list>
 /// </summary>
 public sealed class ClockSimulation : IParitySimulation
@@ -80,6 +80,12 @@ public sealed class ClockSimulation : IParitySimulation
 
                 _game.PreRun();
                 _levelStarted = true;
+
+                // CONSOLE.SetLoadingFraction(1.0f) right after PreRun brings the loading bar to 100%, where
+                // RenderLoadingScreen skips its 0.05 s throttle: one Present before the first MainLoop. (The fractions
+                // between the base read and PreRun are throttled: no Present has moved the clock since the last one.)
+                _clock.Present();
+                continue;
             }
 
             _mainLoop ??= _game.MainLoop().GetEnumerator();
