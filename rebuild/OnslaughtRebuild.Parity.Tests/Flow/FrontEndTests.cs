@@ -215,6 +215,36 @@ public sealed class FrontEndTests
     }
 
     [Fact]
+    public void ProcessMouseClickInRectFollowsTheCpp()
+    {
+        // CFrontEnd::ProcessMouseClickInRect (0x00469390): false while the message box is interactive, else
+        // MouseDispatchClickInRect: a release inside raises the button from controller 0 (consumed once), and the result
+        // is whether the cursor (moved this frame) is inside.
+        List<string> log = [];
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
+        RecordingPage main = new("Main", log);
+        frontEnd[FrontEndPage.Main] = main;
+        frontEnd.Begin(FrontEndPage.Main);
+        frontEnd.Platform.PostMouseMessage(MouseMessage.Move, 50, 60, 0);
+        frontEnd.Step();
+        Assert.True(frontEnd.ProcessMouseClickInRect(0, 0, 100, 100, FrontEndButtons.MenuSelect));
+        Assert.False(frontEnd.ProcessMouseClickInRect(50, 61, 100, 100, FrontEndButtons.MenuSelect));
+        Assert.Empty(main.Buttons);
+
+        frontEnd.Platform.PostMouseMessage(MouseMessage.LeftDown, 50, 60, 0x1);
+        frontEnd.Platform.PostMouseMessage(MouseMessage.LeftUp, 50, 60, 0);
+        frontEnd.Step();
+        main.Buttons.Clear();
+        // Not moved this frame: no hover, but the release still clicks; the right and bottom edges are exclusive.
+        Assert.False(frontEnd.ProcessMouseClickInRect(0, 0, 50, 61, FrontEndButtons.MenuSelect));
+        Assert.Empty(main.Buttons);
+        Assert.False(frontEnd.ProcessMouseClickInRect(0, 0, 51, 61, FrontEndButtons.MenuBack));
+        Assert.Equal([(FrontEndButtons.MenuBack, 1f)], main.Buttons);
+        Assert.False(frontEnd.ProcessMouseClickInRect(0, 0, 51, 61, FrontEndButtons.MenuBack));
+        Assert.Single(main.Buttons);
+    }
+
+    [Fact]
     public void AFrameRendersUntilASceneStartsAndEveryRenderPresents()
     {
         ShimClock clock = new();

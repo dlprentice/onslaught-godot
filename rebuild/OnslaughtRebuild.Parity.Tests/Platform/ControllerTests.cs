@@ -200,6 +200,17 @@ public sealed class ControllerTests
     }
 
     [Fact]
+    public void ExactlyTheEightLeftUpAndForwardControlsDeflectNegatively()
+    {
+        // Controller.cpp DigitalValueForButton: yaw left, pitch up, strafe left and forward for the mech; pitch down, yaw
+        // left, move forward and strafe left for the camera (Stuart's camera pitch runs the other way).
+        int[] negative = [Buttons.MechYawLeft, Buttons.MechPitchUp, Buttons.MechStrafeLeft, Buttons.MechForward,
+            Buttons.CameraPitchDown, Buttons.CameraYawLeft, Buttons.CameraMoveForward, Buttons.CameraStrafeLeft];
+        for (int button = 0; button < 96; button++)
+            Assert.Equal(negative.Contains(button) ? -1f : 1f, Controller.DigitalValueForButton(button));
+    }
+
+    [Fact]
     public void OldButtonsAbove63ReadTheSecondWordAsRetailDoes()
     {
         Rig rig = new();

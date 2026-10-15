@@ -158,6 +158,63 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary><c>FEMESSBOX</c>.</summary>
     public FrontEndMessageBox MessageBox { get; }
 
+    /// <summary><c>CAREER</c>: the game's one career, shared with the level loop.</summary>
+    public OnslaughtRebuild.Parity.Career.Career Career { get; set; } = OnslaughtRebuild.Parity.Career.Career.Constructed();
+
+    /// <summary><c>MEMORYCARD</c>: the PC's save folder.</summary>
+    public MemoryCard MemoryCard { get; set; } = new(new InMemorySaveFolder());
+
+    /// <summary><c>mSaveMode</c>: the storage pages are saving (true) or loading.</summary>
+    public bool SaveMode { get; set; }
+
+    /// <summary><c>mAutoSave</c>.</summary>
+    public AutoSaveMode AutoSave { get; set; } = AutoSaveMode.Not;
+
+    /// <summary><c>mOnSuccessFEP</c> and <c>mFEPTransTime</c>: where a storage operation goes when it succeeds.</summary>
+    public FrontEndPage SuccessPage { get; private set; }
+    public int SuccessTransitionTime { get; private set; }
+
+    /// <summary><c>mSelectedLevel</c>: the level the front end will start.</summary>
+    public int SelectedLevel { get; set; } = 100;
+
+    /// <summary><c>mMemoryCardNumber</c>.</summary>
+    public int MemoryCardNumber { get; set; }
+
+    /// <summary>The text language (<c>TEXT.GetLanguage</c>), 0 to 4.</summary>
+    public int Language { get; set; }
+
+    /// <summary><c>CLIPARAMS.mAttractMode</c>.</summary>
+    public bool AttractMode { get; set; }
+
+    /// <summary><c>GAME.mSupervisorMode</c>, which <c>CFrontEnd::Init</c> sets ("for E3").</summary>
+    public bool SupervisorMode { get; set; }
+
+    public void SetSuccessPage(FrontEndPage page, int time)
+    {
+        SuccessPage = page;
+        SuccessTransitionTime = time;
+    }
+
+    /// <summary><c>CFrontEnd::SetLanguage</c> (0x00466ab0): the text set changes; the options page's cached text is presentation.</summary>
+    public void SetLanguage(int language) => Language = language;
+
+    /// <summary>The storage-device page (<c>mFEPDevSelect</c>), once registered.</summary>
+    public Pages.DevSelectPage? DevSelect { get; set; }
+
+    /// <summary>The name keyboard (<c>mFEPVirtualKeyboard</c>), once registered.</summary>
+    public INameKeyboard? VirtualKeyboard { get; set; }
+
+    /// <summary>The level select (<c>mFEPLevelSelect</c>), once registered.</summary>
+    public ILevelSelect? LevelSelect { get; set; }
+
+    /// <summary>Forgets player 0's port (the intro page does this on entry).</summary>
+    public void ForgetPlayer0() => Player0Port = -1;
+
+    /// <summary>The sounds the front end plays (<c>EFrontEndSound</c>); recorded for the host, not modelled further.</summary>
+    public List<FrontEndSound> SoundsPlayed { get; } = [];
+
+    public void PlaySound(FrontEndSound sound) => SoundsPlayed.Add(sound);
+
     /// <summary><c>mControllers</c>: one per port, created when the front end begins.</summary>
     public Controller?[] Controllers { get; } = new Controller?[ControllerPorts];
 
@@ -185,8 +242,11 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public void Begin(FrontEndPage startPage)
     {
+        // Every page initialises, in page order, before the controllers exist.
+        foreach (FrontEndPageBase page in _pages) page.Init();
         for (int port = 0; port < ControllerPorts; port++) Controllers[port] = new Controller(port, 1, this);
         Platform.FlushInputBuffers();
+        SupervisorMode = true;
         Counter = 0f;
         Quit = QuitRunning;
         LastRenderTime = -100f;
@@ -374,6 +434,20 @@ public sealed class FrontEnd : IButtonReceiver
     }
 }
 
+/// <summary>What other pages call on the name keyboard (<c>CFEPVirtualKeyboard</c>).</summary>
+public interface INameKeyboard
+{
+    /// <summary><c>SetDefaultName</c> (0x0051fff0).</summary>
+    void SetDefaultName();
+}
+
+/// <summary>What other pages call on the level select (<c>CFEPLevelSelect</c>).</summary>
+public interface ILevelSelect
+{
+    /// <summary><c>SyncToSelectedLevel</c> (0x00460310).</summary>
+    void SyncToSelectedLevel();
+}
+
 /// <summary>The front end's message box (<c>FEMESSBOX</c>), which takes the buttons while it is interactive.</summary>
 public interface IFrontEndMessageBox
 {
@@ -394,4 +468,25 @@ public static class FrontEndButtons
     public const int MenuRight = 55;
     public const int MenuSkip = 60;
     public const int MenuSpecial = 63;
+}
+
+/// <summary><c>CFrontEnd::AutoSaveMode</c>.</summary>
+public enum AutoSaveMode
+{
+    /// <summary>An explicit save: the first save of a career.</summary>
+    Not,
+
+    /// <summary>The usual: the career is saved when it changes, at the end of levels.</summary>
+    Normal,
+
+    /// <summary>As normal, but nothing is written.</summary>
+    Pretend,
+}
+
+/// <summary><c>EFrontEndSound</c>, as the pages use them.</summary>
+public enum FrontEndSound
+{
+    Move,
+    Select,
+    Back,
 }
