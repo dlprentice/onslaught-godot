@@ -68,8 +68,8 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
     public object? AI;
 
-    /// <summary>mSquad: the squad the unit belongs to (set before Init by the squad that spawns it).</summary>
-    public ComplexThing? Squad;
+    /// <summary>mSquad: the squad the unit belongs to (null during its own Init when a squad spawns it; SetSquad after).</summary>
+    public Squad? Squad;
 
     /// <summary>mSegments: a building's destructable segments controller (not ported; its presence only).</summary>
     public bool HasSegments;

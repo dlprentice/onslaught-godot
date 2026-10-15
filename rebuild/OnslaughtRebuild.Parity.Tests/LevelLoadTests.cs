@@ -66,7 +66,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// <summary>a contributor's native-port log of the level-100 load: (draw number, retail function) for every non-tree draw.</summary>
     private static List<(long Draw, string Site)> PortLog()
     {
-        string path = "$SCRATCH";
+        string path = PortLogs.File("draws-l100-load.txt");
         return File.ReadLines(path).Where(l => l.Length > 0 && char.IsDigit(l[0]))
             .Select(l => l.Split('\t'))
             .Select(f => (long.Parse(f[0]), f[1].Split(' ')[0]))
@@ -86,14 +86,9 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         _ => site,
     };
 
-    [GameDataFact]
+    [PortLogFact]
     public void BaseWorld1DrawsAsRetailDoesSiteBySite()
     {
-        if (!File.Exists("$SCRATCH"))
-        {
-            return; // the port log is a local file of this machine
-        }
-
         ThingContext context = Level100Context(out LevelResources resources);
         var loader = new WorldLoader(context, resources, new StandInSpawner(context));
         loader.Load(1, isBase: true);
