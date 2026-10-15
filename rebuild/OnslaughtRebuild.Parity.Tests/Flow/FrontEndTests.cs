@@ -9,7 +9,7 @@ namespace OnslaughtRebuild.Parity.Tests.Flow;
 public sealed class FrontEndTests
 {
     /// <summary>The shim's clock: time moves 1/30 s per Present, from the first Present on.</summary>
-    private sealed class ShimClock : IFlowClock
+    internal sealed class ShimClock : IFlowClock
     {
         public long PresentCount { get; private set; }
         public float Offset { get; set; }
@@ -18,8 +18,19 @@ public sealed class FrontEndTests
         public void Present() => PresentCount++;
     }
 
-    private static FrontEnd NewFrontEnd(IFlowClock clock, FrontEndTiming timing) =>
-        new(clock, timing, new PlatformInput(new PlatformWindow { FrontEndRunning = true }));
+    internal sealed class NoGame : IControllerGame
+    {
+        public bool IsPaused => false;
+        public bool IsMultiplayer => false;
+        public void ReceiveButtonAction(Controller from, int button, float value) { }
+    }
+
+    internal static FrontEnd NewFrontEnd(ShimClock clock, FrontEndTiming? timing = null)
+    {
+        PlatformInput input = new(new PlatformWindow());
+        ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new NoGame(), clock.GetSysTimeFloat);
+        return new FrontEnd(clock, timing ?? new FrontEndTiming(), controls);
+    }
 
     private sealed class RecordingPage(string name, List<string> log) : FrontEndPageBase
     {
@@ -32,29 +43,20 @@ public sealed class FrontEndTests
         public override void DeActiveNotification() => log.Add($"{name}.DeActive");
     }
 
-    private sealed class MessageBox : IFrontEndMessageBox
-    {
-        public bool IsInteractive { get; set; }
-        public List<int> Buttons { get; } = [];
-        public int Processed { get; private set; }
-        public void ButtonPressed(int button, float value) => Buttons.Add(button);
-        public void Process() => Processed++;
-    }
-
     [Fact]
     public void TheFrameStepStartsAtASixtiethThenFiltersTheShimsThirtieths()
     {
         ShimClock clock = new();
         FrontEndTiming timing = new();
         FrontEnd frontEnd = NewFrontEnd(clock, timing);
-        frontEnd.Enter(FrontEndPage.Main);
+        frontEnd.Begin(FrontEndPage.Main);
 
         float expected = 0f;
         float last = FrontEndTiming.NoLastTime;
         for (int frame = 0; frame < 200; frame++)
         {
-            Assert.True(frontEnd.Step([]));
-            float time = (float)((frame) / 30.0);
+            Assert.True(frontEnd.Step());
+            float time = (float)(frame / 30.0);
             // Plain float arithmetic: every operand is a float and every result stays in range, so it equals x87's 24-bit result.
             expected = last != FrontEndTiming.NoLastTime && time - last < 2f ? (time - last) * 0.1f + expected * 0.9f : 1f / 60f;
             last = time;
@@ -70,24 +72,22 @@ public sealed class FrontEndTests
         ShimClock clock = new();
         FrontEndTiming timing = new();
         FrontEnd frontEnd = NewFrontEnd(clock, timing);
-        frontEnd.Enter(FrontEndPage.Main);
-        for (int frame = 0; frame < 30; frame++) frontEnd.Step([]);
+        frontEnd.Begin(FrontEndPage.Main);
+        for (int frame = 0; frame < 30; frame++) frontEnd.Step();
         Assert.NotEqual(1f / 60f, timing.FrameStep);
         clock.Offset = 2f;
-        frontEnd.Step([]);
+        frontEnd.Step();
         Assert.Equal(1f / 60f, timing.FrameStep);
     }
 
     [Fact]
     public void TheCounterAdvancesByThePreviousStep()
     {
-        ShimClock clock = new();
-        FrontEndTiming timing = new();
-        FrontEnd frontEnd = NewFrontEnd(clock, timing);
-        frontEnd.Enter(FrontEndPage.Main);
-        frontEnd.Step([]);
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
+        frontEnd.Begin(FrontEndPage.Main);
+        frontEnd.Step();
         Assert.Equal(0f, frontEnd.Counter);
-        frontEnd.Step([]);
+        frontEnd.Step();
         Assert.Equal(1f / 60f * 50f, frontEnd.Counter);
     }
 
@@ -95,10 +95,10 @@ public sealed class FrontEndTests
     public void AnImmediatePageChangeNotifiesInTheGamesOrder()
     {
         List<string> log = [];
-        FrontEnd frontEnd = NewFrontEnd(new ShimClock(), new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
         frontEnd[FrontEndPage.Intro] = new RecordingPage("Intro", log);
         frontEnd[FrontEndPage.Main] = new RecordingPage("Main", log);
-        frontEnd.Enter(FrontEndPage.Intro);
+        frontEnd.Begin(FrontEndPage.Intro);
         frontEnd.SetPage(FrontEndPage.Main, 0);
         Assert.Equal(["Intro.Transition(Unknown)", "Intro.Active(Unknown)", "Intro.DeActive", "Main.Transition(Intro)", "Main.Active(Intro)"], log);
         Assert.Equal(FrontEndPage.Main, frontEnd.ActivePage);
@@ -108,13 +108,12 @@ public sealed class FrontEndTests
     public void ATimedChangeRunsAsATransitionUntilItsTimeIsReached()
     {
         List<string> log = [];
-        ShimClock clock = new();
-        FrontEnd frontEnd = NewFrontEnd(clock, new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
         RecordingPage intro = new("Intro", log), main = new("Main", log);
         frontEnd[FrontEndPage.Intro] = intro;
         frontEnd[FrontEndPage.Main] = main;
-        frontEnd.Enter(FrontEndPage.Intro);
-        for (int frame = 0; frame < 10; frame++) frontEnd.Step([]);
+        frontEnd.Begin(FrontEndPage.Intro);
+        for (int frame = 0; frame < 10; frame++) frontEnd.Step();
         log.Clear();
 
         frontEnd.SetPage(FrontEndPage.Main, 50);
@@ -122,76 +121,108 @@ public sealed class FrontEndTests
         Assert.Equal(["Main.Transition(Intro)"], log);
 
         int steps = 0;
-        float count = 0f;
         while (frontEnd.ActivePage == FrontEndPage.Transition)
         {
-            frontEnd.Step([]);
-            steps++;
-            Assert.True(frontEnd.TransitionCount > count || frontEnd.ActivePage != FrontEndPage.Transition);
-            count = frontEnd.TransitionCount;
-            Assert.True(steps < 100);
+            frontEnd.Step();
+            Assert.True(++steps < 100);
         }
         Assert.True(frontEnd.TransitionCount >= 50f);
         Assert.Equal(FrontEndPage.Main, frontEnd.ActivePage);
         Assert.Equal(["Main.Transition(Intro)", "Intro.DeActive", "Main.Active(Intro)"], log);
-        // During the transition the pages were told their roles.
         Assert.Contains(FrontEndPageState.TransitioningFrom, intro.States);
         Assert.Contains(FrontEndPageState.TransitioningTo, main.States);
         Assert.Equal(FrontEndPageState.Active, main.States[^1]);
     }
 
     [Fact]
-    public void ButtonsGoToTheActivePageFromPlayerZeroOnly()
+    public void KeysReachTheActivePageThroughController0AndMakeItPlayer0()
     {
         List<string> log = [];
-        FrontEnd frontEnd = NewFrontEnd(new ShimClock(), new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
         RecordingPage main = new("Main", log);
         frontEnd[FrontEndPage.Main] = main;
-        frontEnd.Enter(FrontEndPage.Main);
+        frontEnd.Begin(FrontEndPage.Main);
 
-        frontEnd.Step([new FrontEndButton(1, FrontEndButtons.MenuDown, 1f)]);
+        frontEnd.Platform.PostTapeKey(0x28, Dik.Down, down: true);
+        frontEnd.Step();
         Assert.Equal(-1, frontEnd.Player0Port);
-        frontEnd.Step([new FrontEndButton(2, FrontEndButtons.MenuSelect, 1f)]);
-        Assert.Equal(2, frontEnd.Player0Port);
-        frontEnd.Step([new FrontEndButton(1, FrontEndButtons.MenuDown, 1f), new FrontEndButton(2, FrontEndButtons.MenuUp, 1f)]);
-        Assert.Equal([(FrontEndButtons.MenuDown, 1f), (FrontEndButtons.MenuSelect, 1f), (FrontEndButtons.MenuUp, 1f)], main.Buttons);
+        frontEnd.Platform.PostTapeKey(0x0D, Dik.Return, down: true);
+        frontEnd.Step();
+        Assert.Equal(0, frontEnd.Player0Port);
+        // Every binding of a key reaches the controlled object, in table order; the front end's pages ignore the ones
+        // they do not use. The held down arrow also sends the camera's pitch-down (-1) every frame.
+        Assert.Equal([(FrontEndButtons.MenuDown, 1f), (50, 1f), (35, -1f),
+            (7, 1f), (58, 1f), (FrontEndButtons.MenuSelect, 1f), (51, 1f), (35, -1f)], main.Buttons);
+    }
+
+    [Fact]
+    public void ButtonsFromAnotherPortAreIgnoredOncePlayer0IsKnown()
+    {
+        List<string> log = [];
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
+        RecordingPage main = new("Main", log);
+        frontEnd[FrontEndPage.Main] = main;
+        frontEnd.Begin(FrontEndPage.Main);
+        frontEnd.ReceiveButtonAction(new FrontEndButton(1, FrontEndButtons.MenuSelect, 1f));
+        frontEnd.ReceiveButtonAction(new FrontEndButton(0, FrontEndButtons.MenuUp, 1f));
+        Assert.Equal(1, frontEnd.Player0Port);
+        Assert.Equal([(FrontEndButtons.MenuSelect, 1f)], main.Buttons);
     }
 
     [Fact]
     public void NoButtonReachesAPageDuringATransitionAndTheMessageBoxTakesThemWhenInteractive()
     {
         List<string> log = [];
-        FrontEnd frontEnd = NewFrontEnd(new ShimClock(), new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
         RecordingPage intro = new("Intro", log), main = new("Main", log);
         frontEnd[FrontEndPage.Intro] = intro;
         frontEnd[FrontEndPage.Main] = main;
-        frontEnd.Enter(FrontEndPage.Intro);
+        frontEnd.Begin(FrontEndPage.Intro);
         frontEnd.SetPage(FrontEndPage.Main, 50);
         frontEnd.ReceiveButtonAction(new FrontEndButton(0, FrontEndButtons.MenuSelect, 1f));
         Assert.Empty(intro.Buttons);
         Assert.Empty(main.Buttons);
 
         frontEnd.SetPage(FrontEndPage.Main, 0);
-        MessageBox box = new() { IsInteractive = true };
-        frontEnd.Step([new FrontEndButton(0, FrontEndButtons.MenuBack, 1f)], messageBox: box);
-        Assert.Equal([FrontEndButtons.MenuBack], box.Buttons);
+        frontEnd.MessageBox.Create(0, 0, false, MessageBoxOption.YesNo, MessageBoxQuestion.Quit);
+        frontEnd.ReceiveButtonAction(new FrontEndButton(0, FrontEndButtons.MenuUp, 1f));
         Assert.Empty(main.Buttons);
-        Assert.Equal(1, box.Processed);
+        Assert.Equal(1, frontEnd.MessageBox.Cursor);
 
-        frontEnd.Step([new FrontEndButton(0, FrontEndButtons.Cheat, 1f)], messageBox: box);
+        frontEnd.ReceiveButtonAction(new FrontEndButton(0, FrontEndButtons.Cheat, 1f));
         Assert.True(frontEnd.AllLevelsCheatActive);
         Assert.Equal([(FrontEndButtons.Cheat, 1f)], main.Buttons);
+    }
+
+    [Fact]
+    public void AClickRaisesSelectFromController0UnlessTheMessageBoxIsInteractive()
+    {
+        List<string> log = [];
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock());
+        RecordingPage main = new("Main", log);
+        frontEnd[FrontEndPage.Main] = main;
+        frontEnd.Begin(FrontEndPage.Main);
+        frontEnd.Platform.PostMouseMessage(MouseMessage.Move, 100, 100, 0);
+        frontEnd.Platform.PostMouseMessage(MouseMessage.LeftDown, 100, 100, 0x1);
+        frontEnd.Platform.PostMouseMessage(MouseMessage.LeftUp, 100, 100, 0);
+        frontEnd.Step();
+        Assert.True(frontEnd.ProcessMouseClickInRect(0, 0, 640, 480, FrontEndButtons.MenuSelect));
+        // The release also raises the gun pod's fire binding (18) at the controller flush, before the page's click test.
+        Assert.Equal([(18, 1f), (FrontEndButtons.MenuSelect, 1f)], main.Buttons);
+
+        frontEnd.MessageBox.Create(0, 0, false, MessageBoxOption.Ok, 0);
+        Assert.False(frontEnd.ProcessMouseClickInRect(0, 0, 640, 480, FrontEndButtons.MenuSelect));
     }
 
     [Fact]
     public void AFrameRendersUntilASceneStartsAndEveryRenderPresents()
     {
         ShimClock clock = new();
-        FrontEnd frontEnd = NewFrontEnd(clock, new FrontEndTiming());
-        frontEnd.Enter(FrontEndPage.Main);
+        FrontEnd frontEnd = NewFrontEnd(clock);
+        frontEnd.Begin(FrontEndPage.Main);
         int attempts = 0;
         frontEnd.BeginScene = () => ++attempts >= 3;
-        Assert.True(frontEnd.Step([]));
+        Assert.True(frontEnd.Step());
         Assert.Equal(3, clock.PresentCount);
     }
 
@@ -199,12 +230,12 @@ public sealed class FrontEndTests
     public void EachRunningIterationPresentsOnceAndAQuitStopsBeforeThePresent()
     {
         ShimClock clock = new();
-        FrontEnd frontEnd = NewFrontEnd(clock, new FrontEndTiming());
-        frontEnd.Enter(FrontEndPage.Main);
-        Assert.True(frontEnd.Step([]));
-        Assert.True(frontEnd.Step([]));
+        FrontEnd frontEnd = NewFrontEnd(clock);
+        frontEnd.Begin(FrontEndPage.Main);
+        Assert.True(frontEnd.Step());
+        Assert.True(frontEnd.Step());
         Assert.Equal(2, clock.PresentCount);
-        Assert.False(frontEnd.Step([], platformQuit: true));
+        Assert.False(frontEnd.Step(platformQuit: true));
         Assert.Equal(FrontEnd.QuitToSystem, frontEnd.Quit);
         Assert.Equal(2, clock.PresentCount);
     }
