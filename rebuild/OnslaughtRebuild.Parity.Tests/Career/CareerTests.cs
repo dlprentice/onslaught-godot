@@ -9,7 +9,7 @@ namespace OnslaughtRebuild.Parity.Tests.Career;
 public sealed class CareerTests
 {
     /// <summary>The repository's one tracked career save, found from the test output folder upwards.</summary>
-    private static string FixturePath
+    internal static string FixturePath
     {
         get
         {

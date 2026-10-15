@@ -33,6 +33,47 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
 
+Observed and modelled Present schedules (rule for M6 and M7, 2026-10-15). Before the front end's first `Process`,
+retail's Present count is an observed schedule, not a model output. The boot videos play on Bink's real clock (the
+shim cannot virtualise Bink without stalling it). The loading screens' Present counts are reproducible between
+retail runs but not explained. C logged every Present from 2190 to 2300 at boot and Presents 1-12 of level 100
+(`-skipfmv`), and found:
+- every Present comes from the one frame flip (return address 0x00512644);
+- the shim's spin escape never fired (so it does not drive them);
+- between loading Presents the hooked timers are read 27-151 times, a count that differs between two retail runs
+  while the Presents at which each screen starts and ends do not.
+`CConsole::RenderLoadingScreen`'s 0.05 s throttle should allow a loading Present only every second frame on the
+replay clock; what paces them is an open question (a clock the shim does not hook is the first candidate). So the
+rebuild replays the Present counts measured on retail under the harness as calibrated constants, valid for that
+harness only. From the front end's first `Process` on, every Present is modelled, and a mismatch there is a defect.
+The same rule applies to level loading (J and B to check; with `-skipfmv` the level-100 golden's main loop starts
+at Present 3).
+
+The observed boot constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail
+processes identical at every captured Present):
+
+| Constant | Present | What retail shows |
+| --- | --- | --- |
+| `LoadingScreenFirst` | 2204 | the loading screen after the opening film (Present 2204, by capture) |
+| `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts; Presents 2286 and 2287 show the title page's background before it |
+| `TitleLastPresent` | 3188 | the title page's last frame with no input; the attract videos follow at 3189 |
+
+Measured (M6 boot, 2026-10-15; C's code breakpoints logging completed Presents, two retail processes identical):
+`CFrontEnd::Init` starts at 2287 completed Presents. Both of its `CFEPIntro::TransitionNotification` calls and its
+first `CFrontEnd::Process` run at 2287, then one `Process` per Present. The title page's 30 s timeout quits in the
+`Process` at 3188 = 2287 + 901, as the flow models it (`ThirtySecondsIdleOnTheTitleQuitsToTheAttractVideos`): from
+the front end's first `Process` on, retail and the model agree to the Present.
+
+Measured (M6 front end, 2026-10-15): C's click tape from the title page to level 100 (fe-explore4: the title,
+New Game, the name keyboard's forward arrow, a miss beside the level node, then forward through the level select,
+briefing and configuration) replayed into the flow from `FrontEndInitPresents`. Every page change lands on retail's
+Present (C's breakpoints on `CFrontEnd::SetPage`): Intro 2287, Main 2596, the name keyboard 2704, the save 2804,
+the level select 2817 (13 Presents later, after the autosave), the briefing 3104 and the configuration 3304. The
+front end's last `Process` is at 3504 with the level set to 100, as in retail
+(`RetailChainTests.TheTitleToLevel100ClickChainSetsEachPageAtRetailsPresent`, which reads the player's own
+installation for the fonts, texts and data). The front end's float expressions (frame-step filter, counters,
+transitions, cursor and layout maths) still need D's per-function oracle before they count as exact (J's rule).
+
 Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its
 138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
 missing at the first sample.

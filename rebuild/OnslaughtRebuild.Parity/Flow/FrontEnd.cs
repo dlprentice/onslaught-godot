@@ -225,6 +225,15 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public Action<string>? CreateGoodieEffect { get; set; }
 
+    /// <summary>
+    /// The small font (<c>PLATFORM.Font(FONT_SMALL)</c>, Font13PS) and the front-end texts (<c>FET</c>), from the host's
+    /// installation. Render logic that hit-tests laid-out text (the main menu's items) runs only when both are set.
+    /// </summary>
+    public Text.BitmapFont? SmallFont { get; set; }
+
+    /// <inheritdoc cref="SmallFont"/>
+    public Text.FrontEndTexts? Texts { get; set; }
+
     /// <summary>The front end's video player, from the host.</summary>
     public IFrontEndVideo? Video { get; set; }
 
@@ -233,6 +242,21 @@ public sealed class FrontEnd : IButtonReceiver
 
     /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
     public string SaveGameName { get; set; } = "";
+
+    /// <summary>The save list (<c>mFEPDirectory</c>), once registered.</summary>
+    public Pages.DirectoryPage? Directory { get; set; }
+
+    /// <summary>The load page (<c>mFEPLoadGame</c>), once registered.</summary>
+    public Pages.LoadGamePage? LoadGame { get; set; }
+
+    /// <summary><c>gDisplayResetState</c> (0082b5b0): set while the display settings are being reset; then a load does not rewrite the options file.</summary>
+    public bool DisplayResetState { get; set; }
+
+    /// <summary>
+    /// <c>CFEPOptions::WriteDefaultOptionsFile</c> (0x0051f680): writes <c>defaultoptions.bea</c> with these bytes (a
+    /// failure is only logged); from the host.
+    /// </summary>
+    public Action<byte[]>? WriteDefaultOptions { get; set; }
 
     /// <summary>The storage-device page (<c>mFEPDevSelect</c>), once registered.</summary>
     public Pages.DevSelectPage? DevSelect { get; set; }
@@ -347,8 +371,12 @@ public sealed class FrontEnd : IButtonReceiver
     /// <c>CFrontEnd::SetPage</c> (0x00466ae0): with time 0 the change is immediate (deactivate, transition, activate);
     /// otherwise a transition of <paramref name="time"/> fiftieths of a second begins.
     /// </summary>
+    /// <summary>Called at each <see cref="SetPage"/> with its page and time (a trace for comparison with retail's).</summary>
+    public Action<FrontEndPage, int>? SetPageTrace { get; set; }
+
     public void SetPage(FrontEndPage page, int time)
     {
+        SetPageTrace?.Invoke(page, time);
         if (ActivePage == FrontEndPage.Transition) ActivePage = TransitionFrom;
         if (time == 0)
         {
@@ -604,14 +632,15 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>
     /// One iteration of <c>CFrontEnd::Run</c>'s loop: a process, then (while still running) renders until one starts its
     /// scene. Every render presents (<c>CFrontEnd::RenderEnd</c> flips whether or not the scene started), so a frame
-    /// usually costs one Present. Returns false once the front end has quit.
+    /// usually costs one Present. Returns false once the front end has quit, whether in the process or in the render (a
+    /// page's render click can set the quit value, and the loop's test then ends the run before another process).
     /// </summary>
     public bool Step(bool platformQuit = false)
     {
         Process(platformQuit);
         if (Quit != QuitRunning) return false;
         while (!Render()) { }
-        return true;
+        return Quit == QuitRunning;
     }
 
     /// <summary>
@@ -725,6 +754,9 @@ public interface INameKeyboard
 
     /// <summary>A save has used the name, so it is no longer the fresh default (<c>m_Fresh = false</c>, from the save page).</summary>
     void NameUsed();
+
+    /// <summary>The load page copies the loaded save's name in, with the cursor at its end (freshness unchanged).</summary>
+    void SetName(string name);
 }
 
 /// <summary>What other pages call on the level select (<c>CFEPLevelSelect</c>).</summary>
