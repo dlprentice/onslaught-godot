@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
-Status: parked (2026-10-15); reference only
-Last updated: 2026-10-15 (parked with the Godot rebuild; earlier rows keep their dates)
+Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
+Last updated: 2026-10-15 (proof-of-concept milestones and the retail tape harness; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -15,7 +15,31 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
-**Parked 2026-10-15.** These grades describe the Godot rebuild at its parking point (the old tag archive/godot-rebuild-20260926, now in the private RE archive). Parity work now belongs to the native source port of the decompilation.
+## Proof-of-concept milestones (2026-10-15)
+
+The target is retail under the retail replay harness's shim: `BEA.exe -level 100 -skipfmv -forcewindowed -res 640 480`
+in Wine with a virtual clock of 1/30 s per Present (QueryPerformanceFrequency 10 MHz, 333333 counts per Present from
+the first Present), tapes indexed by Present number, probes read every 50 Presents. Present counts are defined only
+under that clock. A comparison that matches only under a non-zero frame offset is never reported as 1:1.
+
+| # | Deliverable | Pass criterion |
+| --- | --- | --- |
+| M0 | Retail tape harness: tape and golden parsers, byte comparator, Present-driven runner, `parity` command | Real level-100 tape (4,896 events) and golden (200 samples × 7 probes) parse; retail's change counts reproduce the harness report; comparator and runner order pinned by tests |
+| M1 | Exact x87 numerics (24-bit precision control): mixed float/double arithmetic, conversions, transcendentals | 0 mismatches against oracle tables from a VC6 `/O2 /QIfist` harness under Wine at `_PC_24`, at least 10^6 random inputs per operation plus edge cases |
+| M2 | Clock and main loop: virtual clock, render-repeat loop, base-time adjustment, event-manager time, CGame frame time | EVT, FT and LVL equal the golden at every sample of the level-100 run |
+| M3 | The game's random stream and level-start draws | RNG equal at the level-start sample |
+| M4 | Level-100 parity core ported from bea-decomp | EVT, FT, SC, LVL, RNG, POS and LIFE equal at all 200 samples over 10,000 frames on the keyboard-and-mouse tape |
+| M5 | Win and loss, end-level data and the career save | Probes equal through the win; the career after the win byte-identical to retail's from the same starting career |
+| M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
+| M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
+
+Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its
+138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
+missing at the first sample.
+
+## The earlier rebuild's grades
+
+These grades describe the earlier fixed-point rebuild at its parking point (the old tag archive/godot-rebuild-20260926, now in the private RE archive).
 
 ## Authority order (from PROVENANCE.md)
 

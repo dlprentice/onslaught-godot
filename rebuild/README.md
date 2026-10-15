@@ -1,12 +1,36 @@
 # Onslaught Rebuild
 
-Status: parked (2026-10-15) — superseded by the native source port of the decompilation
-Last updated: 2026-10-15 (parked by David; state at the old tag archive/godot-rebuild-20260926, now private)
-Summary: the Godot/C# reconstruction as it stood when parked, kept as reference.
+Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
+Last updated: 2026-10-15 (reactivated; new parity core and retail tape harness; the sections after the proof-of-concept one describe the earlier fixed-point rebuild)
+Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
 thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 "1:1 parity" means operationally and what is currently graded.
+
+## Proof of concept (2026-10-15)
+
+David reactivated this lane on 2026-10-15 as a scoped proof of concept: a C# Godot reimplementation that is 1:1 with
+retail from startup to exit, with level 100 playable to completion and no other level. 1:1 is measured: retail replay
+tapes played into the rebuild must give retail's probe values at every sample, flow screens must match retail
+captures frame for frame, and the career saved after a win must be byte-identical to retail's. Milestones and pass
+criteria are in [PARITY.md](PARITY.md#proof-of-concept-milestones-2026-10-15).
+
+The earlier Core below simulates in integer fixed point (millimetres, microradians) and cannot reproduce retail's
+float state, so the parity path is a new assembly, `OnslaughtRebuild.Parity`: a float-exact C# port of the
+decompilation's simulation with exact x87 24-bit numerics, independent of the earlier Core. `OnslaughtRebuild.Parity`
+holds the retail tape harness today:
+
+```bash
+npm run test:rebuild-parity
+npm run run:rebuild-parity -- --tape <retail tape> --golden <retail probes> [--frames 10000] [--every 50]
+```
+
+The tape and probe formats are those of the retail replay harness (tapes and golden traces under the canonical
+checkout's ignored `local-data/link-runtime/`); the command exits 0 only when every probe matches at every golden
+sample with no frame offset.
+
+## The earlier rebuild (parked state, 2026-09-26)
 
 David parked this lane on 2026-10-15. The faithful cross-platform game is now a native source port of the
 byte-matching decompilation (private bea-decomp); a future remake would fork that port. The code here is the state

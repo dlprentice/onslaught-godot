@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OnslaughtRebuild.Client\OnslaughtRebuild.Client.csproj" />
     <ProjectReference Include="..\OnslaughtRebuild.Core\OnslaughtRebuild.Core.csproj" />
+    <ProjectReference Include="..\OnslaughtRebuild.Parity\OnslaughtRebuild.Parity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

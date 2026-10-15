@@ -6,6 +6,8 @@ internal static class Program
 {
     public static int Main(string[] args)
     {
-        return HeadlessApplication.Run(args, Console.Out, Console.Error);
+        return args.Length > 0 && args[0] == "parity"
+            ? ParityCommand.Run(args[1..], Console.Out, Console.Error)
+            : HeadlessApplication.Run(args, Console.Out, Console.Error);
     }
 }

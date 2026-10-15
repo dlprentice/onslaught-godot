@@ -20,6 +20,8 @@
     "test:rebuild-core": "npm run prepare:rebuild-assets && dotnet test ./rebuild/OnslaughtRebuild.Core.Tests/OnslaughtRebuild.Core.Tests.csproj --nologo --filter \"FullyQualifiedName!~Level100FerryLandingTests\"",
     "test:rebuild-ferry-sweep": "npm run prepare:rebuild-assets && dotnet test ./rebuild/OnslaughtRebuild.Core.Tests/OnslaughtRebuild.Core.Tests.csproj --nologo --filter \"FullyQualifiedName~Level100FerryLandingTests\"",
     "test:rebuild-client": "npm run prepare:rebuild-assets && dotnet test ./rebuild/OnslaughtRebuild.Client.Tests/OnslaughtRebuild.Client.Tests.csproj --nologo",
+    "test:rebuild-parity": "dotnet test ./rebuild/OnslaughtRebuild.Parity.Tests/OnslaughtRebuild.Parity.Tests.csproj --nologo",
+    "run:rebuild-parity": "npm run prepare:rebuild-assets && dotnet run --project ./rebuild/OnslaughtRebuild.Headless/OnslaughtRebuild.Headless.csproj -- parity",
     "run:rebuild-headless": "npm run prepare:rebuild-assets && dotnet run --project ./rebuild/OnslaughtRebuild.Headless/OnslaughtRebuild.Headless.csproj --",
     "run:rebuild-godot": "python ./rebuild/tools/first_flight.py run",
     "test:rebuild-godot-smoke": "python ./rebuild/tools/first_flight.py smoke",

@@ -2,6 +2,8 @@
   <Project Path="OnslaughtRebuild.Core/OnslaughtRebuild.Core.csproj" />
   <Project Path="OnslaughtRebuild.Client/OnslaughtRebuild.Client.csproj" />
   <Project Path="OnslaughtRebuild.Headless/OnslaughtRebuild.Headless.csproj" />
+  <Project Path="OnslaughtRebuild.Parity/OnslaughtRebuild.Parity.csproj" />
+  <Project Path="OnslaughtRebuild.Parity.Tests/OnslaughtRebuild.Parity.Tests.csproj" />
   <Project Path="OnslaughtRebuild.Core.Tests/OnslaughtRebuild.Core.Tests.csproj" />
   <Project Path="OnslaughtRebuild.Client.Tests/OnslaughtRebuild.Client.Tests.csproj" />
 </Solution>

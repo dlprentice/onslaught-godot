@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-09-26 (World 110 on the one construction owner; earlier claims keep their dated evidence).
+Last updated: 2026-10-15 (proof of concept: the parity core may adapt bea-decomp source, recorded per unit below; earlier claims keep their dated evidence).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -27,6 +27,10 @@ relicense this subtree or the pinned `references/Onslaught` source.
 - Controlled copied-runtime observations establish measured behavior.
 - Original design work, deterministic tests, public standards, and engine APIs
   may fill gaps that are clearly labelled provisional.
+- The byte-matching decompilation (bea-decomp, the project's own source, to be published under GPL-3.0 as
+  Onslaught CE; David approved its use here on 2026-10-15) may be ported into the parity core
+  (`OnslaughtRebuild.Parity`). Every ported unit is listed under *Adapted from bea-decomp* with its source file. This
+  is our reconstructed source, not decompiler output; tables or bytes extracted from the executable stay out.
 - Retail assets are user-supplied local inputs. The source tree retains exact
   hashes and bounded extraction/conversion recipes, while the materialized
   payloads remain ignored and outside source/release packages.
@@ -35,6 +39,15 @@ Do not import the retail executable, retail asset payloads or conversions,
 decompiler output, user saves, raw runtime captures, or separately licensed
 third-party code/media into this subtree.
 Never describe synthetic or source-only behavior as observed Steam behavior.
+
+## Adapted from bea-decomp
+
+Each row names a C# unit of `OnslaughtRebuild.Parity` and the bea-decomp source it adapts. Units built only from
+the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed.
+
+| C# unit | Adapted from bea-decomp |
+| --- | --- |
+| (none yet) | |
 
 ## Authority
 
