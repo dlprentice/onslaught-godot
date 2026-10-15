@@ -6,6 +6,8 @@ using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Physics;
+using OnslaughtRebuild.Parity.Script;
+using OnslaughtRebuild.Parity.Text;
 using OnslaughtRebuild.Parity.Things;
 using OnslaughtRebuild.Parity.World;
 using ParityGame = OnslaughtRebuild.Parity.Game.Game;
@@ -163,7 +165,8 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
 
         var clock = new Clock.PlatformClock();
         var events = new EventManager();
-        var game = new ParityGame(clock, events) { CurrentLevel = 100 };
+        var services = new ScriptGameServices(NullGameServices.Instance);
+        var game = new ParityGame(clock, events, services) { CurrentLevel = 100 };
         game.InitRestartLoop();
         var pool = new SPtrSetPool();
         pool.Init(SPtrSetPool.RetailBlockSize);
@@ -179,8 +182,35 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
             context.Meshes[name] = mesh;
         }
 
+        // CGame::InitRestartLoop's script part: SCRIPT_EVENT_NB.Init (game.cpp:366) and the message box (384), before
+        // the load; TEXT is the English language file.
+        ScriptRuntime scripts = ScriptRuntime.Of(context);
+        scripts.EventNB.Init();
+        services.Runtime = scripts;
+        TextDatabase text = TextDatabase.Load(GameData.Read(TextDatabase.FileName(0, americanText: false)).Bytes);
+        scripts.Text = text;
+        scripts.MessageBox = new Script.MessageBox(context, text, new UnmodelledVoice());
+
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
+        scripts.Spawner = spawner;
+        scripts.Waypoints = spawner.Waypoints;
         new WorldLoader(context, resources, spawner).Load(100, isBase: false);
+
+        // CGame::PostLoadProcess (game.cpp:783): each player takes the battle engine of the last start with its number.
+        var playerEngines = new ActiveReader<Thing>[game.Players];
+        for (int i = 0; i < game.Players; i++)
+        {
+            playerEngines[i] = new ActiveReader<Thing>();
+            for (Thing? t = context.World.StartNB.First(); t is not null; t = context.World.StartNB.Next())
+            {
+                if (t is Start start && start.PlayerNumber == i + 1)
+                {
+                    playerEngines[i].SetReader(start.PlayerObject.ToRead);
+                }
+            }
+        }
+
+        scripts.Player = n => n < game.Players ? (true, playerEngines[n].ToRead) : (false, null);
         return (context, game);
     }
 
@@ -286,5 +316,5 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     }
 
     /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunMatchedFloor = 59;
+    private const int PreRunMatchedFloor = 198;
 }

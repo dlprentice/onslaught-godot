@@ -140,12 +140,9 @@ public sealed class SphereTrigger : ComplexThing
     /// CSphereTrigger::Hit: CComplexThing's (the script hears of it), then a unit is recorded; the first unit hit in a new
     /// frame clears the last frame's list.
     /// </summary>
-    public void Hit(Thing other)
+    public override void Hit(Thing other)
     {
-        if (Script is not null && other.IsA(ThingType.ComplexThing))
-        {
-            Context.Skip("IScript::Hit");
-        }
+        base.Hit(other);
 
         if (other.IsA(ThingType.Unit))
         {

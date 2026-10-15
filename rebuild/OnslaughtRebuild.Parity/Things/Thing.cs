@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/thing.h and src/thing.cpp (CThing: the constructor 004f33e0, Init 004f34a0, Shutdown
-// 004f3600, HandleEvent 004f3730, AddShutdownEvent 004f3760, StartDieProcess 004f37a0, StickToGround 004f3c50, MoveTo
+// 004f3600, HandleEvent 004f3730, AddShutdownEvent 004f3760, StartDieProcess 004f37a0, SetObjective 004f3970,
+// StickToGround 004f3c50, MoveTo
 // 004f3cb0, Teleport 004f3ce0; CComplexThing: the constructor 004f3e10, Init 004f3fd0, SetName 004f4120, Shutdown
-// 004f41b0, SetScript 004f4230, HandleEvent 004f4300, AddShutdownEvent 004f43d0, StartDieProcess 004f4430), in
-// Stuart's release.
+// 004f41b0, SetScript 004f4230, HandleEvent 004f4300, AddShutdownEvent 004f43d0, StartDieProcess 004f4430, Hit
+// 004f4480), in Stuart's release.
 
 using System.Text;
 using OnslaughtRebuild.Parity.Events;
@@ -197,6 +198,27 @@ public abstract class Thing : Monitor
     {
     }
 
+    /// <summary>
+    /// CThing::SetObjective: a thing marked as an objective joins the world's objective list (at its head) once, and
+    /// leaves it when unmarked.
+    /// </summary>
+    public void SetObjective(bool value)
+    {
+        if (value)
+        {
+            if ((Flags & ThingFlags.MarkedObjective) == 0)
+            {
+                Context.World.ObjectiveThings.Add(this);
+                Flags |= ThingFlags.MarkedObjective;
+            }
+        }
+        else if ((Flags & ThingFlags.MarkedObjective) != 0)
+        {
+            Context.World.ObjectiveThings.Remove(this);
+            Flags &= ~ThingFlags.MarkedObjective;
+        }
+    }
+
     /// <summary>IsObjective (slot 26): FALSE for a plain thing.</summary>
     public virtual bool IsObjective() => false;
 
@@ -308,14 +330,6 @@ public abstract class Thing : Monitor
     public override string ToString() => $"{GetType().Name} #{ThingNumber} at {Pos}";
 }
 
-/// <summary>A compiled mission script attached to a thing (IScript); its VM is M4c's.</summary>
-public sealed class MissionScript(ComplexThing owner, ScriptObjectCode code)
-{
-    public ComplexThing Owner { get; } = owner;
-
-    public ScriptObjectCode Code { get; } = code;
-}
-
 /// <summary>CComplexThing: a thing with an orientation, a name, a mission script, an animation and a motion controller.</summary>
 public abstract class ComplexThing(ThingContext context, int classId) : Thing(context, classId)
 {
@@ -326,7 +340,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     public byte[]? Name;
 
     /// <summary>mMissionScript.</summary>
-    public MissionScript? Script;
+    public IScript? Script;
 
     /// <summary>The mesh animation mode SetAnimMode chose (CAnimation's), -1 for none.</summary>
     public int AnimMode = -1;
@@ -383,7 +397,12 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     /// </summary>
     public void SetScript(byte[] scriptName)
     {
-        Script = null;
+        if (Script is not null)
+        {
+            Script.Delete();
+            Script = null;
+        }
+
         if (scriptName.Length != 0)
         {
             ScriptObjectCode? code = null;
@@ -398,7 +417,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
 
             if (code is not null)
             {
-                Script = new MissionScript(this, code);
+                Script = IScript.Create(this, code, Context);
                 Context.Events.AddEvent(ThingEvent.InitScript, this, EventManager.NextFrame, EventPriority.StartOfFrame);
             }
             else
@@ -421,13 +440,24 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     /// <summary>The mesh's animation mode by name (the mesh's GetAnimModeByName), or -1.</summary>
     public int AnimModeByName(string name) => RenderThing?.MeshOrNull?.GetAnimModeByName(name) ?? -1;
 
-    /// <summary>CComplexThing::HandleEvent: the script's init and ready events.</summary>
+    /// <summary>
+    /// CComplexThing::HandleEvent: SHUTDOWN tells the script first (while the game is at most playing), INIT_SCRIPT
+    /// runs the script's Init (and, for a non-unit, READY_SCRIPT follows next frame), READY_SCRIPT its Ready.
+    /// </summary>
     public override void HandleEvent(Event e)
     {
         switch (e.EventNum)
         {
+            case ThingEvent.Shutdown:
+                if ((Context.Game?.State ?? Game.GameState.Playing) <= Game.GameState.Playing && Script is not null)
+                {
+                    Script.Shutdown();
+                }
+
+                base.HandleEvent(e);
+                break;
             case ThingEvent.InitScript:
-                Context.Skip("IScript::Init");
+                Script?.Init();
                 if (!IsA(ThingType.Unit))
                 {
                     Context.Events.AddEvent(ThingEvent.ReadyScript, this, EventManager.NextFrame);
@@ -435,7 +465,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
 
                 break;
             case ThingEvent.ReadyScript:
-                Context.Skip("IScript::Ready");
+                Script?.Ready();
                 break;
             default:
                 base.HandleEvent(e);
@@ -443,7 +473,10 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
         }
     }
 
-    /// <summary>CComplexThing::Shutdown.</summary>
+    /// <summary>
+    /// CComplexThing::Shutdown: out of the named things, no longer an objective, then CThing's; its `delete this`
+    /// runs ~CComplexThing (004f3f00), which deletes the script.
+    /// </summary>
     public override void Shutdown()
     {
         if (Name is not null)
@@ -452,19 +485,53 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
             Name = null;
         }
 
-        Context.Skip("CThing::SetObjective(FALSE)");
+        SetObjective(false);
         base.Shutdown();
+        if (Script is not null)
+        {
+            Script.Delete();
+            Script = null;
+        }
     }
 
-    /// <summary>CComplexThing::AddShutdownEvent: the script's Died, then CThing's.</summary>
+    /// <summary>CComplexThing::AddShutdownEvent: the script's Died, and the script goes; then CThing's.</summary>
     public override void AddShutdownEvent()
     {
         if ((Flags & ThingFlags.DeclaredShutdown) == 0 && Script is not null)
         {
-            Context.Skip("IScript::Died");
+            Script.Died();
+            Script.Delete();
             Script = null;
         }
 
         base.AddShutdownEvent();
+    }
+
+    /// <summary>CComplexThing::StartDieProcess: CThing's, and the script hears it started dying.</summary>
+    public override bool StartDieProcess()
+    {
+        if (base.StartDieProcess())
+        {
+            Script?.StartedDying();
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>CComplexThing::Hit (004f4480): the script hears of a complex thing hitting this one.</summary>
+    public virtual void Hit(Thing other)
+    {
+        if (Script is not null && other.IsA(ThingType.ComplexThing))
+        {
+            Script.Hit((ComplexThing)other);
+        }
+    }
+
+    /// <summary>CComplexThing::FinishedPlayingCurrentAnimation (004f45a0): PlayAnimationWait's script carries on.</summary>
+    public bool FinishedPlayingCurrentAnimation()
+    {
+        Script?.FinishedPlayingAnim();
+        return true;
     }
 }

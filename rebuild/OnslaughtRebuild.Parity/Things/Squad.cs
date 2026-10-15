@@ -338,7 +338,7 @@ public abstract class Squad : ComplexThing, IThreatSource
     {
         if (Script is not null && other.IsA(ThingType.ComplexThing))
         {
-            Context.Skip("IScript::Hit");
+            Script.Hit((ComplexThing)other);
         }
     }
 

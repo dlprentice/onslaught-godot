@@ -55,6 +55,24 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
     public UnitAI? AI;
 
+    /// <summary>mAIState: AI_ON from the constructor; scripts set it (SetAIState).</summary>
+    public AIState CurrentAIState = AIState.On;
+
+    /// <summary>CUnit::GetAIState (slot 53, 00405e50).</summary>
+    public override AIState GetAIState() => CurrentAIState;
+
+    /// <summary>CUnit::SetAIState (004fdcb0): turning the AI off drops its target and its emitter step's flag.</summary>
+    public override void SetAIState(AIState state)
+    {
+        if (AI is { } ai && state == AIState.Off)
+        {
+            ai.Target.SetReader(null);
+            ai.Unknown10 = 0;
+        }
+
+        CurrentAIState = state;
+    }
+
     /// <summary>mGuide: what steers the unit (set by the subclass's Init).</summary>
     public Guide? Guide;
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // The thing calls the script natives make whose owners (Things/, a contributor and a contributor) have not ported them yet, in one
-// place: src/thing.cpp CThing::SetObjective 004f3970 (adapted here until Thing has it); src/unit.h CUnit::Unknown94
+// place: src/unit.h CUnit::Unknown94
 // (00405e60: 2; CPlane 5, CDropship 8), EnableWeapon 004fe2b0, DisableWeapon 004fe310, GetLife
 // 004f99f0, Unknown100 004fdd00; src/BattleEngine.cpp EnableFlightMode 0040dcb0, DisableFlightMode 0040dcc0,
 // EnableWeapon 0040dc30, DisableWeapon 0040dc60, IsWalking 00408120. Each line becomes a direct call when its owner
@@ -12,26 +12,8 @@ namespace OnslaughtRebuild.Parity.Script;
 
 internal static class ScriptThingCalls
 {
-    /// <summary>
-    /// CThing::SetObjective: a thing marked as an objective joins the world's objective list (at its head) once, and
-    /// leaves it when unmarked. Adapted here until Thing has it (CComplexThing::Shutdown calls it too).
-    /// </summary>
-    public static void SetObjective(ScriptRuntime runtime, Thing thing, bool value)
-    {
-        if (value)
-        {
-            if ((thing.Flags & ThingFlags.MarkedObjective) == 0)
-            {
-                runtime.Context.World.ObjectiveThings.Add(thing);
-                thing.Flags |= ThingFlags.MarkedObjective;
-            }
-        }
-        else if ((thing.Flags & ThingFlags.MarkedObjective) != 0)
-        {
-            runtime.Context.World.ObjectiveThings.Remove(thing);
-            thing.Flags &= ~ThingFlags.MarkedObjective;
-        }
-    }
+    /// <summary>CThing::SetObjective (Thing.SetObjective).</summary>
+    public static void SetObjective(ScriptRuntime runtime, Thing thing, bool value) => thing.SetObjective(value);
 
     /// <summary>CUnit::Unknown94 (slot 94): the waypoint radius, 2 for a unit, 5 for a plane, 8 for a dropship.</summary>
     public static float Unknown94(Unit unit) => unit switch

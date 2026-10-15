@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Adapted from bea-decomp src/text.cpp and src/text.h (CText; reconstructed from the retail program, not in Stuart's
-// release).
+// Adapted from bea-decomp src/text.cpp and src/text.h (CText: GetLanguageName 004f2190, Load 004f21f0, GetSoundName
+// 004f24b0, GetStringById 004f2580; reconstructed from the retail program, not in Stuart's release).
 
 using System.Buffers.Binary;
 using System.Text;
+using OnslaughtRebuild.Parity.Script;
 
 namespace OnslaughtRebuild.Parity.Text;
 
@@ -12,21 +13,33 @@ namespace OnslaughtRebuild.Parity.Text;
 /// by hashed id. The retail files are version 3 (a 0xffffffbb marker, the version, the entry count, then per entry the
 /// id, the text's offset in UTF-16 units and the sample's offset, then the text pool's length and the pool).
 /// </summary>
-public sealed class TextDatabase
+public sealed class TextDatabase : IGameText
 {
     private readonly byte[] _file;
     private readonly int _entries;
     private readonly int _stride;
     private readonly int _textStart;
 
-    private TextDatabase(byte[] file, int format, int entries, int textStart)
+    private readonly int _stringsStart = -1;
+
+    private TextDatabase(byte[] file, int format, int entries, int textStart, int language)
     {
         _file = file;
         Format = format;
         _entries = entries;
         _textStart = textStart;
         _stride = format == 1 ? 2 : 3;
+        Language = language;
+        if (format is 2 or 3)
+        {
+            // mStrings: after the text pool (its byte length precedes it) and the strings' own length.
+            int textSize = (int)Word(file, entries * 3 + 3);
+            _stringsStart = textStart + textSize + 4;
+        }
     }
+
+    /// <summary><c>mLanguage</c>: 0 English, 1 French, 2 German, 3 Spanish, 4 Italian (the front end's choice).</summary>
+    public int Language { get; }
 
     /// <summary><c>mFormat</c>: 1, 2 or 3 (format 0, the unversioned 8-bit table, is not used by the PC's files).</summary>
     public int Format { get; }
@@ -37,7 +50,7 @@ public sealed class TextDatabase
         : $@"data\LANGUAGE\{language switch { 1 => "french", 2 => "german", 3 => "spanish", 4 => "italian", _ => "english" }}.DAT";
 
     /// <summary><c>CText::Load</c> (0x004f21f0) for one file's bytes.</summary>
-    public static TextDatabase Load(byte[] file)
+    public static TextDatabase Load(byte[] file, int language = 0)
     {
         uint marker = Word(file, 0);
         if (marker != 0xffffffbb) throw new NotSupportedException("The unversioned (format 0) text file is not supported.");
@@ -45,8 +58,8 @@ public sealed class TextDatabase
         int entries = (int)Word(file, 2);
         return version switch
         {
-            1 => new TextDatabase(file, 1, entries, (entries * 2 + 3) * 4),
-            2 or 3 => new TextDatabase(file, (int)version, entries, (entries * 3 + 4) * 4),
+            1 => new TextDatabase(file, 1, entries, (entries * 2 + 3) * 4, language),
+            2 or 3 => new TextDatabase(file, (int)version, entries, (entries * 3 + 4) * 4, language),
             _ => throw new NotSupportedException($"Unknown text file version {version}."),
         };
     }
@@ -65,6 +78,49 @@ public sealed class TextDatabase
         }
         return StringAt(0);
     }
+
+    /// <summary>
+    /// <c>CText::GetSoundName</c> (0x004f24b0): the first entry with the id's sample name (a byte offset into the sample
+    /// names after the text pool), or null for -1, an unknown id or a version-1 file.
+    /// </summary>
+    public string? GetSoundName(uint id)
+    {
+        if (Format is not (2 or 3))
+        {
+            return null;
+        }
+
+        for (int entry = 0; entry < _entries; entry++)
+        {
+            int at = 3 + entry * 3;
+            if (Word(_file, at) == id)
+            {
+                int sound = (int)Word(_file, at + 2);
+                if (sound == -1)
+                {
+                    return null;
+                }
+
+                int start = _stringsStart + sound;
+                int end = Array.IndexOf(_file, (byte)0, start);
+                return Encoding.Latin1.GetString(_file, start, (end < 0 ? _file.Length : end) - start);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary><c>CText::GetLanguageName</c> (0x004f2190): an unknown language logs and gives "english".</summary>
+    public string LanguageName => Language switch
+    {
+        1 => "french",
+        2 => "german",
+        3 => "spanish",
+        4 => "italian",
+        _ => "english",
+    };
+
+    string? IGameText.GetString(uint id) => GetStringById(id);
 
     private string StringAt(int units)
     {
