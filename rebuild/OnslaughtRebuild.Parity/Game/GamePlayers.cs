@@ -68,8 +68,123 @@ public sealed class ThingCamera : Camera
 }
 
 /// <summary>CPlayer: a player's number (from 1), battle engine and view.</summary>
-public sealed class Player(int number, ThingContext context) : Monitor
+public sealed class Player(int number, ThingContext context) : Monitor, Platform.IButtonReceiver
 {
+    /// <summary>mTimeoutTime: the platform time of the last button.</summary>
+    public float TimeoutTime;
+
+    bool Platform.IButtonReceiver.CanBeControlledWhenInPause => false;
+
+    Platform.ControlType Platform.IButtonReceiver.ControlType => Platform.ControlType.Mech;
+
+    /// <summary>
+    /// CPlayer::ReceiveButtonAction (004d3110): nothing outside play; the inactivity clock; pause, help and skipping the
+    /// pan; then, with a powered battle engine that is not dying: the look axes inverted by the career (read as off: the
+    /// wiped career) and shaped by tan(1.2 v) * 3 over tan(1.2) * 3 (fptan's value approximated in double); the engine's
+    /// own buttons; and the walker's moves.
+    /// The jet, morphing, zoom, configuration, weapons and cloak are not ported (they throw).
+    /// </summary>
+    public void ReceiveButtonAction(Platform.Controller from, int button, float val)
+    {
+        Game game = context.Game!;
+        if (game.State > GameState.Playing || game.State <= GameState.PreRunning)
+        {
+            return;
+        }
+
+        TimeoutTime = game.Clock.GetSysTimeFloat();
+        if (button == Platform.Buttons.Pause)
+        {
+            throw new NotSupportedException("CPlayer::ReceiveButtonAction: the pause is not ported");
+        }
+
+        if (button == Platform.Buttons.SkipPanning && CurrentView == PlayerView.Pan && game.State == GameState.Panning)
+        {
+            throw new NotSupportedException("CPlayer::ReceiveButtonAction: skipping the pan is not ported");
+        }
+
+        if (game.State < GameState.Playing)
+        {
+            return;
+        }
+
+        if (BattleEngine is not Things.BattleEngine be || be.IsDying || !be.PoweredUp)
+        {
+            return;
+        }
+
+        if (button is Platform.Buttons.MechYawRight or Platform.Buttons.MechYawLeft or Platform.Buttons.MechPitchUp
+            or Platform.Buttons.MechPitchDown)
+        {
+            // As compiled (004d322d..004d327d): fptan inline, its result times 3 rounded once at the 24-bit control word
+            // (the tangent itself is never stored); the negative arm multiplies by -1.2f and negates after; the divisor
+            // is the static t2, stored as a float.
+            float t1 = val > 0.0f
+                ? (float)Numerics.X87.Mul(Numerics.X87.Tan(val * 1.2f), 3.0f)
+                : -(float)Numerics.X87.Mul(Numerics.X87.Tan(val * -1.2f), 3.0f);
+            val = t1 / LookCurveScale;
+        }
+
+        if (be.State is not (BattleEngineState.MorphingIntoWalker or BattleEngineState.MorphingIntoJet))
+        {
+            switch (button)
+            {
+                case Platform.Buttons.MechMorph:
+                case Platform.Buttons.MechChangeZoomIn:
+                case Platform.Buttons.MechChangeZoomOut:
+                case Platform.Buttons.MechChargeGunPod:
+                case Platform.Buttons.MechFireGunPod:
+                case Platform.Buttons.MechChangeWeapon:
+                case Platform.Buttons.MechCloak:
+                    throw new NotSupportedException($"CPlayer::ReceiveButtonAction: button {button} (the battle engine's own action) is not ported");
+            }
+        }
+
+        if (be.State == BattleEngineState.Walker)
+        {
+            BattleEngineWalkerPart walker = be.WalkerPart!;
+            switch (button)
+            {
+                case Platform.Buttons.MechForward:
+                    walker.Forward(val);
+                    break;
+                case Platform.Buttons.MechBackward:
+                    walker.Backward(val);
+                    break;
+                case Platform.Buttons.MechStrafeLeft:
+                    walker.StrafeLeft(val);
+                    break;
+                case Platform.Buttons.MechLandingJets:
+                    walker.ActivateLandingJets();
+                    break;
+                case Platform.Buttons.MechStrafeRight:
+                    walker.StrafeRight(val);
+                    break;
+                case Platform.Buttons.MechYawLeft:
+                case Platform.Buttons.MechYawRight:
+                    walker.Rotate(val);
+                    break;
+                case Platform.Buttons.MechPitchUp:
+                case Platform.Buttons.MechPitchDown:
+                    walker.Pitch(val);
+                    break;
+            }
+
+            return;
+        }
+
+        if (be.State == BattleEngineState.Jet)
+        {
+            throw new NotSupportedException("CPlayer::ReceiveButtonAction: the jet's controls are not ported");
+        }
+    }
+
+    /// <summary>
+    /// The static t2 = (float)tan(1.2f) * 3.0f as compiled: the tangent of the double constant 1.2f (fldl 005de798),
+    /// times 3, rounded once and stored as a float (0082b5b8).
+    /// </summary>
+    private static readonly float LookCurveScale = (float)Numerics.X87.Mul(Numerics.X87.Tan((double)1.2f), 3.0f);
+
     /// <summary>GOTO_CONTROL_VIEW: the pan is over.</summary>
     public const int GotoControlViewEvent = 4000;
 

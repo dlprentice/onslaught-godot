@@ -57,6 +57,169 @@ public sealed class BattleEngineWalkerPart
 
     public int GetDashCount() => DoingDashCount;
 
+    /// <summary>The dash's console variables (g_dash_*): start and end thresholds, time, length and velocity.</summary>
+    public static float DashTime = 0.2f;
+    public static float DashStart = 0.9f;
+    public static float DashEnd = 0.8f;
+    public static int DashLength = 15;
+    public static float DashVelocity = 25.0f;
+
+    /// <summary>GetCurrentAccleration: the configuration's ground velocity / 50 (a multiply by 0.02f, 00412d94).</summary>
+    private float CurrentAcceleration() => _main.Configuration!.GroundVelocity * 0.02f;
+
+    /// <summary>A dash: the weapon's charge lost and the zoom-out reset (LoseWeaponCharge is not ported: it throws).</summary>
+    private void StartDash()
+    {
+        throw new NotSupportedException("CBattleEngineWalkerPart's dash (LoseWeaponCharge and the strafe sound) is not ported");
+    }
+
+    private bool DashWindow(float startTime)
+    {
+        float now = Context.Events.Time;
+        return startTime > now - DashTime && startTime < now - (DashTime * 0.5f);
+    }
+
+    /// <summary>Forward (00412d80): -(acceleration * vy) along the heading, when on the ground and not dashing.</summary>
+    public void Forward(float vy)
+    {
+        float val = -(CurrentAcceleration() * vy);
+        if (!_main.IsOnGround() || DoingDashCount > 0)
+        {
+            return;
+        }
+
+        if (LastMoveYVal > -DashStart && vy < -DashStart && DoingDashCount == 0)
+        {
+            LastStartHardForwardTime = Context.Events.Time;
+        }
+
+        if (LastMoveYVal > -DashEnd && vy < -DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardBackwardTime))
+        {
+            StartDash();
+        }
+
+        LastMoveYVal = vy;
+        AddAlongHeading(val);
+    }
+
+    /// <summary>Backward (00412f70): as Forward, the other way.</summary>
+    public void Backward(float vy)
+    {
+        float val = CurrentAcceleration() * vy;
+        if (!_main.IsOnGround() || DoingDashCount > 0)
+        {
+            return;
+        }
+
+        if (LastMoveYVal < DashStart && vy > DashStart && DoingDashCount == 0)
+        {
+            LastStartHardBackwardTime = Context.Events.Time;
+        }
+
+        if (LastMoveYVal < DashEnd && vy > DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardForwardTime))
+        {
+            StartDash();
+        }
+
+        LastMoveYVal = vy;
+        AddAlongHeading(-val);
+    }
+
+    /// <summary>
+    /// FMatrix(yaw, 0, 0) * (0, val, 0) as Forward compiles it (the out-of-line constructor 004062d0, then each row's Y
+    /// times val, 00412efb..00412f1e), quartered for slow movement (fmul 0.25f), added to the velocity.
+    /// </summary>
+    private void AddAlongHeading(float val)
+    {
+        FMatrix ori = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f);
+        var move = new FVector(ori.Row0.Y * val, ori.Row1.Y * val, ori.Row2.Y * val);
+        if (_main.SlowMovement)
+        {
+            move = new FVector(move.X * 0.25f, move.Y * 0.25f, move.Z * 0.25f);
+        }
+
+        _main.AddVelocity(move);
+    }
+
+    /// <summary>StrafeLeft (00413160): -(acceleration * vx) across the heading.</summary>
+    public void StrafeLeft(float vx)
+    {
+        if (!_main.IsOnGround() || DoingDashCount > 0)
+        {
+            return;
+        }
+
+        float val = CurrentAcceleration() * -vx;
+        if (LastMoveXVal > -DashStart && vx < -DashStart && DoingDashCount == 0)
+        {
+            LastStartHardLeftTime = Context.Events.Time;
+        }
+
+        if (LastMoveXVal > -DashEnd && vx < -DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardRightTime))
+        {
+            StartDash();
+        }
+
+        LastMoveXVal = vx;
+        FVector move = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f).Transform(new FVector(-val, 0.0f, 0.0f));
+        if (_main.SlowMovement)
+        {
+            move = new FVector(move.X * 0.25f, move.Y * 0.25f, move.Z * 0.25f);
+        }
+
+        _main.AddVelocity(move);
+    }
+
+    /// <summary>StrafeRight (00413360): acceleration * vx across the heading (retail quarters val, not the move, when slow).</summary>
+    public void StrafeRight(float vx)
+    {
+        if (!_main.IsOnGround() || DoingDashCount > 0)
+        {
+            return;
+        }
+
+        float val = CurrentAcceleration() * vx;
+        if (LastMoveXVal < DashStart && vx > DashStart && DoingDashCount == 0)
+        {
+            LastStartHardRightTime = Context.Events.Time;
+        }
+
+        if (LastMoveXVal < DashEnd && vx > DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardLeftTime))
+        {
+            StartDash();
+        }
+
+        LastMoveXVal = vx;
+        Context.Skip("CBattleEngineWalkerPart::StrafeRight's inline FMatrix * FVector (its order is unchecked)");
+        FVector move = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f).Transform(new FVector(val, 0.0f, 0.0f));
+        _main.AddVelocity(move);
+    }
+
+    /// <summary>The yaw binding's type: a mouse bound to yaw in either direction ("any") turns 1.7 times as fast.</summary>
+    private float LookMultiplier() =>
+        Context.Bindings.InputType(1, 0) is Platform.PushType.MouseAxisMinusAny or Platform.PushType.MouseAxisPlusAny ? 1.7f : 1.0f;
+
+    /// <summary>Rotate (00413660): yawvel - zoom modifier * ((mult * vx) * ground turn rate * (1/75)).</summary>
+    public void Rotate(float vx)
+    {
+        float mult = LookMultiplier();
+        float yawvel = _main.Yawvel;
+        float zm = _main.ZoomModifier(_main.Zoom);
+        _main.Yawvel = yawvel - (zm * ((mult * vx) * _main.Configuration!.GroundTurnRate * 0.013333334f));
+    }
+
+    /// <summary>Pitch (004136e0): pitchvel - zoom modifier * (mult * vy * (1/117)).</summary>
+    public void Pitch(float vy)
+    {
+        float mult = LookMultiplier();
+        float pitchvel = _main.Pitchvel;
+        float zm = _main.ZoomModifier(_main.Zoom);
+        _main.Pitchvel = pitchvel - (zm * (mult * vy * 0.008547009f));
+    }
+
+    public void ActivateLandingJets() =>
+        throw new NotSupportedException("CBattleEngineWalkerPart::ActivateLandingJets is not ported");
+
     private ThingContext Context => _main.Context;
 
     private Weapon? SpawnWeapon(byte[]? name)

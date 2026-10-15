@@ -90,6 +90,9 @@ public static class X87
     public static double Sin(double x) =>
         double.IsInfinity(x) ? double.NaN : Math.Abs(x) >= 9.2233720368547758e18 ? x : Math.Sin(x);
 
+    /// <summary>tan as the runtime computes it (fptan's value, approximated to double precision; see <see cref="Sin"/>).</summary>
+    public static double Tan(double x) => Math.Tan(x);
+
     /// <summary>The value fcos leaves in the register, approximated to double precision (see <see cref="Sin"/>).</summary>
     public static double Cos(double x) =>
         double.IsInfinity(x) ? double.NaN : Math.Abs(x) >= 9.2233720368547758e18 ? x : Math.Cos(x);

@@ -85,6 +85,9 @@ public sealed class ThingContext(
 
     public void Skip(string what) => NotPorted[what] = NotPorted.GetValueOrDefault(what) + 1;
 
+    /// <summary>CONTROL_BINDINGS: the defaults, or what the boot's options file loaded.</summary>
+    public Platform.ControlBindings Bindings { get; set; } = Platform.ControlBindings.Defaults();
+
     /// <summary>The PC's mouse look: CBattleEngine::UpdateMouseLookAngles's statics and the platform's mouse.</summary>
     public MouseLookState MouseLook { get; } = new();
 
@@ -127,8 +130,39 @@ public sealed class MouseLookState
     public int LastFrame = 2;
     public int WindowWidth = 640;
     public int WindowHeight = 480;
-    public int MouseX = 320;
-    public int MouseY = 240;
+    private int _mouseX = 320;
+    private int _mouseY = 240;
+
+    /// <summary>The platform's mouse (MOUSE_X and MOUSE_Y), when the level has one.</summary>
+    public Platform.Mouse? Platform { get; set; }
+
+    public int MouseX
+    {
+        get => Platform?.X ?? _mouseX;
+        set
+        {
+            if (Platform is not null)
+            {
+                Platform.X = value;
+            }
+
+            _mouseX = value;
+        }
+    }
+
+    public int MouseY
+    {
+        get => Platform?.Y ?? _mouseY;
+        set
+        {
+            if (Platform is not null)
+            {
+                Platform.Y = value;
+            }
+
+            _mouseY = value;
+        }
+    }
     public float Sensitivity = 7.0f;
     public bool InvertY;
 }

@@ -76,6 +76,15 @@ public sealed partial class BattleEngine
     /// <summary>mPlayer.ToRead().</summary>
     public object? PlayerReader => Player;
 
+    /// <summary>mSlowMovement (cleared by the constructor and by Init).</summary>
+    public bool SlowMovement;
+
+    /// <summary>ZoomModifier (00409e60): 1 - (1 - z).</summary>
+    public float ZoomModifier(float z) => 1.0f - (1.0f - z);
+
+    /// <summary>CActor::AddVelocity: mVelocity += v.</summary>
+    public void AddVelocity(FVector v) => Velocity = new FVector(Velocity.X + v.X, Velocity.Y + v.Y, Velocity.Z + v.Z);
+
     /// <summary>Activate (00406000): powered up (the thing stays as it was).</summary>
     public override void Activate() => PoweredUp = true;
 
@@ -638,7 +647,7 @@ public sealed partial class BattleEngine
             return false;
         }
 
-        if (Bindings.InputType(1, 0) is not (Platform.PushType.MouseAxisMinus or Platform.PushType.MouseAxisPlus))
+        if (Context.Bindings.InputType(1, 0) is not (Platform.PushType.MouseAxisMinus or Platform.PushType.MouseAxisPlus))
         {
             return false;
         }
@@ -646,8 +655,6 @@ public sealed partial class BattleEngine
         return IsOnGround() || IsOnObject();
     }
 
-    /// <summary>The level's control bindings (CONTROL_BINDINGS): the defaults until a career's options are loaded.</summary>
-    public static Platform.ControlBindings Bindings { get; set; } = Platform.ControlBindings.Defaults();
 
     /// <summary>
     /// UpdateMouseLookAngles (00407540): each call counts a frame; with mouse look active, a call straight after the last

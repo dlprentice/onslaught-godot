@@ -30,6 +30,12 @@ public sealed class LevelSession
         Clock = clock;
     }
 
+    /// <summary>The keyboard, mouse and controllers.</summary>
+    public LevelInput Input { get; private init; } = null!;
+
+    /// <summary>A replay tape: its events are delivered after the Present they follow.</summary>
+    public RetailTape? Tape { get; set; }
+
     /// <summary>The platform clock the game reads; each Flip is a Present.</summary>
     public Clock.PlatformClock Clock { get; }
 
@@ -58,6 +64,11 @@ public sealed class LevelSession
             Game.PreRun();
             Clock.Present();
             return;
+        }
+
+        if (Tape is not null)
+        {
+            Input.Deliver(Tape.EventsAt(before));
         }
 
         while (Clock.PresentCount == before)
@@ -95,9 +106,26 @@ public sealed class LevelSession
 
         var clock = new Clock.PlatformClock();
         var events = new EventManager();
-        var services = new ScriptGameServices(new NullGameServices(clock.Present));
+        // WinMain's boot load of the saved options (defaultoptions.bea): the bindings and gMouseSensitivity.
+        Platform.ControlBindings bindings = Platform.ControlBindings.Defaults();
+        Career.CareerOptions? options = null;
+        try
+        {
+            options = Career.DefaultOptions.Load(Career.Career.Constructed(), bindings, read(Career.DefaultOptions.FileName).Bytes);
+        }
+        catch (FileNotFoundException)
+        {
+        }
+
+        var input = new LevelInput(clock, bindings);
+        if (options is not null)
+        {
+            input.Shared.MouseSensitivity = options.MouseSensitivity;
+        }
+        var services = new ScriptGameServices(input);
         var game = new Game(clock, events, services) { CurrentLevel = level };
         game.InitRestartLoop();
+        input.InitMouse();
         var pool = new SPtrSetPool();
         pool.Init(SPtrSetPool.RetailBlockSize);
         SeedUniformRandomNumberStream random = game.RandomStream!;
@@ -130,6 +158,10 @@ public sealed class LevelSession
         game.CreatePlayers(context, multiplayerWorld: false);
         game.AssignPlayersToStarts(context);
         scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
-        return new LevelSession(context, game, resources, clock);
+        input.AttachPlayers(game);
+        context.Bindings = bindings;
+        context.MouseLook.Platform = input.Input.Mouse;
+        context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
+        return new LevelSession(context, game, resources, clock) { Input = input };
     }
 }
