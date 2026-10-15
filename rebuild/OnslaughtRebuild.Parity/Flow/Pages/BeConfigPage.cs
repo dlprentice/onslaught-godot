@@ -13,8 +13,7 @@ namespace OnslaughtRebuild.Parity.Flow.Pages;
 /// </summary>
 /// <remarks>
 /// Not modelled: the auto-configuration test's select; the turning Battle Engine model (<c>CFrontEndThing</c>, drawn
-/// only) and the rest of the drawing. The panel's slide uses <c>cosf</c>, approximated with the double cosine rounded to a
-/// float; it is exact once the page is settled, where the arrows' click boxes are at x 162.
+/// only) and the rest of the drawing. Once the page is settled the arrows' click boxes are at x 162.
 /// </remarks>
 public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
 {
@@ -123,7 +122,8 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
     /// </summary>
     public override void Render(float transition, FrontEndPage dest)
     {
-        float slide = (float)X87.Mul(X87.Mul(X87.Sub(-(float)Math.Cos((float)X87.Mul(transition, MathF.PI)), 1f), 0.5f), 600f);
+        // cosf: the float argument's x87 cosine, stored to a float.
+        float slide = (float)X87.Mul(X87.Mul(X87.Sub(-(float)X87.Cos((float)X87.Mul(transition, MathF.PI)), 1f), 0.5f), 600f);
         float offset = dest == FrontEndPage.Wingmen ? -slide : slide;
         float x = (float)X87.Sub(162f, offset);
 

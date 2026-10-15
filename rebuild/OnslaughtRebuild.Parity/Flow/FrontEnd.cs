@@ -65,6 +65,9 @@ public abstract class FrontEndPageBase
     public virtual void ActiveNotification(FrontEndPage from) { }
     public virtual void DeActiveNotification() { }
 
+    /// <summary>The page's <c>Shutdown</c>, when the front end ends.</summary>
+    public virtual void Shutdown() { }
+
     /// <summary>
     /// The part of the page's <c>Render</c> that changes state (mouse hovers and clicks, scroll clamps), called in the
     /// render's page order; drawing is the host's. <paramref name="transition"/> is 1 when settled.
@@ -169,7 +172,7 @@ public sealed class FrontEnd : IButtonReceiver
     public int SuccessTransitionTime { get; private set; }
 
     /// <summary><c>mSelectedLevel</c>: the level the front end will start.</summary>
-    public int SelectedLevel { get; set; } = 100;
+    public int SelectedLevel { get; set; } = -1;
 
     /// <summary><c>mMemoryCardNumber</c>.</summary>
     public int MemoryCardNumber { get; set; }
@@ -355,6 +358,136 @@ public sealed class FrontEnd : IButtonReceiver
         TransitionTime = time;
         ActivePage = FrontEndPage.Transition;
         this[TransitionTo].TransitionNotification(TransitionFrom);
+    }
+
+    /// <summary><c>mFirstRun</c>: true until the first front-end start has entered the title page.</summary>
+    public bool FirstRun { get; set; } = true;
+
+    /// <summary><c>CLIPARAMS.mDeveloperMode</c>: off in a retail start.</summary>
+    public bool DeveloperMode { get; set; }
+
+    /// <summary>
+    /// The game's <c>END_LEVEL_DATA</c>, which the last level filled and <c>CAREER.Update()</c> reads at each front-end
+    /// start; from the host (shared with the game).
+    /// </summary>
+    public Career.EndLevelData EndLevelData { get; set; } = new();
+
+    /// <summary>
+    /// <c>CFrontEnd::Init</c> (0x004662a0) for <paramref name="entry"/>, as far as the flow sees it:
+    /// <list type="number">
+    /// <item>the career takes the last level's result (<c>CAREER.Update()</c>);</item>
+    /// <item>the message box resets;</item>
+    /// <item>every page initialises (any failure fails the start, after all have run);</item>
+    /// <item>supervisor mode is set; the controllers are made and the input flushed; the counter, quit and render
+    /// time reset;</item>
+    /// <item>the start page is chosen (see below) and gets its transition and active notifications again, from the
+    /// common page;</item>
+    /// <item>the selected level goes back to 100.</item>
+    /// </list>
+    /// The first start, or one from the attract videos, goes to the title page. A start after a level goes to the
+    /// debriefing, through the save page (an autosave, success to the debriefing at 50) unless the autosave is pretend,
+    /// a stress test or the auto-configuration test is running, or all cheats are on. Race levels (901-905) go to the
+    /// goodies instead, and multiplayer levels (850-879) to the multiplayer page.
+    /// Not modelled: loading the front end's data, text, video, sound and music (presentation, the host's), the event
+    /// manager, and the Xbox dashboard return (<c>mGoStraightToDeviceSelectScreen</c>, never set on PC).
+    /// </summary>
+    public bool Init(FrontEndEntry entry)
+    {
+        Career.Update(EndLevelData);
+        MessageBox.Init();
+        bool ok = true;
+        foreach (FrontEndPageBase page in _pages) ok &= page.Init();
+        if (!ok) return false;
+        SupervisorMode = true;
+        for (int port = 0; port < ControllerPorts; port++) Controllers[port] = new Controller(port, 1, this);
+        Platform.FlushInputBuffers();
+        Counter = 0f;
+        Quit = QuitRunning;
+        LastRenderTime = -100f;
+
+        if (FirstRun || entry == FrontEndEntry.FromAttract)
+        {
+            FirstRun = false;
+            ActivePage = FrontEndPage.Unknown;
+            SetPage(DeveloperMode && SupervisorMode ? FrontEndPage.Main : FrontEndPage.Intro, 0);
+        }
+        else if (entry == FrontEndEntry.TitleScreen)
+        {
+            ActivePage = FrontEndPage.Unknown;
+            SetPage(FrontEndPage.Main, 0);
+        }
+        else
+        {
+            bool save = AutoSave != AutoSaveMode.Pretend && !AllCheatsEnabled;
+            if (SelectedLevel > 900 && SelectedLevel < 906)
+                StartWithAutosave(save, FrontEndPage.Goodies);
+            else if (SelectedLevel >= 850 && SelectedLevel < 880)
+                ActivePage = FrontEndPage.Multiplayer;
+            else
+                StartWithAutosave(save, FrontEndPage.Debriefing);
+        }
+
+        if (ActivePage != FrontEndPage.Transition)
+        {
+            this[ActivePage].TransitionNotification(FrontEndPage.Common);
+            this[ActivePage].ActiveNotification(FrontEndPage.Common);
+        }
+        else
+        {
+            this[TransitionTo].TransitionNotification(FrontEndPage.Common);
+        }
+
+        SelectedLevel = 100;
+        return true;
+    }
+
+    private void StartWithAutosave(bool save, FrontEndPage after)
+    {
+        if (save)
+        {
+            SaveMode = true;
+            ActivePage = FrontEndPage.Unknown;
+            SetPage(FrontEndPage.SaveGame, 0);
+            SetSuccessPage(after, 50);
+        }
+        else
+        {
+            ActivePage = after;
+        }
+    }
+
+    /// <summary>
+    /// <c>CFrontEnd::Shutdown</c> (0x00466880), as far as the flow sees it: the last deactivation notifications (both pages
+    /// in a transition), every page's shutdown, and the controllers removed.
+    /// </summary>
+    public void Shutdown()
+    {
+        if (ActivePage == FrontEndPage.Transition)
+        {
+            this[TransitionFrom].DeActiveNotification();
+            this[TransitionTo].DeActiveNotification();
+        }
+        else
+        {
+            this[ActivePage].DeActiveNotification();
+        }
+        foreach (FrontEndPageBase page in _pages) page.Shutdown();
+        for (int port = 0; port < ControllerPorts; port++) Controllers[port] = null;
+    }
+
+    /// <summary>
+    /// <c>CFrontEnd::Run</c> (0x004684d0): nothing once the game has been told to quit (-1); otherwise start, process and
+    /// render until a page sets the quit value, shut down, and return it (-1 quit, -3 attract videos, or a level to play).
+    /// </summary>
+    public int Run(FrontEndEntry entry)
+    {
+        if (Quit == QuitToSystem) return QuitToSystem;
+        if (!Init(entry)) return QuitToSystem;
+        Platform.Window.FrontEndRunning = true;
+        while (Step()) { }
+        Shutdown();
+        Platform.Window.FrontEndRunning = false;
+        return Quit;
     }
 
     /// <summary>Starts on <paramref name="page"/> as <c>CFrontEnd::Init</c> does: from the unknown page, then the entry notifications.</summary>
@@ -545,6 +678,14 @@ public interface IFrontEndVideo
 
     /// <summary><c>FEV.Open(name, width, height, 0, TRUE, 0)</c>: the video at that size, looping.</summary>
     void Open(string path, int width, int height);
+}
+
+/// <summary><c>EFrontEndEntry</c>: how <c>CFrontEnd::Run</c> was entered.</summary>
+public enum FrontEndEntry
+{
+    Start = 0,
+    FromAttract = 1,
+    TitleScreen = 2,
 }
 
 /// <summary>

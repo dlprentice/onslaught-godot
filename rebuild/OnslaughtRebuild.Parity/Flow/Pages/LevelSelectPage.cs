@@ -104,6 +104,23 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
         return true;
     }
 
+    /// <summary><c>CFEPLevelSelect::Shutdown</c> (0x00460490): the cursor on the selected level, without scrolling.</summary>
+    public override void Shutdown()
+    {
+        Column = 0;
+        Row = 0;
+        for (int i = 0; i < Columns; i++)
+        {
+            for (int j = 0; j < Rows; j++)
+            {
+                if (_levels[i, j] != _frontEnd.SelectedLevel) continue;
+                Column = i;
+                Row = j;
+                return;
+            }
+        }
+    }
+
     /// <summary><c>CFEPLevelSelect::ActiveNotification</c> (0x004604f0).</summary>
     public override void ActiveNotification(FrontEndPage from)
     {

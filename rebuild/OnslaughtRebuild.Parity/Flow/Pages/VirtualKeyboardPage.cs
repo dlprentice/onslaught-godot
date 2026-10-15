@@ -132,7 +132,7 @@ public sealed class VirtualKeyboardPage : FrontEndPageBase, INameKeyboard
     }
 
     /// <summary><c>CFEPVirtualKeyboard::Shutdown</c> (0x0051ffd0).</summary>
-    public void Shutdown()
+    public override void Shutdown()
     {
         if (_frontEnd.Platform.KeyTrap == TrapHandler) _frontEnd.Platform.KeyTrap = null;
     }
