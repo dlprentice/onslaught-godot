@@ -67,6 +67,11 @@ Porting notes for the parity core:
   files), not `CMesh::InitFromMem` (loose `.msh` files, versions 2.01-2.07, with its inline quaternion helper). A
   complete level resource file never takes that path; if a later milestone needs it, check its quaternion helper's
   compiled evaluation on the real FPU first.
+- Loading-screen Presents are harness-dependent: CConsole::RenderLoadingScreen presents only when GetSysTimeFloat()
+  has moved 0.05 s, and under the replay shim time moves only at a Present or a spin escape (2,000,000 timer calls), so
+  the Present count of a loading segment (boot, level load) depends on how often the loading code polls the timers.
+  Those counts are observed constants from the retail runs; exact modelling starts at the first front-end Process or
+  the first MainLoop (lead's rule, 2026-10-15). No draw comes from timer polling, so the RNG is unaffected.
 - `.aya` positions such as the world's resource offset are positions in the decompressed stream (a packed file
   cannot seek, so `InitFromFile`'s start skip becomes a `Skip` after the first block).
 
