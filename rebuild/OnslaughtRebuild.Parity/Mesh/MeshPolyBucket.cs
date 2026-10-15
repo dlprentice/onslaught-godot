@@ -11,7 +11,7 @@ namespace OnslaughtRebuild.Parity.Mesh;
 /// A part's polygon bucket (collision search grid) as stored: the object record, a cell table of triangle index lists,
 /// the packed triangles and the packed (16-bit) vertices. Kept as read for the collision port.
 /// </summary>
-public sealed class MeshPolyBucket
+public sealed partial class MeshPolyBucket
 {
     public byte[] Record { get; private set; } = [];
 

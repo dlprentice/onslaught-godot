@@ -84,6 +84,64 @@ typedef float (*RayFn)(const FVector *, const FVector *, float);
 typedef float (*BoxFn)(const FVector *, const FVector *);
 typedef unsigned char (*ClipFn)(float *, float *, float *, float *, float *, float *, const float *);
 
+// Poly buckets in retail's layout (PolyBucket.h): the stored 0xb8-byte object with its pointers rebuilt.
+typedef struct { int16_t *mData; int32_t mCapacity; int32_t mEntries; int32_t mBorrowed; } IndexList;
+typedef struct { int16_t v[3]; int16_t stamp; uint32_t mask; } Tri;
+_Static_assert(sizeof(Tri) == 12, "triangle size");
+typedef struct { uint8_t *obj; Tri *tris; } Bucket;
+static Bucket sBuckets[1024];
+static int sNumBuckets;
+
+static int LoadBucket(const char *path)
+{
+	FILE *f = fopen(path, "rb");
+	if (!f) return -1;
+	int32_t len, cells, n;
+	if (fread(&len, 4, 1, f) != 1 || len != 0xb8) { fclose(f); return -1; }
+	uint8_t *obj = calloc(1, 0xb8);
+	if (fread(obj, 1, 0xb8, f) != 0xb8) { fclose(f); return -1; }
+	if (fread(&cells, 4, 1, f) != 1) { fclose(f); return -1; }
+	IndexList **table = calloc((size_t)cells + 1, sizeof(IndexList *));
+	for (int i = 0; i < cells; i++)
+	{
+		if (fread(&n, 4, 1, f) != 1) { fclose(f); return -1; }
+		if (n < 0) continue;
+		IndexList *l = calloc(1, sizeof(IndexList));
+		l->mData = calloc((size_t)n + 1, 2);
+		l->mEntries = n; l->mCapacity = n; l->mBorrowed = 1;
+		if (n && fread(l->mData, 2, (size_t)n, f) != (size_t)n) { fclose(f); return -1; }
+		table[i] = l;
+	}
+	if (fread(&n, 4, 1, f) != 1) { fclose(f); return -1; }
+	Tri *tris = calloc((size_t)n + 1, sizeof(Tri));
+	for (int i = 0; i < n; i++)
+	{
+		uint32_t mask; uint16_t v[4];
+		if (fread(&mask, 4, 1, f) != 1 || fread(v, 2, 4, f) != 4) { fclose(f); return -1; }
+		tris[i].mask = mask; tris[i].v[0] = (int16_t)v[0]; tris[i].v[1] = (int16_t)v[1]; tris[i].v[2] = (int16_t)v[2];
+		tris[i].stamp = (int16_t)v[3];
+	}
+	fclose(f);
+	*(IndexList ***)(obj + 0x60) = table;
+	*(Tri **)(obj + 0x64) = tris;
+	*(void **)(obj + 0x90) = NULL;
+	*(void **)(obj + 0x94) = NULL;
+	*(void **)(obj + 0x98) = NULL;
+	sBuckets[sNumBuckets].obj = obj;
+	sBuckets[sNumBuckets].tris = tris;
+	return sNumBuckets++;
+}
+
+typedef int16_t *(__attribute__((thiscall)) *StartLineFn)(void *, FVector *, FVector *);
+typedef int16_t *(__attribute__((thiscall)) *NextLineFn)(void *, int32_t);
+typedef int16_t *(__attribute__((thiscall)) *StartSphereFn)(void *, FVector *, float);
+typedef int16_t *(__attribute__((thiscall)) *NextSphereFn)(void *);
+
+static void PrintTri(Bucket *b, int16_t *t)
+{
+	printf(" %d", t ? (int)(((Tri *)t) - b->tris) : -1);
+}
+
 int main(int argc, char **argv)
 {
 	const char *image = argc > 1 ? argv[1] : "bea-image.bin";
@@ -172,6 +230,49 @@ int main(int argc, char **argv)
 			SetCw(saved);
 			printf(" %08x", (uint32_t)ok);
 			for (int i = 0; i < 6; i++) printf(" %08x", W(v[i]));
+		}
+		else if (!strcmp(name, "pbload"))
+		{
+			char path[1024];
+			sscanf(line, "%*s %1023s", path);
+			printf(" %d", LoadBucket(path));
+		}
+		else if (!strcmp(name, "pbline") && n >= 8)
+		{
+			Bucket *b = &sBuckets[w[0]];
+			FVector st = V(w + 1), en = V(w + 4);
+			int stop = (int)w[7];
+			SetCw(sControlWord);
+			int16_t *t = ((StartLineFn)0x004d50d0)(b->obj, &st, &en);
+			SetCw(saved);
+			int count = 0;
+			while (t && count < 4000)
+			{
+				PrintTri(b, t);
+				SetCw(sControlWord);
+				t = ((NextLineFn)0x004d57c0)(b->obj, stop);
+				SetCw(saved);
+				count++;
+			}
+			printf(" | %08x", *(uint32_t *)(b->obj + 0x9c));
+		}
+		else if (!strcmp(name, "pbsphere") && n >= 5)
+		{
+			Bucket *b = &sBuckets[w[0]];
+			FVector p = V(w + 1);
+			SetCw(sControlWord);
+			int16_t *t = ((StartSphereFn)0x004d4c00)(b->obj, &p, F(w[4]));
+			SetCw(saved);
+			int count = 0;
+			while (t && count < 4000)
+			{
+				PrintTri(b, t);
+				SetCw(sControlWord);
+				t = ((NextSphereFn)0x004d4f00)(b->obj);
+				SetCw(saved);
+				count++;
+			}
+			printf(" | %08x", *(uint32_t *)(b->obj + 0x9c));
 		}
 		else
 			printf(" ERROR unknown function or too few words (%d)", n);

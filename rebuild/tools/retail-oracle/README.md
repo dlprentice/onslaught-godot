@@ -17,6 +17,11 @@ code itself.
   Build: `gcc -m32 -O1 -no-pie -fno-pic -o retail-oracle retail-oracle.c`.
 - `gen-geometry.py SEED N` writes seeded cases for `Collision/Geometry.cs`: constructed hits and near misses, plus
   random cases.
+- `gen-buckets.py DIR SEED N` writes poly bucket search cases. DIR holds level 100's buckets as dumped by
+  `RetailOracleTests.DumpLevel100PolyBucketsForTheOracle` (set `ONSLAUGHT_RETAIL_ORACLE_DUMP`; retail-derived, keep
+  in scratch). Per bucket, N line walks and N sphere searches: a third of the endpoints on cell borders, with
+  axis-aligned, exact-diagonal and zero-length lines. `pbload PATH` rebuilds a bucket in retail's layout; `pbline` and
+  `pbsphere` list the triangles retail's search hands out, then the search stamp.
 
 The parity tests read the stored cases and results from `$ONSLAUGHT_RETAIL_ORACLE/<group>/{cases,retail}.txt` and
 skip visibly when they are absent (`RetailOracleTests`). The results are retail-derived and stay out of Git, like the
@@ -33,3 +38,4 @@ retail layout, for example the 16-byte `FVector` and the 0xe8-byte `CCollisionRe
 | Group | Functions | Cases | Differ |
 | --- | --- | --- | --- |
 | geometry (seeds 20261015 and 777) | ClipSegmentAgainstAABB3D 00478160, TestSweptSphereAgainstTriangle 00478510, TestSegmentAgainstTriangle 00478c20, PointInsideTrianglePrism 00479020, SelectClosestPointOnTriangleEdges 00479200, RaySphereEntryDistance 00479630, DistanceOutsideBox 00479770 | 7 x 12,000 | 0 (control: 317 to 764 per function) |
+| polybucket (level 100's 258 buckets; seeds 1015, 4243, 99) | StartLineSearch 004d50d0 + GetNextPolyLine 004d57c0 (with AdvanceLineSearch, IntersectsCell), StartSearch 004d4c00 + GetNextPoly 004d4f00 | 46,440 searches | 0 (control: 9 on cell-border cases; reversing IntersectsCell fails 2,840) |

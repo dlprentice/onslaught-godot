@@ -3,7 +3,10 @@
 using System.Globalization;
 using System.Text;
 using OnslaughtRebuild.Parity.Collision;
+using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Things;
 using Xunit.Abstractions;
 
 namespace OnslaughtRebuild.Parity.Tests;
@@ -15,11 +18,15 @@ namespace OnslaughtRebuild.Parity.Tests;
 /// </summary>
 public sealed class RetailOracleFactAttribute : FactAttribute
 {
-    public RetailOracleFactAttribute(string group)
+    public RetailOracleFactAttribute(string group, bool needsGameData = false)
     {
         if (RetailOracle.Dir(group) is null)
         {
             Skip = $"retail oracle results for '{group}' not found (set ONSLAUGHT_RETAIL_ORACLE)";
+        }
+        else if (needsGameData && GameData.Root is null)
+        {
+            Skip = "game installation not found (set ONSLAUGHT_GAME_DIR)";
         }
     }
 }
@@ -138,6 +145,148 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
             }
         }
 
+        foreach ((string function, int n) in counts.OrderBy(kv => kv.Key))
+        {
+            output.WriteLine($"{function}: {n} cases, {mismatches.GetValueOrDefault(function)} differ");
+        }
+
+        output.WriteLine(shown.ToString());
+        Assert.Empty(mismatches);
+    }
+
+    /// <summary>
+    /// Writes level 100's poly buckets for the oracle (ONSLAUGHT_RETAIL_ORACLE_DUMP set): per bucket its stored record,
+    /// cell lists, triangles and vertices. A tool step, skipped unless asked for.
+    /// </summary>
+    [GameDataFact]
+    public void DumpLevel100PolyBucketsForTheOracle()
+    {
+        string? dir = Environment.GetEnvironmentVariable("ONSLAUGHT_RETAIL_ORACLE_DUMP");
+        if (string.IsNullOrEmpty(dir))
+        {
+            output.WriteLine("ONSLAUGHT_RETAIL_ORACLE_DUMP not set: nothing written");
+            return;
+        }
+
+        (string rname, byte[] rbytes) = GameData.Read(@"data\Resources\100_res_PC.aya");
+        LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
+        Directory.CreateDirectory(dir);
+        int n = 0;
+        foreach ((string name, MeshData mesh) in resources.Meshes.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+        {
+            foreach (MeshPart part in mesh.Parts)
+            {
+                if (part.PolyBucket is not { } b)
+                {
+                    continue;
+                }
+
+                using var w = new BinaryWriter(File.Create(Path.Combine(dir, $"bucket{n:000}.bin")));
+                w.Write(b.Record.Length);
+                w.Write(b.Record);
+                w.Write(b.Cells.Length);
+                foreach (short[]? cell in b.Cells)
+                {
+                    w.Write(cell is null ? -1 : cell.Length);
+                    foreach (short t in cell ?? [])
+                    {
+                        w.Write(t);
+                    }
+                }
+
+                w.Write(b.Triangles.Length);
+                foreach ((uint mask, ushort v0, ushort v1, ushort v2, ushort stamp) in b.Triangles)
+                {
+                    w.Write(mask);
+                    w.Write(v0);
+                    w.Write(v1);
+                    w.Write(v2);
+                    w.Write(stamp);
+                }
+
+                w.Write(b.Vertices.Length);
+                foreach ((short x, short y, short z) in b.Vertices)
+                {
+                    w.Write(x);
+                    w.Write(y);
+                    w.Write(z);
+                }
+
+                output.WriteLine($"bucket{n:000}: {name} part {part.Index} {b.Width}x{b.Height}, {b.Triangles.Length} triangles");
+                n++;
+            }
+        }
+    }
+
+    private static List<MeshPolyBucket> Level100Buckets()
+    {
+        (string rname, byte[] rbytes) = GameData.Read(@"data\Resources\100_res_PC.aya");
+        LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
+        return resources.Meshes.OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .SelectMany(kv => kv.Value.Parts).Select(p => p.PolyBucket).OfType<MeshPolyBucket>().ToList();
+    }
+
+    /// <summary>
+    /// The poly bucket searches, against retail's own on level 100's buckets: the triangles each line walk and sphere box
+    /// hands out, in order, and the search stamp after (each bucket's state carries from case to case, as in retail).
+    /// </summary>
+    [RetailOracleFact("polybucket", needsGameData: true)]
+    public void PolyBucketSearchesMatchTheRetailFunctions()
+    {
+        List<MeshPolyBucket> buckets = Level100Buckets();
+        var statics = new PolyBucketStatics();
+        var mismatches = new Dictionary<string, int>();
+        var counts = new Dictionary<string, int>();
+        var shown = new StringBuilder();
+        string dir = RetailOracle.Dir("polybucket")!;
+        string[] cases = File.ReadAllLines(Path.Combine(dir, "cases.txt"));
+        string[] retail = File.ReadAllLines(Path.Combine(dir, "retail.txt"));
+        Assert.Equal(cases.Length, retail.Length);
+        int loaded = 0;
+        for (int i = 0; i < cases.Length; i++)
+        {
+            string[] f = cases[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (f[0] == "pbload")
+            {
+                loaded++;
+                continue;
+            }
+
+            uint[] w = f.Skip(1).Select(x => uint.Parse(x, NumberStyles.HexNumber)).ToArray();
+            MeshPolyBucket b = buckets[(int)w[0]];
+            var sb = new StringBuilder(f[0]);
+            int count = 0;
+            if (f[0] == "pbline")
+            {
+                bool stop = w[7] != 0;
+                for (int t = b.StartLineSearch(statics, RetailOracle.V(w, 1), RetailOracle.V(w, 4)); t != -1 && count < 4000;
+                     t = b.GetNextPolyLine(statics, stop), count++)
+                {
+                    sb.Append(' ').Append(t);
+                }
+            }
+            else
+            {
+                for (int t = b.StartSearch(statics, RetailOracle.V(w, 1), RetailOracle.F(w[4])); t != -1 && count < 4000;
+                     t = b.GetNextPoly(statics), count++)
+                {
+                    sb.Append(' ').Append(t);
+                }
+            }
+
+            sb.Append($" | {b.SearchStamp:x8}");
+            counts[f[0]] = counts.GetValueOrDefault(f[0]) + 1;
+            if (sb.ToString() != retail[i])
+            {
+                mismatches[f[0]] = mismatches.GetValueOrDefault(f[0]) + 1;
+                if (mismatches[f[0]] <= 3)
+                {
+                    shown.AppendLine($"case {i}: {cases[i]}\nretail {retail[i]}\nours   {sb}");
+                }
+            }
+        }
+
+        Assert.Equal(buckets.Count, loaded);
         foreach ((string function, int n) in counts.OrderBy(kv => kv.Key))
         {
             output.WriteLine($"{function}: {n} cases, {mismatches.GetValueOrDefault(function)} differ");
