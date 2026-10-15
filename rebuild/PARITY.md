@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-15 (proof-of-concept milestones and the retail tape harness; earlier rows keep their dates)
+Last updated: 2026-10-15 (proof-of-concept milestones, the retail tape harness and porting notes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -50,6 +50,16 @@ double held in a register, so ports follow the compiled instruction sequence, no
 
 Measured (M3 start, 2026-10-15): the ported random stream contains all 139 distinct RNG values of the level-100
 golden from seed 123456: 1,537 draws by Present 50, 2,470 by Present 3300 and 22,068 by Present 10000.
+
+Porting notes for the parity core:
+
+- The world's Z axis points down: heights are negative upward (actor.cpp's altitude is `MAP.Collide(pos) -
+  COfGHeight()`, AirGuide.cpp's ground is `-MAP.GetHeight(x, y)`), so a ground normal pointing up has negative Z
+  (`HeightField.Normal`; off the map it returns retail's (0, 0, 1)).
+- Float expressions keep the decompilation's association order. With float operands at 24-bit precision control,
+  C# float arithmetic in the same order gives retail's bits; double operands go through `X87`.
+- `.aya` positions such as the world's resource offset are positions in the decompressed stream (a packed file
+  cannot seek, so `InitFromFile`'s start skip becomes a `Skip` after the first block).
 
 ## The earlier rebuild's grades
 
