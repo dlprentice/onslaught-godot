@@ -155,6 +155,30 @@ public sealed class EventManagerTests
     }
 
     [Fact]
+    public void TheLogRecordsEachAddWithTheTimeItReceivedAndEachDispatch()
+    {
+        var log = new List<string>();
+        EventManager events = Started();
+        events.Log = [];
+        var r = new Recorder(log, "r");
+        events.AddEvent(7, r, EventManager.NextFrame, EventPriority.EndOfFrame);
+        events.AddEvent(8, null, 1.0f);
+        events.AddEvent(9, r, 2_000_000.0f);
+        var dead = new Recorder(log, "dead");
+        events.AddEvent(10, dead, 0.0f);
+        dead.Shutdown();
+        events.Update();
+        Assert.Equal(new[]
+        {
+            "A ev 7 Recorder t bf800000 p 2",
+            "A ev 8 (null) t 3f800000 p 0 dropped: no target",
+            "A ev 9 Recorder t 49f42400 p 0 dropped: past 1e6",
+            "A ev 10 Recorder t 00000000 p 0",
+            "F ev 7 Recorder",
+        }, events.Log.Select(e => e.ToString()));
+    }
+
+    [Fact]
     public void ThePoolRunsOutAtTwentyThousandEvents()
     {
         EventManager events = Started();

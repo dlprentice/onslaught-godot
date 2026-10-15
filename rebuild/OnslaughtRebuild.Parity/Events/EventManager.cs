@@ -110,6 +110,13 @@ public sealed class EventManager
     /// <summary>mEventsProcessedThisUpdate.</summary>
     public uint EventsProcessedInLastUpdate { get; private set; }
 
+    /// <summary>
+    /// When set, every core AddEvent call ('A': the absolute time it received, as bits, and the priority; a call that
+    /// schedules nothing names why in <see cref="EventLogEntry.Dropped"/>) and every dispatch to a live target ('F')
+    /// is appended, for comparison with a retail or native-port event trace.
+    /// </summary>
+    public List<EventLogEntry>? Log { get; set; }
+
     /// <summary>Events in the overflow list, in time order.</summary>
     public IReadOnlyList<ScheduledEvent> Overflow => _overflow;
 
@@ -190,6 +197,7 @@ public sealed class EventManager
     {
         if (!IsValid || toCall is null)
         {
+            LogAdd(eventNum, toCall, time, priority, !IsValid ? "invalid" : "no target");
             return; // retail logs "FATAL ERROR: Trying to add an event when event manager was invalid" for the first
         }
 
@@ -207,6 +215,7 @@ public sealed class EventManager
         {
             if (time > 1000000.0f)
             {
+                LogAdd(eventNum, toCall, time, priority, "past 1e6");
                 return;
             }
 
@@ -224,8 +233,11 @@ public sealed class EventManager
                 ScheduledEvent? overflowEvent = Prepare(reuseEvent, eventNum, nextTime, toCall, data);
                 if (overflowEvent is null)
                 {
+                    LogAdd(eventNum, toCall, time, priority, "pool empty");
                     return;
                 }
+
+                LogAdd(eventNum, toCall, time, priority, null);
 
                 _overflow.Insert(addPoint, overflowEvent);
                 TotalEvents++;
@@ -239,11 +251,28 @@ public sealed class EventManager
         ScheduledEvent? e = Prepare(reuseEvent, eventNum, nextTime, toCall, data);
         if (e is null)
         {
+            LogAdd(eventNum, toCall, time, priority, "pool empty");
             return;
         }
 
+        LogAdd(eventNum, toCall, time, priority, null);
+
         _buffers[offsetBuffer, (int)priority].Add(e);
         TotalEvents++;
+    }
+
+    private void LogAdd(int eventNum, Monitor? toCall, float time, EventPriority priority, string? dropped) =>
+        Log?.Add(new EventLogEntry('A', eventNum, toCall?.GetType().Name, BitConverter.SingleToUInt32Bits(time),
+            (int)priority, dropped));
+
+    /// <summary>A dispatch: retail calls HandleEvent only when the target is still alive.</summary>
+    private void Dispatch(ScheduledEvent e, Monitor? toCall)
+    {
+        if (toCall is not null)
+        {
+            Log?.Add(new EventLogEntry('F', e.EventNum, toCall.GetType().Name, 0, 0, null));
+            toCall.HandleEvent(e);
+        }
     }
 
     /// <summary>CEventManager::Update: AdvanceTime, then Flush.</summary>
@@ -283,7 +312,7 @@ public sealed class EventManager
                 ScheduledEvent e = list[i];
                 Monitor? toCall = e.ToCall;
                 e.BeingReused = false;
-                toCall?.HandleEvent(e);
+                Dispatch(e, toCall);
                 TotalEventsProcessed++;
             }
         }
@@ -295,7 +324,7 @@ public sealed class EventManager
             Monitor? toCall = e.ToCall;
             e.BeingReused = false;
             _currentProcessOverflowEventNum++;
-            toCall?.HandleEvent(e);
+            Dispatch(e, toCall);
             TotalEventsProcessed++;
         }
 
@@ -373,4 +402,15 @@ public sealed class EventManager
 
         return reuse;
     }
+}
+
+/// <summary>
+/// One line of <see cref="EventManager.Log"/>: 'A' for an AddEvent call (the absolute time it received as float bits,
+/// the priority, and why nothing was scheduled, if so) or 'F' for a dispatch.
+/// </summary>
+public readonly record struct EventLogEntry(char Kind, int EventNum, string? Target, uint TimeBits, int Priority, string? Dropped)
+{
+    public override string ToString() => Kind == 'A'
+        ? $"A ev {EventNum} {Target ?? "(null)"} t {TimeBits:x8} p {Priority}{(Dropped is null ? "" : $" dropped: {Dropped}")}"
+        : $"F ev {EventNum} {Target}";
 }
