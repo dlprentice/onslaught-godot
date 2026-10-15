@@ -11,6 +11,8 @@ using OnslaughtRebuild.Parity.Maths;
 
 using OnslaughtRebuild.Parity.Numerics;
 
+using OnslaughtRebuild.Parity.World;
+
 namespace OnslaughtRebuild.Parity.Things;
 
 /// <summary>CGroundUnit: a unit on the ground, a full move every fourth frame.</summary>
@@ -280,7 +282,7 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
         Context.Skip("CMCCannon (motion controller)");
         UnknownF4 = 0;
         LastTargetTime = 0;
-        Context.Skip("CWorld::AddToOccupancy");
+        Occupancy.AddUnit(Context.Occupancy, Context.Map, this);
         AboveWater = !(Context.WaterLevel > Pos.Z);
     }
 }
@@ -288,6 +290,20 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
 /// <summary>CBuilding: a building, with its own render thing (mesh and rubble) and destructable segments.</summary>
 public sealed class Building(ThingContext context) : Unit(context)
 {
+    /// <summary>
+    /// CBuilding::StickToGround (004dfd10, shared with CSimpleBuilding by /OPT:ICF): grounded, then lowered to the
+    /// water level when it stands above it.
+    /// </summary>
+    public override void StickToGround()
+    {
+        base.StickToGround();
+        if (Context.Map.WaterLevel < Pos.Z)
+        {
+            Pos.Z = Context.Map.WaterLevel;
+            OldPos.Z = Context.Map.WaterLevel;
+        }
+    }
+
     /// <summary>CBuilding::Move (004178a0): not ported yet (counted; the unit does not move).</summary>
     public override void Move() => Context.Skip("CBuilding::Move (004178a0) (the movement is not ported yet)");
 
@@ -356,13 +372,27 @@ public sealed class Building(ThingContext context) : Unit(context)
         StickToGround();
         CreateRepairPadAI(init);
         SetAnimMode(AnimModeByName("Idle"), true, true);
-        Context.Skip("CWorld::AddToOccupancy");
+        Occupancy.AddUnit(Context.Occupancy, Context.Map, this);
     }
 }
 
 /// <summary>CSimpleBuilding: a building without segments or AI.</summary>
 public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 {
+    /// <summary>
+    /// CBuilding::StickToGround (004dfd10, shared with CSimpleBuilding by /OPT:ICF): grounded, then lowered to the
+    /// water level when it stands above it.
+    /// </summary>
+    public override void StickToGround()
+    {
+        base.StickToGround();
+        if (Context.Map.WaterLevel < Pos.Z)
+        {
+            Pos.Z = Context.Map.WaterLevel;
+            OldPos.Z = Context.Map.WaterLevel;
+        }
+    }
+
     /// <summary>CSimpleBuilding::Move (004dfaa0): a standing building does nothing; a dying one sinks with explosions (not ported).</summary>
     public override void Move()
     {
@@ -392,7 +422,7 @@ public sealed class SimpleBuilding(ThingContext context) : Unit(context)
         base.Init(init);
         StickToGround();
         AI = null;
-        Context.Skip("CWorld::AddToOccupancy");
+        Occupancy.AddUnit(Context.Occupancy, Context.Map, this);
     }
 }
 

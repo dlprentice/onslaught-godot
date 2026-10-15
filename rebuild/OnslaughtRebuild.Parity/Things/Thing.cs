@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/thing.h and src/thing.cpp (CThing: the constructor 004f33e0, Init 004f34a0, Shutdown
 // 004f3600, HandleEvent 004f3730, AddShutdownEvent 004f3760, StartDieProcess 004f37a0, SetObjective 004f3970,
-// StickToGround 004f3c50, MoveTo
-// 004f3cb0, Teleport 004f3ce0; CComplexThing: the constructor 004f3e10, Init 004f3fd0, SetName 004f4120, Shutdown
+// GetCentrePos 004f3ac0, StickToGround 004f3c50, GetRenderThingFrameIncrement 004f3c80, MoveTo 004f3cb0, Teleport
+// 004f3ce0; CComplexThing: GetOrientation, SetAnimMode 004f44a0, GetRenderFrame 004f45c0, GetRealAnimIndex 004014d0,
+// the constructor 004f3e10, Init 004f3fd0, SetName 004f4120, Shutdown
 // 004f41b0, SetScript 004f4230, HandleEvent 004f4300, AddShutdownEvent 004f43d0, StartDieProcess 004f4430, Hit
 // 004f4480), in Stuart's release.
 
 using System.Text;
 using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Collision;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.World;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Script;
 using Monitor = OnslaughtRebuild.Parity.Events.Monitor;
@@ -54,7 +57,7 @@ public enum ThingFlags : short
 /// CThing: anything in the world. Each subclass's Init sets its fields and calls its base's Init, as retail's
 /// SUPERTYPE::Init chain does, so draws and event schedules happen in retail's order.
 /// </summary>
-public abstract class Thing : Monitor
+public abstract class Thing : Monitor, IOccupancyUnit
 {
     protected Thing(ThingContext context, int classId)
     {
@@ -165,6 +168,10 @@ public abstract class Thing : Monitor
             init.ForThing = this;
             HasCollisionSeekingThing = true;
             Context.Skip("CCSPersistentThing::Init");
+            if (init.MaxCollision == CollisionLevel.Mesh)
+            {
+                CollisionMeshVolume = new MeshCollisionVolume(RenderThing, init.UseFixedMeshTransforms, init.IgnoreAnimationCollision);
+            }
         }
     }
 
@@ -187,6 +194,66 @@ public abstract class Thing : Monitor
 
     /// <summary>mCollisionSeekingThing != NULL (the collision-seeking things are not ported; this records where one would be).</summary>
     public bool HasCollisionSeekingThing;
+
+    /// <summary>
+    /// The collision-seeking thing's mesh volume (CCollisionSeekingThing::Init makes one when the maximum collision
+    /// level is the mesh): the thing's render thing, its fixed-transforms and ignore-animation flags.
+    /// </summary>
+    public MeshCollisionVolume? CollisionMeshVolume;
+
+    public bool HasCollisionMeshVolume() => CollisionMeshVolume is not null;
+
+    /// <summary>GetOrientation (virtual): the identity for a plain thing.</summary>
+    public virtual FMatrix GetOrientation() => FMatrix.Identity;
+
+    /// <summary>
+    /// The occupancy builders' collision query (NavigationMap.cpp's ShadowHits): a line from 100 below the cell's
+    /// ground point up to it, then a unit sphere there, against the mesh volume, with a report reset to stop at the
+    /// first hit.
+    /// </summary>
+    public bool ShadowHits(FVector cellPos)
+    {
+        MeshCollisionVolume shape = CollisionMeshVolume
+            ?? throw new InvalidOperationException($"{this} is on the occupancy grids without a collision mesh volume (retail reads NULL)");
+        var report = new CollisionReport { NumContacts = 0, UnknownA8 = false, Stuck = false, TestTriangles = 0, UnknownD0 = 1 };
+        var lineMove = new CollisionMove { Pos = cellPos };
+        if (shape.CollideWithLine(ref lineMove, new FVector(0, 0, -100.0f), new FVector(0, 0, 0), report))
+        {
+            return true;
+        }
+
+        var sphereMove = new CollisionMove { Pos = cellPos };
+        return shape.CollideWithSphere(ref sphereMove, 1.0f, report);
+    }
+
+    /// <summary>CThing::GetCentrePos: a building's bounding-box centre, a ground battle engine's raised point, the box's height otherwise.</summary>
+    public FVector GetCentrePos()
+    {
+        BoundingBox? box = RenderThing?.MeshOrNull?.BoundingBox;
+        if (IsA(ThingType.Building) || IsA(ThingType.Component))
+        {
+            if (box is not null)
+            {
+                return Pos + GetOrientation().Transform(box.Origin);
+            }
+        }
+        else if (IsA(ThingType.BattleEngine))
+        {
+            if (IsA(ThingType.GroundUnit))
+            {
+                FVector p = Pos;
+                p.Z += 1.9f * 0.4f;
+                return p;
+            }
+        }
+        else if (box is not null)
+        {
+            return new FVector(Pos.X, Pos.Y, Pos.Z + box.Origin.Z);
+        }
+
+        return Pos;
+    }
+
 
     public virtual bool CanGoUnderWater() => false;
 
@@ -366,6 +433,9 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     /// <summary>CComplexThing::IsObjective (004014e0): whether the marked-objective flag is set.</summary>
     public override bool IsObjective() => (Flags & ThingFlags.MarkedObjective) != 0;
 
+    /// <summary>CComplexThing::GetOrientation: mOrientation.</summary>
+    public override FMatrix GetOrientation() => Orientation;
+
     /// <summary>CComplexThing::TeleportOrientation (004f4460).</summary>
     public override void TeleportOrientation(FMatrix orientation) => Orientation = orientation;
 
@@ -443,14 +513,37 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
         }
     }
 
-    /// <summary>
-    /// SetAnimMode: the mesh animation by index, reset to its start. (CAnimation's timing is ported with the
-    /// animations; here only the chosen mode is kept.)
-    /// </summary>
+    /// <summary>mAnimation: made by the first SetAnimMode.</summary>
+    public Animation? Animation;
+
+    /// <summary>CComplexThing::SetAnimMode: the animation clock (made on first use) takes the mode.</summary>
     public virtual bool SetAnimMode(int mode, bool resetFrame, bool forceLooped)
     {
         AnimMode = mode;
-        return true;
+        Animation ??= new Animation(this);
+        return Animation.SetAnimMode(mode, resetFrame, forceLooped);
+    }
+
+    /// <summary>CComplexThing::GetRenderFrame: the animation's render frame, 0 without one.</summary>
+    public float GetRenderFrame() => Animation?.GetRenderFrame() ?? 0.0f;
+
+    /// <summary>GetRealAnimIndex (004014d0): the animation's index in the mesh's table, -1 without one.</summary>
+    public int GetRealAnimIndex() => Animation?.AnimIndex ?? -1;
+
+    /// <summary>
+    /// CThing::GetRenderThingFrameIncrement: the render thing's rate for the mode and the mode's index in its table
+    /// (CRTMesh::GetFrameIncrement through the mesh; the index stays as it was without a mesh).
+    /// </summary>
+    public float GetRenderThingFrameIncrement(int mode, ref int realIndex)
+    {
+        if (RenderThing?.MeshOrNull is not { } mesh)
+        {
+            return 0.0f;
+        }
+
+        float rate = mesh.GetFrameIncrement(mode, out int index);
+        realIndex = index;
+        return rate;
     }
 
     /// <summary>The mesh's animation mode by name (the mesh's GetAnimModeByName), or -1.</summary>

@@ -57,7 +57,7 @@ public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
         base.Init(init);
         Allegiance = init.Allegiance;
         Life = Data!.Life;
-        Context.Skip("CWorld::AddToOccupancy");
+        Occupancy.AddUnit(Context.Occupancy, Context.Map, this);
         AboveWater = Context.WaterLevel > Pos.Z;
         if (Data.SoundName is not null)
         {

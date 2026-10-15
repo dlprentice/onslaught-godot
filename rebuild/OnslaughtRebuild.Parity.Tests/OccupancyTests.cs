@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using Xunit.Abstractions;
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
@@ -9,7 +10,7 @@ using OnslaughtRebuild.Parity.World;
 namespace OnslaughtRebuild.Parity.Tests;
 
 /// <summary>COccupancyGrid's cells, line test, path search and loads; COccupancy's statics.</summary>
-public sealed class OccupancyTests
+public sealed class OccupancyTests(ITestOutputHelper output)
 {
     private static OccupancyState NewState()
     {
@@ -218,6 +219,64 @@ public sealed class OccupancyTests
         }
 
         Assert.Equal(File.ReadAllBytes(Path.Combine(port, "build1-before", "static.bin")), s.Static.Data);
+    }
+
+    /// <summary>
+    /// Level 100's load builds its grids as the native port has them when BuildStatic returns: base world 1's stored
+    /// grids, then every unit's cells closed where its collision mesh meets the ground's line or unit sphere.
+    /// </summary>
+    [GameDataFact]
+    public void Level100sGridsAfterBuildStaticAreTheNativePorts()
+    {
+        string? port = PortData();
+        if (port is null)
+        {
+            return;
+        }
+
+        (ThingContext context, _) = LevelLoadTests.Level100Run();
+        OccupancyState s = context.Occupancy;
+        var differ = new List<string>();
+        for (int g = 0; g < 3; g++)
+        {
+            byte[] expected = File.ReadAllBytes(Path.Combine(port, "build1-after", $"grid{g}.bin"));
+            differ.AddRange(DifferingCells($"grid{g}", expected, s.Grids[g]!.Data));
+        }
+
+        differ.AddRange(DifferingCells("static", File.ReadAllBytes(Path.Combine(port, "build1-after", "static.bin")), s.Static.Data));
+        output.WriteLine($"{s.Units.Size} units on the grids; {differ.Count} cells differ");
+        foreach (string d in differ.Take(20))
+        {
+            output.WriteLine(d);
+        }
+
+        for (Thing? u = s.Units.First(); u is not null; u = s.Units.Next())
+        {
+            output.WriteLine($"unit {u} radius {u.GetBoundingRadius():R} centre {((IOccupancyUnit)u).GetCentrePos()} mesh volume {u.HasCollisionMeshVolume()} "
+                + $"mesh {u.RenderThing?.MeshOrNull?.HeaderName}");
+        }
+
+        Assert.True(s.Enabled);
+        Assert.Equal(34, s.Units.Size);
+        Assert.Empty(differ);
+    }
+
+    /// <summary>The cells whose bits differ, as "grid (x, y) port/ours" (bit x &amp; 7 of byte (x &gt;&gt; 3) * 256 + y; cells are two units).</summary>
+    private static IEnumerable<string> DifferingCells(string grid, byte[] expected, byte[] actual)
+    {
+        for (int i = 0; i < expected.Length; i++)
+        {
+            int bits = expected[i] ^ actual[i];
+            for (int b = 0; b < 8; b++)
+            {
+                if ((bits & (1 << b)) != 0)
+                {
+                    int x = ((i / 256) * 8) + b;
+                    int y = i % 256;
+                    yield return $"{grid} cell ({x}, {y}) port {(expected[i] >> b) & 1} ours {(actual[i] >> b) & 1}";
+                }
+            }
+        }
     }
 
     [Fact]

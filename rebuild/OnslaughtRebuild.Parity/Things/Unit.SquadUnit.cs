@@ -31,12 +31,13 @@ public abstract partial class Unit : ISquadUnit
             return null;
         }
 
-        if (UnitData.NavMap is >= 1 and <= 4)
+        return UnitData.NavMap switch
         {
-            Context.Skip("CUnit::GetOccupancyGrid: the world's occupancy grids are not ported (read as none)");
-        }
-
-        return null;
+            1 => Context.Occupancy.Grids[0],
+            2 => Context.Occupancy.Grids[1],
+            3 or 4 => Context.Occupancy.Grids[2],
+            _ => null,
+        };
     }
 
     /// <summary>Unknown111: the unit's speed, half again while deploying.</summary>

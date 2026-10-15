@@ -195,10 +195,17 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
         }
     }
 
-    // IRenderSubject: what the mesh pose code asks of the thing (the rest pose until animation timing is ported).
-    int IRenderSubject.RealAnimIndex => -1;
+    /// <summary>CActor::StickToGround (00402030): grounded, with no move left over.</summary>
+    public override void StickToGround()
+    {
+        base.StickToGround();
+        OldPos = Pos;
+    }
 
-    float IRenderSubject.RenderFrame => 0;
+    // IRenderSubject: what the mesh pose code asks of the thing.
+    int IRenderSubject.RealAnimIndex => GetRealAnimIndex();
+
+    float IRenderSubject.RenderFrame => GetRenderFrame();
 
     FVector IRenderSubject.RenderPos => Pos;
 

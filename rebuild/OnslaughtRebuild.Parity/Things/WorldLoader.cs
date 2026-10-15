@@ -55,7 +55,11 @@ public sealed class WorldLoader(ThingContext context, LevelResources resources, 
         if (real)
         {
             context.InfluenceMap = null;
-            context.Skip("CWorld::InitOccupancy");
+
+            // CWorld::InitOccupancy: the three navigation grids by the slopes they climb.
+            context.Occupancy.Grids[0] = new OccupancyGrid(context.Occupancy, 35.0f);
+            context.Occupancy.Grids[1] = new OccupancyGrid(context.Occupancy, 45.0f);
+            context.Occupancy.Grids[2] = new OccupancyGrid(context.Occupancy, 60.0f);
         }
 
         int version = (ushort)file.ReadInt16();
@@ -159,18 +163,29 @@ public sealed class WorldLoader(ThingContext context, LevelResources resources, 
 
         if (version >= 47)
         {
+            // A level on a base world keeps the base world's grids and reads past its own.
             for (int g = 0; g < 3; g++)
             {
-                int gridVersion = file.ReadInt32();
-                file.Skip(gridVersion switch { 1 => 0x8000, 2 => 0x2000, _ => 0 });
+                if (!isBase && baseLevel != -1)
+                {
+                    OccupancyGrid.SkipLegacy(file);
+                }
+                else if (context.Occupancy.Grids[g] is null)
+                {
+                    // Only a test loads a world without a real level's InitOccupancy first.
+                    context.Skip("COccupancyGrid::Load without CWorld::InitOccupancy (a world loaded on its own)");
+                    OccupancyGrid.SkipLegacy(file);
+                }
+                else
+                {
+                    context.Occupancy.Grids[g]!.Load(file);
+                }
             }
 
             if (version < 50)
             {
-                file.Skip(20);
+                OccupancyGrid.SkipHeader(file);
             }
-
-            context.Skip("COccupancyGrid::Load (the world's three grids)");
         }
 
         if (version >= 49)
@@ -188,7 +203,13 @@ public sealed class WorldLoader(ThingContext context, LevelResources resources, 
             context.Skip("CWorldMeshList::SpawnUnused");
             context.InfluenceMap!.Build(false);
             context.InfluenceMap.Update();
-            context.Skip("COccupancy::BuildStatic");
+            if (version < 47)
+            {
+                Occupancy.ClearSteep(context.Occupancy, context.Map);
+            }
+
+            // GAME.IsRestarting() takes ApplyStatic instead; the parity runs start each level afresh.
+            Occupancy.BuildStatic(context.Occupancy, context.Map);
         }
     }
 

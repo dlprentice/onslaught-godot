@@ -2,13 +2,14 @@
 // Adapted from bea-decomp src/rtmesh.cpp (CRTMesh: Init makes a pose for its mesh; GetRTEmitter 004dd160). Not in
 // Stuart's release.
 
+using OnslaughtRebuild.Parity.Collision;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
 
 namespace OnslaughtRebuild.Parity.Things;
 
 /// <summary>CRTMesh: a thing's mesh and the pose cache its emitter lookups go through.</summary>
-public sealed class RenderThing
+public sealed class RenderThing : IMeshCollisionSource
 {
     private readonly IRenderSubject _subject;
     private readonly ThingContext _context;
@@ -27,6 +28,17 @@ public sealed class RenderThing
     public MeshData Mesh => MeshOrNull ?? throw new InvalidOperationException("this render thing has no mesh loaded");
 
     public MeshPose? Pose { get; }
+
+    MeshData? IMeshCollisionSource.Mesh => MeshOrNull;
+
+    /// <summary>mThing: the thing drawn.</summary>
+    public IRenderSubject Subject => _subject;
+
+    float IMeshCollisionSource.Time => _context.Events.Time;
+
+    int IMeshCollisionSource.RenderFrameNumber => _context.RenderFrameNumber;
+
+    PolyBucketStatics IMeshCollisionSource.PolyBuckets => _context.PolyBuckets;
 
     /// <summary>GetRTEmitter(name, n, pos, ori, TRUE, FALSE): the emitter's position in the thing's own space.</summary>
     public FVector EmitterPos(string name, int n) =>

@@ -52,6 +52,12 @@ public sealed class ThingContext(
     /// <summary>MAP_WHO: made (Create) with the context, as CGame makes it before a level loads (game.cpp:351).</summary>
     public MapWho MapWho { get; } = CreateMapWho();
 
+    /// <summary>COccupancy's statics and WORLD.mOccupancy: the navigation grids and the units on them.</summary>
+    public OccupancyState Occupancy { get; } = new(pool);
+
+    /// <summary>The poly buckets' process-wide search statics.</summary>
+    public PolyBucketStatics PolyBuckets { get; } = new();
+
     private static MapWho CreateMapWho()
     {
         var m = new MapWho();
