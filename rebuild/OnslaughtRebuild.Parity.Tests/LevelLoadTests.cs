@@ -405,8 +405,8 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     private const int TraceUpdates = 100;
 
     /// <summary>The PreRun event lines matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunEventsMatchedFloor = 14037;
+    private const int PreRunEventsMatchedFloor = 14629;
 
     /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
-    private const int PreRunMatchedFloor = 499;
+    private const int PreRunMatchedFloor = 516;
 }

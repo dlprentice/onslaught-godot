@@ -203,7 +203,7 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
             Context.Skip("CMCGroundVehicle (motion controller)");
         }
 
-        Guide = new BasicGuide(this, "CGroundVehicleGuide");
+        Guide = new GroundVehicleGuide(this);
         AI = new UnitAI(this, init);
     }
 }

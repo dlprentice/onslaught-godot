@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using Xunit.Abstractions;
+using ParityGame = OnslaughtRebuild.Parity.Game.Game;
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
@@ -278,6 +279,79 @@ public sealed class OccupancyTests(ITestOutputHelper output)
             }
         }
     }
+
+    /// <summary>
+    /// Level 100 run on to Update 120: its ground vehicles' path searches (CGroundVehicleGuide::Unknown3) as the native
+    /// port has them, call by call (the port's searches at Updates 99, 103, 107 and 111), with the statics on entry, the
+    /// path and the cost table after.
+    /// </summary>
+    [GameDataFact]
+    public void Level100sPathSearchesToUpdate120AreTheNativePorts()
+    {
+        string? port = PortData();
+        if (port is null)
+        {
+            return;
+        }
+
+        const int Updates = 120;
+        (ThingContext context, ParityGame game) = LevelLoadTests.Level100Run();
+        OccupancyState s = context.Occupancy;
+        var ours = new List<string>();
+        int update = 0;
+        s.OnSearch = (grid, start, end, a, entry, path) =>
+        {
+            int g = Array.IndexOf(s.Grids, grid);
+            ours.Add($"U {update} grid {g} start {Bits(start.X)} {Bits(start.Y)} end {Bits(end.X)} {Bits(end.Y)} a {a} "
+                + $"| {string.Join(' ', entry)} | out {path.Unknown00} {path.Unknown04} {path.Unknown08} {path.Unknown0C} "
+                + $"{Convert.ToHexString(path.Unknown10[..path.Unknown0C]).ToLowerInvariant()} "
+                + $"{Convert.ToHexString(path.Unknown18[..path.Unknown0C]).ToLowerInvariant()} crc32 {Crc32(s.Cost):x8}");
+        };
+
+        string stopped = $"ran all {Updates}";
+        while (update < Updates)
+        {
+            update++;
+            try
+            {
+                game.Update();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped in U{update}: {e.Message}";
+                break;
+            }
+        }
+
+        var expected = new List<string>();
+        foreach (string line in File.ReadLines(Path.Combine(port, "paths.txt")).Where(l => l.StartsWith("C ", StringComparison.Ordinal)))
+        {
+            string[] f = line.Split(' ');
+            int At(string key) => Array.IndexOf(f, key) + 1;
+            int u = int.Parse(f[At("U")]);
+            if (u > update)
+            {
+                continue;
+            }
+
+            string[] entry = new[] { "sMinX", "sMinY", "sMaxX", "sMaxY", "sEndX", "sEndY", "sX", "sY" }.Select(k => f[At(k)]).ToArray();
+            int o = At("out");
+            expected.Add($"U {u} grid {f[At("grid")]} start {f[At("start")]} {f[At("start") + 1]} end {f[At("end")]} {f[At("end") + 1]} "
+                + $"a {f[At("a")]} | {string.Join(' ', entry)} | out {f[o]} {f[o + 1]} {f[o + 2]} {f[o + 3]} "
+                + $"{f[At("cellsX")].ToLowerInvariant()} {f[At("cellsY")].ToLowerInvariant()} crc32 {f[At("crc32")].ToLowerInvariant()}");
+        }
+
+        output.WriteLine($"{stopped}; port {expected.Count} searches to U{update}, ours {ours.Count}");
+        for (int i = 0; i < Math.Max(expected.Count, ours.Count); i++)
+        {
+            output.WriteLine($"port {(i < expected.Count ? expected[i] : "-")}");
+            output.WriteLine($"ours {(i < ours.Count ? ours[i] : "-")}");
+        }
+
+        Assert.Equal(expected, ours);
+    }
+
+    private static string Bits(float f) => BitConverter.SingleToUInt32Bits(f).ToString("x8");
 
     [Fact]
     public void LevelOnesSixSearchesMatchTheNativePortCallByCall()

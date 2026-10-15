@@ -55,6 +55,12 @@ public sealed class OccupancyState
     /// <summary>sEnabled: the grids are built and the units' changes rasterise into them.</summary>
     public bool Enabled;
 
+    /// <summary>
+    /// A diagnostic hook: when set, each path search (Unknown4bc2e0) reports its grid, ends, flag, the statics on entry
+    /// (MinX, MinY, MaxX, MaxY, EndX, EndY, X, Y) and the path it built.
+    /// </summary>
+    public Action<OccupancyGrid, FVector, FVector, int, int[], SquadPath>? OnSearch;
+
     public int EndX;
     public int EndY;
 
@@ -270,6 +276,20 @@ public sealed class OccupancyGrid : IOccupancyGrid
     /// cleared, the bounds emptied, and the path built.
     /// </summary>
     public void Unknown4bc2e0(FVector start, FVector end, int a, SquadPath path)
+    {
+        OccupancyState s = _state;
+        if (s.OnSearch is null)
+        {
+            Search(start, end, a, path);
+            return;
+        }
+
+        int[] entry = [s.MinX, s.MinY, s.MaxX, s.MaxY, s.EndX, s.EndY, s.X, s.Y];
+        Search(start, end, a, path);
+        s.OnSearch(this, start, end, a, entry, path);
+    }
+
+    private void Search(FVector start, FVector end, int a, SquadPath path)
     {
         OccupancyState s = _state;
         s.MinX--;
