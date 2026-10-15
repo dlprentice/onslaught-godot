@@ -35,7 +35,7 @@ public sealed class UnitWeaponInstance(int index, int type, int mount)
 }
 
 /// <summary>CUnit: a unit with physics-script data, weapons, AI, life and shields.</summary>
-public abstract class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
+public abstract partial class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
 {
     public UnitData? UnitData;
     public float Life = 1.0f;
