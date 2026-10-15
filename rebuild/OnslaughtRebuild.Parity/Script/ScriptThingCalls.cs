@@ -54,8 +54,7 @@ internal static class ScriptThingCalls
         runtime.Context.Skip("CBattleEngine::DisableFlightMode");
 
     /// <summary>CUnit::Unknown100 (the Retreat native).</summary>
-    public static void Retreat(ScriptRuntime runtime, Unit unit) =>
-        throw new NotSupportedException($"CUnit::Unknown100 (Retreat) is not ported ({unit})");
+    public static void Retreat(ScriptRuntime runtime, Unit unit) => unit.Unknown100();
 
     /// <summary>CBattleEngine::IsWalking: walker state and on the ground within the last 0.5 s.</summary>
     public static bool IsWalking(ScriptRuntime runtime, BattleEngine be) =>

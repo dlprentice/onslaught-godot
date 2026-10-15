@@ -113,6 +113,131 @@ public sealed class AirGuide : Guide
         unit.Context.Events.AddEvent(NearestEvent, this, EventManager.NextFrame);
     }
 
+    private const float Pi = 3.14159265358979f;
+    private const float PiM2 = 6.28318530717958f;
+
+    /// <summary>
+    /// Unknown3 (00402280): the flight. Heading for the destination (mode 2: away; mode 0: at right angles to the
+    /// course, level), climbing at its elevation; unless launching (AI mode 2) it dodges the nearest thing (up or down a
+    /// third of a turn), keeps its clearance (down below 5, level below 15, up above 50) and turns back from the map's
+    /// edges (outside a retreat); it banks into the turn by the course's difference from the heading (at most PI/2) and
+    /// thrusts along its nose at (max velocity / 20) * 4. A dying unit only thrusts.
+    /// </summary>
+    public override void Steer()
+    {
+        Unit unit = Unit;
+        if (unit.IsDying)
+        {
+            unit.Unknown174 = 0;
+            Thrust(unit);
+            return;
+        }
+
+        unit.Context.Skip("CAirGuide::Unknown3's dot product and magnitudes (their sum orders are unchecked)");
+        FVector d = Destination - unit.Pos;
+        float yaw = -(float)Numerics.X87.Atan2(d.X, d.Y);
+        float pitch = (float)Numerics.X87.Atan2(d.Z, (float)Numerics.X87.Sqrt((d.X * d.X) + (d.Y * d.Y)));
+        FVector v = unit.Velocity;
+        float course = -(float)Numerics.X87.Atan2(v.X, v.Y);
+        FMatrix o = unit.Orientation;
+        var right = new FVector(o.Row0.X, o.Row1.X, o.Row2.X);
+        float heading = Mode switch
+        {
+            0 => course + (Pi / 2),
+            2 => yaw - Pi,
+            _ => yaw,
+        };
+        if (Mode == 0)
+        {
+            pitch = 0;
+        }
+
+        if (heading > Pi)
+        {
+            heading -= PiM2;
+        }
+
+        if (heading < -Pi)
+        {
+            heading += PiM2;
+        }
+
+        if (pitch > Pi)
+        {
+            pitch -= PiM2;
+        }
+
+        if (pitch < -Pi)
+        {
+            pitch += PiM2;
+        }
+
+        if (unit.AI!.AIMode != 2)
+        {
+            if (Nearest.ToRead is { } nearest)
+            {
+                pitch = -Pi / 3;
+                if (!((nearest.Pos - unit.Pos).Z > 0))
+                {
+                    pitch = Pi / 3;
+                }
+            }
+
+            if (Clearance < 5.0f)
+            {
+                pitch = -Pi / 4;
+            }
+            else if (Clearance < 15.0f && pitch > 0)
+            {
+                pitch = 0;
+            }
+            else if (Clearance > 50.0f)
+            {
+                pitch = Pi / 4;
+            }
+
+            if (unit.DeployState is not (1 or 2))
+            {
+                if (unit.Pos.X < 10.0f)
+                {
+                    heading = -Pi / 2;
+                }
+                else if (unit.Pos.X > 502.0f)
+                {
+                    heading = Pi / 2;
+                }
+                else if (unit.Pos.Y < 10.0f)
+                {
+                    heading = 0;
+                }
+                else if (unit.Pos.Y > 502.0f)
+                {
+                    heading = Pi;
+                }
+            }
+        }
+
+        float diff = MathF.Abs(Unit.AngleDifference(course, heading));
+        if (diff > Pi / 2)
+        {
+            diff = Pi / 2;
+        }
+
+        float dot = (right.X * d.X) + (right.Y * d.Y) + (right.Z * d.Z);
+        float roll = dot < 0 ? diff : -diff;
+        unit.Unknown174 = MathF.Abs(roll) > 0.1f ? 1.0f : 0;
+        unit.Unknown120 = new EulerAngles(heading, pitch, roll);
+        Thrust(unit);
+    }
+
+    /// <summary>The thrust along the nose: (max velocity / 20) * 4 times the orientation's Y column.</summary>
+    private static void Thrust(Unit unit)
+    {
+        float speed = unit.GetMaxVelocity() * 0.05f * 4.0f;
+        FMatrix ori = unit.Orientation;
+        unit.Unknown14C = new FVector(speed * ori.Row0.Y, speed * ori.Row1.Y, speed * ori.Row2.Y);
+    }
+
     /// <summary>mClearance: the unit's height over the ground or sea below it, the least of a 9 x 9 sample.</summary>
     public float Clearance;
 

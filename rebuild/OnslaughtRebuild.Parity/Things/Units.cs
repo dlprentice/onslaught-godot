@@ -429,8 +429,131 @@ public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 /// <summary>CAirUnit: a flying unit.</summary>
 public abstract class AirUnit(ThingContext context) : Unit(context)
 {
-    /// <summary>CAirUnit::Move (00402fa0): not ported yet (counted; the unit does not move).</summary>
-    public override void Move() => Context.Skip("CAirUnit::Move (00402fa0) (the movement is not ported yet)");
+    /// <summary>
+    /// CAirUnit::Move (00402fa0): a dying aircraft tumbles; the guide's thrust and gravity join the velocity; a big unit
+    /// in the water slows (0.95, sinking when dying), any other takes its drag (Unknown73); the speed is held to
+    /// Unknown111 / 20; then CUnit::Move. The trails' and engines' particles are presentation (counted).
+    /// </summary>
+    public override void Move()
+    {
+        if (IsDying)
+        {
+            float turn = UnitData!.TurnRate / 3.0f;
+            Unknown12C = new EulerAngles(turn, turn, turn);
+        }
+
+        Velocity = Velocity + Unknown14C;
+        Velocity.Z += Gravity();
+        if (UnitData!.Big != 0 && Pos.Z + (GetRadius() * 0.2f) > Context.Map.WaterLevel)
+        {
+            Velocity = Velocity * 0.95f;
+            if (IsDying)
+            {
+                throw new NotSupportedException("CUnit::Unknown96 (a big aircraft sinking) is not ported");
+            }
+        }
+        else
+        {
+            Velocity = Velocity * Unknown73();
+        }
+
+        Context.Skip("CAirUnit::Move's speed magnitude (its sum order is unchecked)");
+        float speed = (float)X87.Sqrt((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z));
+        if (speed > 0)
+        {
+            float max = Unknown111() / 20.0f;
+            if (speed > max)
+            {
+                Velocity = Velocity * (max / speed);
+            }
+        }
+
+        base.Move();
+
+        if (Unknown170 + 0.1f < Unknown174)
+        {
+            Unknown170 += 0.1f;
+        }
+        else if (Unknown170 - 0.1f > Unknown174)
+        {
+            Unknown170 -= 0.1f;
+        }
+        else
+        {
+            Unknown170 = Unknown174;
+        }
+
+        Unknown170 *= 1.0f - (GetStealth() / 100.0f);
+        if (TrailLinks > 0 || EngineLinks > 0)
+        {
+            Context.Skip("CAirUnit::Move's trail and engine particles (presentation)");
+        }
+
+        if (Life < 0)
+        {
+            throw new NotSupportedException("CAirUnit::Move's dying explosion and smoke are not ported");
+        }
+    }
+
+    /// <summary>CAirUnit::Shutdown (00402d30): off the air units' list (Set50), its effects stopped, then CUnit's.</summary>
+    public override void Shutdown()
+    {
+        Context.World.Set50.Remove(this);
+        if (TrailLinks > 0 || EngineLinks > 0)
+        {
+            Context.Skip("CAirUnit::Shutdown's trail and engine effects (presentation)");
+        }
+
+        base.Shutdown();
+    }
+
+    /// <summary>GetMaxVelocity: 13 for an air unit.</summary>
+    public override float GetMaxVelocity() => 13.0f;
+
+    /// <summary>Gravity (00403b60): a dying aircraft falls faster the smaller it is.</summary>
+    public override float Gravity()
+    {
+        if (IsDying)
+        {
+            float r = GetRadius();
+            if (r > 39.0f)
+            {
+                r = 39.0f;
+            }
+
+            return (40.0f - r) * 0.0004f;
+        }
+
+        return 0.0f;
+    }
+
+    /// <summary>Unknown117 (00403a50): it moved, and is not dying.</summary>
+    public bool Unknown117() => (OldPos.X != Pos.X || OldPos.Y != Pos.Y || OldPos.Z != Pos.Z) && !IsDying;
+
+    /// <summary>GoToPoint (00403a90): no lower than its minimum altitude above the ground or the sea.</summary>
+    public override void GoToPoint(FVector point, bool inOverride = false)
+    {
+        if (Guide is null)
+        {
+            return;
+        }
+
+        World.HeightField map = Context.Map;
+        float h = map.HeightScale * map.GetHeightSample(X87.Fist(point.X), X87.Fist(point.Y));
+        float water = map.WaterLevel;
+        if (h > water)
+        {
+            h = water;
+        }
+
+        h -= UnitData!.MinAltitude;
+        if (point.Z > h)
+        {
+            point.Z = h;
+        }
+
+        Guide.GoToPoint(point, inOverride);
+    }
 
     public int TrailLinks;
     public int EngineLinks;
@@ -493,6 +616,41 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
         }
 
         DeathRoll = (float)(Context.Random.Random() % 65536) / 65536.0f > 0.5f ? 0.8f : -0.8f;
+    }
+
+    public override float GetMaxVelocity() => 15.0f;
+
+    public override float Gravity() => IsDying ? 0.025f : 0.0f;
+
+    /// <summary>
+    /// CPlane::Move (004d1cd0): a dying plane rolls and noses down; otherwise the launch thrusters burn until the launch
+    /// time (presentation) and the wings open once out of launch mode. After CAirUnit::Move the velocity is turned onto
+    /// the plane's heading at the same speed.
+    /// </summary>
+    public override void Move()
+    {
+        if (IsDying)
+        {
+            throw new NotSupportedException("CPlane::Move's death roll is not ported");
+        }
+
+        if (LaunchTime > Context.Events.Time && ThrusterLinks > 0)
+        {
+            Context.Skip("CPlane::Move's launch thrusters (presentation)");
+        }
+
+        if (AI!.AIMode != 2 && WingState == 0)
+        {
+            WingState = 1;
+        }
+
+        base.Move();
+
+        Context.Skip("CPlane::Move's speed magnitude (its sum order is unchecked)");
+        // Retail's precision control is 24 bits: each operation rounds to a float. The port (clang) keeps this sum in
+        // extended precision and lands 1-2 ulps away in some updates (B's CPlane moves, U60); retail is not measured here.
+        float speed = (float)X87.Sqrt((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z));
+        Velocity = new FVector(speed * Orientation.Row0.Y, speed * Orientation.Row1.Y, speed * Orientation.Row2.Y);
     }
 }
 

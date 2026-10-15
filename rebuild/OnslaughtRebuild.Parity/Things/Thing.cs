@@ -384,8 +384,18 @@ public abstract class Thing : Monitor, IOccupancyUnit
 
         base.Shutdown();
 
-        // `delete this`: the embedded map-who entry's destructor takes the thing off the grid.
+        // `delete this`: the destructors, most derived first, then the embedded map-who entry's takes the thing off the
+        // grid.
+        Deleted();
         _mapWhoEntry?.RemoveFromMap(Context.MapWho);
+    }
+
+    /// <summary>
+    /// The destructors' work at CThing::Shutdown's `delete this`: each class's override does its own, then calls the
+    /// base's (the order of retail's destructor chain).
+    /// </summary>
+    protected virtual void Deleted()
+    {
     }
 
     /// <summary>CThing::HandleEvent.</summary>
@@ -596,11 +606,18 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
 
         SetObjective(false);
         base.Shutdown();
+    }
+
+    /// <summary>~CComplexThing (004f3f00): the script is deleted.</summary>
+    protected override void Deleted()
+    {
         if (Script is not null)
         {
             Script.Delete();
             Script = null;
         }
+
+        base.Deleted();
     }
 
     /// <summary>CComplexThing::AddShutdownEvent: the script's Died, and the script goes; then CThing's.</summary>

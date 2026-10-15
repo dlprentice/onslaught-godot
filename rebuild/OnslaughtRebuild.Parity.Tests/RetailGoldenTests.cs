@@ -21,7 +21,7 @@ public sealed class RetailGoldenFactAttribute : FactAttribute
     {
         if (RetailGolden.File(file) is null)
         {
-            Skip = $"retail golden '{file}' not found (set ONSLAUGHT_RETAIL_GOLDEN)";
+            Skip = $"retail golden '{file}' not found (set ONSLAUGHT_RETAIL_GOLDEN, or ONSLAUGHT_GOLDEN_VDS for vds/)";
         }
         else if (GameData.Root is null)
         {
@@ -32,9 +32,16 @@ public sealed class RetailGoldenFactAttribute : FactAttribute
 
 internal static class RetailGolden
 {
+    /// <summary>
+    /// A golden by name under ONSLAUGHT_RETAIL_GOLDEN (C's golden-640), or, for names starting "vds/", under
+    /// ONSLAUGHT_GOLDEN_VDS (B's golden-vds: retail with virtual DirectSound status, the audio model the port and the
+    /// parity core run).
+    /// </summary>
     public static string? File(string name)
     {
-        string? root = Environment.GetEnvironmentVariable("ONSLAUGHT_RETAIL_GOLDEN");
+        bool vds = name.StartsWith("vds/", StringComparison.Ordinal);
+        string? root = Environment.GetEnvironmentVariable(vds ? "ONSLAUGHT_GOLDEN_VDS" : "ONSLAUGHT_RETAIL_GOLDEN");
+        name = vds ? name[4..] : name;
         if (string.IsNullOrEmpty(root))
         {
             return null;
@@ -51,13 +58,75 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int RandomStreamMatchedFloor = 187;
 
     /// <summary>The last Present the Present-by-Present run matches retail's clock and random stream to (never lowered).</summary>
-    private const int PresentByPresentFloor = 866;
+    private const int PresentByPresentFloor = 2222;
+
+    /// <summary>The last sampled Present (every 50) the run matches the virtual-DS golden to (never lowered).</summary>
+    private const int VirtualDsFloor = 2300;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 1001;
 
     /// <summary>The Present through which every compared battle-engine field equals retail's (never lowered).</summary>
     private const int BattleEngineMatchedThrough = 1003;
+
+    /// <summary>
+    /// Level 100 run Present by Present against B's virtual-DS golden (level100.vds-a.probes: retail with virtual
+    /// DirectSound status, the audio model the port and the core run; probes EVT, FT and RNG every 50 Presents). The
+    /// sampled Presents must match through <see cref="VirtualDsFloor"/>; the first difference after it is reported. The
+    /// tape's input from Present 3300 is not wired, so the comparison stops there.
+    /// </summary>
+    [RetailGoldenFact("vds/level100.vds-a.probes")]
+    public void Level100RunMatchesTheVirtualDsGolden()
+    {
+        var golden = new Dictionary<(long Present, string Name), string>();
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("vds/level100.vds-a.probes")!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length == 4 && f[0] == "P")
+            {
+                golden[(long.Parse(f[1]), f[2])] = f[3];
+            }
+        }
+
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        static string Hex(byte[] b) => Convert.ToHexString(b).ToLowerInvariant();
+        string? first = null;
+        long matched = 0;
+        string stopped = "ran to Present 3300";
+        while (session.PresentCount < 3300)
+        {
+            try
+            {
+                session.AdvanceToNextPresent();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped after Present {session.PresentCount}: {e.Message}";
+                break;
+            }
+
+            long p = session.PresentCount;
+            if (first is not null || !golden.TryGetValue((p, "EVT"), out string? evt))
+            {
+                continue;
+            }
+
+            string ourEvt = Hex(BitConverter.GetBytes(session.Context.Events.Time));
+            string ourFt = Hex(BitConverter.GetBytes(session.Game.Loop.FrameTime));
+            string ourRng = Hex(BitConverter.GetBytes(session.Context.Random.Value));
+            if (evt == ourEvt && golden[(p, "FT")] == ourFt && golden[(p, "RNG")].StartsWith(ourRng, StringComparison.Ordinal))
+            {
+                matched = p;
+            }
+            else
+            {
+                first = $"Present {p}: EVT {evt}/{ourEvt}, FT {golden[(p, "FT")]}/{ourFt}, RNG {golden[(p, "RNG")]}/{ourRng} (retail/ours)";
+            }
+        }
+
+        output.WriteLine($"{stopped}; sampled Presents match through {matched}; first difference: {first ?? "none"}");
+        Assert.True(matched >= VirtualDsFloor, $"matched through Present {matched}, below {VirtualDsFloor}");
+    }
 
     /// <summary>
     /// Level 100 run Present by Present, as the host draws it (LevelSession.AdvanceToNextPresent: the harness's level

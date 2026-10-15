@@ -156,7 +156,7 @@ public abstract partial class Unit
         }
         else if (DeployState == 2)
         {
-            throw new NotSupportedException("CUnit::Unknown116 (deploying) is not ported");
+            Unknown116();
         }
         else if (DeployState == 4)
         {
@@ -388,5 +388,101 @@ public abstract partial class Unit
                 Orientation = OldOrientation;
                 break;
         }
+    }
+
+    /// <summary>Unknown116 (004fe5f0): a retreating unit at its safe side is shut down next frame.</summary>
+    public void Unknown116() => Context.Events.AddEvent(ThingEvent.Shutdown, this, EventManager.NextFrame);
+
+    /// <summary>Unknown100 (004fdd00, the Retreat native): off to the nearest safe side of its own, once.</summary>
+    public void Unknown100()
+    {
+        if (DeployState is 1 or 2)
+        {
+            return;
+        }
+
+        GoToPoint(FindNearestSafeSide());
+        DeployState = 1;
+    }
+
+    /// <summary>FindNearestSafeSide (004fd910): the nearest (across the map) safe side of its allegiance, else the origin.</summary>
+    public FVector FindNearestSafeSide()
+    {
+        var best = new FVector(0, 0, 0);
+        Context.Skip("CUnit::FindNearestSafeSide's MagnitudeXY (inline sqrtf; its order is unchecked)");
+        for (Thing? t = Context.World.SafeSides.First(); t is not null; t = Context.World.SafeSides.Next())
+        {
+            var side = (SafeSide)t;
+            if (side.GetAllegiance() == Allegiance)
+            {
+                FVector a = Pos - best;
+                FVector b = Pos - side.Pos;
+                if ((float)X87.Sqrt((a.X * a.X) + (a.Y * a.Y)) > (float)X87.Sqrt((b.X * b.X) + (b.Y * b.Y)))
+                {
+                    best = side.Pos;
+                }
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// CUnit::Shutdown (004f95d0): the sounds (presentation), the weapons and spawners deleted, the children shut down
+    /// (or killed when dying), the effects stopped, off the unit list, the guide deleted, the unit-type count taken off
+    /// once, off two more world lists, then CComplexThing's.
+    /// </summary>
+    public override void Shutdown()
+    {
+        Context.Skip("SOUND.KillSamplesForThing (presentation)");
+        CurrentWeapon = null;
+        foreach (Weapon w in WeaponList.ToList())
+        {
+            WeaponList.Remove(w);
+            w.Destroy();
+        }
+
+        if (UnitData?.Spawners.Count > 0)
+        {
+            throw new NotSupportedException("CUnit::Shutdown of a unit with spawners is not ported");
+        }
+
+        Context.World.UnitNB.Remove(this);
+        if (Guide is not null)
+        {
+            Guide.Destroy();
+            Guide = null;
+        }
+
+        if (UnitData is not null && (Flags & ThingFlags.RemovedUnitType) == 0)
+        {
+            int behaviour = (int)UnitData.Behaviour;
+            if (Allegiance == 0)
+            {
+                Context.World.CountersA[behaviour]--;
+                Flags |= ThingFlags.RemovedUnitType;
+            }
+            else if (Allegiance == 1)
+            {
+                Context.World.CountersB[behaviour]--;
+                Flags |= ThingFlags.RemovedUnitType;
+            }
+        }
+
+        Context.World.Set30.Remove(this);
+        Context.World.Set20.Remove(this);
+        base.Shutdown();
+    }
+
+    /// <summary>~CUnit (004f84e0): the AI is deleted (its effects are presentation).</summary>
+    protected override void Deleted()
+    {
+        if (AI is not null)
+        {
+            AI.Destroy();
+            AI = null;
+        }
+
+        base.Deleted();
     }
 }
