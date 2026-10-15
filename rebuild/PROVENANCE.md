@@ -103,6 +103,7 @@ package licence expression is `GPL-3.0-only`.
 | `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
