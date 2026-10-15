@@ -2,6 +2,7 @@
 // Adapted from bea-decomp src/FrontEnd.cpp, src/frontend.h and src/FrontEndPage.h (CFrontEnd, CFrontEndPage).
 
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Platform;
 
 namespace OnslaughtRebuild.Parity.Flow;
 
@@ -71,12 +72,13 @@ public sealed class InertPage : FrontEndPageBase
 
 /// <summary>
 /// The clock and Present counter the flow runs on. A stand-in for the parity platform clock (rebuild Parity/Clock, M2):
-/// <see cref="GetSysTimeFloat"/> is CPCPlatform's float time, and <see cref="Present"/> is the only call that advances the
-/// counter and, on the shim's clock, time.
+/// <see cref="GetSysTimeFloat"/> is CPCPlatform's float time, <see cref="QueryPerformanceCounter"/> the counter the
+/// frame timer reads, and <see cref="Present"/> is the only call that advances the counter and, on the shim's clock, time.
 /// </summary>
 public interface IFlowClock
 {
     float GetSysTimeFloat();
+    long QueryPerformanceCounter();
     void Present();
     long PresentCount { get; }
 }
@@ -136,15 +138,26 @@ public sealed class FrontEnd
 
     private readonly FrontEndPageBase[] _pages = new FrontEndPageBase[(int)FrontEndPage.PageCount];
 
-    public FrontEnd(IFlowClock clock, FrontEndTiming timing)
+    public FrontEnd(IFlowClock clock, FrontEndTiming timing, PlatformInput platform)
     {
         Clock = clock;
         Timing = timing;
+        Platform = platform;
         for (int page = 0; page < _pages.Length; page++) _pages[page] = new InertPage();
     }
 
     public IFlowClock Clock { get; }
     public FrontEndTiming Timing { get; }
+    public PlatformInput Platform { get; }
+
+    /// <summary>
+    /// Whether a render's scene starts (<c>PLATFORM.BeginScene</c>). Each render presents whether or not it started, and
+    /// the run loop renders until one starts. True unless a test or the host says otherwise.
+    /// </summary>
+    public Func<bool> BeginScene { get; set; } = () => true;
+
+    /// <summary><c>mLastRenderTime</c>: the clock at the start of the last render.</summary>
+    public float LastRenderTime { get; private set; } = -100f;
 
     public FrontEndPage ActivePage { get; private set; } = FrontEndPage.Unknown;
     public FrontEndPage TransitionFrom { get; private set; }
@@ -233,14 +246,18 @@ public sealed class FrontEnd
     }
 
     /// <summary>
-    /// <c>CFrontEnd::Process</c> (0x00466ba0): the counter advances by the previous step, a platform quit request ends the
-    /// front end, the controllers deliver their button actions, the frame step is filtered from the clock, a transition
-    /// in progress advances (and completes once it reaches its time), and every page processes in page order.
+    /// <c>CFrontEnd::Process</c> (0x00466ba0): the mouse's transient state and the key-up flags clear, the counter
+    /// advances by the previous step, the platform handles the window's messages (a quit request ends the front end),
+    /// the controllers deliver their button actions, the frame step is filtered from the clock, a transition in progress
+    /// advances (and completes once it reaches its time), and every page processes in page order.
     /// </summary>
     public void Process(IReadOnlyList<FrontEndButton> buttons, bool platformQuit = false, IFrontEndMessageBox? messageBox = null)
     {
+        Platform.Mouse.ResetTransientState();
+        Platform.ClearKeyWasUp();
         // x87: the product and the sum round to 24 bits; the counter is a float member.
         Counter = (float)X87.Add(Counter, X87.Mul(Timing.FrameStep, 50f));
+        Platform.Process(Clock.QueryPerformanceCounter());
         if (platformQuit) Quit = QuitToSystem;
 
         foreach (FrontEndButton button in buttons) ReceiveButtonAction(button, messageBox);
@@ -277,15 +294,25 @@ public sealed class FrontEnd
     }
 
     /// <summary>
-    /// One iteration of <c>CFrontEnd::Run</c>'s loop: a process, then (while still running) a render that ends in one
-    /// Present. Returns false once the front end has quit.
+    /// One iteration of <c>CFrontEnd::Run</c>'s loop: a process, then (while still running) renders until one starts its
+    /// scene. Every render presents (<c>CFrontEnd::RenderEnd</c> flips whether or not the scene started), so a frame
+    /// usually costs one Present. Returns false once the front end has quit.
     /// </summary>
     public bool Step(IReadOnlyList<FrontEndButton> buttons, bool platformQuit = false, IFrontEndMessageBox? messageBox = null)
     {
         Process(buttons, platformQuit, messageBox);
         if (Quit != QuitRunning) return false;
-        Clock.Present();
+        while (!Render()) { }
         return true;
+    }
+
+    /// <summary><c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time, then one Present.</summary>
+    private bool Render()
+    {
+        LastRenderTime = Clock.GetSysTimeFloat();
+        bool started = BeginScene();
+        Clock.Present();
+        return started;
     }
 }
 
