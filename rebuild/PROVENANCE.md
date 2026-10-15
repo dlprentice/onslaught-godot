@@ -109,6 +109,11 @@ package licence expression is `GPL-3.0-only`.
 | `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/MapWho.cs` (CMapWho, CMapWhoEntry, CSector; ClipSegmentAgainstAABB3D) | `src/mapwho.h`, `src/mapwho.cpp`, `src/mapwhoentry.h`, `src/MapWhoEntry.cpp`, `src/Geometry.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Unit.SquadUnit.cs` (CUnit's squad, threat, allegiance and target-choice members) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Weapon.cs` (CEquipment, CWeapon, SpawnWeapon) | `src/Equipment.h`, `src/Equipment.cpp`, `src/weapon.h`, `src/weapon.cpp`, `src/WorldPhysicsManager.cpp`, `src/maths.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Unit.Weapons.cs` (CUnit's weapon methods, GetEmitter, GetCentrePos, IsOnGround) | `src/Unit.cpp`, `src/thing.cpp`, `src/actor.cpp`, `src/GroundUnit.cpp`, `src/map.h`, `src/WorldPhysicsManager.cpp` | GPL-3.0-only (thing.cpp and actor.cpp are in Stuart's release) |
+| `Things/Unit.AI.cs` (CUnit's guide calls, Stop, the fire step, undeploying) | `src/unit.h`, `src/Unit.cpp`, `src/actor.h` | GPL-3.0-or-later (not in Stuart's release; CActor::Stop is one assignment) |
+| `Things/UnitAI.cs` (CUnitAI, CPlaneAI, CDropshipAI, CRepairPadAI) | `src/UnitAI.h`, `src/UnitAI.cpp`, `src/PlaneAI.h`, `src/PlaneAI.cpp`, `src/DropshipAI.cpp`, `src/RepairPadAI.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Guide.cs` (CGuide, CAirGuide's events) | `src/Guide.h`, `src/Guide.cpp`, `src/AirGuide.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/InfluenceMap.cs` (CInfluenceMap, CInfluenceNode, CInfluenceResidual) | `src/InfluenceMap.h`, `src/InfluenceMap.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Squad.cs` (CSquad, CNormalSquad and its member and path, CRelaxedSquad, the target selector, SpawnSquad/IsSquadBehaviour) | `src/squad.h`, `src/squad.cpp`, `src/SquadNormal.cpp`, `src/SquadRelaxed.cpp`, `src/NormalSquadTargetSelector.cpp`, `src/WorldPhysicsManager.cpp` (`SpawnSquad`, `IsSquadBehaviour`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Game/FearGrid.cs` (CFearGrid) | `src/FearGrid.h`, `src/FearGrid.cpp` | GPL-3.0-or-later (not in Stuart's release) |

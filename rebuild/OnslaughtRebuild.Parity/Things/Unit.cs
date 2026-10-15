@@ -22,19 +22,6 @@ public static class UnitEvent
     public const int Event4005 = 4005;
 }
 
-/// <summary>
-/// A unit's weapon as far as CUnit::Init sets it up: its definition, mount, and whether the gun's part chain turns a
-/// turret (+0x94) or a barrel (+0x98). The weapon itself (CWeapon) is ported with the weapons.
-/// </summary>
-public sealed class UnitWeaponInstance(int index, int type, int mount)
-{
-    public int Index { get; } = index;
-    public int Type { get; } = type;
-    public int Mount { get; } = mount;
-    public bool TurnsTurret;
-    public bool TurnsBarrel;
-}
-
 /// <summary>CUnit: a unit with physics-script data, weapons, AI, life and shields.</summary>
 public abstract partial class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
 {
@@ -64,10 +51,12 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     public bool Unknown22CWeakPoint;
     public int DeployState;
     public bool ThrustersActive;
-    public readonly List<UnitWeaponInstance> Weapons = [];
 
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
-    public object? AI;
+    public UnitAI? AI;
+
+    /// <summary>mGuide: what steers the unit (set by the subclass's Init).</summary>
+    public Guide? Guide;
 
     /// <summary>mSquad: the squad the unit belongs to (null during its own Init when a squad spawns it; SetSquad after).</summary>
     public Squad? Squad;
@@ -149,8 +138,12 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
 
             foreach (UnitWeaponReference uw in UnitData.Weapons)
             {
-                Context.Skip("UPhysicsManager::SpawnWeapon and CWeapon::Init");
-                var weapon = new UnitWeaponInstance(uw.Index, uw.Unknown04, uw.Mount);
+                Weapon? weapon = AddWeapon(uw);
+                if (weapon is null)
+                {
+                    continue;
+                }
+
                 if (RenderThing is not null && UnitData.TurretTurnRate > 0)
                 {
                     if (uw.Mount < 1 || uw.Mount > 9)
@@ -163,13 +156,13 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
                     {
                         if (part.Name == "turret" || part.Name.StartsWith("X1 Turret", StringComparison.OrdinalIgnoreCase))
                         {
-                            weapon.TurnsTurret = true;
+                            weapon.Unknown94 = 1;
                         }
                         else if (part.Name.StartsWith("barrel", StringComparison.Ordinal)
                                  || part.Name.StartsWith("X1 Barrel", StringComparison.OrdinalIgnoreCase))
                         {
                             HasBarrel = true;
-                            weapon.TurnsBarrel = true;
+                            weapon.Unknown98 = 1;
                             UnknownF4 = EulerAngles.FromMatrix(part.Orientation).Pitch;
                             Unknown220 = part;
                         }
@@ -178,7 +171,7 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
                     }
                 }
 
-                Weapons.Add(weapon);
+                AppendWeapon(weapon);
             }
 
             foreach (UnitWeaponReference sr in UnitData.Spawners)
@@ -326,9 +319,6 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
             (Context.Random.FloatRandom() * 0.1f) + Context.Events.Time, EventPriority.StartOfFrame, null, e);
     }
 
-    /// <summary>mUnknown110: a player's camera was within 50 at the last UNIT_EVENT_4003.</summary>
-    public bool NearCamera;
-
     /// <summary>mUnknown218 / mUnknown21C: a countdown UNIT_EVENT_4005 runs down by a step each frame.</summary>
     public int Unknown218;
 
@@ -357,7 +347,7 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
                 break;
             case UnitEvent.Event4003:
             {
-                NearCamera = false;
+                Unknown110 = 0; // mUnknown110: a player's camera was within 50
                 // For each player with a camera: d.Y*d.Y + d.X*d.X + d.Z*d.Z < 2500 sets the flag. The cameras are not
                 // ported, so the flag stays false (counted).
                 Context.Skip("CUnit UNIT_EVENT_4003: the players' camera distance (cameras not ported)");

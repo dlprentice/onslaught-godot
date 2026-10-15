@@ -52,11 +52,16 @@ public struct FMatrix
         return m;
     }
 
-    /// <summary>operator*(FVector): each component the row's bracketed products summed left to right.</summary>
+    /// <summary>
+    /// operator*(FVector) as VC6 /O2 compiles the inline: the source sums each row's products X + Y + Z, but the compiled
+    /// code evaluates (Z + Y) + X (a reassociation, not a commutation: the 24-bit roundings differ). Read from the
+    /// pristine specimen at CThing::GetCentrePos (004f3b9c) and CUnit::GetEmitter (004fc60f); other inline sites are
+    /// checked as they are ported (the per-function oracle), and a site that differs gets its own method.
+    /// </summary>
     public readonly FVector Transform(FVector v) => new(
-        (Row0.X * v.X) + (Row0.Y * v.Y) + (Row0.Z * v.Z),
-        (Row1.X * v.X) + (Row1.Y * v.Y) + (Row1.Z * v.Z),
-        (Row2.X * v.X) + (Row2.Y * v.Y) + (Row2.Z * v.Z));
+        ((Row0.Z * v.Z) + (Row0.Y * v.Y)) + (Row0.X * v.X),
+        ((Row1.Z * v.Z) + (Row1.Y * v.Y)) + (Row1.X * v.X),
+        ((Row2.Z * v.Z) + (Row2.Y * v.Y)) + (Row2.X * v.X));
 
     /// <summary>Transpose: the columns as rows.</summary>
     public readonly FMatrix Transpose() => new(

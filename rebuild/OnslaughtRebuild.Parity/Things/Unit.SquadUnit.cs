@@ -88,8 +88,17 @@ public abstract partial class Unit : ISquadUnit
             throw new NotSupportedException("CUnit::Unknown4fb3d0 with spawners (CSpawner::Unknown4e4480 is not ported)");
         }
 
-        return WeaponCanReach(unit);
+        return CanEngage(unit);
     }
+
+    /// <summary>IsAThreat's weapon half: a weapon whose mode's round does damage (mUnknown1C &gt; 0).</summary>
+    private bool WeaponsAreAThreat() => WeaponList.Any(w => w.Mode?.Round is { Damage: > 0 });
+
+    /// <summary>Unknown4fb840 (ISquadUnit): the weapon or spawner for the target.</summary>
+    public void Unknown4fb840(Thing? target) => ChooseWeapon(target);
+
+    /// <summary>Unknown4fb5a0 (ISquadUnit): the reach test.</summary>
+    public bool Unknown4fb5a0(ISquadUnit target) => CanReach((Unit)target);
 
     /// <summary>IsLiveUnit: not dying and not deploying.</summary>
     public static bool IsLiveUnit(Unit? unit) =>
@@ -113,27 +122,10 @@ public abstract partial class Unit : ISquadUnit
     }
 
     /// <summary><c>if (mAI) mAI-&gt;Unknown4ffdd0(target, FALSE)</c>.</summary>
-    public void SetAITarget(ISquadUnit? target)
-    {
-        if (AI is not null)
-        {
-            throw new NotSupportedException("CUnitAI::Unknown4ffdd0 (the unit AI is not ported yet)");
-        }
-    }
+    public void SetAITarget(ISquadUnit? target) => AI?.Unknown4ffdd0(target as Unit, false);
 
     /// <summary>GetCurrentTarget (slot 81): the AI's target.</summary>
-    public virtual ISquadUnit? GetCurrentTarget()
-    {
-        if (AI is not null)
-        {
-            throw new NotSupportedException("CUnit::GetCurrentTarget (the unit AI is not ported yet)");
-        }
+    public virtual ISquadUnit? GetCurrentTarget() => AI?.Target.ToRead;
 
-        return null;
-    }
 
-    public virtual bool IsOnGround() => throw new NotSupportedException("IsOnGround (CActor/CGroundUnit) is not ported yet");
-
-    /// <summary>GuideUnknown7 (004fcec0): the guide's slot 7.</summary>
-    public void GuideUnknown7(FVector pos) => throw new NotSupportedException("the unit guides are not ported yet");
 }

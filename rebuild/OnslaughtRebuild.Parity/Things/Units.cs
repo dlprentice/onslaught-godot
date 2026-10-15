@@ -73,8 +73,8 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
             Context.Skip("CMCGroundVehicle (motion controller)");
         }
 
-        Context.Skip("CGroundVehicleGuide");
-        Context.Skip("CUnitAI constructor (ground vehicle)");
+        Guide = new BasicGuide(this, "CGroundVehicleGuide");
+        AI = new UnitAI(this, init);
     }
 }
 
@@ -102,8 +102,8 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
             State = 1;
         }
 
-        Context.Skip("CTerrainGuide");
-        Context.Skip("CUnitAI constructor (cannon)");
+        Guide = new BasicGuide(this, "CTerrainGuide");
+        AI = new UnitAI(this, init);
         Unknown12C = new EulerAngles(0, 0, 0);
         Context.Skip("CMCCannon (motion controller)");
         UnknownF4 = 0;
@@ -125,6 +125,23 @@ public sealed class Building(ThingContext context) : Unit(context)
 
     public override void SetThingType(uint t) => base.SetThingType(
         t | ThingType.Unknown40000000 | ThingType.CanBeWalkedOn | ThingType.Building | ThingType.Stationary);
+
+    /// <summary>CreateRepairPadAI (00417390): the repair pad's AI services battle engines; every other building fights.</summary>
+    private void CreateRepairPadAI(InitThing init)
+    {
+        if (string.Equals(UnitData!.NameText, "Forseti Repair Pad", StringComparison.OrdinalIgnoreCase))
+        {
+            AI = new RepairPadAI(this, init);
+            IsRepairPad = true;
+        }
+        else
+        {
+            AI = new UnitAI(this, init);
+        }
+    }
+
+    /// <summary>mUnknown1F4: set for the repair pad.</summary>
+    public bool IsRepairPad;
 
     /// <summary>CBuilding::InitRenderThing: "&lt;mesh&gt;.msh" and its rubble "&lt;rubble&gt;.msh" (RTID 4, CRTBuilding).</summary>
     public override void InitRenderThing(InitThing init) =>
@@ -162,7 +179,7 @@ public sealed class Building(ThingContext context) : Unit(context)
         Unknown264 = 3;
         Unknown268 = -100.0f;
         StickToGround();
-        Context.Skip("CBuilding::CreateRepairPadAI");
+        CreateRepairPadAI(init);
         SetAnimMode(AnimModeByName("Idle"), true, true);
         Context.Skip("CWorld::AddToOccupancy");
     }
@@ -231,14 +248,19 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
     {
         init.InitCst.MaxCollision = CollisionLevel.ApproxGeometryShapes;
         base.Init(init);
-        Context.Skip("CAirGuide");
-        // CPlaneAI's mode is 2 (launched) only for a plane a unit spawned with an emitter to follow (CUnitAI::Unknown7);
-        // every plane the world file places starts in mode 0 or 1. Spawned planes take the launch branch once spawners
-        // and the AI are ported.
-        Context.Skip("CPlaneAI constructor (a placed plane: not launched)");
+        Guide = new AirGuide(this);
+        AI = new PlaneAI(this, init);
         SetAnimMode(AnimModeByName("launch"), true, true);
-        WingState = 1;
-        LaunchTime = 0;
+        if (AI.AIMode == 2)
+        {
+            WingState = 0;
+            LaunchTime = Context.Events.Time + 2.5f;
+        }
+        else
+        {
+            WingState = 1;
+            LaunchTime = 0;
+        }
         if (UnitData!.EffectNames[8] is not null)
         {
             ThrusterLinks = RenderThing!.CountEmitters("Engine");
@@ -281,7 +303,9 @@ public sealed class Dropship(ThingContext context) : AirUnit(context)
             SetAnimMode(AnimModeByName("wingflat"), true, true);
         }
 
-        Context.Skip("CMCDropship, CDropshipGuide, CDropshipAI");
+        Context.Skip("CMCDropship (motion controller)");
+        Guide = new BasicGuide(this, "CDropshipGuide");
+        AI = new DropshipAI(this, init);
         if (UnitData.EffectNames[3] is not null)
         {
             Context.Skip("the dropship's thruster count (through its motion controller's pose)");

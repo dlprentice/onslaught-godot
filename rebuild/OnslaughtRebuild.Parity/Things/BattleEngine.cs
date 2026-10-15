@@ -50,6 +50,16 @@ public sealed class BattleEngine(ThingContext context) : Unit(context, Oid.Battl
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.BattleEngine | ThingType.GroundUnit
         | ThingType.AirUnit | ThingType.Mech | ThingType.CanDestroyTrees | ThingType.Vehicle);
 
+    /// <summary>FullHealth: energy and life at their configuration's values.</summary>
+    public bool FullHealth() => !(Energy < Configuration!.Energy || Life < Configuration.Life);
+
+    /// <summary>NeedsRearm: a store below its configuration's value (the stores are not ported: counted, none).</summary>
+    public bool NeedsRearm()
+    {
+        Context.Skip("CBattleEngine::NeedsRearm: the stores are not ported (read as full)");
+        return false;
+    }
+
     /// <summary>CBattleEngine::UpdateConfiguration.</summary>
     public void UpdateConfiguration()
     {

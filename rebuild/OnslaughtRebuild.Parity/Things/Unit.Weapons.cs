@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Unit.cpp (CUnit: Init's weapon loop at 004f86d0, Unknown4fb3d0 004fb3d0, CanFireAt
 // 004fb500, Unknown4fb5a0 004fb5a0, WeaponUnknown509140 004fb650, Unknown4fb670 004fb670, GetMinRange 004fb780,
 // GetMaxRange 004fb7e0, Unknown4fb840 004fb840, GetWeaponUnknownA0_88 004fbc90, Unknown86 004fbcb0, Unknown84
@@ -6,7 +6,7 @@
 // AnyWeaponUnknown50a290 004fd760; the AnyWeaponBusy scan), src/thing.cpp (CThing::GetCentrePos 004f3ac0),
 // src/actor.cpp (CActor::IsOnGround 00401f70, IsInWater 00401fa0), src/GroundUnit.cpp (CGroundUnit::IsOnGround
 // 0047c8b0), src/unit.h (CBuilding::IsOnGround) and src/WorldPhysicsManager.cpp (CUnitData::FindPair 00511bc0) and
-// src/map.h (CMap::GetHeightAt). Not in Stuart's release.
+// src/map.h (CMap::GetHeightAt). thing.cpp and actor.cpp are in Stuart's release, hence GPL-3.0-only.
 
 using System.Runtime.CompilerServices;
 using OnslaughtRebuild.Parity.Maths;
