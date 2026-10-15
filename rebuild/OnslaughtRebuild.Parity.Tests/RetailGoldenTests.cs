@@ -60,6 +60,14 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>C's level-100 tape (golden-640/tapes), which both per-Present goldens replay from Present 3300.</summary>
     private const string Level100TapeFile = "tapes/level100-keys-mouse-10000f.tape";
 
+    /// <summary>
+    /// B's per-Present virtual-DS run of level 100 with the tape (l100-beobj-vds-6000: the battle engine's object and
+    /// EVT, FT and RNG after every Present to <see cref="BeObjLastPresent"/>; ONSLAUGHT_BEOBJ_VDS names its directory).
+    /// </summary>
+    private const string BeObjFile = "beobjvds/l100.beobj-vds6000-a.probes";
+
+    private const int BeObjLastPresent = 6000;
+
     /// <summary>The tape; the tests that replay it require it, so a missing tape skips them rather than diverging.</summary>
     private static RetailTape Level100Tape() => RetailTape.Load(RetailGolden.File(Level100TapeFile)!);
 
@@ -67,16 +75,16 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int RandomStreamMatchedFloor = 187;
 
     /// <summary>The last Present the Present-by-Present run matches retail's clock and random stream to (never lowered).</summary>
-    private const int PresentByPresentFloor = 3600;
+    private const int PresentByPresentFloor = 6000;
 
     /// <summary>The last sampled Present (every 50) the run matches the virtual-DS golden to (never lowered).</summary>
     private const int VirtualDsFloor = 3850;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
-    private const int BattleEngineMatchedFloor = 3598;
+    private const int BattleEngineMatchedFloor = 5998;
 
     /// <summary>The Present through which every compared battle-engine field equals retail's (never lowered).</summary>
-    private const int BattleEngineMatchedThrough = 3600;
+    private const int BattleEngineMatchedThrough = 3888;
 
     /// <summary>
     /// Level 100 run Present by Present against B's virtual-DS golden (level100.vds-a.probes: retail with virtual
@@ -161,14 +169,14 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// time (EVT), mFrameTime (FT) and the random stream's value (RNG). Present numbers line up without help from the
     /// recording, so the frames the host renders are retail's.
     /// </summary>
-    [RetailGoldenFact("beobjvds/l100.beobj-vds-a.probes", Level100TapeFile)]
+    [RetailGoldenFact(BeObjFile, Level100TapeFile)]
     public void Level100RunPresentByPresentMatchesRetailsClockAndRandomStream()
     {
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         session.Tape = Level100Tape();
         var ours = new Dictionary<long, (uint Evt, uint Ft, int Rng)>();
         string stopped = "ran to retail's last probe";
-        while (session.PresentCount < 3600)
+        while (session.PresentCount < BeObjLastPresent)
         {
             try
             {
@@ -186,7 +194,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
         int compared = 0;
         string? first = null;
-        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("beobjvds/l100.beobj-vds-a.probes")!))
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File(BeObjFile)!))
         {
             string[] f = line.Split(' ');
             if (f.Length != 4 || f[0] != "P" || f[2] is not ("EVT" or "FT" or "RNG") || f[3] == "null")
@@ -377,7 +385,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// after the update that reached its event time. Reports each field's first difference; asserts the fields matched
     /// so far stay matched through the Presents our run reaches.
     /// </summary>
-    [RetailGoldenFact("beobjvds/l100.beobj-vds-a.probes", Level100TapeFile)]
+    [RetailGoldenFact(BeObjFile, Level100TapeFile)]
     public void Level100sBattleEngineFollowsRetailsPerPresentObject()
     {
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
@@ -389,7 +397,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         void Record(int u) => states[BitConverter.SingleToUInt32Bits(context.Events.Time)] =
             (u, [.. tables.SelectMany(t => t.Item2).Select(f => f.Ours(engine))]);
         string stopped = "ran to retail's last probe";
-        while (session.PresentCount < 3600)
+        while (session.PresentCount < BeObjLastPresent)
         {
             try
             {
@@ -410,7 +418,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         int compared = 0;
 
         // Each Present's lines start with its BEO, BEW and BEJ and give its EVT after them: read the times first.
-        string path = RetailGolden.File("beobjvds/l100.beobj-vds-a.probes")!;
+        string path = RetailGolden.File(BeObjFile)!;
         var times = new Dictionary<int, uint>();
         foreach (string line in System.IO.File.ReadLines(path))
         {
