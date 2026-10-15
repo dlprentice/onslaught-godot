@@ -271,6 +271,73 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
         if (Math.Abs(X87.Sub(target, CursorPos)) < 0.05f) CursorPos = target;
     }
 
+    private static Text.FrontEndText ActionText(int action) => action switch
+    {
+        0 => Text.FrontEndText.NewGame,
+        1 => Text.FrontEndText.ContinueGame,
+        2 => Text.FrontEndText.LoadGame,
+        8 => Text.FrontEndText.SaveGame,
+        3 => Text.FrontEndText.Multiplayer,
+        4 => Text.FrontEndText.Goodies,
+        5 => Text.FrontEndText.Options,
+        _ => Text.FrontEndText.Quit,
+    };
+
+    /// <summary>
+    /// The state-changing part of <c>CFEPMain::Render</c> (0x00462d40): the language row (from y 268; its arrows click
+    /// left and right) and then each action, 20 apart from 36 below it, centred on x 219 at the small font's size of its
+    /// text. Once the page is nine tenths in, hovering an available action selects it and clicking it presses select.
+    /// Runs only with the host's small font and texts (<see cref="FrontEnd.SmallFont"/>).
+    /// </summary>
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        if (frontEnd.SmallFont is not { } font || frontEnd.Texts is not { } texts) return;
+        float y = 268f;
+        int start = -1;
+        if (AmericanText)
+        {
+            start = 0;
+            y = 304f;
+        }
+        for (int i = start; i < NumActions; i++)
+        {
+            if (i != -1)
+            {
+                (int cx, int cy) = font.GetTextExtent(texts.GetText(ActionText(i)));
+                // x87: the halved width is subtracted from 219 and stored; the half height divides as an int.
+                float tx = (float)X87.Sub(219f, X87.Mul(cx, 0.5f));
+                float ty = (float)X87.Sub(y, cy / 2);
+                float right = (float)X87.Add(cx, tx), bottom = (float)X87.Add(cy, ty);
+                if (transition > 0.9f && IsActionAvailable(i))
+                {
+                    if (frontEnd.GetCursorStateInRect(tx, ty, right, bottom)) Selected = i;
+                    if (frontEnd.MouseClickedInRect(tx, ty, right, bottom))
+                    {
+                        Selected = i;
+                        ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+                    }
+                }
+                y = (float)X87.Add(y, 20f);
+            }
+            else
+            {
+                float top = (float)X87.Sub(y, 20f), bottom = (float)X87.Add(y, 20f);
+                if (transition > 0.9f && IsActionAvailable(-1) && frontEnd.GetCursorStateInRect(119f, top, 319f, bottom)) Selected = -1;
+                if (frontEnd.MouseClickedInRect(119f, top, 199f, bottom))
+                {
+                    Selected = -1;
+                    ButtonPressed(FrontEndButtons.MenuLeft, 1f);
+                }
+                if (frontEnd.MouseClickedInRect(239f, top, 319f, bottom))
+                {
+                    Selected = -1;
+                    ButtonPressed(FrontEndButtons.MenuRight, 1f);
+                }
+                y = (float)X87.Add(y, 36f);
+            }
+        }
+    }
+
     /// <summary><c>CFEPMain::TransitionNotification</c> (0x004644d0): Continue is preselected when a career is in progress.</summary>
     public override void TransitionNotification(FrontEndPage from)
     {

@@ -225,6 +225,15 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public Action<string>? CreateGoodieEffect { get; set; }
 
+    /// <summary>
+    /// The small font (<c>PLATFORM.Font(FONT_SMALL)</c>, Font13PS) and the front-end texts (<c>FET</c>), from the host's
+    /// installation. Render logic that hit-tests laid-out text (the main menu's items) runs only when both are set.
+    /// </summary>
+    public Text.BitmapFont? SmallFont { get; set; }
+
+    /// <inheritdoc cref="SmallFont"/>
+    public Text.FrontEndTexts? Texts { get; set; }
+
     /// <summary>The front end's video player, from the host.</summary>
     public IFrontEndVideo? Video { get; set; }
 
@@ -362,8 +371,12 @@ public sealed class FrontEnd : IButtonReceiver
     /// <c>CFrontEnd::SetPage</c> (0x00466ae0): with time 0 the change is immediate (deactivate, transition, activate);
     /// otherwise a transition of <paramref name="time"/> fiftieths of a second begins.
     /// </summary>
+    /// <summary>Called at each <see cref="SetPage"/> with its page and time (a trace for comparison with retail's).</summary>
+    public Action<FrontEndPage, int>? SetPageTrace { get; set; }
+
     public void SetPage(FrontEndPage page, int time)
     {
+        SetPageTrace?.Invoke(page, time);
         if (ActivePage == FrontEndPage.Transition) ActivePage = TransitionFrom;
         if (time == 0)
         {
@@ -619,14 +632,15 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>
     /// One iteration of <c>CFrontEnd::Run</c>'s loop: a process, then (while still running) renders until one starts its
     /// scene. Every render presents (<c>CFrontEnd::RenderEnd</c> flips whether or not the scene started), so a frame
-    /// usually costs one Present. Returns false once the front end has quit.
+    /// usually costs one Present. Returns false once the front end has quit, whether in the process or in the render (a
+    /// page's render click can set the quit value, and the loop's test then ends the run before another process).
     /// </summary>
     public bool Step(bool platformQuit = false)
     {
         Process(platformQuit);
         if (Quit != QuitRunning) return false;
         while (!Render()) { }
-        return true;
+        return Quit == QuitRunning;
     }
 
     /// <summary>

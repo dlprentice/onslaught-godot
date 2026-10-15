@@ -64,6 +64,16 @@ first `CFrontEnd::Process` run at 2287, then one `Process` per Present. The titl
 `Process` at 3188 = 2287 + 901, as the flow models it (`ThirtySecondsIdleOnTheTitleQuitsToTheAttractVideos`): from
 the front end's first `Process` on, retail and the model agree to the Present.
 
+Measured (M6 front end, 2026-10-15): C's click tape from the title page to level 100 (fe-explore4: the title,
+New Game, the name keyboard's forward arrow, a miss beside the level node, then forward through the level select,
+briefing and configuration) replayed into the flow from `FrontEndInitPresents`. Every page change lands on retail's
+Present (C's breakpoints on `CFrontEnd::SetPage`): Intro 2287, Main 2596, the name keyboard 2704, the save 2804,
+the level select 2817 (13 Presents later, after the autosave), the briefing 3104 and the configuration 3304. The
+front end's last `Process` is at 3504 with the level set to 100, as in retail
+(`RetailChainTests.TheTitleToLevel100ClickChainSetsEachPageAtRetailsPresent`, which reads the player's own
+installation for the fonts, texts and data). The front end's float expressions (frame-step filter, counters,
+transitions, cursor and layout maths) still need D's per-function oracle before they count as exact (J's rule).
+
 Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its
 138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
 missing at the first sample.

@@ -80,7 +80,7 @@ public static class Buttons
 /// <summary>DirectInput key codes (<c>DIK_*</c>) the default bindings use: scan codes, extended keys above 0x80.</summary>
 public static class Dik
 {
-    public const int Escape = 0x01, Back = 0x0E, Tab = 0x0F, W = 0x11, Return = 0x1C, A = 0x1E, S = 0x1F, D = 0x20, F = 0x21;
+    public const int Escape = 0x01, Back = 0x0E, Tab = 0x0F, W = 0x11, Return = 0x1C, A = 0x1E, S = 0x1F, D = 0x20, F = 0x21, X = 0x2D;
     public const int LShift = 0x2A, RShift = 0x36, Space = 0x39, Numpad8 = 0x48, Numpad2 = 0x50, NumpadEnter = 0x9C;
     public const int Up = 0xC8, Left = 0xCB, Right = 0xCD, Down = 0xD0;
 }
