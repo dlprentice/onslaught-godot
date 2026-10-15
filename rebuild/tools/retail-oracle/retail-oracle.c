@@ -264,6 +264,55 @@ static double CallCI(uint32_t fn, double x)
 	return r;
 }
 
+// Front-end fonts in retail's CDXBitmapFont layout (0x1180 bytes, vtable 005e504c): mHeight +0x54, mSysFont +0x15c,
+// mTexWidth +0x160, mTexHeight +0x164, mCharSwapHack +0x168, mUnknown16c +0x16c, mTexture +0x170 (non-null: no texture
+// init), mTexCoords[256][4] +0x180. The first load builds the static character map (InitCharMap 00465c10).
+static uint8_t *sFonts[8];
+static int sNumFonts;
+typedef int (__attribute__((thiscall)) *ExtentFn)(void *, const uint16_t *, int32_t *);
+typedef int (__attribute__((thiscall)) *WrapFn)(void *, uint16_t *, const uint16_t *, float);
+
+static int LoadFont(const char *path)
+{
+	FILE *f = fopen(path, "rb");
+	if (!f) return -1;
+	int32_t head[4];
+	uint8_t *obj = calloc(1, 0x1180);
+	if (fread(head, 4, 4, f) != 4 || fread(obj + 0x180, 4, 1024, f) != 1024) { fclose(f); return -1; }
+	fclose(f);
+	if (!sNumFonts) ((void (*)(void))0x00465c10)();
+	*(uint32_t *)obj = 0x005e504c;
+	*(int32_t *)(obj + 0x54) = head[2];
+	*(uint8_t *)(obj + 0x15c) = 0;
+	*(int32_t *)(obj + 0x160) = head[0];
+	*(int32_t *)(obj + 0x164) = head[1];
+	*(int32_t *)(obj + 0x168) = head[3];
+	*(void **)(obj + 0x170) = (void *)obj;
+	sFonts[sNumFonts] = obj;
+	return sNumFonts++;
+}
+
+static int Utf16FromHex(const char *hex, uint16_t *out, int max)
+{
+	int n = 0;
+	while (hex[0] && hex[1] && hex[2] && hex[3] && n < max - 1)
+	{
+		unsigned b0, b1;
+		if (sscanf(hex, "%2x%2x", &b0, &b1) != 2) break;
+		out[n++] = (uint16_t)(b0 | (b1 << 8));
+		hex += 4;
+	}
+	out[n] = 0;
+	return n;
+}
+
+static void PrintUtf16(const uint16_t *s)
+{
+	if (!*s) { printf(" -"); return; }
+	printf(" ");
+	for (; *s; s++) printf("%02X%02X", *s & 0xff, *s >> 8);
+}
+
 typedef int16_t *(__attribute__((thiscall)) *StartLineFn)(void *, FVector *, FVector *);
 typedef int16_t *(__attribute__((thiscall)) *NextLineFn)(void *, int32_t);
 typedef int16_t *(__attribute__((thiscall)) *StartSphereFn)(void *, FVector *, float);
@@ -301,6 +350,8 @@ int main(int argc, char **argv)
 		char name[64];
 		if (sscanf(line, "%63s", name) != 1)
 			continue;
+		static char raw[65536];
+		strcpy(raw, line);	// ReadWords tokenises the line in place; the text commands parse the copy
 		int n = ReadWords(line + strlen(name), w, 4096);
 		uint16_t saved = GetCw();
 		printf("%s", name);
@@ -437,6 +488,41 @@ int main(int argc, char **argv)
 			SetCw(saved);
 			memcpy(&out, &r, 8);
 			printf(" %08x %08x", (uint32_t)out, (uint32_t)(out >> 32));
+		}
+		else if (!strcmp(name, "fontload"))
+		{
+			char path[1024];
+			sscanf(line, "%*s %1023s", path);
+			printf(" %d", LoadFont(path));
+		}
+		else if (!strcmp(name, "extent") || !strcmp(name, "wrap"))
+		{
+			// extent FONT HEX; wrap FONT WIDTH HEX (UTF-16 little-endian hex).
+			static uint16_t text[4096];
+			static uint16_t fill[40 * 100 + 8192];
+			char hex[16384] = "";
+			int font = 0;
+			unsigned widthBits = 0;
+			int isWrap = !strcmp(name, "wrap");
+			if (isWrap) sscanf(raw, "%*s %d %x %16383s", &font, &widthBits, hex);
+			else sscanf(raw, "%*s %d %16383s", &font, hex);
+			Utf16FromHex(hex, text, 4096);
+			SetCw(sControlWord);
+			if (isWrap)
+			{
+				memset(fill, 0, sizeof(fill));
+				int lines = ((WrapFn)0x00465a20)(sFonts[font], fill, text, F(widthBits));
+				SetCw(saved);
+				printf(" %08x", (uint32_t)lines);
+				for (int l = 0; l < lines; l++) PrintUtf16(&fill[l * 100]);
+			}
+			else
+			{
+				int32_t size[2] = { 0, 0 };
+				((ExtentFn)0x00540680)(sFonts[font], text, size);
+				SetCw(saved);
+				printf(" %08x %08x", (uint32_t)size[0], (uint32_t)size[1]);
+			}
 		}
 		else if (!strcmp(name, "meshes"))
 		{

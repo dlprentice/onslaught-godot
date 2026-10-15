@@ -137,8 +137,8 @@ public sealed class LoadPathTests
         r.FrontEnd.Platform.PostMouseMessage(MouseMessage.Move, 520, 300, 0);
         r.FrontEnd.Platform.PostMouseMessage(MouseMessage.LeftDown, 520, 300, 0x1);
         r.FrontEnd.Step();
-        // The bar is 11 rows of 261/30 = 95.7 high: (300 - 130 - 47.85) / (271 - 95.7) * 29.9 truncates to 20, and the
-        // list starts at (300 - 130) / 271 * 19.9, truncated to 12.
-        Assert.Equal((20, 12), (r.Directory.Cursor, r.Directory.FirstShown));
+        // The bar is 11 rows of 261/30 = 95.7 high: (300 - 130 - 47.85) / (271 - 95.7) * 29.9 = 20.83 rounds to 21 (fistp
+        // under /QIfist, 0051b3cb), and the list starts at (300 - 130) / 271 * 19.9 = 12.48, rounded to 12 (0051b41a).
+        Assert.Equal((21, 12), (r.Directory.Cursor, r.Directory.FirstShown));
     }
 }

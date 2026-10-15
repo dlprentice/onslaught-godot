@@ -95,8 +95,9 @@ public sealed class BriefingPage(FrontEnd frontEnd) : FrontEndPageBase
             VideoScale = (0.78515625f, 0.58203125f);
             if (!video.Exists(name)) name = $@"data\video\Briefings\PC_{level:000}_25.vid";
         }
-        // SINT(201 / scale): _ftol truncates the quotient (256 for the smaller video, whose scales are 201/256 and 149/256).
-        video.Open(name, X87.Ftol(X87.Div(201f, VideoScale.X)), X87.Ftol(X87.Div(149f, VideoScale.Y)));
+        // SINT(201 / scale): fdiv then fistp, rounding to nearest under /QIfist (00452699..004526c4); the quotients are
+        // exact (201 and 149, or 256 for the smaller video, whose scales are 201/256 and 149/256).
+        video.Open(name, X87.Fist(X87.Div(201f, VideoScale.X)), X87.Fist(X87.Div(149f, VideoScale.Y)));
         VideoOpen = true;
     }
 

@@ -154,6 +154,9 @@ public sealed class TextIds
         return new TextIds(ids);
     }
 
+    /// <summary>Every id the table names.</summary>
+    public IReadOnlyCollection<uint> Ids => _ids.Values;
+
     public uint this[string name] =>
         _ids.TryGetValue(name, out uint id) ? id : throw new KeyNotFoundException($"{name} is not in {FileName}.");
 }

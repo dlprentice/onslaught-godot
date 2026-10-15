@@ -7,6 +7,7 @@ using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Text;
 using OnslaughtRebuild.Parity.Things;
 using Xunit.Abstractions;
 
@@ -603,6 +604,133 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
             output.WriteLine(m);
         }
 
+        Assert.Empty(mismatches);
+    }
+
+    private static byte[] InflatedTexture(string gamePath)
+    {
+        (string name, byte[] bytes) = GameData.Read(gamePath);
+        MemBuffer file = MemBuffer.FromFile(name, bytes);
+        byte[] data = new byte[file.Length];
+        file.Read(data);
+        return data;
+    }
+
+    /// <summary>The front end's two fonts: FONT_SMALL (Font13PS, cell 16) and FONT_NORMAL (font22.512, cell 32).</summary>
+    private static BitmapFont[] FrontEndFonts() =>
+    [
+        new BitmapFont(InflatedTexture(@"data\resources\textures\mustbe_Font13PS.tga(0)A8R8G8B8.aya"), 16, charSwapHack: false),
+        new BitmapFont(InflatedTexture(@"data\resources\textures\mustbe_font22.512.tga(0)A8R8G8B8.aya"), 32, charSwapHack: false),
+    ];
+
+    /// <summary>
+    /// Writes the front end's fonts for the oracle (ONSLAUGHT_RETAIL_ORACLE_DUMP): per font its texture size, cell size,
+    /// swap flag and 256 x 4 texture coordinates (fontN.bin), and every English language-file string (texts.txt, UTF-16
+    /// hex). Retail-derived; a tool step, skipped unless asked for.
+    /// </summary>
+    [GameDataFact]
+    public void DumpFrontEndFontsForTheOracle()
+    {
+        string? dir = Environment.GetEnvironmentVariable("ONSLAUGHT_RETAIL_ORACLE_DUMP");
+        if (string.IsNullOrEmpty(dir))
+        {
+            output.WriteLine("ONSLAUGHT_RETAIL_ORACLE_DUMP not set: nothing written");
+            return;
+        }
+
+        Directory.CreateDirectory(dir);
+        BitmapFont[] fonts = FrontEndFonts();
+        for (int f = 0; f < fonts.Length; f++)
+        {
+            using var w = new BinaryWriter(File.Create(Path.Combine(dir, $"font{f}.bin")));
+            w.Write(fonts[f].TexWidth);
+            w.Write(fonts[f].TexHeight);
+            w.Write(fonts[f].CellSize);
+            w.Write(fonts[f].CharSwapHack ? 1 : 0);
+            for (int c = 0; c < 256; c++)
+            {
+                for (int k = 0; k < 4; k++)
+                {
+                    w.Write(c < BitmapFont.Characters.Length ? fonts[f].TexCoord(c, k) : 0.0f);
+                }
+            }
+        }
+
+        TextDatabase text = TextDatabase.Load(GameData.Read(TextDatabase.FileName(0, americanText: false)).Bytes);
+        var lines = new List<string>();
+        TextIds ids = TextIds.Read(GameData.Read(TextIds.FileName).Bytes);
+        foreach (uint id in ids.Ids.Distinct().OrderBy(i => i))
+        {
+            string? str = text.GetStringById(id);
+            if (!string.IsNullOrEmpty(str) && str.Length < 400 && !str.Contains('\0'))
+            {
+                lines.Add(Convert.ToHexString(System.Text.Encoding.Unicode.GetBytes(str)));
+            }
+        }
+
+        File.WriteAllLines(Path.Combine(dir, "texts.txt"), lines);
+        output.WriteLine($"{fonts.Length} fonts, {lines.Count} texts");
+    }
+
+    private static string Utf16(string hex) => System.Text.Encoding.Unicode.GetString(Convert.FromHexString(hex));
+
+    /// <summary>
+    /// CDXBitmapFont::GetTextExtent (00540680) and WordWrap (00465a20) against retail's own, on the front end's fonts and
+    /// the language file's texts: the extent of each text, and its wrap at assorted widths (line count and lines).
+    /// </summary>
+    [RetailOracleFact("fonts", needsGameData: true)]
+    public void FontMeasuresAndWrapsMatchTheRetailFunctions()
+    {
+        BitmapFont[] fonts = FrontEndFonts();
+        var mismatches = new Dictionary<string, int>();
+        var counts = new Dictionary<string, int>();
+        var shown = new StringBuilder();
+        string dir = RetailOracle.Dir("fonts")!;
+        string[] cases = File.ReadAllLines(Path.Combine(dir, "cases.txt"));
+        string[] retail = File.ReadAllLines(Path.Combine(dir, "retail.txt"));
+        Assert.Equal(cases.Length, retail.Length);
+        for (int i = 0; i < cases.Length; i++)
+        {
+            string[] f = cases[i].Split(' ');
+            string ours;
+            switch (f[0])
+            {
+                case "extent":
+                {
+                    (int w, int h) = fonts[int.Parse(f[1])].GetTextExtent(Utf16(f[2]));
+                    ours = $"extent {w:x8} {h:x8}";
+                    break;
+                }
+
+                case "wrap":
+                {
+                    float width = BitConverter.UInt32BitsToSingle(Convert.ToUInt32(f[2], 16));
+                    List<string> wrapped = fonts[int.Parse(f[1])].WordWrap(Utf16(f[3]), width);
+                    ours = $"wrap {wrapped.Count:x8} " + string.Join(' ', wrapped.Select(l => l.Length == 0 ? "-" : Convert.ToHexString(System.Text.Encoding.Unicode.GetBytes(l))));
+                    break;
+                }
+
+                default:
+                    continue;
+            }
+
+            counts[f[0]] = counts.GetValueOrDefault(f[0]) + 1;
+            if (ours != retail[i])
+            {
+                mismatches[f[0]] = mismatches.GetValueOrDefault(f[0]) + 1;
+                if (mismatches[f[0]] <= 3)
+                {
+                    shown.AppendLine($"case {i}: {cases[i][..Math.Min(cases[i].Length, 120)]}\nretail {retail[i][..Math.Min(retail[i].Length, 200)]}\nours   {ours[..Math.Min(ours.Length, 200)]}");
+                }
+            }
+        }
+
+        foreach ((string function, int n) in counts.OrderBy(kv => kv.Key))
+        {
+            output.WriteLine($"{function}: {n} cases, {mismatches.GetValueOrDefault(function)} differ");
+        }
+
+        output.WriteLine(shown.ToString());
         Assert.Empty(mismatches);
     }
 }

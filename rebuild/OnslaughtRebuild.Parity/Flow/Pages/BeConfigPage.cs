@@ -122,8 +122,9 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
     /// </summary>
     public override void Render(float transition, FrontEndPage dest)
     {
-        // cosf: the float argument's x87 cosine, stored to a float.
-        float slide = (float)X87.Mul(X87.Mul(X87.Sub(-(float)X87.Cos((float)X87.Mul(transition, MathF.PI)), 1f), 0.5f), 600f);
+        // x87 (004505b6..004505ef): fcos of the 24-bit product, negated and less 1 straight from the register (the cosine is
+        // not stored to a float first), then times 0.5 and 600, each rounded to 24 bits.
+        float slide = (float)X87.Mul(X87.Mul(X87.Sub(-X87.Cos((float)X87.Mul(transition, MathF.PI)), 1f), 0.5f), 600f);
         float offset = dest == FrontEndPage.Wingmen ? -slide : slide;
         float x = (float)X87.Sub(162f, offset);
 
@@ -137,7 +138,8 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
             float left = (float)X87.Sub(x, 40f), right = (float)X87.Add(x, 40f);
             frontEnd.ProcessMouseClickInRect(left, 101f, right, 181f, FrontEndButtons.MenuUp);
             // SINT(counter): _ftol truncates.
-            if (X87.Ftol(frontEnd.Counter) % 64 < 50 || DownFlash > 0f)
+            // SINT(counter): fistp under /QIfist, to nearest (004517f4).
+            if (X87.Fist(frontEnd.Counter) % 64 < 50 || DownFlash > 0f)
                 frontEnd.ProcessMouseClickInRect(left, 344f, right, 424f, FrontEndButtons.MenuDown);
         }
     }

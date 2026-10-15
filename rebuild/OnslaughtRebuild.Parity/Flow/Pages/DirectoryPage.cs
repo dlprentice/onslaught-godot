@@ -156,12 +156,13 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
             Platform.Mouse mouse = frontEnd.Platform.Mouse;
             if (frontEnd.GetCursorStateInRect(510f, Top, 530f, bottom) && NumSaves != 0 && mouse.Held[0])
             {
+                // SINT(...) is fistp under /QIfist, rounding to nearest (0051b3cb, 0051b41a), not a truncation.
                 double along = X87.Div(X87.Sub(X87.Sub(mouse.Y, Top), X87.Mul(bar, 0.5f)), X87.Sub(height, bar));
-                Cursor = X87.Ftol(X87.Mul(along, X87.Sub(NumSaves, 0.1f)));
+                Cursor = X87.Fist(X87.Mul(along, X87.Sub(NumSaves, 0.1f)));
                 if (Cursor < 0) Cursor = 0;
                 if (Cursor >= NumSaves) Cursor = NumSaves - 1;
                 FirstShown = NumSaves > VisibleRows
-                    ? X87.Ftol(X87.Mul(X87.Div(X87.Sub(mouse.Y, Top), height), X87.Add(NumSaves - VisibleRows, 0.9f)))
+                    ? X87.Fist(X87.Mul(X87.Div(X87.Sub(mouse.Y, Top), height), X87.Add(NumSaves - VisibleRows, 0.9f)))
                     : 0;
             }
             frontEnd.RenderHelpArrow(5, transition);

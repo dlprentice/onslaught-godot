@@ -111,6 +111,9 @@ public sealed class BitmapFont : IFontMetrics
     public bool CharSwapHack { get; }
 
     /// <summary>The cell's measured width in pixels (<c>(u2 - u1) * width</c>, as GetTextExtent forms it).</summary>
+    /// <summary><c>mTexCoords[cell][k]</c>: a cell's left, top, right and bottom in texture units.</summary>
+    public float TexCoord(int cell, int k) => _texCoords[cell, k];
+
     public float CellWidth(int cell) => (float)X87.Mul(X87.Sub(_texCoords[cell, 2], _texCoords[cell, 0]), TexWidth);
 
     // The rightmost column at or left of x with alpha above 0x10 in rows sy..sy+h-2, minus one (its own x-- after the test).

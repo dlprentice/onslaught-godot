@@ -32,6 +32,12 @@ code itself.
 - `gen-asin.py SEED N` writes arguments for VC6's runtime asin and acos (`asin`/`acos`, called with the argument in
   st0). Arguments beyond [-1, 1] and NaN are left out: the runtime reports their domain error through the CRT's thread
   data, which the oracle does not set up.
+- `gen-fonts.py DIR SEED` writes cases for the fonts' GetTextExtent and WordWrap. DIR holds the front end's two fonts
+  and the language file's texts, dumped by `RetailOracleTests.DumpFrontEndFontsForTheOracle`. `fontload PATH` builds
+  a font in CDXBitmapFont's layout with retail's vtable; the first load runs InitCharMap.
+- `fp.sh START STOP` lists a retail range's x87 instructions with the jumps, calls and float immediates between them.
+  `float-consts.py ADDR...` lists each function's x87 reads of memory constants, with their width and value; it reads
+  the oracle image. Both are for checking a port's float sites by reading.
 - Static initializers: the image holds the storage of dynamically initialized statics as zero. The oracle runs those
   the tested code reads (MeshCollisionVolume.cpp's box corners, 004abf00..004abfe0) before the first case.
 - `ONSLAUGHT_RETAIL_ORACLE_OURS=DIR` makes a test write its own outputs, line for line, for diagnosis.
@@ -54,4 +60,5 @@ retail layout, for example the 16-byte `FVector` and the 0xe8-byte `CCollisionRe
 | polybucket (level 100's 258 buckets; seeds 1015, 4243, 99) | StartLineSearch 004d50d0 + GetNextPolyLine 004d57c0 (with AdvanceLineSearch, IntersectsCell), StartSearch 004d4c00 + GetNextPoly 004d4f00 | 46,440 searches | 0 (control: 9 on cell-border cases; reversing IntersectsCell fails 2,840) |
 | volume (seeds 1016, 77, 4244) | ResolveContact 004acf30, TestSweptSphereAgainstBox 004ac140, TestSweptSphereAgainstPart 004ac4a0 | 3 x 27,000 | 0 (control: 1,112 to 9,094 per function at seed 77) |
 | collide (seeds 1017, 4245) | CollideWithLine 004ad830, CollideWithSphere 004ac6e0 on level 100's meshes | 2 x 6,500 | 0 (the general transform at the contact fails 375 of 5,000 spheres; XYZ in the slide test fails 5) |
+| fonts (seed 1019; 1,656 language-file texts) | CDXBitmapFont::GetTextExtent 00540680, WordWrap 00465a20 | 3,312 extents, 6,624 wraps | 0 (dropping the per-character +1 fails every extent and 2,580 wraps) |
 | asin (seed 1018) | __CIasin 0055dcb0, __CIacos 0055f380 | 2 x 50,006 | 0 as floats and as occupancy's slope; 93 doubles differ in the last bit (fpatan against Math.Atan2). The former float(Math.Asin) + pi/2 slope differed on about 12,300 of 50,006 |
