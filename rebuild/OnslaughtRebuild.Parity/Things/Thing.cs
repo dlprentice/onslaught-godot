@@ -163,6 +163,7 @@ public abstract class Thing : Monitor
             }
 
             init.ForThing = this;
+            HasCollisionSeekingThing = true;
             Context.Skip("CCSPersistentThing::Init");
         }
     }
@@ -171,6 +172,21 @@ public abstract class Thing : Monitor
     public virtual void SetThingType(uint t) => ThingTypeBits = t | ThingType.Thing;
 
     public virtual bool ClipToGround() => true;
+
+    /// <summary>Gravity (slot 45, 004014b0).</summary>
+    public virtual float Gravity() => 0.01f;
+
+    /// <summary>ObeyGravity (slot 46).</summary>
+    public virtual bool ObeyGravity() => true;
+
+    /// <summary>BounceFactor (slot 47).</summary>
+    public virtual float BounceFactor() => 0;
+
+    /// <summary>COfGHeight (slot 48): the height of the centre of gravity above the ground.</summary>
+    public virtual float COfGHeight() => 0;
+
+    /// <summary>mCollisionSeekingThing != NULL (the collision-seeking things are not ported; this records where one would be).</summary>
+    public bool HasCollisionSeekingThing;
 
     public virtual bool CanGoUnderWater() => false;
 

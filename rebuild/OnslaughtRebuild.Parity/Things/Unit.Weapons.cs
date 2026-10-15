@@ -79,7 +79,7 @@ public abstract partial class Unit
     /// IsOnGround (CUnit's slot 67): CActor's 0.15 s since touching the ground, CGroundUnit's 0.21 s, a building always.
     /// (The overrides are chosen by class here; they belong on the classes.)
     /// </summary>
-    public bool IsOnGround()
+    public override bool IsOnGround()
     {
         if (this is Building)
         {
@@ -90,8 +90,6 @@ public abstract partial class Unit
         return Context.Events.Time - LastTimeOnGround < window;
     }
 
-    /// <summary>CActor::IsInWater.</summary>
-    public bool IsInWater() => Context.Events.Time - LastTimeInWater < 0.25f;
 
     /// <summary>CMap::GetHeightAt: the ground sample at the position's integer cell (/QIfist rounding), or the sea.</summary>
     private float GetHeightAt(FVector pos)

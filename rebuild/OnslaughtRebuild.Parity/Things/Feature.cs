@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Adapted from bea-decomp src/feature.h and src/feature.cpp (CFeature::Init 0044ca30, ClipToGround 0044d1d0,
+// Adapted from bea-decomp src/feature.h and src/feature.cpp (CFeature::Init 0044ca30, Move 0044cc10, ClipToGround 0044d1d0,
 // CanGoUnderWater 00415a90, SetThingType). Not in Stuart's release.
 
 using System.Text;
@@ -18,6 +18,19 @@ public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
     public bool AboveWater;
 
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.Unknown20 | 0x00500000);
+
+    /// <summary>
+    /// CFeature::Move (0044cc10): CActor's, then a dying feature that is not above water topples and sinks (its asin and
+    /// azimuth sites and SpawnPickup are not ported, so that case throws).
+    /// </summary>
+    public override void Move()
+    {
+        base.Move();
+        if (IsDying && !AboveWater)
+        {
+            throw new NotSupportedException("CFeature::Move's dying topple (asin, Azimuth, SpawnPickup) is not ported");
+        }
+    }
 
     public override bool ClipToGround() => !(IsDying && !AboveWater);
 

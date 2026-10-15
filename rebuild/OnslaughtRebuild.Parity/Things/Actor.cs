@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/actor.h and src/actor.cpp (CActor::Init 004011e0, AddMoveEvent, HandleEvent 004019e0),
-// in Stuart's release.
+// Adapted from bea-decomp src/actor.h and src/actor.cpp (CActor::Init 004011e0, LowFidelityMove (inlined into
+// HandleEvent), Move 004015e0, AddMoveEvent, HandleEvent 004019e0, IsOnGround 00401f70, IsInWater 00401fa0, IsOnObject
+// 00401fd0, DeclareOnGround 00402000, DeclareInWater 00402010), in Stuart's release.
 
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
@@ -100,11 +101,99 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
         }
     }
 
-    /// <summary>Move (slot 33): the full move (gravity, collision, the subclass's motion); ported with the movement.</summary>
-    public virtual void Move() => Context.Skip($"{GetType().Name}::Move (the movement is not ported yet)");
+    /// <summary>IsOnGround (slot 67): on the ground within the last 0.15 s.</summary>
+    public virtual bool IsOnGround() => Context.Events.Time - LastTimeOnGround < 0.15f;
 
-    /// <summary>LowFidelityMove: the light move between full ones; ported with the movement.</summary>
-    public virtual void LowFidelityMove() => Context.Skip($"{GetType().Name}::LowFidelityMove (the movement is not ported yet)");
+    /// <summary>IsInWater: in the water within the last 0.25 s.</summary>
+    public bool IsInWater() => Context.Events.Time - LastTimeInWater < 0.25f;
+
+    /// <summary>IsOnObject: on an object within the last 0.15 s.</summary>
+    public bool IsOnObject() => Context.Events.Time - LastTimeOnObject < 0.15f;
+
+    /// <summary>DeclareOnGround (virtual: the dropship overrides it).</summary>
+    public virtual void DeclareOnGround() => LastTimeOnGround = Context.Events.Time;
+
+    public void DeclareInWater() => LastTimeInWater = Context.Events.Time;
+
+    /// <summary>
+    /// CActor::Move: the old place, the velocity added, then down to the ground (sliding along it with TF_SLIDE, else on
+    /// the ground with a bounce: |vZ| > Gravity() + 0.05 reverses vZ scaled by BounceFactor(), otherwise vZ is 0) and the
+    /// water test; then the map-who entry is updated FROM THE OLD POSITION (retail passes mOldPos, so a thing's sector
+    /// lags its move by one). The slide's dot product is compiled (n.Z*v.Z + n.Y*v.Y) + n.X*v.X (00401760..00401778).
+    /// The developer-mode speed warning is off.
+    /// </summary>
+    public virtual void Move()
+    {
+        LastMoveTime = Context.Events.Time;
+        OldPos = Pos;
+        OldOrientation = Orientation;
+        bool inMap = MapWhoEntry.SectorIn.Layer != -1;
+
+        Pos.X += Velocity.X;
+        Pos.Y += Velocity.Y;
+        Pos.Z += Velocity.Z;
+
+        float waterHeight = Context.WaterLevel - COfGHeight();
+        if (ClipToGround())
+        {
+            float alt = Context.Map.Collide(Pos) - COfGHeight();
+            if (alt <= Pos.Z)
+            {
+                Pos.Z = alt;
+                if ((Flags & ThingFlags.Slide) != 0)
+                {
+                    FVector n = Context.Map.Normal(Pos);
+                    float backoff = (n.Z * Velocity.Z) + (n.Y * Velocity.Y) + (n.X * Velocity.X);
+                    Velocity.X -= n.X * backoff;
+                    Velocity.Y -= n.Y * backoff;
+                    Velocity.Z -= n.Z * backoff;
+                }
+                else
+                {
+                    DeclareOnGround();
+                    if (MathF.Abs(Velocity.Z) > Gravity() + 0.05f)
+                    {
+                        Velocity.Z = -(BounceFactor() * Velocity.Z);
+                    }
+                    else
+                    {
+                        Velocity.Z = 0;
+                    }
+                }
+            }
+
+            if (waterHeight <= Pos.Z)
+            {
+                DeclareInWater();
+            }
+        }
+
+        if (inMap && MapWhoEntry.UpdateEntry(Context.MapWho, OldPos) && HasCollisionSeekingThing)
+        {
+            Context.Skip("CCollisionSeekingThing::MovedSector");
+        }
+    }
+
+    /// <summary>
+    /// LowFidelityMove (inlined into HandleEvent): the old position, the velocity added, down to the ground (marking the
+    /// time on the ground). No bounce, no water test, and the map-who entry is not updated.
+    /// </summary>
+    public void LowFidelityMove()
+    {
+        OldPos = Pos;
+        Pos.X += Velocity.X;
+        Pos.Y += Velocity.Y;
+        Pos.Z += Velocity.Z;
+        if (ClipToGround())
+        {
+            float alt = Context.Map.Collide(Pos) - COfGHeight();
+            if (alt <= Pos.Z)
+            {
+                Pos.Z = alt;
+                LastTimeOnGround = Context.Events.Time;
+            }
+        }
+    }
 
     // IRenderSubject: what the mesh pose code asks of the thing (the rest pose until animation timing is ported).
     int IRenderSubject.RealAnimIndex => -1;
