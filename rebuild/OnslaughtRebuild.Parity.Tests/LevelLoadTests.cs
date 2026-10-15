@@ -8,6 +8,7 @@ using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.Things;
 using OnslaughtRebuild.Parity.World;
+using ParityGame = OnslaughtRebuild.Parity.Game.Game;
 using Xunit.Abstractions;
 
 namespace OnslaughtRebuild.Parity.Tests;
@@ -76,6 +77,9 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// <summary>Our C# draw sites as retail's function names.</summary>
     private static string RetailName(string site) => site switch
     {
+        "Squad.Unknown4e8100" => "CNormalSquad::Unknown4e8100",
+        "Squad.Unknown4e83b0" => "CNormalSquad::Unknown4e83b0",
+        "Squad.Unknown66" => "CNormalSquad::Unknown66",
         "Tree.Init" => "CTree::Init",
         "Actor.Init" => "CActor::Init",
         "Unit.Unknown4fb280" => "CUnit::Unknown4fb280",
@@ -133,5 +137,61 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
 
         Assert.Contains(turret, found);
         output.WriteLine($"{things.Count} things, {context.World.BigThings.Size} big; {found.Count} near the first turret");
+    }
+
+    /// <summary>
+    /// Level 100 as retail runs it: CGame::InitRestartLoop (the event manager reset, FINISHED_PRE_RUN, the reseed, the
+    /// fear grids), then CWorld::Load(100), which loads base world 1 at its level. Every draw is compared with the native
+    /// port's log by number and retail function: 1,537 in all, 56 outside the trees.
+    /// </summary>
+    [PortLogFact]
+    public void TheLevel100LoadDrawsAsRetailDoesSiteBySite()
+    {
+        (string pname, byte[] pbytes) = GameData.Read(@"data\default physics.dat");
+        PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
+        (string bname, byte[] bbytes) = GameData.Read(@"data\battle engine configurations.dat");
+        BattleEngineDataManager battleEngines = BattleEngineDataManager.Load(MemBuffer.FromFile(bname, bbytes));
+        (string rname, byte[] rbytes) = GameData.Read(@"data\Resources\100_res_PC.aya");
+        LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
+
+        var clock = new Clock.PlatformClock();
+        var events = new EventManager();
+        var game = new ParityGame(clock, events) { CurrentLevel = 100 };
+        game.InitRestartLoop();
+        var pool = new SPtrSetPool();
+        pool.Init(SPtrSetPool.RetailBlockSize);
+        SeedUniformRandomNumberStream random = game.RandomStream!;
+        random.Log = [];
+        var context = new ThingContext(pool, events, random, resources.HeightField, physics)
+        {
+            BattleEngines = battleEngines,
+            Game = game,
+        };
+        foreach ((string name, Mesh.MeshData mesh) in resources.Meshes)
+        {
+            context.Meshes[name] = mesh;
+        }
+
+        var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
+        new WorldLoader(context, resources, spawner).Load(100, isBase: false);
+
+        List<(long Draw, string Site)> ours = random.Log;
+        foreach ((string what, int count) in context.NotPorted)
+        {
+            output.WriteLine($"not ported: {what} x{count}");
+        }
+
+        List<(long Draw, string Site)> retail = PortLog();
+        List<(long Draw, string Site)> ourNonTree = ours.Where(d => d.Site != "Tree.Init").ToList();
+        output.WriteLine($"ours: {ours.Count} draws, {ourNonTree.Count} outside trees; retail: 1537, {retail.Count}");
+        for (int i = 0; i < Math.Min(retail.Count, ourNonTree.Count); i++)
+        {
+            string mine = RetailName(ourNonTree[i].Site);
+            Assert.True(retail[i].Draw == ourNonTree[i].Draw && (mine == retail[i].Site || mine.Contains(retail[i].Site)),
+                $"draw {retail[i].Draw}: retail {retail[i].Site}, ours {ourNonTree[i].Draw} {ourNonTree[i].Site}");
+        }
+
+        Assert.Equal(retail.Count, ourNonTree.Count);
+        Assert.Equal(1537, ours.Count);
     }
 }
