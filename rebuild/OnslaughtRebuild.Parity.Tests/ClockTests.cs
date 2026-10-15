@@ -134,7 +134,10 @@ public sealed class ClockTests
     public void Level100GoldenEventTimeFrameTimeAndLevelMatchEverySample()
     {
         ProbeTrace golden = ProbeTrace.Load(RetailData.File("golden/m100-or.retail.probes"));
-        var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100);
+        // `-level 100` without -skipfmv: the intro FMV released the loading screen, so MainLoop follows PreRun directly
+        // (C's per-Present run with these settings matches at all 3,400 Presents this way, base read at 3100).
+        var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100,
+            loadingScreenAfterPreRun: false);
         // The clock reads no input, so the run needs no tape: Present by Present, sampling as the harness does.
         var ours = new ProbeTrace();
         while (sim.PresentCount < 10_000)
