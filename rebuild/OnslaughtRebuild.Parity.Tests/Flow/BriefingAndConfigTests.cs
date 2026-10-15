@@ -4,6 +4,7 @@ using System.Text;
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Flow;
+using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.Flow.Pages;
 using OnslaughtRebuild.Parity.Platform;
 using Xunit;
@@ -101,6 +102,29 @@ public sealed class BriefingAndConfigTests
             WorldHeader? header = headers.ForLevel(CareerTables.LevelStructure[node, 0]);
             Assert.NotNull(header);
             Assert.NotEmpty(header.Configurations);
+        }
+    }
+
+    [GameDataFact]
+    public void EveryConfigurationTheHeadersOfferHasACockpitInTheBattleEngineData()
+    {
+        (string headersName, byte[] headersBytes) = GameData.Read(WorldHeaders.FileName);
+        WorldHeaders headers = WorldHeaders.Read(MemBuffer.FromFile(headersName, headersBytes));
+        (string dataName, byte[] dataBytes) = GameData.Read(@"data\battle engine configurations.dat");
+        BattleEngineDataManager manager = BattleEngineDataManager.Load(MemBuffer.FromFile(dataName, dataBytes));
+        Rig r = new(100, headersBytes);
+        r.FrontEnd.CockpitOf = name => manager.GetConfiguration(name)?.CockpitText;
+        Assert.True(r.FrontEnd.Begin(FrontEndPage.BeConfig));
+        Assert.NotEmpty(r.Config.ConfigName(0)!);
+        r.Config.ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+        Assert.Equal(100, r.FrontEnd.Quit);
+        Assert.NotEmpty(r.FrontEnd.Settings.Player1CockpitMesh);
+        // Every configuration a campaign world offers has a cockpit. (World 1, outside the campaign, offers one
+        // configuration the data does not have; selecting it would leave the previous cockpit in place.)
+        for (int node = 0; node < CareerTables.LevelStructure.GetLength(0); node++)
+        {
+            foreach (string config in headers.ForLevel(CareerTables.LevelStructure[node, 0])!.Configurations)
+                Assert.False(string.IsNullOrEmpty(manager.GetConfiguration(config)?.CockpitText), config);
         }
     }
 
