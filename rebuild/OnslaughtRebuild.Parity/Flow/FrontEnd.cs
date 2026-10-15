@@ -201,6 +201,24 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public Func<Career.CareerOptions>? CurrentOptions { get; set; }
 
+    /// <summary>The game's front-end settings (<c>GAME.GetFrontEndSettings()</c>), which outlive the front end; from the host.</summary>
+    public FrontEndSettings Settings { get; set; } = new();
+
+    /// <summary>Reads one of the game's data files by its retail path, or null when it is missing; from the host.</summary>
+    public Func<string, byte[]?>? ReadDataFile { get; set; }
+
+    /// <summary><c>data\WorldHeaders.dat</c>, read by the configuration page's Init.</summary>
+    public WorldHeaders? WorldHeaders { get; set; }
+
+    /// <summary>
+    /// A Battle Engine configuration's cockpit mesh (<c>UBattleEngineDataManager::GetConfiguration(name)->mCockpit</c>),
+    /// or null for an unknown configuration; from the owner of the Battle Engine data.
+    /// </summary>
+    public Func<string, string?>? CockpitOf { get; set; }
+
+    /// <summary>The front end's video player, from the host.</summary>
+    public IFrontEndVideo? Video { get; set; }
+
     /// <summary><c>gAllCheatsEnabled</c> (00679ec1), which the game sets: every cheat counts as active.</summary>
     public bool AllCheatsEnabled { get; set; }
 
@@ -514,6 +532,29 @@ public sealed class FrontEnd : IButtonReceiver
         ProcessMouseClickInRect((float)X87.Sub(x, 40f), 415f, (float)X87.Add(x, 40f), 495f,
             back ? FrontEndButtons.MenuBack : FrontEndButtons.MenuSelect);
     }
+}
+
+/// <summary>
+/// The front end's video player (<c>FEV</c>, <c>CDXFrontEndVideo</c>), which the host provides: the pages say which
+/// video to open; decoding and drawing are the host's.
+/// </summary>
+public interface IFrontEndVideo
+{
+    /// <summary>Whether a video file exists (the briefing page probes with <c>fopen</c>).</summary>
+    bool Exists(string path);
+
+    /// <summary><c>FEV.Open(name, width, height, 0, TRUE, 0)</c>: the video at that size, looping.</summary>
+    void Open(string path, int width, int height);
+}
+
+/// <summary>
+/// The part of the game's <c>SFrontEndSettings</c> the single-player flow sets: player 1's configuration and its cockpit
+/// mesh (<c>mPlayer1CockpitMesh</c>, 50 characters in retail).
+/// </summary>
+public sealed class FrontEndSettings
+{
+    public int Player1Configuration { get; set; }
+    public string Player1CockpitMesh { get; set; } = "";
 }
 
 /// <summary>What other pages call on the name keyboard (<c>CFEPVirtualKeyboard</c>).</summary>
