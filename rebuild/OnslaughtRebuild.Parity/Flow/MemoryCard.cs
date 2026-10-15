@@ -26,6 +26,7 @@ public interface ISaveFolder
 public sealed class InMemorySaveFolder : ISaveFolder
 {
     private readonly List<string> _names = [];
+    // Windows file names are case-insensitive (beyond ASCII too), so the stand-in folder is.
     private readonly Dictionary<string, byte[]> _files = new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyList<string> Names => _names;
@@ -87,7 +88,7 @@ public sealed class MemoryCard(ISaveFolder folder)
     /// <summary>
     /// <c>CreateSave</c> (0x00514be0): unless overwriting is allowed, an existing save refuses with
     /// <see cref="FileExists"/>; otherwise the file is created empty and its index among the saves found
-    /// (case-insensitively).
+    /// (as <c>_wcsicmp</c> compares).
     /// </summary>
     public int CreateSave(string name, bool allowOverwrite, out int save)
     {
@@ -96,13 +97,29 @@ public sealed class MemoryCard(ISaveFolder folder)
         Folder.Write(name, ReadOnlySpan<byte>.Empty);
         for (int index = 0; index < Folder.Names.Count; index++)
         {
-            if (string.Equals(Folder.Names[index], name, StringComparison.OrdinalIgnoreCase))
+            if (WcsIEquals(Folder.Names[index], name))
             {
                 save = index;
                 return Success;
             }
         }
         return Failure;
+    }
+
+    /// <summary>
+    /// <c>_wcsicmp</c>'s equality in the C locale (the game never sets another): only ASCII A-Z fold to lower case;
+    /// every other character compares exactly.
+    /// </summary>
+    public static bool WcsIEquals(string? a, string? b)
+    {
+        if (a is null || b is null || a.Length != b.Length) return false;
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (Fold(a[i]) != Fold(b[i])) return false;
+        }
+        return true;
+
+        static char Fold(char c) => c is >= 'A' and <= 'Z' ? (char)(c + 32) : c;
     }
 
     /// <summary><c>WriteSave</c> (0x00514f80).</summary>
