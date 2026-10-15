@@ -72,6 +72,9 @@ package licence expression is `GPL-3.0-only`.
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
+| `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
+| `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-or-later (the map texture and map files are not in Stuart's release) |
 
 ## Authority
 
