@@ -71,9 +71,6 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The tape; the tests that replay it require it, so a missing tape skips them rather than diverging.</summary>
     private static RetailTape Level100Tape() => RetailTape.Load(RetailGolden.File(Level100TapeFile)!);
 
-    /// <summary>The Presents our level-100 run matches so far (raised as it reaches further; never lowered).</summary>
-    private const int RandomStreamMatchedFloor = 187;
-
     /// <summary>The last Present the Present-by-Present run matches retail's clock and random stream to (never lowered).</summary>
     private const int PresentByPresentFloor = 6000;
 
@@ -241,80 +238,6 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         Assert.True(compared >= PresentByPresentFloor, $"matched to Present {compared}, below {PresentByPresentFloor}");
     }
 
-    /// <summary>
-    /// Level 100's random stream against retail's at every Present (level100.perpresent-3600.probes: RNG is the
-    /// stream's mValue and mSeed, EVT the event manager's time). Each retail Present is matched to our state after the
-    /// update that reached its event time, so the Present-to-update mapping comes from the recording itself. The
-    /// comparison runs until our simulation stops (a part not ported yet) or retail's time passes ours.
-    /// </summary>
-    [RetailGoldenFact("level100.perpresent-3600.probes")]
-    public void Level100sRandomStreamFollowsRetailsPerPresentProbes()
-    {
-        (ThingContext context, ParityGame game) = LevelLoadTests.Level100Run();
-        var states = new Dictionary<uint, (int Update, int Value)>();
-        void Record(int u) => states[BitConverter.SingleToUInt32Bits(context.Events.Time)] = (u, context.Random.Value);
-        Record(0);
-        int update = 0;
-        string stopped = "ran to retail's last probe";
-        while (update < 2000)
-        {
-            update++;
-            try
-            {
-                game.Update();
-            }
-            catch (NotSupportedException e)
-            {
-                stopped = $"stopped in U{update}: {e.Message}";
-                break;
-            }
-
-            Record(update);
-        }
-
-        int compared = 0;
-        string? first = null;
-        uint? evt = null;
-        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("level100.perpresent-3600.probes")!))
-        {
-            string[] f = line.Split(' ');
-            if (f.Length != 4 || f[0] != "P" || f[3] == "null")
-            {
-                continue;
-            }
-
-            if (f[2] == "EVT")
-            {
-                evt = BitConverter.ToUInt32(Convert.FromHexString(f[3]));
-                continue;
-            }
-
-            if (f[2] != "RNG" || evt is null)
-            {
-                continue;
-            }
-
-            if (!states.TryGetValue(evt.Value, out (int Update, int Value) ours))
-            {
-                stopped += $"; retail's Present {f[1]} (time {BitConverter.UInt32BitsToSingle(evt.Value):R}) is past our run";
-                break;
-            }
-
-            int retail = BitConverter.ToInt32(Convert.FromHexString(f[3]), 0);
-            if (retail != ours.Value)
-            {
-                first = $"Present {f[1]} (time {BitConverter.UInt32BitsToSingle(evt.Value):R}, our U{ours.Update}): retail {retail}, ours {ours.Value}";
-                break;
-            }
-
-            compared++;
-            evt = null;
-        }
-
-        output.WriteLine($"{stopped}; {compared} Presents matched; first difference: {first ?? "none"}");
-        Assert.True(compared >= RandomStreamMatchedFloor);
-    }
-
     private static uint[] Words(params float[] values) => [.. values.Select(BitConverter.SingleToUInt32Bits)];
 
     private static uint[] Words(FVector v) => Words(v.X, v.Y, v.Z);
@@ -380,7 +303,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     ];
 
     /// <summary>
-    /// The player's battle engine against retail's object at every Present (level100.beobj-perpresent-3600.probes: BEO
+    /// The player's battle engine against retail's object at every Present (<see cref="BeObjFile"/>: BEO
     /// is the whole CBattleEngine, read after each Present), field by field, each retail Present matched to our state
     /// after the update that reached its event time. Reports each field's first difference; asserts the fields matched
     /// so far stay matched through the Presents our run reaches.
