@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FrontEnd.cpp, src/frontend.h and src/FrontEndPage.h (CFrontEnd, CFrontEndPage).
 
+using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Platform;
 
@@ -70,19 +71,6 @@ public sealed class InertPage : FrontEndPageBase
 {
 }
 
-/// <summary>
-/// The clock and Present counter the flow runs on. A stand-in for the parity platform clock (rebuild Parity/Clock, M2):
-/// <see cref="GetSysTimeFloat"/> is CPCPlatform's float time, <see cref="QueryPerformanceCounter"/> the counter the
-/// frame timer reads, and <see cref="Present"/> is the only call that advances the counter and, on the shim's clock, time.
-/// </summary>
-public interface IFlowClock
-{
-    float GetSysTimeFloat();
-    long QueryPerformanceCounter();
-    void Present();
-    long PresentCount { get; }
-}
-
 /// <summary>A button action delivered to the front end by a controller's flush (<c>CFrontEnd::ReceiveButtonAction</c>).</summary>
 public readonly record struct FrontEndButton(int Port, int Button, float Value);
 
@@ -141,7 +129,7 @@ public sealed class FrontEnd : IButtonReceiver
 
     private readonly FrontEndPageBase[] _pages = new FrontEndPageBase[(int)FrontEndPage.PageCount];
 
-    public FrontEnd(IFlowClock clock, FrontEndTiming timing, ControllerContext controls)
+    public FrontEnd(PlatformClock clock, FrontEndTiming timing, ControllerContext controls)
     {
         Clock = clock;
         Timing = timing;
@@ -150,7 +138,7 @@ public sealed class FrontEnd : IButtonReceiver
         for (int page = 0; page < _pages.Length; page++) _pages[page] = new InertPage();
     }
 
-    public IFlowClock Clock { get; }
+    public PlatformClock Clock { get; }
     public FrontEndTiming Timing { get; }
     public ControllerContext Controls { get; }
     public PlatformInput Platform => Controls.Input;
@@ -197,6 +185,9 @@ public sealed class FrontEnd : IButtonReceiver
 
     /// <summary><c>CFrontEnd::SetLanguage</c> (0x00466ab0): the text set changes; the options page's cached text is presentation.</summary>
     public void SetLanguage(int language) => Language = language;
+
+    /// <summary>The process's C runtime random state (one per process, shared with the simulation), from the host.</summary>
+    public Crt.CrtRand? Crt { get; set; }
 
     /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
     public string SaveGameName { get; set; } = "";

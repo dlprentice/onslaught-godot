@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using OnslaughtRebuild.Parity.Clock;
+using OnslaughtRebuild.Parity.Crt;
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Pages;
 using OnslaughtRebuild.Parity.Platform;
@@ -11,7 +13,7 @@ public sealed class PageTests
 {
     private sealed class Pages
     {
-        public FrontEndTests.ShimClock Clock { get; } = new();
+        public PlatformClock Clock { get; } = FrontEndTests.BootedClock();
         public FrontEnd FrontEnd { get; }
         public IntroPage Intro { get; }
         public MainPage Main { get; }
@@ -199,6 +201,22 @@ public sealed class PageTests
         p.RunUntil(() => !p.FrontEnd.MessageBox.BeingDisplayed && saves > 0);
         Assert.Equal(1, saves);
         Assert.Equal(1, p.Main.LoadedSoundLanguage);
+    }
+
+    [Fact]
+    public void OnceTheGameIsCompleteTheMenuDrawsFromTheMainThreadsRand()
+    {
+        Pages p = new();
+        p.FrontEnd.Career.Record.SetNodeComplete(p.FrontEnd.Career.GetNodeFromWorldNo(800), 1);
+        CrtRand crt = new();
+        p.FrontEnd.Crt = crt;
+        p.FrontEnd.Begin(FrontEndPage.Main);
+        // From a seed of 1, rand() gives 41, 18467, 6334, then 26500: the fourth is a multiple of 50 and launches a
+        // firework, whose particle draws are not modelled yet.
+        for (int frame = 0; frame < 3; frame++) p.FrontEnd.Step();
+        Assert.Equal(3, crt.MainThread.Calls);
+        Assert.Throws<NotSupportedException>(() => p.FrontEnd.Step());
+        Assert.Equal(6, crt.MainThread.Calls);
     }
 
     [Fact]

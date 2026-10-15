@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Flow;
 using Xunit;
 
@@ -10,7 +11,7 @@ public sealed class FrontEndMessageBoxTests
     [Fact]
     public void ABoxWithoutButtonsFadesInWaitsItsTimeoutThenFadesOut()
     {
-        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(new FrontEndTests.ShimClock());
+        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(FrontEndTests.BootedClock());
         frontEnd.Begin(FrontEndPage.Main);
         FrontEndMessageBox box = frontEnd.MessageBox;
         box.Create(timeout: 10, fadeTime: 5, closesOnProgress: false, MessageBoxOption.None, MessageBoxQuestion.Language);
@@ -33,7 +34,7 @@ public sealed class FrontEndMessageBoxTests
     [Fact]
     public void YesNoTakesTheCursorAndTheChoiceResetsWhenRead()
     {
-        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(new FrontEndTests.ShimClock());
+        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(FrontEndTests.BootedClock());
         frontEnd.Begin(FrontEndPage.Main);
         FrontEndMessageBox box = frontEnd.MessageBox;
         box.Create(0, 0, false, MessageBoxOption.YesNo, MessageBoxQuestion.Quit);
@@ -48,7 +49,7 @@ public sealed class FrontEndMessageBoxTests
     [Fact]
     public void OkGoesToItsDismissPage()
     {
-        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(new FrontEndTests.ShimClock());
+        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(FrontEndTests.BootedClock());
         frontEnd.Begin(FrontEndPage.Main);
         FrontEndMessageBox box = frontEnd.MessageBox;
         box.Create(0, 0, false, MessageBoxOption.Ok, 0);
@@ -61,7 +62,7 @@ public sealed class FrontEndMessageBoxTests
     [Fact]
     public void ASecondBoxIsIgnoredWhileOneIsShown()
     {
-        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(new FrontEndTests.ShimClock());
+        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(FrontEndTests.BootedClock());
         FrontEndMessageBox box = frontEnd.MessageBox;
         box.Create(0, 0, false, MessageBoxOption.YesNo, MessageBoxQuestion.Quit);
         box.Create(0, 0, false, MessageBoxOption.Ok, MessageBoxQuestion.Language);

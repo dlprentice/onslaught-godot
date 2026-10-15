@@ -2,6 +2,7 @@
 // Adapted from bea-decomp src/FEPMain.cpp (reconstructed from the retail program; not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Career;
+using OnslaughtRebuild.Parity.Crt;
 using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
@@ -35,12 +36,6 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
 
     /// <summary>Called when the language box has shown: the game saves the career and the options file then (see <see cref="Process"/>).</summary>
     public Action? SaveAfterLanguageChange { get; set; }
-
-    /// <summary>
-    /// The CRT's <c>rand()</c>, which the main menu's fireworks draw from once the game is complete (world 800 or 741).
-    /// Not reached on the level-100 path; set by the owner of the process's CRT random state.
-    /// </summary>
-    public Func<int>? CrtRand { get; set; }
 
     /// <summary><c>CFEPMain::Init</c> (0x004621b0).</summary>
     public override bool Init()
@@ -200,12 +195,14 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
             OnslaughtRebuild.Parity.Career.Career career = frontEnd.Career;
             if (career.Record.NodeCompleteFlag(career.GetNodeFromWorldNo(800)) != 0 || career.Record.NodeCompleteFlag(career.GetNodeFromWorldNo(741)) != 0)
             {
-                Func<int> rand = CrtRand ?? throw new InvalidOperationException("The fireworks need the CRT's rand(); its owner must set CrtRand.");
-                // The particle effect is presentation; the draws are not.
-                if (rand() % 50 == 0)
+                // The camera and the effect are presentation; the draws on the main thread's rand() are not. Creating the
+                // effect draws more inside the particle system, which is its owner's to model.
+                CrtRandStream rand = (frontEnd.Crt ?? throw new InvalidOperationException("The fireworks need the process's CRT state; the host must set FrontEnd.Crt.")).MainThread;
+                if (rand.Rand() % 50 == 0)
                 {
-                    rand();
-                    rand();
+                    rand.Rand();
+                    rand.Rand();
+                    throw new NotSupportedException("The firework effect's own particle draws are not modelled yet.");
                 }
             }
             while (Selected > 0 && !IsActionAvailable(Selected)) Selected--;

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Pages;
 using OnslaughtRebuild.Parity.Platform;
@@ -18,7 +19,7 @@ public sealed class VirtualKeyboardTests
 
     private static (FrontEnd FrontEnd, VirtualKeyboardPage Keyboard) NewKeyboard(params string[] saves)
     {
-        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(new FrontEndTests.ShimClock());
+        FrontEnd frontEnd = FrontEndTests.NewFrontEnd(FrontEndTests.BootedClock());
         frontEnd.Career.Blank();
         foreach (string save in saves) frontEnd.MemoryCard.Folder.Write(save, new byte[10004]);
         VirtualKeyboardPage keyboard = new(frontEnd) { Font = new TestFont() };
