@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+using OnslaughtRebuild.Parity.Containers;
+using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Game;
+using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Physics;
+using OnslaughtRebuild.Parity.Script;
+using OnslaughtRebuild.Parity.World;
+
+namespace OnslaughtRebuild.Parity.Things;
+
+/// <summary>
+/// The game-wide singletons a thing reaches in retail through globals (WORLD, MAP, EVENT_MANAGER, GAME's random
+/// stream, UPhysicsManager, the mesh registry), handed to each thing explicitly so separate simulations never share
+/// state. <see cref="NotPorted"/> counts the calls into subsystems that are not ported yet, by name, so a run states
+/// exactly what it skipped.
+/// </summary>
+public sealed class ThingContext(
+    SPtrSetPool pool,
+    EventManager events,
+    SeedUniformRandomNumberStream random,
+    HeightField map,
+    PhysicsRegistry physics)
+{
+    public SPtrSetPool Pool { get; } = pool;
+
+    public EventManager Events { get; } = events;
+
+    public SeedUniformRandomNumberStream Random { get; } = random;
+
+    public HeightField Map { get; } = map;
+
+    public PhysicsRegistry Physics { get; } = physics;
+
+    /// <summary>The meshes the resource file loaded, by name (CMesh's registry).</summary>
+    public Dictionary<string, MeshData> Meshes { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The world's compiled scripts, by name (CWorld::mScripts).</summary>
+    public List<(byte[] Name, ScriptObjectCode Code)> Scripts { get; } = [];
+
+    /// <summary>The world's runtime registries (CWorld's sets), made with the context's pool.</summary>
+    public WorldRegistry World { get; } = new(pool);
+
+    /// <summary>CThing::sThingCount: the next thing's number (ResetThingCounter at each level load).</summary>
+    public int NextThingNumber { get; set; }
+
+    /// <summary>MAP.GetWaterLevel(): the height field's water level.</summary>
+    public float WaterLevel => Map.WaterLevel;
+
+    /// <summary>The render frame number CRTMesh poses compare against (1 or more during the load).</summary>
+    public int RenderFrameNumber { get; set; } = 2;
+
+    /// <summary>Calls into subsystems that are not ported yet.</summary>
+    public SortedDictionary<string, int> NotPorted { get; } = new(StringComparer.Ordinal);
+
+    public void Skip(string what) => NotPorted[what] = NotPorted.GetValueOrDefault(what) + 1;
+
+}
+
+/// <summary>CWorld's runtime sets, in retail's member order (world.h): what each Init adds itself to.</summary>
+public sealed class WorldRegistry(SPtrSetPool pool)
+{
+    public SPtrSet<Thing> Things { get; } = new(pool);
+    public SPtrSet<Thing> SquadNB { get; } = new(pool);
+    public SPtrSet<Thing> Set20 { get; } = new(pool);
+    public SPtrSet<Thing> Set30 { get; } = new(pool);
+    public SPtrSet<Thing> UnitNB { get; } = new(pool);
+    public SPtrSet<Thing> Set50 { get; } = new(pool);
+    public SPtrSet<Thing> Set60 { get; } = new(pool);
+    public SPtrSet<Thing> StartNB { get; } = new(pool);
+    public SPtrSet<Thing> SpawnPointNB { get; } = new(pool);
+    public SPtrSet<Thing> Waypoints { get; } = new(pool);
+    public SPtrSet<Thing> NamedThings { get; } = new(pool);
+    public SPtrSet<Thing> ObjectiveThings { get; } = new(pool);
+    public SPtrSet<Thing> BigThings { get; } = new(pool);
+
+    /// <summary>mCountersA/B: units per behaviour, by allegiance (Forseti, Muspell).</summary>
+    public int[] CountersA { get; } = new int[26];
+
+    public int[] CountersB { get; } = new int[26];
+}
