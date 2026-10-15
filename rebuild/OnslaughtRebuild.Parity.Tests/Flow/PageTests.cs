@@ -23,6 +23,7 @@ public sealed class PageTests
         private sealed class Keyboard(List<string> calls) : INameKeyboard
         {
             public void SetDefaultName() => calls.Add("SetDefaultName");
+            public void NameUsed() => calls.Add("NameUsed");
         }
 
         private sealed class LevelSelect(List<string> calls) : ILevelSelect

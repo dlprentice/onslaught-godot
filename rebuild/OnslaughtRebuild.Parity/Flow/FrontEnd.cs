@@ -189,6 +189,12 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>The process's C runtime random state (one per process, shared with the simulation), from the host.</summary>
     public Crt.CrtRand? Crt { get; set; }
 
+    /// <summary>
+    /// The game's live options, which a save writes after the career and bindings (<c>CCareer::WriteOptions</c>: the
+    /// display mode, sound and the rest), from the host.
+    /// </summary>
+    public Func<Career.CareerOptions>? CurrentOptions { get; set; }
+
     /// <summary>The name the save page writes under (<c>mFEPSaveGame.mSaveGameName</c>), set by the name keyboard's Done.</summary>
     public string SaveGameName { get; set; } = "";
 
@@ -235,7 +241,8 @@ public sealed class FrontEnd : IButtonReceiver
     /// The part of <c>CFrontEnd::Init</c> (0x004662a0) that sets up the page machine's run: a controller per port with
     /// the front end as the controlled object, the input buffers flushed, the counter, quit and render time reset, and
     /// the start page entered. The caller decides the start page and then runs the loop with the front end marked
-    /// running (<c>gInFrontEnd</c>). Returns false, as <c>Init</c> does, when any page's <c>Init</c> failed; every page
+    /// running (<c>gInFrontEnd</c>). Not modelled: the reset of <c>GAME.mRenderFrameNumber</c> (a presentation
+    /// counter). Returns false, as <c>Init</c> does, when any page's <c>Init</c> failed; every page
     /// still initialises first (<c>ok &amp;= Init()</c>).
     /// </summary>
     public bool Begin(FrontEndPage startPage)
@@ -438,48 +445,14 @@ public sealed class FrontEnd : IButtonReceiver
     }
 }
 
-/// <summary><c>CReconnectInterface::EState</c>.</summary>
-public enum ReconnectState
-{
-    Ok = 0,
-    Disconnected = 1,
-    Reconnected = 2,
-    Resuming = 3,
-}
-
-/// <summary>
-/// <c>CReconnectInterface</c> (reconnectinterface.cpp): the prompt to reconnect a removed controller. PC controllers are
-/// never removed, so on PC its state only ever goes back to <see cref="ReconnectState.Ok"/>.
-/// </summary>
-public sealed class ReconnectInterface
-{
-    public ReconnectState State { get; private set; }
-
-    /// <summary><c>Reset</c> (0x00527960).</summary>
-    public void Reset(ReconnectState state) => State = state;
-
-    /// <summary><c>Process</c> (0x00527c50): true once the player has pressed start after reconnecting.</summary>
-    public bool Process()
-    {
-        switch (State)
-        {
-            case ReconnectState.Disconnected:
-                State = ReconnectState.Reconnected;
-                return false;
-            case ReconnectState.Resuming:
-                // The interface takes control only after a disconnection, which a PC controller never has.
-                throw new NotSupportedException("Resuming from a controller disconnection is not ported (PC controllers never disconnect).");
-            default:
-                return false;
-        }
-    }
-}
-
 /// <summary>What other pages call on the name keyboard (<c>CFEPVirtualKeyboard</c>).</summary>
 public interface INameKeyboard
 {
     /// <summary><c>SetDefaultName</c> (0x0051fff0).</summary>
     void SetDefaultName();
+
+    /// <summary>A save has used the name, so it is no longer the fresh default (<c>m_Fresh = false</c>, from the save page).</summary>
+    void NameUsed();
 }
 
 /// <summary>What other pages call on the level select (<c>CFEPLevelSelect</c>).</summary>
