@@ -338,6 +338,9 @@ public sealed class ScriptRuntime
     /// </summary>
     public Func<int, (bool HasPlayer, Thing? BattleEngine)>? Player { get; set; }
 
+    /// <summary>The world's spawner (UPhysicsManager::SpawnSquad), for the SpawnThing native's squads.</summary>
+    public IWorldSpawner? Spawner { get; set; }
+
     /// <summary>CWaypointManager's paths (the loader's), for the FollowWaypoint natives.</summary>
     public WaypointManager? Waypoints { get; set; }
 
