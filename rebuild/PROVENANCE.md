@@ -47,7 +47,11 @@ the parity harness's own formats (tape, probe trace, comparator, runner) adapt n
 
 | C# unit | Adapted from bea-decomp |
 | --- | --- |
-| (none yet) | |
+| `Career/Career.cs` (career logic: blank, lookups, end-of-level update, links, goodie states, grades, slots, screen position) | `src/Career.cpp` (`CCareer`) |
+| `Career/CareerRecord.cs` (the 9,404-byte `CCareer` memory layout) | `src/Career.h` (`CCareer`, `CCareerNode`, `CCareerNodeLink`, `CGoodie`) |
+| `Career/CareerSaveGame.cs` (save and options file, version stamp, load) | `src/Career.cpp` (`Save`, `Load`, `SaveAndMarkInProgress`, `SizeOfSaveGame`, `WriteOptions`, `ReadOptions`) |
+| `Career/CareerTables.cs` (level structure, episode hint lists, goodie thresholds) | `src/Career.cpp` (`level_structure`, `UpdateGoodieStates`), `src/FEPGoodies.cpp` (`goodies[]`) |
+| `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) |
 
 ## Authority
 
