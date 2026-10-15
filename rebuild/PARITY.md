@@ -63,6 +63,10 @@ Porting notes for the parity core:
   `CSnow::Init` at load (4,100) and `CSoundManager::PlayEffect` (26, sound parameters only). `CrtRand` must still be
   exact, in per-Present order, for render captures and sound. This holds per level: rerun the detour on each new
   level before relying on it.
+- The mesh port (`Mesh/`) covers the resource-file reader (`CMesh::Deserialize`, the level's packed `m_*.aya` mesh
+  files), not `CMesh::InitFromMem` (loose `.msh` files, versions 2.01-2.07, with its inline quaternion helper). A
+  complete level resource file never takes that path; if a later milestone needs it, check its quaternion helper's
+  compiled evaluation on the real FPU first.
 - `.aya` positions such as the world's resource offset are positions in the decompressed stream (a packed file
   cannot seek, so `InitFromFile`'s start skip becomes a `Skip` after the first block).
 

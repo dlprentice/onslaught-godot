@@ -53,6 +53,9 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     public float UnknownEC;
     public float UnknownF4;
 
+    /// <summary>mUnknown220: the barrel part the pitch turns.</summary>
+    public MeshPart? Unknown220;
+
     /// <summary>mUnknown224: one of the weapons turns a barrel.</summary>
     public bool HasBarrel;
 
@@ -166,7 +169,8 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
                         {
                             HasBarrel = true;
                             weapon.TurnsBarrel = true;
-                            Context.Skip("CEulerAngles(FMatrix) pitch of the barrel part (mUnknownF4)");
+                            UnknownF4 = EulerAngles.FromMatrix(part.Orientation).Pitch;
+                            Unknown220 = part;
                         }
 
                         part = part.Parent;
