@@ -85,6 +85,7 @@ package licence expression is `GPL-3.0-only`.
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
+| `Containers/SPtrSet.cs` (the shared node pool, SPtrSet, ListIterator) | `src/SPtrSet.h`, `src/SPtrSet.cpp` (`GenericSPtrSet`, `GenericListIterator`) | GPL-3.0-only (in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
 | `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
