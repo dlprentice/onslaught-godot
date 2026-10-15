@@ -23,6 +23,16 @@ public static class ThingEvent
     public const int ReadyScript = 2003;
 }
 
+/// <summary>EAIState.</summary>
+public enum AIState
+{
+    On = 0,
+    Off,
+    Normal,
+    Defensive,
+    Onf,
+}
+
 /// <summary>THING_FLAGS.</summary>
 [Flags]
 public enum ThingFlags : short
@@ -155,6 +165,45 @@ public abstract class Thing : Monitor
 
     public virtual float GetMoveMultiplier() => 1.0f;
 
+    /// <summary>GetMaxVelocity (slot 15).</summary>
+    public virtual float GetMaxVelocity() => 0.0f;
+
+    /// <summary>GetRadius (slot 16, 00401440): the render thing's radius (CRTMesh: its mesh's), 0 without one.</summary>
+    public virtual float GetRadius() => RenderThing is null ? 0.0f : RenderThing.Mesh.Radius;
+
+    /// <summary>GetBoundingRadius (slot 17, 004f3940): the mesh's bounding box radius when there is one, else GetRadius.</summary>
+    public virtual float GetBoundingRadius()
+    {
+        if (RenderThing is not null && RenderThing.Mesh.BoundingBox is { } box)
+        {
+            return box.Radius;
+        }
+
+        return GetRadius();
+    }
+
+    /// <summary>TeleportOrientation (slot 21): nothing for a plain thing.</summary>
+    public virtual void TeleportOrientation(FMatrix orientation)
+    {
+    }
+
+    /// <summary>IsObjective (slot 26): FALSE for a plain thing.</summary>
+    public virtual bool IsObjective() => false;
+
+    /// <summary>MakeVisible (slot 32, 00401460).</summary>
+    public virtual void MakeVisible() => Flags &= ~ThingFlags.Invisible;
+
+    /// <summary>MakeInvisible (slot 33, 00401470).</summary>
+    public virtual void MakeInvisible() => Flags |= ThingFlags.Invisible;
+
+    /// <summary>GetAIState (slot 53): AI_ON.</summary>
+    public virtual AIState GetAIState() => AIState.On;
+
+    /// <summary>SetAIState (slot 54): nothing.</summary>
+    public virtual void SetAIState(AIState state)
+    {
+    }
+
     public virtual void Activate()
     {
     }
@@ -270,6 +319,17 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     public int AnimMode = -1;
 
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.ComplexThing);
+
+    /// <summary>CComplexThing::IsObjective (004014e0): whether the marked-objective flag is set.</summary>
+    public override bool IsObjective() => (Flags & ThingFlags.MarkedObjective) != 0;
+
+    /// <summary>CComplexThing::TeleportOrientation (004f4460).</summary>
+    public override void TeleportOrientation(FMatrix orientation) => Orientation = orientation;
+
+    /// <summary>CComplexThing::GoToPoint (00401520): nothing.</summary>
+    public virtual void GoToPoint(FVector point, bool inOverride = false)
+    {
+    }
 
     /// <summary>CComplexThing::Init: name, script, orientation, then CThing::Init.</summary>
     public override void Init(InitThing init)
