@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Career.h and src/Career.cpp (CCareer, CCareerNode, CCareerNodeLink, CGoodie).
 
 using System.Buffers.Binary;

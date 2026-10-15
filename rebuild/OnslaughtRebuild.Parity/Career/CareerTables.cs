@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Career.cpp (level_structure, UpdateGoodieStates' episode lists) and src/FEPGoodies.cpp
 // (the goodies[] thresholds). The two slot numbers are the game's data/MissionScripts/onsldef.msl definitions.
 

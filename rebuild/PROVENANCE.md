@@ -69,6 +69,7 @@ package licence expression is `GPL-3.0-only`.
 | `Career/CareerSaveGame.cs` (save and options file, version stamp, load) | `src/Career.cpp` (`Save`, `Load`, `SaveAndMarkInProgress`, `SizeOfSaveGame`, `WriteOptions`, `ReadOptions`) | GPL-3.0-only (in Stuart's release) |
 | `Career/CareerTables.cs` (level structure, episode hint lists, goodie thresholds) | `src/Career.cpp` (`level_structure`, `UpdateGoodieStates`), `src/FEPGoodies.cpp` (`goodies[]`) | GPL-3.0-only (in Stuart's release) |
 | `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) | GPL-3.0-only (in Stuart's release) |
+| `Flow/FrontEnd.cs` (the front end's page machine: page changes and transitions, button routing, the filtered frame step, one Present per iteration) | `src/FrontEnd.cpp`, `src/frontend.h`, `src/FrontEndPage.h` (`CFrontEnd`, `CFrontEndPage`); button ids from `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
 | `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 
 ## Authority

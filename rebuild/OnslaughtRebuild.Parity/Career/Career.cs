@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Career.cpp (CCareer) and src/FEPGoodies.cpp (the goodie thresholds it reads).
 
 using OnslaughtRebuild.Parity.Numerics;
