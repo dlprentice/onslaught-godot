@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Materialize the exact retail inputs consumed by the current rebuild slice.
 
 The current source tree and release packages do not include these files. This
