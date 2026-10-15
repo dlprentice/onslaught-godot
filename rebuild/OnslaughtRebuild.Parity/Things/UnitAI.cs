@@ -435,9 +435,11 @@ public class UnitAI : Monitor
                 continue;
             }
 
+            // As compiled at 004ff854..004ff8a2 (Steam BEA.exe, SHA-256 74154bfa…, the pristine specimen): the squared
+            // distance sums Z*Z + Y*Y, then X*X, and is stored; stealth / 100.0f is a multiply by 0.01f (0x5d85fc).
             FVector d = thing.Pos - ForUnit.Pos;
-            float distanceSq = d.MagnitudeSq();
-            float range = (1.0f - (unit.GetStealth() / 100.0f)) * ForUnit.UnitData!.MaxTargetRange;
+            float distanceSq = ((d.Z * d.Z) + (d.Y * d.Y)) + (d.X * d.X);
+            float range = (1.0f - (unit.GetStealth() * 0.01f)) * ForUnit.UnitData!.MaxTargetRange;
             if (!(distanceSq < range * range))
             {
                 continue;

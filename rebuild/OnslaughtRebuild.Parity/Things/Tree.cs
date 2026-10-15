@@ -4,6 +4,7 @@
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.World;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -18,7 +19,7 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 
     public override void Init(InitThing init)
     {
-        Variation = (int)((float)(Context.Random.Random() % 65536) * (1.0f / 2048.0f));
+        Variation = X87.Fist((float)(Context.Random.Random() % 65536) * (1.0f / 2048.0f));   // fistp: rounds to nearest (004f61d2)
         init.Pos.Z = Context.Map.Collide(init.Pos);
         init.Orientation = FMatrix.Identity;
         init.OrientationType = OrientationType.DirectionCosineMatrix;

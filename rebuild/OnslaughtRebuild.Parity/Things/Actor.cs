@@ -6,6 +6,7 @@ using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -58,7 +59,7 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
 
         base.Init(init);
 
-        int r = (int)GetMoveMultiplier();
+        int r = X87.Fist(GetMoveMultiplier());
         DoFullMoveCount = Context.Random.Random() % r;
         AddMoveEvent(null);
     }
@@ -73,7 +74,7 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
             if (DoFullMoveCount <= 0)
             {
                 ev = ActorEvent.Move;
-                DoFullMoveCount = (int)GetMoveMultiplier();
+                DoFullMoveCount = X87.Fist(GetMoveMultiplier());
             }
 
             Context.Events.AddEvent(ev, this, EventManager.NextFrame, EventPriority.StartOfFrame, null, reuse as ScheduledEvent);

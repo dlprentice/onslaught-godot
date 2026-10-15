@@ -7,6 +7,7 @@ using System.Buffers.Binary;
 using System.Text;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Mesh;
 
@@ -321,13 +322,13 @@ public sealed class MeshPart
             float frame = time;
             frame *= a.FrameScaler;
             frame += a.Start;
-            f = (int)Math.Floor(frame) % NumVFrames;
+            f = X87.Fist(Math.Floor(frame)) % NumVFrames;
             part = frame - MathF.Floor(frame);
         }
         else
         {
             float frame = 0;
-            f = (int)Math.Floor(frame);
+            f = X87.Fist(Math.Floor(frame));
             part = frame - MathF.Floor(frame);
         }
 
