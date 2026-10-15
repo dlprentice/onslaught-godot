@@ -5,7 +5,11 @@
 
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Things;
+using OnslaughtRebuild.Parity.World;
 using ParityGame = OnslaughtRebuild.Parity.Game.Game;
 
 namespace OnslaughtRebuild.Parity.Script;
@@ -384,9 +388,132 @@ public sealed partial class IScript
     public void Exists(ScriptData?[] args, int numArgs, ref ScriptData? result) =>
         result = new BoolData(args[0]!.GetThing() is not null);
 
-    /// <summary>SpawnThing 00536cd0: the unit factory and the squads (ported with them).</summary>
-    public void SpawnThing(ScriptData?[] args, int numArgs, ref ScriptData? result) =>
-        throw new NotSupportedException("IScript::SpawnThing is not ported yet (UnitFactory.SpawnThing and the squads)");
+    /// <summary>
+    /// SpawnThing 00536cd0: a unit of the named type at one of this thing's emitters (world space), facing along the
+    /// emitter's Y axis, or where this thing is and as it faces when the emitter is at the origin; with the named script,
+    /// this thing's allegiance if it is a unit (else 2), collisions from 1.5 s, and SpawnerA..E's waypoint emitter types.
+    /// A unit spawner gives the new unit a squad of its own, assembled around it.
+    /// </summary>
+    public void SpawnThing(ScriptData?[] args, int numArgs, ref ScriptData? result)
+    {
+        byte[] type = args[0]!.GetString()!;
+        byte[] script = args[3]!.GetString()!;
+        byte[] emitter = args[1]!.GetString()!;
+        int emitterIndex = args[2]!.GetInt();
+        ThingContext context = _runtime.Context;
+
+        RenderThing? render = Thing!.RenderThing;
+        if (render is null)
+        {
+            return;
+        }
+
+        (FVector pos, FMatrix ori) = MeshPose.GetRTEmitter(render.MeshOrNull, render.Pose, (IRenderSubject)Thing,
+            System.Text.Encoding.Latin1.GetString(emitter), emitterIndex, context.RenderFrameNumber, local: false, force: false);
+
+        Unit? thing = UnitFactory.SpawnThing(context, type);
+        if (thing is null)
+        {
+            return;
+        }
+
+        var init = new InitThing { Kind = InitThingRecord.InitKind.Unit, Stats = context.Physics.GetUnitData(type) };
+        (init.Yaw, init.Pitch) = SpawnDirection(ori);
+        if (script.Length != 0)
+        {
+            init.Script = script;
+        }
+
+        if (pos.X == 0.0f && pos.Y == 0.0f && pos.Z == 0.0f)
+        {
+            init.Pos = Thing.Pos;
+            EulerAngles angles = EulerAngles.FromMatrix(((ComplexThing)Thing).Orientation);
+            init.Yaw = angles.Yaw;
+            init.Pitch = angles.Pitch;
+            init.Roll = angles.Roll;
+        }
+        else
+        {
+            init.Pos = pos;
+        }
+
+        init.Velocity = new FVector(0.0f, 0.0f, 0.0f);
+        init.Allegiance = 2;
+        if (Thing.IsA(ThingType.Unit))
+        {
+            init.Allegiance = ((Unit)Thing).GetAllegiance();
+        }
+
+        init.InitCst.TimeBeforeStart = 1.5f;
+        init.SpawnedBy = Thing;
+        init.WaypointPath = SpawnerEmitterType(emitter);
+
+        thing.Init(init);
+
+        if (Thing.IsA(ThingType.Unit))
+        {
+            var squadInit = new InitThing
+            {
+                Kind = InitThingRecord.InitKind.Squad,
+                Pos = thing.Pos,
+                Orientation = thing.Orientation,
+                Allegiance = thing.GetAllegiance(),
+                UnitName = type,
+            };
+
+            IWorldSpawner spawner = _runtime.Spawner
+                ?? throw new NotSupportedException("IScript::SpawnThing needs UPhysicsManager::SpawnSquad (ScriptRuntime.Spawner)");
+            if (spawner.SpawnSquad(context.Physics.GetUnitData(type)!.Behaviour) is Squad squad)
+            {
+                squad.SpawnedFromUnitRecord = true;
+                squad.Assembling = true;
+                squad.Init(squadInit);
+                squad.Unknown67(thing, 0, 0);
+                squad.Assembling = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The spawn direction: (ori * FVector(0, 100, 0)).Azimuth() and .Elevation(), as 00536ddb..00536e61 computes them.
+    /// The product keeps only each row's Y term (one fmul by 100 each); the yaw is -fpatan(X, Y); the elevation divides
+    /// Z by FVector::Magnitude (004026b0: fsqrt((X*X + Y*Y) + Z*Z)) and takes the CRT's asin (_CIasin 0055dcb0 at the
+    /// caller's 24-bit precision: fpatan(x, fsqrt((1 + x) * (1 - x)))), or 0 when the magnitude is not positive.
+    /// </summary>
+    internal static (float Yaw, float Pitch) SpawnDirection(FMatrix ori)
+    {
+        float x = ori.Row0.Y * 100.0f;
+        float y = ori.Row1.Y * 100.0f;
+        float z = ori.Row2.Y * 100.0f;
+        float yaw = (float)-X87.Atan2(x, y);
+        float magnitude = (float)X87.Sqrt((x * x) + (y * y) + (z * z));
+        float pitch = 0.0f;
+        if (magnitude > 0.0f)
+        {
+            double s = z / magnitude;
+            pitch = (float)(s is > 1.0 or < -1.0
+                ? double.NaN
+                : X87.Atan2(s, X87.Sqrt(X87.Mul(X87.Add(1.0, s), X87.Sub(1.0, s)))));
+        }
+
+        return (yaw, pitch);
+    }
+
+    /// <summary>The emitter type a spawner emitter's name gives the new unit (stricmp): SpawnerA..E are 15..19, else 0.</summary>
+    private static int SpawnerEmitterType(byte[] emitter)
+    {
+        string name = System.Text.Encoding.Latin1.GetString(emitter);
+        string[] spawners = ["SpawnerA", "SpawnerB", "SpawnerC", "SpawnerD", "SpawnerE"];
+        for (int i = 0; i < spawners.Length; i++)
+        {
+            if (string.Equals(name, spawners[i], StringComparison.OrdinalIgnoreCase))
+            {
+                return 15 + i;
+            }
+        }
+
+        return 0;
+    }
 
     /// <summary>PlayCharMessage 00537500: a message with no resume event, if there is a message box.</summary>
     public void PlayCharMessage(ScriptData?[] args, int numArgs, ref ScriptData? result)
