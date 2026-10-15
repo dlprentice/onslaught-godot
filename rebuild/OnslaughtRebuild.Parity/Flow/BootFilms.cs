@@ -100,6 +100,9 @@ public sealed class FilmPlayer : IButtonReceiver
         return Play(name);
     }
 
+    /// <summary>CSystem::Run's attract films: <c>FMV.PlayFullscreen(name, TRUE, ...)</c>, skippable.</summary>
+    public bool PlayAttractFilm(string name) => PlayFullscreen(name, true);
+
     /// <summary>CDXFMV::Play: false when the file does not exist (nothing is shown); otherwise whether it was skipped.</summary>
     public bool Play(string name)
     {

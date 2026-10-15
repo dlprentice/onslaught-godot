@@ -307,4 +307,56 @@ public sealed class RetailChainTests
         Assert.Equal(("ltlogo", 1, true), player.Trace[0]);
         Assert.Equal(3, clock.PresentCount);
     }
+
+    /// <summary>The system's parts for a replay: the front end on a step loop, the films through the player.</summary>
+    private sealed class ReplayParts(Func<FrontEndEntry, int> frontEnd, FilmPlayer films) : ISystemParts
+    {
+        public int RunFrontEnd(FrontEndEntry entry) => frontEnd(entry);
+
+        public QuitType RunLevel(int level) => throw new InvalidOperationException("no level in this replay");
+
+        public bool PlayAttractFilm(string name) => films.PlayAttractFilm(name);
+
+        public bool PlayVendorFilm => false;
+    }
+
+    /// <summary>
+    /// The whole idle flow from boot: the films, the title page with no input until its 30 s timeout (the last Process
+    /// at 3188, C's measurement), then CSystem::Run's attract films from the next Present, 3189 as retail (the logo
+    /// 3189-3418, the opening film 3419-5473), and the front end entered again from the attract videos.
+    /// </summary>
+    [GameDataFact]
+    public void IdleOnTheTitleThePlayerSeesTheAttractFilmsFromRetailsPresent()
+    {
+        PlatformClock clock = Boot(skipFmv: false);
+        (FrontEnd frontEnd, PlatformInput input) = NewFrontEnd(clock);
+        ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        long lastProcess = 0;
+        var entries = new List<(FrontEndEntry Entry, long Present)>();
+        int Run(FrontEndEntry entry)
+        {
+            entries.Add((entry, clock.PresentCount));
+            if (entries.Count > 1) return SystemFlow.QuitToSystem;
+            Assert.True(frontEnd.Init(entry));
+            input.Window.FrontEndRunning = true;
+            while (true)
+            {
+                lastProcess = clock.PresentCount;
+                Assert.True(lastProcess < 4000, "the title never timed out");
+                if (!frontEnd.Step()) break;
+            }
+
+            input.Window.FrontEndRunning = false;
+            return frontEnd.Quit;
+        }
+
+        var parts = new ReplayParts(Run, player);
+        var flow = new SystemFlow(parts);
+        Assert.Equal(SystemFlow.QuitToSystem, flow.Run());
+        Assert.Equal(3188, lastProcess);
+        Assert.Equal(["front end Start", "attract", "front end FromAttract"], flow.Trace);
+        Assert.Equal([("ltlogo", 228, false), ("openingfmv", 2053, false)], player.Trace);
+        Assert.Equal((FrontEndEntry.FromAttract, 3188L + 230 + 2055), entries[1]);
+    }
 }
