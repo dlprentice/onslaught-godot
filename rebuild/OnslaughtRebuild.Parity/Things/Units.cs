@@ -13,6 +13,9 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CGroundUnit: a unit on the ground, a full move every fourth frame.</summary>
 public abstract class GroundUnit(ThingContext context) : Unit(context)
 {
+    /// <summary>CGroundUnit::Move (0047c970): not ported yet (counted; the unit does not move).</summary>
+    public override void Move() => Context.Skip("CGroundUnit::Move (0047c970) (the movement is not ported yet)");
+
     public float BobPhase;
     public float Bob;
     public float OldBob;
@@ -116,6 +119,9 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
 /// <summary>CBuilding: a building, with its own render thing (mesh and rubble) and destructable segments.</summary>
 public sealed class Building(ThingContext context) : Unit(context)
 {
+    /// <summary>CBuilding::Move (004178a0): not ported yet (counted; the unit does not move).</summary>
+    public override void Move() => Context.Skip("CBuilding::Move (004178a0) (the movement is not ported yet)");
+
     public float Unknown258 = -1.0f;
     public int Unknown254;
     public int Unknown25C;
@@ -188,6 +194,23 @@ public sealed class Building(ThingContext context) : Unit(context)
 /// <summary>CSimpleBuilding: a building without segments or AI.</summary>
 public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 {
+    /// <summary>CSimpleBuilding::Move (004dfaa0): a standing building does nothing; a dying one sinks with explosions (not ported).</summary>
+    public override void Move()
+    {
+        if (!IsDying)
+        {
+            return;
+        }
+
+        throw new NotSupportedException("CSimpleBuilding::Move's dying explosions are not ported");
+    }
+
+    /// <summary>CSimpleBuilding::ClipToGround (004dfcb0): not while dying.</summary>
+    public override bool ClipToGround() => !IsDying;
+
+    /// <summary>CSimpleBuilding::Gravity (004dfcc0): 0.002 while dying, else none.</summary>
+    public override float Gravity() => IsDying ? 0.002f : 0.0f;
+
     public override void SetThingType(uint t) => base.SetThingType(
         t | ThingType.Unknown40000000 | ThingType.CanBeWalkedOn | ThingType.Building | ThingType.Stationary);
 
@@ -207,6 +230,9 @@ public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 /// <summary>CAirUnit: a flying unit.</summary>
 public abstract class AirUnit(ThingContext context) : Unit(context)
 {
+    /// <summary>CAirUnit::Move (00402fa0): not ported yet (counted; the unit does not move).</summary>
+    public override void Move() => Context.Skip("CAirUnit::Move (00402fa0) (the movement is not ported yet)");
+
     public int TrailLinks;
     public int EngineLinks;
 

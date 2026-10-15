@@ -34,6 +34,9 @@ public enum BattleEngineState
 /// </summary>
 public sealed class BattleEngine(ThingContext context) : Unit(context, Oid.BattleEngine)
 {
+    /// <summary>CBattleEngine::Move (004081c0, which calls CActor::Move directly): not ported yet (counted).</summary>
+    public override void Move() => Context.Skip("CBattleEngine::Move (004081c0; the movement is not ported yet)");
+
     public int ConfigurationId;
     public BattleEngineData? Configuration;
     public BattleEngineState State;

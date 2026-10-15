@@ -55,9 +55,6 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
     public UnitAI? AI;
 
-    /// <summary>CUnit::Move (004fa8d0) and the subclasses' moves: ported class by class (counted until then).</summary>
-    public override void Move() => Context.Skip($"{GetType().Name}::Move (the unit movement is not ported yet)");
-
     /// <summary>mAIState: AI_ON from the constructor; scripts set it (SetAIState).</summary>
     public AIState CurrentAIState = AIState.On;
 
