@@ -64,6 +64,11 @@ public sealed class ControllerShared
 /// and sends them to the object on top of the controller's stack. Joysticks are absent (as in the replay harness), so
 /// their inputs read 0.
 /// </summary>
+/// <remarks>
+/// Not modelled: the controller's own demo recording and playback (<c>mRecording</c>, <c>mPlaying</c>: nothing on the
+/// level-100 path starts them), and the reconnect interface's gating in <c>SendButtonAction</c> (PC controllers are
+/// always connected, so it never blocks).
+/// </remarks>
 public sealed class Controller
 {
     private const float InitialRepeatDelay = 0.5f;
@@ -306,7 +311,7 @@ public sealed class Controller
     private static float MappedInputValue(int button) => button < 0 ? 0f : 0f;
 
     /// <summary>A held digital control is a full deflection, negative for the left, up and forward ones.</summary>
-    private static float DigitalValueForButton(int button) => button switch
+    public static float DigitalValueForButton(int button) => button switch
     {
         Buttons.MechYawLeft or Buttons.MechPitchUp or Buttons.MechStrafeLeft or Buttons.MechForward
             or Buttons.CameraPitchDown or Buttons.CameraYawLeft or Buttons.CameraMoveForward or Buttons.CameraStrafeLeft => -1f,
