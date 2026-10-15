@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using OnslaughtRebuild.Parity.Flow;
+using OnslaughtRebuild.Parity.Platform;
 using Xunit;
 
 namespace OnslaughtRebuild.Parity.Tests.Flow;
@@ -13,8 +14,12 @@ public sealed class FrontEndTests
         public long PresentCount { get; private set; }
         public float Offset { get; set; }
         public float GetSysTimeFloat() => Offset + (float)(PresentCount / 30.0);
+        public long QueryPerformanceCounter() => PresentCount * 333_333;
         public void Present() => PresentCount++;
     }
+
+    private static FrontEnd NewFrontEnd(IFlowClock clock, FrontEndTiming timing) =>
+        new(clock, timing, new PlatformInput(new PlatformWindow { FrontEndRunning = true }));
 
     private sealed class RecordingPage(string name, List<string> log) : FrontEndPageBase
     {
@@ -41,7 +46,7 @@ public sealed class FrontEndTests
     {
         ShimClock clock = new();
         FrontEndTiming timing = new();
-        FrontEnd frontEnd = new(clock, timing);
+        FrontEnd frontEnd = NewFrontEnd(clock, timing);
         frontEnd.Enter(FrontEndPage.Main);
 
         float expected = 0f;
@@ -64,7 +69,7 @@ public sealed class FrontEndTests
     {
         ShimClock clock = new();
         FrontEndTiming timing = new();
-        FrontEnd frontEnd = new(clock, timing);
+        FrontEnd frontEnd = NewFrontEnd(clock, timing);
         frontEnd.Enter(FrontEndPage.Main);
         for (int frame = 0; frame < 30; frame++) frontEnd.Step([]);
         Assert.NotEqual(1f / 60f, timing.FrameStep);
@@ -78,7 +83,7 @@ public sealed class FrontEndTests
     {
         ShimClock clock = new();
         FrontEndTiming timing = new();
-        FrontEnd frontEnd = new(clock, timing);
+        FrontEnd frontEnd = NewFrontEnd(clock, timing);
         frontEnd.Enter(FrontEndPage.Main);
         frontEnd.Step([]);
         Assert.Equal(0f, frontEnd.Counter);
@@ -90,7 +95,7 @@ public sealed class FrontEndTests
     public void AnImmediatePageChangeNotifiesInTheGamesOrder()
     {
         List<string> log = [];
-        FrontEnd frontEnd = new(new ShimClock(), new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock(), new FrontEndTiming());
         frontEnd[FrontEndPage.Intro] = new RecordingPage("Intro", log);
         frontEnd[FrontEndPage.Main] = new RecordingPage("Main", log);
         frontEnd.Enter(FrontEndPage.Intro);
@@ -104,7 +109,7 @@ public sealed class FrontEndTests
     {
         List<string> log = [];
         ShimClock clock = new();
-        FrontEnd frontEnd = new(clock, new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(clock, new FrontEndTiming());
         RecordingPage intro = new("Intro", log), main = new("Main", log);
         frontEnd[FrontEndPage.Intro] = intro;
         frontEnd[FrontEndPage.Main] = main;
@@ -139,7 +144,7 @@ public sealed class FrontEndTests
     public void ButtonsGoToTheActivePageFromPlayerZeroOnly()
     {
         List<string> log = [];
-        FrontEnd frontEnd = new(new ShimClock(), new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock(), new FrontEndTiming());
         RecordingPage main = new("Main", log);
         frontEnd[FrontEndPage.Main] = main;
         frontEnd.Enter(FrontEndPage.Main);
@@ -156,7 +161,7 @@ public sealed class FrontEndTests
     public void NoButtonReachesAPageDuringATransitionAndTheMessageBoxTakesThemWhenInteractive()
     {
         List<string> log = [];
-        FrontEnd frontEnd = new(new ShimClock(), new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(new ShimClock(), new FrontEndTiming());
         RecordingPage intro = new("Intro", log), main = new("Main", log);
         frontEnd[FrontEndPage.Intro] = intro;
         frontEnd[FrontEndPage.Main] = main;
@@ -179,10 +184,22 @@ public sealed class FrontEndTests
     }
 
     [Fact]
+    public void AFrameRendersUntilASceneStartsAndEveryRenderPresents()
+    {
+        ShimClock clock = new();
+        FrontEnd frontEnd = NewFrontEnd(clock, new FrontEndTiming());
+        frontEnd.Enter(FrontEndPage.Main);
+        int attempts = 0;
+        frontEnd.BeginScene = () => ++attempts >= 3;
+        Assert.True(frontEnd.Step([]));
+        Assert.Equal(3, clock.PresentCount);
+    }
+
+    [Fact]
     public void EachRunningIterationPresentsOnceAndAQuitStopsBeforeThePresent()
     {
         ShimClock clock = new();
-        FrontEnd frontEnd = new(clock, new FrontEndTiming());
+        FrontEnd frontEnd = NewFrontEnd(clock, new FrontEndTiming());
         frontEnd.Enter(FrontEndPage.Main);
         Assert.True(frontEnd.Step([]));
         Assert.True(frontEnd.Step([]));
