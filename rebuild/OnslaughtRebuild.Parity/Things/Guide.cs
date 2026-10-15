@@ -83,6 +83,94 @@ public abstract class Guide : Monitor
     }
 }
 
+/// <summary>
+/// CDropshipGuide (Unknown3 00448930): with its doors shut (door states 0 and 1) it flies like the air guide, but banks
+/// at most PI/8 and creeps forward at 0.001 along its nose, holding level unless below its minimum altitude above the
+/// ground or sea. The landing states (2, 3 and 5, which draw the random stream) are not ported and throw.
+/// </summary>
+public sealed class DropshipGuide(Unit unit) : Guide(unit)
+{
+    private const float Pi = 3.14159265358979f;
+    private const float PiM2 = 6.28318530717958f;
+
+    public override void Steer()
+    {
+        Unit unit = Unit;
+        if (unit.IsDying)
+        {
+            unit.Unknown174 = 0;
+            unit.Unknown14C = new FVector(0, 0, 0);
+            return;
+        }
+
+        var dropship = (Dropship)unit;
+        float current = unit.CurrentOrientation.Yaw;
+        FVector pos = unit.Pos;
+        float ground = unit.Context.Map.Collide(pos);
+        if (ground > unit.Context.Map.WaterLevel)
+        {
+            ground = unit.Context.Map.WaterLevel;
+        }
+
+        float height = ground - pos.Z;
+        FVector d = Destination - unit.Pos;
+        float heading = -(float)Numerics.X87.Atan2(d.X, d.Y);
+        float pitch = 0;
+        float roll = 0;
+        FMatrix ori = unit.Orientation;
+        FVector right = ori.Transform(new FVector(1, 0, 0));
+        FVector velocity;
+        switch (dropship.DoorState)
+        {
+            case 0:
+            case 1:
+                if (Mode == 0)
+                {
+                    pitch = 0;
+                    heading = current + (Pi / 2);
+                }
+                else if (Mode == 2)
+                {
+                    heading -= Pi;
+                }
+
+                if (height < unit.UnitData!.MinAltitude)
+                {
+                    pitch = -Pi / 5;
+                    heading = current;
+                }
+
+                if (heading > Pi)
+                {
+                    heading -= PiM2;
+                }
+
+                if (heading < -Pi)
+                {
+                    heading += PiM2;
+                }
+
+                float r = MathF.Abs(Unit.AngleDifference(current, heading));
+                if (r > Pi / 8)
+                {
+                    r = Pi / 8;
+                }
+
+                // The lateral projection as retail sums it (00448b78): Y and Z before X.
+                float lateral = ((d.Y * right.Y) + (d.Z * right.Z)) + (right.X * d.X);
+                roll = lateral < 0 ? r : -r;
+                unit.Unknown174 = r > Pi / 6 ? 1.0f : 0;
+                velocity = ori.Transform(new FVector(0, 0.001f, 0));
+                break;
+            default:
+                throw new NotSupportedException($"CDropshipGuide::Unknown3 in door state {dropship.DoorState} (landing) is not ported");
+        }
+
+        unit.Unknown120 = new EulerAngles(heading, pitch, roll);
+        unit.Unknown14C = velocity;
+    }
+}
+
 /// <summary>The guides whose steering is not yet ported: they keep CGuide's state (CGroundVehicleGuide and the rest).</summary>
 public sealed class BasicGuide(Unit unit, string name) : Guide(unit)
 {

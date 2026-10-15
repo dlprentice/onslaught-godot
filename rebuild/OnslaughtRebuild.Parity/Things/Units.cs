@@ -622,6 +622,9 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
 
     public override float Gravity() => IsDying ? 0.025f : 0.0f;
 
+    /// <summary>CPlane::Stop (00422750): only the guide stops (the plane keeps flying).</summary>
+    public override void Stop() => Guide?.Stop();
+
     /// <summary>
     /// CPlane::Move (004d1cd0): a dying plane rolls and noses down; otherwise the launch thrusters burn until the launch
     /// time (presentation) and the wings open once out of launch mode. After CAirUnit::Move the velocity is turned onto
@@ -687,11 +690,84 @@ public sealed class Dropship(ThingContext context) : AirUnit(context)
         }
 
         Context.Skip("CMCDropship (motion controller)");
-        Guide = new BasicGuide(this, "CDropshipGuide");
+        Guide = new DropshipGuide(this);
         AI = new DropshipAI(this, init);
         if (UnitData.EffectNames[3] is not null)
         {
             Context.Skip("the dropship's thruster count (through its motion controller's pose)");
         }
+    }
+
+    /// <summary>mYawDelta: the yaw it lands at.</summary>
+    public float YawDelta;
+
+    /// <summary>mUnknown2A4: the door animation's place; mUnknown2A8 last frame's.</summary>
+    public float Unknown2A4;
+    public float Unknown2A8;
+
+    public override float Unknown73() => 0.99f;
+
+    /// <summary>Stop: nothing (slot 64).</summary>
+    public override void Stop()
+    {
+    }
+
+    /// <summary>Gravity (00448360): a dying dropship falls faster the smaller it is.</summary>
+    public override float Gravity()
+    {
+        if (IsDying)
+        {
+            float r = GetRadius();
+            if (r > 39.0f)
+            {
+                r = 39.0f;
+            }
+
+            return (40.0f - r) * 0.0001f;
+        }
+
+        return 0.0f;
+    }
+
+    public override bool ClipToGround() => !IsDying;
+
+    /// <summary>DeclareOnGround (004dfc60): CActor's directly, a dying one explodes, and it stops.</summary>
+    public override void DeclareOnGround()
+    {
+        LastTimeOnGround = Context.Events.Time;
+        if (IsDying)
+        {
+            throw new NotSupportedException("CDropship::DeclareOnGround's dying explosion is not ported");
+        }
+
+        Velocity = new FVector(0, 0, 0);
+    }
+
+    /// <summary>
+    /// CDropship::Move (00447120), as far as level 100 reaches: in flight with its wings flat (door state 0) it is
+    /// CAirUnit's flight, with the door animation's place reset. The landing, the doors, the dying fall and the
+    /// thrusters' particles are not ported (the first three throw).
+    /// </summary>
+    public override void Move()
+    {
+        if (Unknown168 == 1)
+        {
+            Unknown168 = 0;
+            Unknown1E8 = 1;
+        }
+
+        if (IsDying)
+        {
+            throw new NotSupportedException("CDropship::Move's dying fall is not ported");
+        }
+
+        if (DoorState != 0)
+        {
+            throw new NotSupportedException($"CDropship::Move in door state {DoorState} (landing and the doors) is not ported");
+        }
+
+        base.Move();
+        Unknown2A8 = Unknown2A4;
+        Unknown2A4 = 0;
     }
 }
