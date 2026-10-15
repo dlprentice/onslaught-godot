@@ -154,13 +154,28 @@ public sealed partial class Game : Monitor, IMainLoopHost
     /// <summary>
     /// The timing-relevant part of CGame::InitRestartLoop, in retail order: the event manager is reset, the game is
     /// PRE_RUNNING with FINISHED_PRE_RUN scheduled mPreRunTime from now, the two fear grids are made (each scheduling its
-    /// rebuild), and the random stream is made.
+    /// rebuild), and the random stream is made. Before that the score, the career slots (game.cpp:321), the lost reason and
+    /// both objective lists are reset, in retail's order.
     /// </summary>
     public void InitRestartLoop()
     {
+        Score = 0;
         PreRunTime = 3.0f;
         PanTime = 3.0f;
         EndLevelCount = -1.0f;
+        Array.Clear(Slots);
+        CareerSlots?.CopyTo(Slots, 0);
+        LevelLostReason = 0;
+        foreach (MissionObjective o in PrimaryObjectives)
+        {
+            o.Set(MissionObjectiveState.NotDefined, -1);
+        }
+
+        foreach (MissionObjective o in SecondaryObjectives)
+        {
+            o.Set(MissionObjectiveState.NotDefined, -1);
+        }
+
         Quit = QuitType.None;
         Events.Init();
         Paused = false;
@@ -171,6 +186,10 @@ public sealed partial class Game : Monitor, IMainLoopHost
         // game.cpp:505: each grid's constructor rebuilds it and schedules event 1000 a second on.
         ForsetiFearGrid = new FearGrid(Events, 0);
         MuspellFearGrid = new FearGrid(Events, 1);
+
+        // The message box, message log, pause menu and level briefing log are the platform's and the script's; the help
+        // text display only needs to exist here (game.cpp:511).
+        HasHelpTextDisplay = true;
         RandomStream = new SeedUniformRandomNumberStream(123456);
     }
 
