@@ -59,6 +59,17 @@ internal static class RetailOracle
         }
     }
 
+    /// <summary>With ONSLAUGHT_RETAIL_ORACLE_OURS set, our outputs for a group, line for line, for diagnosis.</summary>
+    public static void WriteOurs(string group, string[] lines)
+    {
+        string? dir = Environment.GetEnvironmentVariable("ONSLAUGHT_RETAIL_ORACLE_OURS");
+        if (!string.IsNullOrEmpty(dir))
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllLines(Path.Combine(dir, $"{group}.txt"), lines);
+        }
+    }
+
     public static float F(uint w) => BitConverter.UInt32BitsToSingle(w);
 
     public static string H(float f) => BitConverter.SingleToUInt32Bits(f).ToString("x8");
@@ -172,8 +183,21 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
         LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
         Directory.CreateDirectory(dir);
         int n = 0;
+        var meshes = new StringBuilder();
         foreach ((string name, MeshData mesh) in resources.Meshes.OrderBy(kv => kv.Key, StringComparer.Ordinal))
         {
+            // meshes.txt: per mesh its parts' type, number, referenced part, bucket (in dump order) and bounding box.
+            meshes.Append($"mesh {mesh.NumParts:x}");
+            int bucket = n;
+            foreach (MeshPart part in mesh.Parts)
+            {
+                BoundingBox? box = part.BoundingBox;
+                meshes.Append($" {part.PartType:x} {part.PartNumber:x} {part.ReferenceTo?.Index ?? -1:x} ")
+                    .Append($"{(part.PolyBucket is null ? -1 : bucket++):x} {(box is null ? 0 : 1):x} ")
+                    .Append(RetailOracle.Hv(box?.Origin ?? default)).Append(' ').Append(RetailOracle.Hv(box?.Axes ?? default));
+            }
+
+            meshes.AppendLine();
             foreach (MeshPart part in mesh.Parts)
             {
                 if (part.PolyBucket is not { } b)
@@ -216,6 +240,8 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
                 n++;
             }
         }
+
+        File.WriteAllText(Path.Combine(dir, "meshes.txt"), meshes.ToString());
     }
 
     private static List<MeshPolyBucket> Level100Buckets()
@@ -293,6 +319,244 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
         }
 
         output.WriteLine(shown.ToString());
+        Assert.Empty(mismatches);
+    }
+
+    /// <summary>
+    /// CMeshCollisionVolume's tests against retail's own: ResolveContact, and the swept sphere against a part's box and
+    /// against its triangles (level 100's poly buckets, each bucket's search state carried from case to case).
+    /// </summary>
+    [RetailOracleFact("volume", needsGameData: true)]
+    public void MeshCollisionVolumeTestsMatchTheRetailFunctions()
+    {
+        List<MeshPolyBucket> buckets = Level100Buckets();
+        MeshPart marker = LevelResourcesFirstPart();
+        var statics = new PolyBucketStatics();
+        var mismatches = new Dictionary<string, int>();
+        var counts = new Dictionary<string, int>();
+        var shown = new StringBuilder();
+        string dir = RetailOracle.Dir("volume")!;
+        string[] cases = File.ReadAllLines(Path.Combine(dir, "cases.txt"));
+        string[] retail = File.ReadAllLines(Path.Combine(dir, "retail.txt"));
+        Assert.Equal(cases.Length, retail.Length);
+        var ourLines = (string[])retail.Clone();
+        for (int i = 0; i < cases.Length; i++)
+        {
+            string[] f = cases[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (f[0] == "pbload")
+            {
+                continue;
+            }
+
+            uint[] w = f.Skip(1).Select(x => uint.Parse(x, NumberStyles.HexNumber)).ToArray();
+            string ours;
+            switch (f[0])
+            {
+                case "resolve":
+                {
+                    var r = new CollisionReport
+                    {
+                        Stuck = w[0] != 0,
+                        NumContacts = (int)w[1],
+                        ContactPos = RetailOracle.V(w, 3),
+                        TestTriangles = (int)w[6],
+                        TriangleNormal = RetailOracle.V(w, 7),
+                    };
+                    r.ContactDistances[r.NumContacts] = RetailOracle.F(w[2]);
+                    for (int k = 0; k < 6; k++)
+                    {
+                        r.Normals[k] = RetailOracle.V(w, 10 + (3 * k));
+                    }
+
+                    bool ok = MeshCollisionVolume.ResolveContact(r, RetailOracle.V(w, 28), RetailOracle.V(w, 31), 1.0f,
+                        out FVector start, out FVector move);
+                    ours = $"resolve {(ok ? 1 : 0):x8} {RetailOracle.Hv(start)} {RetailOracle.Hv(move)} {RetailOracle.Hv(r.Normals[r.NumContacts])}";
+                    break;
+                }
+
+                case "sbox":
+                {
+                    CollisionReport r = Report(w, 13);
+                    var box = new BoundingBox(RetailOracle.V(w, 7), RetailOracle.V(w, 10), 1, 0);
+                    bool hit = MeshCollisionVolume.TestSweptSphereAgainstBox(marker, box, RetailOracle.V(w, 0), RetailOracle.V(w, 3),
+                        RetailOracle.F(w[6]), r);
+                    ours = $"sbox {(hit ? 1 : 0):x8} {(r.Part == marker ? 1 : 0):x8} {Out(r)}";
+                    break;
+                }
+
+                default:
+                {
+                    CollisionReport r = Report(w, 8);
+                    MeshPolyBucket b = buckets[(int)w[0]];
+                    bool hit = MeshCollisionVolume.TestSweptSphereAgainstPart(statics, marker, b, RetailOracle.V(w, 1),
+                        RetailOracle.V(w, 4), RetailOracle.F(w[7]), r);
+                    ours = $"spart {(hit ? 1 : 0):x8} {(r.Part == marker ? 1 : 0):x8} {Out(r)} | {b.SearchStamp:x8}";
+                    break;
+                }
+            }
+
+            ourLines[i] = ours;
+            counts[f[0]] = counts.GetValueOrDefault(f[0]) + 1;
+            if (ours != retail[i])
+            {
+                mismatches[f[0]] = mismatches.GetValueOrDefault(f[0]) + 1;
+                if (mismatches[f[0]] <= 4)
+                {
+                    shown.AppendLine($"case {i}: {cases[i]}\nretail {retail[i]}\nours   {ours}");
+                }
+            }
+        }
+
+        foreach ((string function, int n) in counts.OrderBy(kv => kv.Key))
+        {
+            output.WriteLine($"{function}: {n} cases, {mismatches.GetValueOrDefault(function)} differ");
+        }
+
+        output.WriteLine(shown.ToString());
+        RetailOracle.WriteOurs("volume", ourLines);
+        Assert.Empty(mismatches);
+    }
+
+    private static MeshPart LevelResourcesFirstPart()
+    {
+        (string rname, byte[] rbytes) = GameData.Read(@"data\Resources\100_res_PC.aya");
+        LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
+        return resources.Meshes.OrderBy(kv => kv.Key, StringComparer.Ordinal).First().Value.Parts[0];
+    }
+
+    private sealed class OracleSubject : IRenderSubject
+    {
+        public int RealAnimIndex => -1;
+
+        public float RenderFrame => 0;
+
+        public FVector RenderPos => default;
+
+        public FMatrix RenderOrientation => FMatrix.Identity;
+
+        public bool HasMotionController => false;
+
+        public bool RenderUseHierarchy(int partNumber) => true;
+    }
+
+    private sealed class OracleSource(MeshData mesh, PolyBucketStatics statics) : IMeshCollisionSource
+    {
+        public MeshData? Mesh { get; } = mesh;
+
+        public MeshPose? Pose => null;
+
+        public IRenderSubject Subject { get; } = new OracleSubject();
+
+        public float Time => 0;
+
+        public int RenderFrameNumber => 2;
+
+        public PolyBucketStatics PolyBuckets { get; } = statics;
+    }
+
+    private static string MoveReport(bool hit, CollisionMove mv, CollisionReport r)
+    {
+        var sb = new StringBuilder();
+        sb.Append($" {(hit ? 1 : 0):x8} {RetailOracle.Hv(mv.Move)} {RetailOracle.Hv(mv.Pos)} {(mv.Stopped ? 1 : 0):x8} {r.NumContacts:x8} ")
+            .Append($"{(r.UnknownA8 ? 1 : 0):x8} {(r.Stuck ? 1 : 0):x8} {(r.Part is null ? -1 : r.Part.PartNumber):x8}");
+        for (int k = 0; k < 6; k++)
+        {
+            sb.Append($" {r.ContactParts[k]:x8} {RetailOracle.H(r.ContactDistances[k])}");
+        }
+
+        sb.Append($" {RetailOracle.Hv(r.ContactPos)} {RetailOracle.Hv(r.TriangleNormal)} {RetailOracle.H(r.Distance)}");
+        for (int k = 0; k < 6; k++)
+        {
+            sb.Append(' ').Append(RetailOracle.Hv(r.Normals[k]));
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// CMeshCollisionVolume::CollideWithLine and CollideWithSphere against retail's own, on level 100's meshes with given
+    /// part transforms (fixed, so neither side recaches): the move and the whole report after each.
+    /// </summary>
+    [RetailOracleFact("collide", needsGameData: true)]
+    public void MeshCollisionVolumeCollisionsMatchTheRetailFunctions()
+    {
+        (string rname, byte[] rbytes) = GameData.Read(@"data\Resources\100_res_PC.aya");
+        LevelResources resources = LevelResources.Read(rname, rbytes, GameData.Read);
+        List<MeshData> meshes = resources.Meshes.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Value).ToList();
+        var statics = new PolyBucketStatics();
+        var mismatches = new Dictionary<string, int>();
+        var counts = new Dictionary<string, int>();
+        var shown = new StringBuilder();
+        string dir = RetailOracle.Dir("collide")!;
+        string[] cases = File.ReadAllLines(Path.Combine(dir, "cases.txt"));
+        string[] retail = File.ReadAllLines(Path.Combine(dir, "retail.txt"));
+        Assert.Equal(cases.Length, retail.Length);
+        var ourLines = (string[])retail.Clone();
+        for (int i = 0; i < cases.Length; i++)
+        {
+            string[] f = cases[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (f[0] is "pbload" or "meshes")
+            {
+                continue;
+            }
+
+            uint[] w = f.Skip(1).Select(x => uint.Parse(x, NumberStyles.HexNumber)).ToArray();
+            MeshData mesh = meshes[(int)w[0]];
+            int at = 1;
+            var transforms = new MeshCollisionVolume.PartTransform[mesh.NumParts];
+            for (int p = 0; p < mesh.NumParts; p++, at += 12)
+            {
+                var ori = new FMatrix(RetailOracle.V(w, at), RetailOracle.V(w, at + 3), RetailOracle.V(w, at + 6));
+                transforms[p] = new MeshCollisionVolume.PartTransform
+                {
+                    Orientation = ori,
+                    Inverse = ori.Transpose(),
+                    Pos = RetailOracle.V(w, at + 9),
+                    Frame = 1e30f,
+                };
+            }
+
+            var volume = new MeshCollisionVolume(new OracleSource(mesh, statics), useFixedTransforms: true, ignoreAnimation: false);
+            volume.SetTransforms(transforms);
+            var mv = default(CollisionMove);
+            bool hit;
+            CollisionReport r;
+            if (f[0] == "cline")
+            {
+                mv.Pos = RetailOracle.V(w, at);
+                mv.Move = RetailOracle.V(w, at + 3);
+                r = Report(w, at + 12);
+                hit = volume.CollideWithLine(ref mv, RetailOracle.V(w, at + 6), RetailOracle.V(w, at + 9), r);
+            }
+            else
+            {
+                mv.Move = RetailOracle.V(w, at);
+                mv.Pos = RetailOracle.V(w, at + 3);
+                volume.Unknown18 = (int)w[at + 7];
+                r = Report(w, at + 8);
+                hit = volume.CollideWithSphere(ref mv, RetailOracle.F(w[at + 6]), r);
+            }
+
+            string ours = f[0] + MoveReport(hit, mv, r);
+            ourLines[i] = ours;
+            counts[f[0]] = counts.GetValueOrDefault(f[0]) + 1;
+            if (ours != retail[i])
+            {
+                mismatches[f[0]] = mismatches.GetValueOrDefault(f[0]) + 1;
+                if (mismatches[f[0]] <= 3)
+                {
+                    shown.AppendLine($"case {i}\nretail {retail[i]}\nours   {ours}");
+                }
+            }
+        }
+
+        foreach ((string function, int n) in counts.OrderBy(kv => kv.Key))
+        {
+            output.WriteLine($"{function}: {n} cases, {mismatches.GetValueOrDefault(function)} differ");
+        }
+
+        output.WriteLine(shown.ToString());
+        RetailOracle.WriteOurs("collide", ourLines);
         Assert.Empty(mismatches);
     }
 }
