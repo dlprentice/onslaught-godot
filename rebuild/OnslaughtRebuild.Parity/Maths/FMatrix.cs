@@ -70,6 +70,36 @@ public struct FMatrix
         new FVector(Row0.Z, Row1.Z, Row2.Z));
 
     /// <summary>
+    /// FMatrix(yaw, pitch, roll) out of line (004062d0, the constructor CBattleEngine::UpdateRotation and
+    /// CBattleEngineWalkerPart::Forward call): cos(yaw) and sin(pitch) stay on the FPU stack at full precision; sin(yaw),
+    /// cos(roll), sin(roll), cos(pitch) and sin(pitch) * cos(roll) are stored to floats; every product, sum and
+    /// difference rounds to 24 bits.
+    /// </summary>
+    public static FMatrix MakeRotationOutOfLine(float yaw, float pitch, float roll)
+    {
+        double cy = X87.Cos(yaw);
+        float sy = (float)X87.Sin(yaw);
+        float cr = (float)X87.Cos(roll);
+        float sr = (float)X87.Sin(roll);
+        float cp = (float)X87.Cos(pitch);
+        double sp = X87.Sin(pitch);
+
+        double spsr = X87.Mul(sp, sr);
+        float spcr = (float)X87.Mul(sp, cr);
+        var m = new FMatrix();
+        m.Row0.X = (float)X87.Sub(X87.Mul(cr, cy), X87.Mul(spsr, sy));
+        m.Row0.Y = -(cp * sy);
+        m.Row0.Z = (float)X87.Add(X87.Mul(spcr, sy), X87.Mul(sr, cy));
+        m.Row1.X = (float)X87.Add(X87.Mul(spsr, cy), X87.Mul(cr, sy));
+        m.Row1.Y = (float)X87.Mul(cp, cy);
+        m.Row1.Z = (float)X87.Sub(X87.Mul(sr, sy), X87.Mul(spcr, cy));
+        m.Row2.X = -(cp * sr);
+        m.Row2.Y = (float)sp;
+        m.Row2.Z = cp * cr;
+        return m;
+    }
+
+    /// <summary>
     /// FMatrix::MakeRotation(SINT yaw, SINT pitch, SINT roll) (004f8140, in Unit.cpp): angles in 4096ths of a turn; the
     /// roll's matrix, then the pitch's times it, then the yaw's times that. With zero angles the -sin(0) entries leave
     /// signed zeros (Row0.Y is +0, so CEulerAngles of it has a -0 yaw).

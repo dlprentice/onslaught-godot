@@ -159,7 +159,7 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
                     DeclareOnGround();
                     if (MathF.Abs(Velocity.Z) > Gravity() + 0.05f)
                     {
-                        Velocity.Z = -(BounceFactor() * Velocity.Z);
+                        Velocity.Z = -Velocity.Z * BounceFactor();
                     }
                     else
                     {

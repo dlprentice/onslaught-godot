@@ -31,6 +31,9 @@ public abstract partial class Unit
     public float UnknownF0;
 
     /// <summary>CUnit::ObeyGravity (004fdc90): not while following an emitter (AI mode 2).</summary>
+    /// <summary>BounceFactor (00417620): the unit data's.</summary>
+    public override float BounceFactor() => UnitData?.BounceFactor ?? 0;
+
     public override bool ObeyGravity() => !(AI is not null && AI.AIMode == 2);
 
     /// <summary>Unknown72 (slot 72, 00405dc0): the friction on the ground.</summary>

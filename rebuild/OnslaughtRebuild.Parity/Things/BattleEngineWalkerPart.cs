@@ -131,7 +131,7 @@ public sealed class BattleEngineWalkerPart
     /// </summary>
     private void AddAlongHeading(float val)
     {
-        FMatrix ori = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f);
+        FMatrix ori = FMatrix.MakeRotationOutOfLine(_main.CurrentOrientation.Yaw, 0.0f, 0.0f);
         var move = new FVector(ori.Row0.Y * val, ori.Row1.Y * val, ori.Row2.Y * val);
         if (_main.SlowMovement)
         {

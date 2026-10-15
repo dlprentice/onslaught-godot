@@ -79,6 +79,9 @@ public sealed partial class BattleEngine
     /// <summary>mSlowMovement (cleared by the constructor and by Init).</summary>
     public bool SlowMovement;
 
+    /// <summary>BounceFactor: 0.01 (BattleEngine.h).</summary>
+    public override float BounceFactor() => 0.01f;
+
     /// <summary>ZoomModifier (00409e60): 1 - (1 - z).</summary>
     public float ZoomModifier(float z) => 1.0f - (1.0f - z);
 
@@ -572,7 +575,34 @@ public sealed partial class BattleEngine
         }
         else
         {
-            throw new NotSupportedException("CBattleEngine::UpdateRotation off the ground (the jet part is not ported yet)");
+            // Off the ground (or a jet): the pitch is damped beyond +-1.17 unless the jet part is looping. A walker's
+            // jet part never loops; the jet is not ported.
+            if (State == BattleEngineState.Jet)
+            {
+                throw new NotSupportedException("CBattleEngine::UpdateRotation for the jet (CBattleEngineJetPart::DoingLoop) is not ported");
+            }
+
+            if (CurrentOrientation.Pitch > 1.17f && Pitchvel > 0.0f)
+            {
+                float mult = 1.0f - ((CurrentOrientation.Pitch - 1.17f) * 1.5f);
+                if (mult < 0.0f)
+                {
+                    mult = 0.0f;
+                }
+
+                Pitchvel *= mult;
+            }
+
+            if (CurrentOrientation.Pitch < -1.17f && Pitchvel < 0.0f)
+            {
+                float mult = 1.0f - MathF.Abs((CurrentOrientation.Pitch + 1.17f) * 1.5f);
+                if (mult < 0.0f)
+                {
+                    mult = 0.0f;
+                }
+
+                Pitchvel *= mult;
+            }
         }
 
         CurrentOrientation.Yaw += Yawvel;
@@ -615,13 +645,17 @@ public sealed partial class BattleEngine
         return a;
     }
 
-    /// <summary>FMatrix(yaw + cos(shake) * yawShake, ...): the orientation with the shake added.</summary>
+    /// <summary>
+    /// FMatrix(yaw + cos(shake) * yawShake, ...): the orientation with the shake added, as UpdateRotation compiles it
+    /// (00408000..0040804b): fcos(mShakeR) stays on the FPU stack, each product with a shake and each sum with an angle
+    /// rounds to 24 bits, then the out-of-line constructor (004062d0).
+    /// </summary>
     private FMatrix ShakenOrientation()
     {
-        // cosf(mShakeR), stored to a float, times each shake, added to the angle (a -0 angle plus +0 becomes +0).
-        float c = (float)X87.Cos(ShakeR);
-        return FMatrix.FromYawPitchRoll(CurrentOrientation.Yaw + (c * YawShake), CurrentOrientation.Pitch + (c * PitchShake),
-            CurrentOrientation.Roll + (c * RollShake));
+        double c = X87.Cos(ShakeR);
+        return FMatrix.MakeRotationOutOfLine((float)X87.Add(X87.Mul(c, YawShake), CurrentOrientation.Yaw),
+            (float)X87.Add(X87.Mul(c, PitchShake), CurrentOrientation.Pitch),
+            (float)X87.Add(X87.Mul(c, RollShake), CurrentOrientation.Roll));
     }
 
     /// <summary>The ground's pitch under the engine's heading: -p.Z of (heading ^ normal) ^ normal, normalised.</summary>
