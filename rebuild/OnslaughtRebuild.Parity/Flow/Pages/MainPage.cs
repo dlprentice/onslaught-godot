@@ -27,7 +27,10 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
     /// <summary>The front end's American text (<c>gAmericanText</c>): the language row is then not offered.</summary>
     public bool AmericanText { get; set; }
 
-    /// <summary>The language whose sample bank is loaded (for <c>SOUND.LanguageChanged</c>).</summary>
+    /// <summary>
+    /// The language whose sample bank is loaded. Retail asks <c>SOUND.LanguageChanged(FALSE)</c>; with the sound system
+    /// not modelled, this compares the loaded language with the front end's (an approximation of that call).
+    /// </summary>
     public int LoadedSoundLanguage { get; set; }
 
     /// <summary>Called when the language box has shown: the game saves the career and the options file then (see <see cref="Process"/>).</summary>
