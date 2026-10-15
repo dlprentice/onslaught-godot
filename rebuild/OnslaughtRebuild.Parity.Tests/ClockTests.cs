@@ -166,11 +166,24 @@ public sealed class ClockTests
     [RetailFileFact("golden-640/level100.perpresent-3400.probes")]
     public void Level100PerPresentEventTimeFrameTimeAndLevelMatchEveryPresent()
     {
-        // The RNG probe reads "null" before the stream exists; the clock run does not model it.
-        string text = string.Join('\n', File.ReadAllLines(RetailData.File("golden-640/level100.perpresent-3400.probes"))
-            .Where(l => !l.Contains(" RNG ", StringComparison.Ordinal))) + "\n";
-        ProbeTrace golden = ProbeTrace.Parse(text);
-        var sim = new ClockSimulation(level: 100, baseReadPresent: 2, levelStartPresent: 2);
+        // The clock run does not model the RNG probe; only the clock probes are compared.
+        AssertEveryPresentMatches("golden-640/level100.perpresent-3400.probes",
+            new ClockSimulation(level: 100, baseReadPresent: 2, levelStartPresent: 2));
+    }
+
+    /// <summary>
+    /// C's per-Present retail run of level 100 with the old settings (golden/level100.perpresent-oldsettings-3400.probes:
+    /// plain -level 100, so the intro FMV plays): the base read and PreRun after Present 3100, no loading Present, and
+    /// MainLoop's first Present (3101) already at EVT 3.05.
+    /// </summary>
+    [RetailFileFact("golden/level100.perpresent-oldsettings-3400.probes")]
+    public void Level100OldSettingsEventTimeFrameTimeAndLevelMatchEveryPresent() =>
+        AssertEveryPresentMatches("golden/level100.perpresent-oldsettings-3400.probes",
+            new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100, loadingScreenAfterPreRun: false));
+
+    private static void AssertEveryPresentMatches(string golden, ClockSimulation sim)
+    {
+        ProbeTrace reference = ProbeTrace.Load(RetailData.File(golden));
         var ours = new ProbeTrace();
         while (sim.PresentCount < 3_400)
         {
@@ -178,7 +191,7 @@ public sealed class ClockTests
             sim.ReadProbes(sim.PresentCount, ours);
         }
 
-        TraceComparison comparison = TraceComparison.Compare(golden, ours);
+        TraceComparison comparison = TraceComparison.Compare(reference, ours);
         foreach (string name in new[] { ProbeCatalog.EventTime, ProbeCatalog.FrameTime, ProbeCatalog.Level })
         {
             ProbeComparison probe = comparison.Probes.Single(p => p.Name == name);
