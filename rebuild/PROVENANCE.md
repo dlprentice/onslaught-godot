@@ -21,8 +21,8 @@ relicense this subtree or the pinned `references/Onslaught` source.
 
 ## Permitted evidence and inputs
 
-- Stuart Gillam's pinned GPL source may be read, ported, and adapted with its
-  license and attribution preserved.
+- Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`), pinned, may be read, ported, and adapted with its GPL licence and attribution
+  preserved.
 - The Steam retail executable and Ghidra database establish released static
   identities and deltas from the reference source.
 - Controlled copied-runtime observations establish measured behavior.
@@ -48,7 +48,7 @@ the parity harness's own formats (tape, probe trace, comparator, runner) adapt n
 `Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
 from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source.
 
-Licence identifiers (checked 2026-10-15): Stuart Gillam's release (`references/Onslaught`) ships the GPL version 3 text
+Licence identifiers (checked 2026-10-15): Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`) ships the GPL version 3 text
 in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
 source, directly or through bea-decomp, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Units adapted from
 bea-decomp code that is not in his release (reconstructed from the retail program, such as the random stream) and
