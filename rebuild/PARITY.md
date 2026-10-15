@@ -34,15 +34,20 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
 
 Observed and modelled Present schedules (rule for M6 and M7, 2026-10-15). Before the front end's first `Process`,
-retail's Present count is not a property of its logic. The boot videos play on Bink's real clock (the shim cannot
-virtualise Bink without stalling it). The console's loading screen (`CConsole::RenderLoadingScreen`) presents only
-when 0.05 s have passed since its last render, and on the shim's clock (1/30 s per Present) time then moves only
-through the shim's spin escape (2,000,000 hooked timer calls with no Present). So how many loading Presents
-retail makes depends on how often its loading code and threads poll the timers. That boot segment is an observed
-schedule: the rebuild replays the Present counts measured on retail under the harness as calibrated constants, and
-they hold for that harness only. From the front end's first `Process` on, every Present is modelled, and a mismatch
-there is a defect. The same rule applies to level loading if it shows the same mechanism (J and B to check;
-with `-skipfmv` the level-100 golden's main loop starts at Present 3).
+retail's Present count is an observed schedule, not a model output. The boot videos play on Bink's real clock (the
+shim cannot virtualise Bink without stalling it). The loading screens' Present counts are reproducible between
+retail runs but not explained. C logged every Present from 2190 to 2300 at boot and Presents 1-12 of level 100
+(`-skipfmv`), and found:
+- every Present comes from the one frame flip (return address 0x00512644);
+- the shim's spin escape never fired (so it does not drive them);
+- between loading Presents the hooked timers are read 27-151 times, a count that differs between two retail runs
+  while the Presents at which each screen starts and ends do not.
+`CConsole::RenderLoadingScreen`'s 0.05 s throttle should allow a loading Present only every second frame on the
+replay clock; what paces them is an open question (a clock the shim does not hook is the first candidate). So the
+rebuild replays the Present counts measured on retail under the harness as calibrated constants, valid for that
+harness only. From the front end's first `Process` on, every Present is modelled, and a mismatch there is a defect.
+The same rule applies to level loading (J and B to check; with `-skipfmv` the level-100 golden's main loop starts
+at Present 3).
 
 The observed boot constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail
 processes identical at every captured Present):
