@@ -80,6 +80,13 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         "Squad.Unknown4e8100" => "CNormalSquad::Unknown4e8100",
         "Squad.Unknown4e83b0" => "CNormalSquad::Unknown4e83b0",
         "Squad.Unknown66" => "CNormalSquad::Unknown66",
+        "Unit.HandleEvent" => "CUnit::HandleEvent",
+        "UnitAI.Unknown3" => "CUnitAI::Unknown3",
+        "UnitAI.HandleEvent" => "CUnitAI::HandleEvent",
+        "UnitAI.Unknown10Step" => "CUnitAI::Unknown10",
+        "UnitAI.Unknown8" => "CUnitAI::Unknown8",
+        "Guide.Reschedule" => "Reschedule",
+        "BattleEngine.CalcUnitOverCrossHair" => "CBattleEngine::CalcUnitOverCrossHair",
         "Tree.Init" => "CTree::Init",
         "Actor.Init" => "CActor::Init",
         "Unit.Unknown4fb280" => "CUnit::Unknown4fb280",
@@ -144,8 +151,8 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// fear grids), then CWorld::Load(100), which loads base world 1 at its level. Every draw is compared with the native
     /// port's log by number and retail function: 1,537 in all, 56 outside the trees.
     /// </summary>
-    [PortLogFact]
-    public void TheLevel100LoadDrawsAsRetailDoesSiteBySite()
+    /// <summary>Level 100 as retail starts it: CGame::InitRestartLoop, then CWorld::Load(100) with the real spawner.</summary>
+    internal static (ThingContext Context, ParityGame Game) Level100Run()
     {
         (string pname, byte[] pbytes) = GameData.Read(@"data\default physics.dat");
         PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
@@ -174,8 +181,16 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
 
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
         new WorldLoader(context, resources, spawner).Load(100, isBase: false);
+        return (context, game);
+    }
 
-        List<(long Draw, string Site)> ours = random.Log;
+    [PortLogFact]
+    public void TheLevel100LoadDrawsAsRetailDoesSiteBySite()
+    {
+        (ThingContext context, ParityGame game) = Level100Run();
+        SeedUniformRandomNumberStream random = context.Random;
+
+        List<(long Draw, string Site)> ours = random.Log!;
         foreach ((string what, int count) in context.NotPorted)
         {
             output.WriteLine($"not ported: {what} x{count}");
@@ -194,4 +209,82 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         Assert.Equal(retail.Count, ourNonTree.Count);
         Assert.Equal(1537, ours.Count);
     }
+
+    /// <summary>
+    /// The 60 PreRun Updates after level 100's load, draw by draw against the native port's trace (draw number, Update,
+    /// retail function). A measurement while PreRun's handlers are being ported: it reports the first divergence and
+    /// asserts the matched prefix never shrinks below <see cref="PreRunMatchedFloor"/>.
+    /// </summary>
+    [PortLogFact]
+    public void PreRunDrawsFollowRetailsTrace()
+    {
+        (ThingContext context, ParityGame game) = Level100Run();
+        SeedUniformRandomNumberStream random = context.Random;
+        var updateOfDraw = new List<int>();
+        int update = 0;
+        string stopped = "ran all 60";
+        while (game.State == Game.GameState.PreRunning && update < 60)
+        {
+            update++;
+            long before = random.Draws;
+            try
+            {
+                game.Update();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped in U{update}: {e.Message}";
+                break;
+            }
+            finally
+            {
+                for (long d = before; d < random.Draws; d++)
+                {
+                    updateOfDraw.Add(update);
+                }
+            }
+        }
+
+        var retail = new List<(long Draw, int Update, string Event, string Site)>();
+        foreach (string line in File.ReadLines(PortLogs.File("l100-prerun-draws.txt")))
+        {
+            string[] f = line.Split('\t');
+            if (f.Length < 4 || !char.IsDigit(f[0][0]) || f[1] == "U0")
+            {
+                continue;
+            }
+
+            int u = int.Parse(f[1][1..]);
+            if (u <= 60)
+            {
+                retail.Add((long.Parse(f[0]), u, f[2], f[3].Split(' ')[0]));
+            }
+        }
+
+        List<(long Draw, string Site)> ours = random.Log!.Where(d => d.Draw > 1537).ToList();
+        int matched = 0;
+        string divergence = "none";
+        for (; matched < Math.Min(retail.Count, ours.Count); matched++)
+        {
+            (long draw, int u, string ev, string site) = retail[matched];
+            string mine = RetailName(ours[matched].Site);
+            int ourUpdate = updateOfDraw[matched];
+            if (ours[matched].Draw != draw || ourUpdate != u || !(mine == site || mine.Contains(site)))
+            {
+                divergence = $"draw {draw}: retail U{u} {ev} {site}; ours U{ourUpdate} {ours[matched].Site}";
+                break;
+            }
+        }
+
+        output.WriteLine($"PreRun: {stopped}; retail {retail.Count} draws, ours {ours.Count}; matched prefix {matched}; first divergence: {divergence}");
+        foreach ((string what, int count) in context.NotPorted.Where(kv => !kv.Key.EndsWith("Move (the movement is not ported yet)", StringComparison.Ordinal)))
+        {
+            output.WriteLine($"not ported: {what} x{count}");
+        }
+
+        Assert.True(matched >= PreRunMatchedFloor, $"matched prefix {matched} fell below {PreRunMatchedFloor}: {divergence}");
+    }
+
+    /// <summary>The PreRun draws matched so far (raised as the handlers are ported; never lowered).</summary>
+    private const int PreRunMatchedFloor = 59;
 }

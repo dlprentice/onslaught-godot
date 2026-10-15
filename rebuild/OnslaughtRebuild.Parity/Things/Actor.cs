@@ -80,6 +80,31 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
         }
     }
 
+    /// <summary>CActor::HandleEvent (004019e0): a full or light move, then the next move event.</summary>
+    public override void HandleEvent(Event e)
+    {
+        switch (e.EventNum)
+        {
+            case ActorEvent.Move:
+                Move();
+                AddMoveEvent(e);
+                break;
+            case ActorEvent.LfMove:
+                LowFidelityMove();
+                AddMoveEvent(e);
+                break;
+            default:
+                base.HandleEvent(e);
+                break;
+        }
+    }
+
+    /// <summary>Move (slot 33): the full move (gravity, collision, the subclass's motion); ported with the movement.</summary>
+    public virtual void Move() => Context.Skip($"{GetType().Name}::Move (the movement is not ported yet)");
+
+    /// <summary>LowFidelityMove: the light move between full ones; ported with the movement.</summary>
+    public virtual void LowFidelityMove() => Context.Skip($"{GetType().Name}::LowFidelityMove (the movement is not ported yet)");
+
     // IRenderSubject: what the mesh pose code asks of the thing (the rest pose until animation timing is ported).
     int IRenderSubject.RealAnimIndex => -1;
 
