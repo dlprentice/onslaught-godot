@@ -73,6 +73,20 @@ public sealed class HeightFieldTests
     }
 
     [GameDataFact]
+    // 0047ec7c..0047eca0: floor, then a 64-bit fistp keeping the low dword. A coordinate past 2^63 gives the integer
+    // indefinite (low dword 0), so retail carries on at sample 0 with both fractions 0: the near triangle of square
+    // (0, 0). D's oracle found the saturating cast returning the off-map (0, 0, 1) instead.
+    public void AHugeCoordinateWrapsToSampleZeroAsTheFistpDoes()
+    {
+        HeightField h = Level100().HeightField;
+        FVector origin = h.Normal(new FVector(0, 0, 0));
+        Assert.Equal(origin, h.Normal(new FVector(3.4e38f, 3.4e38f, 0)));
+        Assert.Equal(origin, h.Normal(new FVector(3.4e38f, 0, 0)));
+        Assert.Equal(origin, h.Normal(new FVector(-3.4e38f, 0, 0)));   // negative too: the indefinite's low dword is 0
+        Assert.Equal(new FVector(0, 0, 1), h.Normal(new FVector(-1.0f, 0, 0)));
+    }
+
+    [GameDataFact]
     public void TheWaterLevelLiesWithinTheTerrainsHeights()
     {
         HeightField h = Level100().HeightField;
