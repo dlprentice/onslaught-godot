@@ -67,10 +67,252 @@ public sealed class BattleEngineWalkerPart
     /// <summary>GetCurrentAccleration: the configuration's ground velocity / 50 (a multiply by 0.02f, 00412d94).</summary>
     private float CurrentAcceleration() => _main.Configuration!.GroundVelocity * 0.02f;
 
-    /// <summary>A dash: the weapon's charge lost and the zoom-out reset (LoseWeaponCharge is not ported: it throws).</summary>
+    /// <summary>A dash: the strafe sound (presentation), the weapon's charge lost and the zoom-out reset; the caller boosts.</summary>
     private void StartDash()
     {
-        throw new NotSupportedException("CBattleEngineWalkerPart's dash (LoseWeaponCharge and the strafe sound) is not ported");
+        throw new NotSupportedException("CBattleEngineWalkerPart's dash (the velocity boost and dash count) is not ported");
+    }
+
+    private static bool SameName(byte[] a, byte[] b) => a.AsSpan().SequenceEqual(b);
+
+    /// <summary>EnableWeapon (00414970): the walker's weapons and the primary of that name (strcmp) become active.</summary>
+    public void EnableWeapon(byte[] name)
+    {
+        foreach (Weapon weapon in Weapons)
+        {
+            if (SameName(name, weapon.Data.Name))
+            {
+                weapon.WeaponActive = true;
+            }
+        }
+
+        if (SameName(name, PrimaryWeapon!.Data.Name))
+        {
+            PrimaryWeapon.WeaponActive = true;
+        }
+    }
+
+    /// <summary>DisableWeapon (00414a40): those of that name go inactive; the selection moves off a disabled weapon.</summary>
+    public void DisableWeapon(byte[] name)
+    {
+        foreach (Weapon weapon in Weapons.ToList())
+        {
+            if (SameName(name, weapon.Data.Name))
+            {
+                weapon.WeaponActive = false;
+                if (ReferenceEquals(GetCurrentWeapon(), weapon))
+                {
+                    ChangeWeapon();
+                }
+            }
+        }
+
+        if (SameName(name, PrimaryWeapon!.Data.Name))
+        {
+            PrimaryWeapon.WeaponActive = false;
+        }
+
+        if (ReferenceEquals(GetCurrentWeapon(), PrimaryWeapon))
+        {
+            ChangeWeapon();
+        }
+    }
+
+    /// <summary>GetWeapon: 0 is the primary (or the aug weapon while the aug is active), then the list.</summary>
+    public Weapon? GetWeapon(int number)
+    {
+        if (number == 0 && PrimaryWeapon is not null)
+        {
+            return _main.AugActive && AugWeapon is not null ? AugWeapon : PrimaryWeapon;
+        }
+
+        int n = PrimaryWeapon is not null ? 1 : 0;
+        foreach (Weapon weapon in Weapons)
+        {
+            if (n == number)
+            {
+                return weapon;
+            }
+
+            n++;
+        }
+
+        return null;
+    }
+
+    public int CountWeapons() => (PrimaryWeapon is not null ? 1 : 0) + Weapons.Count;
+
+    /// <summary>
+    /// ChangeWeapon (00413eb0): the next active weapon whose store can pay (a heat store always can), wrapping; on a
+    /// change, full speed, the charge lost, and an auto zoom-out when the zoom mode changes.
+    /// </summary>
+    public void ChangeWeapon()
+    {
+        int oldZoomMode = GetCurrentWeapon()!.Data.ZoomMode;
+        int n = CurrentWeapon + 1;
+        int total = CountWeapons();
+        bool changed = false;
+        while (n != CurrentWeapon)
+        {
+            if (GetWeapon(n) is { } weapon)
+            {
+                int store = weapon.Data.AmmoStore;
+                if (weapon.WeaponActive && (_main.StoreHeat[store] || _main.StoreValue[store] >= weapon.Data.Consumption))
+                {
+                    CurrentWeapon = n;
+                    changed = true;
+                    break;
+                }
+            }
+
+            n++;
+            if (n >= total)
+            {
+                n = 0;
+            }
+        }
+
+        if (changed)
+        {
+            _main.SlowMovement = false;
+            LoseWeaponCharge();
+            if (oldZoomMode != GetCurrentWeapon()!.Data.ZoomMode)
+            {
+                _main.DesiredZoom = 1.0f;
+            }
+        }
+    }
+
+    /// <summary>LoseWeaponCharge (00414010).</summary>
+    public void LoseWeaponCharge() => GetCurrentWeapon()?.LoseCharge();
+
+    /// <summary>FireWeapon (00413cc0): movement back to full speed, and the current weapon fires if active.</summary>
+    public void FireWeapon()
+    {
+        _main.SlowMovement = false;
+        if (GetCurrentWeapon() is { } weapon && weapon.WeaponActive)
+        {
+            weapon.Fire();
+        }
+    }
+
+    /// <summary>
+    /// ChargeWeapon (00413cf0): an active weapon ready to charge charges while its store has ammunition (or heats) and
+    /// is not overheated, slowing the walker unless the weapon allows movement and stopping the shields' recharge; a heat
+    /// store fills by the weapon's consumption until it overheats, which fires it. A weapon that cannot charge fires.
+    /// </summary>
+    public void ChargeWeapon()
+    {
+        if (GetCurrentWeapon() is not { } weapon || !weapon.WeaponActive || !weapon.ReadyToCharge())
+        {
+            return;
+        }
+
+        if (!weapon.CanCharge())
+        {
+            FireWeapon();
+            return;
+        }
+
+        int store = weapon.Data.AmmoStore;
+        if ((_main.StoreHeat[store] || _main.StoreValue[store] > 0) && !weapon.FullyCharged() && !_main.StoreOverheat[store])
+        {
+            _main.SlowMovement = weapon.Data.AllowMovement == 0;
+            weapon.Charge();
+            ShieldsRecharging = false;
+            if (_main.StoreHeat[store])
+            {
+                if (_main.StoreValue[store] < _main.Configuration!.StoreValue[store] && !_main.StoreOverheat[store])
+                {
+                    _main.StoreValue[store] += weapon.Data.Consumption;
+                }
+                else
+                {
+                    _main.StoreOverheat[store] = true;
+                    _main.WeaponOverheated();
+                    FireWeapon();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// WeaponFired (004140d0): the store pays for a shot. A heat store fills by the consumption (a charged shot is free)
+    /// until it overheats; an ammunition store empties by it, and an empty one marks ammunition depleted. The walker
+    /// list first, then the primary, then the aug weapon (whose shot also spends the aug).
+    /// </summary>
+    public bool WeaponFired(Weapon inWeapon)
+    {
+        foreach (Weapon weapon in Weapons)
+        {
+            if (ReferenceEquals(weapon, inWeapon) && PayForShot(weapon, aug: false))
+            {
+                return true;
+            }
+        }
+
+        if (PrimaryWeapon is not null && ReferenceEquals(inWeapon, PrimaryWeapon) && PayForShot(PrimaryWeapon, aug: false))
+        {
+            return true;
+        }
+
+        return AugWeapon is not null && ReferenceEquals(inWeapon, AugWeapon) && PayForShot(AugWeapon, aug: true);
+    }
+
+    private bool PayForShot(Weapon weapon, bool aug)
+    {
+        int store = weapon.Data.AmmoStore;
+        if (_main.StoreHeat[store])
+        {
+            if (weapon.ChargeLevel > 0)
+            {
+                if (aug)
+                {
+                    _main.AugValue = 0.0f;
+                }
+
+                return true;
+            }
+
+            if (_main.StoreValue[store] < _main.Configuration!.StoreValue[store] && !_main.StoreOverheat[store])
+            {
+                _main.StoreValue[store] += weapon.Data.Consumption;
+                ShieldsRecharging = false;
+                if (aug)
+                {
+                    _main.AugValue = 0.0f;
+                }
+
+                return true;
+            }
+
+            _main.StoreOverheat[store] = true;
+            _main.WeaponOverheated();
+            return false;
+        }
+
+        if (_main.StoreValue[store] > 0)
+        {
+            _main.StoreValue[store] -= weapon.Data.Consumption;
+            if (aug)
+            {
+                _main.AugValue = 0.0f;
+            }
+
+            if (_main.StoreValue[store] < 0)
+            {
+                _main.StoreValue[store] = 0;
+            }
+
+            return true;
+        }
+
+        if (_main.AmmoDepletedTime < Context.Events.Time - 8.0f)
+        {
+            _main.AmmoDepletedTime = Context.Events.Time;
+        }
+
+        return false;
     }
 
     private bool DashWindow(float startTime)

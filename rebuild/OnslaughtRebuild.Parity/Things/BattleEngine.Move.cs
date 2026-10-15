@@ -79,6 +79,62 @@ public sealed partial class BattleEngine
     /// <summary>mSlowMovement (cleared by the constructor and by Init).</summary>
     public bool SlowMovement;
 
+    /// <summary>mRecentLocks: the locks (or fired locks) when the weapon last fired.</summary>
+    public int RecentLocks;
+
+    /// <summary>ChargeWeapon (00409ef0): the walker's (the jet is not ported).</summary>
+    public void ChargeWeapon()
+    {
+        if (State == BattleEngineState.Walker)
+        {
+            WalkerPart!.ChargeWeapon();
+        }
+        else if (State == BattleEngineState.Jet)
+        {
+            throw new NotSupportedException("CBattleEngineJetPart::ChargeWeapon is not ported");
+        }
+    }
+
+    /// <summary>FireWeapon (00409f20): full speed, the recent locks (none: locks are not ported), the part's fire.</summary>
+    public void FireWeapon()
+    {
+        SlowMovement = false;
+        Context.Skip("CBattleEngine::FireWeapon's lock counts (locks are not ported; read as none)");
+        RecentLocks = 0;
+        if (State == BattleEngineState.Walker)
+        {
+            WalkerPart!.FireWeapon();
+        }
+        else if (State == BattleEngineState.Jet)
+        {
+            throw new NotSupportedException("CBattleEngineJetPart::FireWeapon is not ported");
+        }
+    }
+
+    /// <summary>
+    /// WeaponFired (0040c2e0): the jet part's weapons (none of the walker's) or the walker part's pay for the shot, and
+    /// the cloak's stealth drops to 0.
+    /// </summary>
+    public bool WeaponFired(Weapon weapon)
+    {
+        if (WalkerPart!.WeaponFired(weapon))
+        {
+            Stealth = 0.0f;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>WeaponOverheated (0040f110): the warning time, at most every 4 seconds.</summary>
+    public void WeaponOverheated()
+    {
+        if (WeaponOverheatedTime + 4.0f < Context.Events.Time)
+        {
+            WeaponOverheatedTime = Context.Events.Time;
+        }
+    }
+
     /// <summary>BounceFactor: 0.01 (BattleEngine.h).</summary>
     public override float BounceFactor() => 0.01f;
 

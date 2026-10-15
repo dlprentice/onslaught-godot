@@ -133,7 +133,11 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
                 case Platform.Buttons.MechChangeZoomIn:
                 case Platform.Buttons.MechChangeZoomOut:
                 case Platform.Buttons.MechChargeGunPod:
+                    be.ChargeWeapon();
+                    break;
                 case Platform.Buttons.MechFireGunPod:
+                    be.FireWeapon();
+                    break;
                 case Platform.Buttons.MechChangeWeapon:
                 case Platform.Buttons.MechCloak:
                     throw new NotSupportedException($"CPlayer::ReceiveButtonAction: button {button} (the battle engine's own action) is not ported");

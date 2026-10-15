@@ -433,9 +433,9 @@ public sealed class Weapon(ThingContext context, WeaponData data, int type) : Eq
     /// </summary>
     public bool SpawnRound()
     {
-        if (AttachedTo!.IsA(ThingType.BattleEngine))
+        if (AttachedTo is BattleEngine be && !be.WeaponFired(this))
         {
-            throw new NotSupportedException("CBattleEngine::WeaponFired (from CWeapon::SpawnRound) is not ported");
+            return false;
         }
 
         WeaponModeData? mode = Mode;

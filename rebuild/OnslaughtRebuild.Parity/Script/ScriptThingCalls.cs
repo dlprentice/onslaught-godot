@@ -39,11 +39,31 @@ internal static class ScriptThingCalls
         return unit.Life;
     }
 
-    public static void EnableWeapon(ScriptRuntime runtime, Unit unit, byte[] name) =>
-        runtime.Context.Skip(unit is BattleEngine ? "CBattleEngine::EnableWeapon" : "CUnit::EnableWeapon");
+    /// <summary>CBattleEngine::EnableWeapon (0040dc30): the walker part's; the jet part's weapons are not ported.</summary>
+    public static void EnableWeapon(ScriptRuntime runtime, Unit unit, byte[] name)
+    {
+        if (unit is BattleEngine be)
+        {
+            be.WalkerPart!.EnableWeapon(name);
+            runtime.Context.Skip("CBattleEngineJetPart::EnableWeapon (the jet part is not ported)");
+            return;
+        }
 
-    public static void DisableWeapon(ScriptRuntime runtime, Unit unit, byte[] name) =>
-        runtime.Context.Skip(unit is BattleEngine ? "CBattleEngine::DisableWeapon" : "CUnit::DisableWeapon");
+        runtime.Context.Skip("CUnit::EnableWeapon");
+    }
+
+    /// <summary>CBattleEngine::DisableWeapon (0040dc60): the walker part's; the jet part's weapons are not ported.</summary>
+    public static void DisableWeapon(ScriptRuntime runtime, Unit unit, byte[] name)
+    {
+        if (unit is BattleEngine be)
+        {
+            be.WalkerPart!.DisableWeapon(name);
+            runtime.Context.Skip("CBattleEngineJetPart::DisableWeapon (the jet part is not ported)");
+            return;
+        }
+
+        runtime.Context.Skip("CUnit::DisableWeapon");
+    }
 
     /// <summary>CBattleEngine::EnableFlightMode: mFlightModeActive = TRUE.</summary>
     public static void EnableFlightMode(ScriptRuntime runtime, BattleEngine be) =>
