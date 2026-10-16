@@ -88,6 +88,14 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The Present through which the static-target tape's run equals the port's at every Present (never lowered).</summary>
     private const int TargetTapeMatchedThrough = 8000;
 
+    /// <summary>
+    /// The Present through which the tank-kill tape matches the port (never lowered). From the target tank's shrapnel on
+    /// (P6016) the port's reference is not retail's: clang evaluates FVector(RandomScaled, RandomScaled, RandomScaled)
+    /// left to right where VC6 draws Z first (CPDEmitter::Unknown10, 004c1a90), so its shrapnel fly differently and two
+    /// that land in the core at P6069/6070 do not land in the port. Raise it when the port's reference is regenerated.
+    /// </summary>
+    private const int TankKillTapeMatchedThrough = 6068;
+
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
 
@@ -187,6 +195,21 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     {
         long matched = PortTapeMatchedThrough("portrefs/tapes/level100-fire2-8000f.tape", "portrefs/l100-fire2-port", 8000);
         Assert.True(matched >= TargetTapeMatchedThrough, $"matched through Present {matched}, below {TargetTapeMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 on the port's tank-kill tape (tapes/level100-fire3-8000f.tape, the port's autopilot: the firing range,
+    /// bursts that kill the first target tank at P6016, then bursts at the second tank and the warehouse, which dies at
+    /// P6961) against the port's every-Present reference of a replay (l100-fire3-port), as the firing tape's test. It
+    /// covers a ground vehicle's death, its explosion's damage to a segmented building and the wreck's particles.
+    /// Floor: <see cref="TankKillTapeMatchedThrough"/>.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-fire3-8000f.tape", "portrefs/l100-fire3-port/crt-per-present.txt",
+        "portrefs/l100-fire3-port/port-probes-every1.txt")]
+    public void Level100TankKillTapeMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-fire3-8000f.tape", "portrefs/l100-fire3-port", 8000);
+        Assert.True(matched >= TankKillTapeMatchedThrough, $"matched through Present {matched}, below {TankKillTapeMatchedThrough}");
     }
 
     private long PortTapeMatchedThrough(string tape, string dir, long last)
