@@ -140,10 +140,58 @@ public sealed class LevelSession
     public bool Ended { get; private set; }
 
     /// <summary>END_LEVEL_DATA as RunLevel's close filled it.</summary>
-    public Career.EndLevelData EndLevelData { get; private init; } = new();
+    public OnslaughtRebuild.Parity.Career.EndLevelData EndLevelData { get; private init; } = new();
 
     /// <summary>Started from the front end (<see cref="LevelHost"/>): no boot Presents before the level.</summary>
     public bool FromFrontEnd { get; private init; }
+
+    /// <summary>CAREER: the front end's, or a -level run's wiped boot career.</summary>
+    public OnslaughtRebuild.Parity.Career.Career? Career { get; private init; }
+
+    /// <summary>The level number this session plays.</summary>
+    public int Level { get; private init; }
+
+    private Func<string, (string Name, byte[] Bytes)> Read { get; init; } = null!;
+
+    private Func<Clock.PlatformClock, IMessageVoice>? Voice { get; init; }
+
+    private Func<uint, Data.ChunkReader, bool>? OtherChunk { get; init; }
+
+    /// <summary>CAREER.GetSlots(), as InitRestartLoop copies them.</summary>
+    public static int[] SlotsOf(OnslaughtRebuild.Parity.Career.Career career)
+    {
+        int[] slots = new int[OnslaughtRebuild.Parity.Career.CareerRecord.SlotWordCount];
+        for (int word = 0; word < slots.Length; word++)
+        {
+            slots[word] = career.Record.SlotWord(word);
+        }
+
+        return slots;
+    }
+
+    /// <summary>
+    /// CGame::RunLevel's restart loop after a QT_RESTART_LEVEL (the level-end or pause menu's Retry): InitRestartLoop and
+    /// RestartLoopRunLevel again, on the same process: the clock, input, bindings, rand(), END_LEVEL_DATA, CAREER (whose
+    /// slots the level may have set) and the loading screen, which renders once before the reload and again at 100%. The
+    /// tape carries on.
+    /// </summary>
+    public LevelSession Restart()
+    {
+        if (!Ended || Game.Quit != OnslaughtRebuild.Parity.Clock.QuitType.RestartLevel)
+        {
+            throw new InvalidOperationException("only a level that ended with a restart restarts");
+        }
+
+        OnslaughtRebuild.Parity.Career.Career career = Career ?? throw new InvalidOperationException("a restart needs CAREER");
+        var host = new LevelHost(Clock, Input.Input, Context.Bindings!, Input.Shared, Context.Crt, EndLevelData, SlotsOf(career),
+            Loading ?? new Flow.LoadingScreen(Clock, () => Input.Input.Process(Clock.QueryPerformanceCounter())), career.SetSlot)
+        {
+            Career = career,
+        };
+        LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
+        next.Tape = Tape;
+        return next;
+    }
 
     /// <summary>The process's loading screen, for a level from the front end.</summary>
     public Flow.LoadingScreen? Loading { get; private init; }
@@ -184,6 +232,7 @@ public sealed class LevelSession
         var events = new EventManager();
         LevelInput input;
         Platform.ControlBindings bindings;
+        OnslaughtRebuild.Parity.Career.Career? bootCareer = null;
         if (host is not null)
         {
             // Started from the front end: the process's window, input, bindings and controller state carry on.
@@ -192,12 +241,14 @@ public sealed class LevelSession
         }
         else
         {
-            // WinMain's boot load of the saved options (defaultoptions.bea): the bindings and gMouseSensitivity.
+            // WinMain's boot load of the saved options (defaultoptions.bea): the bindings and gMouseSensitivity, and the
+            // career wiped (CAREER, which a -level run keeps for the level's slots).
             bindings = Platform.ControlBindings.Defaults();
-            Career.CareerOptions? options = null;
+            OnslaughtRebuild.Parity.Career.CareerOptions? options = null;
+            bootCareer = OnslaughtRebuild.Parity.Career.Career.Constructed();
             try
             {
-                options = Career.DefaultOptions.Load(Career.Career.Constructed(), bindings, read(Career.DefaultOptions.FileName).Bytes);
+                options = OnslaughtRebuild.Parity.Career.DefaultOptions.Load(bootCareer, bindings, read(OnslaughtRebuild.Parity.Career.DefaultOptions.FileName).Bytes);
             }
             catch (FileNotFoundException)
             {
@@ -210,7 +261,19 @@ public sealed class LevelSession
             }
         }
         var services = new ScriptGameServices(input);
-        var game = new Game(clock, events, services) { CurrentLevel = level, CareerSlots = host?.CareerSlots, CareerSetSlot = host?.CareerSetSlot };
+        var game = new Game(clock, events, services) { CurrentLevel = level };
+        OnslaughtRebuild.Parity.Career.Career? career = host?.Career ?? bootCareer;
+        if (host is not null)
+        {
+            game.CareerSlots = host.CareerSlots;
+            game.CareerSetSlot = host.CareerSetSlot;
+        }
+        else if (career is not null)
+        {
+            game.CareerSlots = SlotsOf(career);
+            game.CareerSetSlot = career.SetSlot;
+        }
+
         game.InitRestartLoop();
         input.InitMouse();
         var pool = new SPtrSetPool();
@@ -305,9 +368,14 @@ public sealed class LevelSession
         return new LevelSession(context, game, resources, clock)
         {
             Input = input,
-            EndLevelData = host?.EndLevelData ?? new Career.EndLevelData(),
+            EndLevelData = host?.EndLevelData ?? new OnslaughtRebuild.Parity.Career.EndLevelData(),
             FromFrontEnd = host is not null,
             Loading = host?.Loading,
+            Career = career,
+            Level = level,
+            Read = read,
+            Voice = voice,
+            OtherChunk = otherChunk,
         };
     }
 }
@@ -319,5 +387,9 @@ public sealed class LevelSession
 /// copies) and CAREER.SetSlot (the script's SetSlotSave).
 /// </summary>
 public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput Input, Platform.ControlBindings Bindings,
-    Platform.ControllerShared Shared, Crt.CrtRandStream Crt, Career.EndLevelData EndLevelData, int[] CareerSlots,
-    Flow.LoadingScreen Loading, Action<int, int>? CareerSetSlot = null);
+    Platform.ControllerShared Shared, Crt.CrtRandStream Crt, OnslaughtRebuild.Parity.Career.EndLevelData EndLevelData, int[] CareerSlots,
+    Flow.LoadingScreen Loading, Action<int, int>? CareerSetSlot = null)
+{
+    /// <summary>CAREER itself, kept for a restart's slots.</summary>
+    public OnslaughtRebuild.Parity.Career.Career? Career { get; init; }
+}

@@ -137,10 +137,24 @@ public sealed class GameRun : ISystemParts
         }
 
         Level = LevelSession.Load(level, _read, _voice,
-            host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots, Loading, FrontEnd.Career.SetSlot));
-        while (!Level.Ended)
+            host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots, Loading, FrontEnd.Career.SetSlot)
+            {
+                Career = FrontEnd.Career,
+            });
+        while (true)
         {
-            Level.AdvanceToNextPresent();
+            while (!Level.Ended)
+            {
+                Level.AdvanceToNextPresent();
+            }
+
+            if (Level.Game.Quit != QuitType.RestartLevel)
+            {
+                break;
+            }
+
+            // RunLevel's restart loop: the level again on the same process.
+            Level = Level.Restart();
         }
 
         return Level.Game.Quit;

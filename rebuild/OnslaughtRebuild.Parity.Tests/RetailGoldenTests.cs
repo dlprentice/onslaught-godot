@@ -98,7 +98,11 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// </summary>
     private const int TankKillTapeMatchedThrough = 8000;
 
-    /// <summary>The Present through which David's recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).</summary>
+    /// <summary>
+    /// The Present through which David's recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).
+    /// The reference is the replay before the port's patch 0022, which took the voice read's usual case as the core and
+    /// retail's goldens do; 0022 as first made took the slow case (EVN one higher at P346, CRT from P1226) on every tape.
+    /// </summary>
     private const int DavidTapeMatchedThrough = 4233;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
@@ -271,13 +275,13 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>
     /// Level 100 as David played it (tapes/level100-david-win1-loss-retry.tape, a human recording: jumps and landing jets,
     /// fire, a loss by friendly fire, the level-end menu's Retry, a quit) against the port's every-Present reference of a
-    /// replay (l100-david-win1-port), as the firing tape's test. Floor: <see cref="DavidTapeMatchedThrough"/>.
+    /// replay (l100-david-win1-port/pre0022), as the firing tape's test. Floor: <see cref="DavidTapeMatchedThrough"/>.
     /// </summary>
-    [RetailGoldenFact("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port/crt-per-present.txt",
-        "portrefs/l100-david-win1-port/port-probes-every1.txt")]
+    [RetailGoldenFact("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port/pre0022/crt-per-present.txt",
+        "portrefs/l100-david-win1-port/pre0022/port-probes-every1.txt")]
     public void Level100DavidsRecordingMatchesThePortEveryPresent()
     {
-        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port", 9000);
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port/pre0022", 9000);
         Assert.True(matched >= DavidTapeMatchedThrough, $"matched through Present {matched}, below {DavidTapeMatchedThrough}");
     }
 
@@ -328,6 +332,17 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         {
             try
             {
+                if (session.Ended)
+                {
+                    if (session.Game.Quit != OnslaughtRebuild.Parity.Clock.QuitType.RestartLevel)
+                    {
+                        stopped = $"the level ended after Present {session.PresentCount} ({session.Game.Quit})";
+                        break;
+                    }
+
+                    session = session.Restart();
+                }
+
                 session.AdvanceToNextPresent();
             }
             catch (NotSupportedException e)
