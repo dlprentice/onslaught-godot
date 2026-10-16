@@ -13,6 +13,7 @@ using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Physics;
 using Monitor = OnslaughtRebuild.Parity.Events.Monitor;
 
@@ -394,14 +395,14 @@ public sealed class Weapon(ThingContext context, WeaponData data, int type) : Eq
 
         NextFireTime = Context.Events.Time + Mode.ReloadTime;
         BurstCount = 0;
-        if (AttachedTo!.IsA(ThingType.BattleEngine))
+        if (AttachedTo!.IsA(ThingType.BattleEngine) && AttachedTo is BattleEngine resetBe)
         {
-            Context.Skip("CBattleEngine::ResetTarget (from CWeapon::Fire)");
+            resetBe.CurrentTarget = 0; // CBattleEngine::ResetTarget
         }
 
         if (SpawnRound() && Mode.LaunchSoundName is not null && Mode.SoundPerBurst != 0)
         {
-            Context.Skip("SOUND.PlayEffect (CWeapon::Fire's burst sound)");
+            PlayLaunchSound(Mode);
         }
 
         if (Mode.BurstSize > 0)
@@ -428,35 +429,202 @@ public sealed class Weapon(ThingContext context, WeaponData data, int type) : Eq
         }
     }
 
+    /// <summary>mEffects / mEmitters: the two muzzle effects and the launch index each follows.</summary>
+    public ParticleEffectLink?[] Effects { get; } = new ParticleEffectLink?[2];
+
+    public int[] Emitters { get; } = new int[2];
+
+    /// <summary>SOUND.PlayEffect of the mode's launch sound (a battle engine's untracked, a unit's following it).</summary>
+    private void PlayLaunchSound(WeaponModeData mode)
+    {
+        if (Context.SoundEffects is { } sounds)
+        {
+            sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(mode.LaunchSoundName!)), Context.Crt);
+        }
+        else
+        {
+            Context.Skip("SOUND.PlayEffect (a weapon's launch sound)");
+        }
+    }
+
     /// <summary>
-    /// SpawnRound: a battle engine's firing check, the launch sound, then a round per volley shot. Each shot first asks
-    /// UPhysicsManager::SpawnRound for a round, which retail makes whenever the thing heap has 200 KB free. Rounds are
-    /// not ported, and the shot's later draws (the inaccuracy errors, the flak roll, a clip's shell) and the round's own
-    /// Init (CActor's draw) depend on it, so a shot throws here rather than drop or invent draws.
+    /// SpawnRound (005069f0): a battle engine's firing check, the launch sound (once per shot when not per burst), then a
+    /// round per volley shot. Each shot takes the next launch position and launch angle, the attached unit's launch
+    /// point (aimed at the target when an aim request tracks it), the round's speed along the launch orientation turned
+    /// by two inaccuracy draws (GAME random), the flak lifespan error, the round's target and launcher, the muzzle effect,
+    /// a clip's shell, and a battle engine's stats, lock and recoil.
     /// </summary>
     public bool SpawnRound()
     {
+        bool fired = false;
         if (AttachedTo is BattleEngine be && !be.WeaponFired(this))
         {
             return false;
         }
 
         WeaponModeData? mode = Mode;
-        if (mode is not null)
+        if (mode is null)
         {
-            if (mode.LaunchSoundName is not null && mode.SoundPerBurst == 0)
-            {
-                Context.Skip("SOUND.PlayEffect (CWeapon::SpawnRound's per-shot sound)");
-            }
-
-            if (mode.VolleySize > 0 && mode.Round is not null)
-            {
-                throw new NotSupportedException(
-                    "UPhysicsManager::SpawnRound: rounds are not ported (a shot draws for its inaccuracy, flak and shell, and the round's Init draws)");
-            }
+            return false;
         }
 
-        return false;
+        if (mode.LaunchSoundName is not null && mode.SoundPerBurst == 0)
+        {
+            PlayLaunchSound(mode);
+        }
+
+        for (int shot = 0; shot < mode.VolleySize; shot++)
+        {
+            Round? round = Round.Spawn(Context, mode.Round);
+            if (round is null)
+            {
+                continue;
+            }
+
+            var init = new InitThing();
+            LaunchOrdinal++;
+            int launchIndex = 1;
+            if (Mode is not null)
+            {
+                if (LaunchOrdinal >= Mode.LaunchSequence.Count)
+                {
+                    LaunchOrdinal = 0;
+                }
+
+                launchIndex = GetLaunchSequence(Mode, LaunchOrdinal);
+            }
+
+            AngleOrdinal++;
+            int angleIndex;
+            if (Mode is not null)
+            {
+                if (AngleOrdinal >= Mode.LaunchAngles.Count)
+                {
+                    AngleOrdinal = 0;
+                }
+
+                angleIndex = AngleOrdinal;
+            }
+            else
+            {
+                angleIndex = 0;
+            }
+
+            AttachedTo!.GetLaunchPosition(this, launchIndex, out FVector pos, out FMatrix orientation, true);
+            if (AimRequested != 0)
+            {
+                if (mode.Track != 0 && !WeaponMaths.IsBallistic(mode.Round!) && Target.ToRead is { } tracked)
+                {
+                    FVector delta = tracked.GetCentrePos() - pos;
+                    AimOrientation = FMatrix.FromYawPitchRoll(WeaponMaths.Azimuth(Context, delta), WeaponMaths.Elevation(Context, delta), 0);
+                }
+
+                orientation = AimOrientation;
+            }
+
+            LaunchAngle? angle = angleIndex >= 0 && angleIndex < mode.LaunchAngles.Count ? mode.LaunchAngles[angleIndex] : null;
+            FMatrix launchAngle = FMatrix.MakeRotation(0, 1, 0);
+            if (angle is not null)
+            {
+                launchAngle = FMatrix.FromYawPitchRoll(angle.A, angle.B, 0);
+            }
+
+            var launchVelocity = new FVector(0, round.Data.Beam != 0 ? GetMaxRange(new FVector(0, 0, 0)) : round.Data.Speed / 20.0f, 0);
+            float pitchError = ((Context.Random.FloatRandom() * 2) - 1) * mode.Inaccuracy;
+            float yawError = ((Context.Random.FloatRandom() * 2) - 1) * mode.Inaccuracy;
+            FMatrix inaccuracy = FMatrix.FromYawPitchRoll(yawError, pitchError, 0);
+            Unit attached = AttachedTo!;
+            init.Pos = pos + attached.GetVelocity();
+            init.Dest = AimPosition;
+            init.Orientation = orientation.Multiply(launchAngle).Multiply(inaccuracy);
+            init.Velocity = init.Orientation.Transform(launchVelocity);
+            init.OrientationType = OrientationType.DirectionCosineMatrix;
+            init.Allegiance = attached.Allegiance;
+            init.RoundData = mode.Round;
+            init.LifeSpan = mode.Round!.LifeSpan;
+            Thing? target = attached.GetCurrentLaunchTarget();
+            round.Launcher.SetReader(attached);
+            if (round.Data.Flak != 0 && target is not null)
+            {
+                FVector delta = target.Pos - pos;
+                float distance = delta.Magnitude();
+                float roundSpeed = round.Data.Speed;
+                if (roundSpeed * init.LifeSpan > distance)
+                {
+                    float percent = Context.Random.FloatRandom() * 100.0f;
+                    float error = round.Data.FlakInaccuracy;
+                    error *= distance;
+                    float fraction = percent / 100.0f;
+                    init.LifeSpan = ((fraction * error * 2) - error + distance) / roundSpeed;
+                }
+            }
+
+            if (attached is BattleEngine battleEngine)
+            {
+                (battleEngine.Player as Game.Player)?.IncStat(Game.PlayerStat.RoundsFired);
+                if (battleEngine.DisplayLock(this))
+                {
+                    battleEngine.FireLock(target);
+                }
+            }
+
+            round.SetTarget(target, false);
+            round.Init(init);
+            if (mode.MuzzleEffectName is { } muzzle && Context.Particles is { } particles)
+            {
+                int effect;
+                bool found = false;
+                for (effect = 0; effect < 2; effect++)
+                {
+                    if (Effects[effect]?.Full != true)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    Effects[effect] ??= new ParticleEffectLink(particles.Manager);
+                    bool important = attached.UnitData is not { } ud || ud.Fenrir != 0;
+                    particles.Manager.CreateEffect(Context.FindParticle(muzzle), Effects[effect], new FVector(0, 0, 0), false, important);
+                    Effects[effect]!.SetPos(pos);
+                    Effects[effect]!.SetOrientation(init.Orientation);
+                    Emitters[effect] = launchIndex;
+                }
+                else
+                {
+                    var link = new ParticleEffectLink(particles.Manager);
+                    particles.Manager.CreateEffect(Context.FindParticle(muzzle), link, new FVector(0, 0, 0), false, attached.IsA(ThingType.BattleEngine));
+                    if (link.Full)
+                    {
+                        link.SetPos(pos);
+                        link.SetOrientation(init.Orientation);
+                    }
+
+                    link.Release();
+                }
+
+                if (mode.MuzzleLight != -1)
+                {
+                    Context.Skip("ENGINE.LogLight (a weapon's muzzle light)");
+                }
+            }
+
+            if (mode.ClipName is not null)
+            {
+                throw new NotSupportedException("CShell (a weapon's clip, three GAME randoms) is not ported");
+            }
+
+            if (attached is BattleEngine recoiling)
+            {
+                recoiling.RecoilWeapon(this);
+            }
+
+            fired = true;
+        }
+
+        return fired;
     }
 
     /// <summary>

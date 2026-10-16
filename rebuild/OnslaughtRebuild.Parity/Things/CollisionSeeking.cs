@@ -17,7 +17,7 @@ namespace OnslaughtRebuild.Parity.Things;
 /// desired, minimum and maximum collision levels (2 bits each), the response (bits 6-7), "seek with a mask" (0x100),
 /// "test the other's box against a mesh" (0x200) and "colliding now" (0x400, set a moment after Init).
 /// </summary>
-public sealed class CollisionSeekingThing : Monitor
+public class CollisionSeekingThing : Monitor
 {
     public const int StartCollidingEvent = 3000;
 
@@ -67,7 +67,7 @@ public sealed class CollisionSeekingThing : Monitor
     /// <summary>mCollisionMeshVolume.</summary>
     public MeshVolume? MeshVolume { get; }
 
-    public float Radius { get; }
+    public float Radius { get; protected set; }
 
     public CollisionDetector Detector { get; }
 
@@ -88,7 +88,10 @@ public sealed class CollisionSeekingThing : Monitor
     }
 
     /// <summary>Unknown8: whether this seeks collision with the other's type.</summary>
-    public bool Seeks(CollisionSeekingThing other) => (other.ForThing.ThingTypeBits & NotSeekCollisionWith) == 0;
+    public virtual bool Seeks(CollisionSeekingThing other) => (other.ForThing.ThingTypeBits & NotSeekCollisionWith) == 0;
+
+    /// <summary>Unknown7: the approximate volume a collision uses (the shape).</summary>
+    public virtual GeneralVolume GetVolume() => Shape;
 
     /// <summary>Unknown10: the sectors between the two (at the coarser layer), the larger of x and y.</summary>
     public int SectorDistance(Sector sector)
@@ -168,13 +171,13 @@ public sealed class CollisionSeekingThing : Monitor
             otherLevel = (other.CollisionFlags >> 4) & 3;
         }
 
-        GeneralVolume volume = level <= (int)CollisionLevel.ApproxGeometryShapes ? Shape : MeshVolume!;
+        GeneralVolume volume = level <= (int)CollisionLevel.ApproxGeometryShapes ? GetVolume() : MeshVolume!;
         if (volume is MeshVolume mv && (other.CollisionFlags & 0x200) == 0x200)
         {
             mv.Mesh.Unknown18 = 1;
         }
 
-        GeneralVolume otherVolume = otherLevel <= (int)CollisionLevel.ApproxGeometryShapes ? other.Shape : other.MeshVolume!;
+        GeneralVolume otherVolume = otherLevel <= (int)CollisionLevel.ApproxGeometryShapes ? other.GetVolume() : other.MeshVolume!;
         if (otherVolume is MeshVolume omv && (CollisionFlags & 0x200) != 0)
         {
             omv.Mesh.Unknown18 = 1;
@@ -207,16 +210,17 @@ public sealed class CollisionSeekingThing : Monitor
             if (Radius > other.Radius)
             {
                 ((MeshVolume)volume).Mesh.Unknown18 = 1;
-                otherVolume = other.Shape;
+                otherVolume = other.GetVolume();
             }
             else
             {
                 ((MeshVolume)otherVolume).Mesh.Unknown18 = 1;
-                volume = Shape;
+                volume = GetVolume();
             }
         }
 
         bool hit = otherVolume.Collide(ref otherMove, ref move, volume, report);
+        MeshCollisionVolume.Trace?.Invoke($"collide {ForThing.GetType().Name} vs {other.ForThing.GetType().Name}: hit {hit} response {response} move pos {MeshCollisionVolume.Bits(move.Pos)} move {MeshCollisionVolume.Bits(move.Move)} stopped {move.Stopped}; other pos {MeshCollisionVolume.Bits(otherMove.Pos)} move {MeshCollisionVolume.Bits(otherMove.Move)} stopped {otherMove.Stopped}");
         if (hit && response != 0)
         {
             if (!ForThing.IsA(ThingType.Stationary) && move.Stopped)

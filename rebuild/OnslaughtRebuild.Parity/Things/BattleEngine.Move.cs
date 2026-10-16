@@ -1061,4 +1061,122 @@ public sealed partial class BattleEngine
         AutoAimYawOffset += (DesiredAutoAimYawOffset - AutoAimYawOffset) * 0.5f;
         AutoAimPitchOffset += (DesiredAutoAimPitchOffset - AutoAimPitchOffset) * 0.5f;
     }
+
+    /// <summary>mCurrentTarget: the fired-lock index GetCurrentTarget walks (ResetTarget zeroes it).</summary>
+    public int CurrentTarget;
+
+    /// <summary>
+    /// GetCurrentTarget (004071b0): the counter moves on; without recent locks there is none (the locks are not ported,
+    /// so with recent locks it throws).
+    /// </summary>
+    public override Thing? GetCurrentLaunchTarget()
+    {
+        CurrentTarget++;
+        if (RecentLocks == 0)
+        {
+            return null;
+        }
+
+        throw new NotSupportedException("CBattleEngine::GetCurrentTarget with recent locks (the locks are not ported)");
+    }
+
+    /// <summary>DisplayLock (00407310): whether the weapon is the current one.</summary>
+    public bool DisplayLock(Weapon weapon) => ReferenceEquals(GetCurrentWeapon(), weapon);
+
+    /// <summary>FireLock (00407060): the target's due lock moves to the fired locks (the lock lists are not ported: empty).</summary>
+    public void FireLock(Thing? unit)
+    {
+        if (unit is not null)
+        {
+            Context.Skip("CBattleEngine::FireLock's lock lists (not ported; empty)");
+        }
+    }
+
+    /// <summary>RecoilWeapon (0040c340): a shock shake of the mode's power, and twice that in vibration.</summary>
+    public void RecoilWeapon(Weapon weapon)
+    {
+        AddShockShake(weapon.Mode!.Power);
+        Vibration += weapon.Mode.Power * 2.0f;
+    }
+
+    /// <summary>
+    /// AddShockShake (00407940): from 0.001, clamped to 0.75, three GAME random kicks of yaw, pitch and roll, the shake
+    /// restarted, the cockpit's own shake (main-thread rand), and the pad's rumble.
+    /// </summary>
+    public void AddShockShake(float amount)
+    {
+        if (amount < 0.001)
+        {
+            return;
+        }
+
+        if (amount > 0.75f)
+        {
+            amount = 0.75f;
+        }
+
+        float s = 16.0f / amount;
+        float s1 = 1.0f * amount;
+        YawShake = ((float)(Context.Random.Random() % 32) / s) - s1;
+        PitchShake = ((float)(Context.Random.Random() % 32) / s) - s1;
+        RollShake = ((float)(Context.Random.Random() % 32) / s) - s1;
+        ShakeR = 0.0f;
+        Cockpit?.AddShockShake(amount);
+        Context.Skip("PLATFORM.TriggerRumble");
+    }
+
+    /// <summary>
+    /// GetLaunchPosition (0040c990): the cockpit's "Gun" emitter at that index (else the weapon's primary point); for the
+    /// orientation, a ballistic weapon pitches to reach where the crosshair's line met something (at -45 degrees else) on
+    /// the battle engine's yaw plus the aim offset; a forward-facing weapon that adjusts its aim points at that place, or
+    /// along the battle engine's orientation turned by the aim offsets when the line met nothing.
+    /// </summary>
+    public override void GetLaunchPosition(Weapon weapon, int index, out FVector pos, out FMatrix orientation, bool needOrientation)
+    {
+        pos = new FVector(0, 0, 0);
+        orientation = FMatrix.Identity;
+        if (Cockpit?.RenderThing is { } rt)
+        {
+            (pos, orientation) = Mesh.MeshPose.GetRTEmitter(rt.Mesh, rt.Pose, Cockpit, "Gun", index, Context.TransformStatics, false, true);
+        }
+
+        if (pos.Equals(new FVector(0, 0, 0)))
+        {
+            pos = weapon.GetPrimaryPosition();
+            orientation = weapon.GetPrimaryOrientation();
+        }
+
+        if (!needOrientation)
+        {
+            return;
+        }
+
+        FMatrix autoAim = FMatrix.FromYawPitchRoll(AutoAimYawOffset, AutoAimPitchOffset, 0.0f);
+        Game.Camera? camera = (Player as Game.Player) is { } player ? Context.Game?.GetCurrentCamera(player.Number - 1) : null;
+        FVector camPos = camera?.GetPos() ?? new FVector(0, 0, 0);
+        FMatrix camOri = camera?.GetOrientation() ?? FMatrix.Identity;
+        if (weapon.ValidRound() && WeaponMaths.IsBallistic(weapon.Mode!.Round!))
+        {
+            throw new NotSupportedException("CBattleEngine::GetLaunchPosition for a ballistic weapon (CalculateDesiredPitch's search) is not ported");
+        }
+
+        FVector vectorA = weapon.GetPrimaryOrientation().Transform(new FVector(0, 1, 0));
+        FVector vectorB = orientation.Transform(new FVector(0, 1, 0));
+        float angle = (vectorA.X * vectorB.X) + (vectorA.Y * vectorB.Y) + (vectorA.Z * vectorB.Z);
+        if (angle > 0.9f && weapon.Data.AdjustAim != 0)
+        {
+            FVector endPoint = camPos + camOri.Multiply(autoAim).Transform(new FVector(0.0f, 200.0f, 0.0f));
+            if (Wlcr.HitType != World.LineHitType.Nothing)
+            {
+                FVector targetVector = endPoint - camPos;
+                FVector hitPoint = (targetVector * (Wlcr.DistToImpact / targetVector.Magnitude())) + camPos;
+                FVector adjusted = hitPoint - pos;
+                orientation = FMatrix.FromYawPitchRoll(WeaponMaths.Azimuth(Context, adjusted), WeaponMaths.Elevation(Context, adjusted), 0.0f);
+            }
+            else
+            {
+                orientation = Orientation.Multiply(autoAim);
+            }
+        }
+    }
 }

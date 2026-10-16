@@ -125,8 +125,26 @@ public sealed class ThingCamera : Camera
 }
 
 /// <summary>CPlayer: a player's number (from 1), battle engine and view.</summary>
+/// <summary>EPlayerStats.</summary>
+public enum PlayerStat
+{
+    UnitsDestroyed,
+    RoundsFired,
+    RoundsHit,
+    Cheated,
+    TimeAsJet,
+    TimeAsWalker,
+    DamageTaken,
+}
+
 public sealed class Player(int number, ThingContext context) : Monitor, Platform.IButtonReceiver
 {
+    /// <summary>mStat: the player's statistics (EPlayerStats order).</summary>
+    public int[] Stats { get; } = new int[7];
+
+    /// <summary>IncStat (player.h).</summary>
+    public void IncStat(PlayerStat stat, int value = 1) => Stats[(int)stat] += value;
+
     /// <summary>mThingsKilled: the enemies this player killed, by kind (KillType's order).</summary>
     public int[] ThingsKilled { get; } = new int[5];
 

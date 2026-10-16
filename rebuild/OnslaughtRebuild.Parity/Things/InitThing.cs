@@ -109,6 +109,13 @@ public sealed class InitThing
     public int PlaneMode;
     public int PlayerNumber = 1;
 
+    // CRoundInitThing
+    public FVector Dest = new(-1, -1, -1);
+    public int JumpsPerformed;
+    public RoundData? RoundData;
+    public float InitialDelay;
+    public float LifeSpan;
+
     // CSphereTriggerInitThing
     public float Radius;
 

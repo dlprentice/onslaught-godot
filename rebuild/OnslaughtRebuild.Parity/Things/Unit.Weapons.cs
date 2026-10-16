@@ -171,6 +171,37 @@ public abstract partial class Unit
         (pos, ori) = MeshPose.GetRTEmitter(render.Mesh, render.Pose, this, name, index, Context.TransformStatics, local, force);
     }
 
+    /// <summary>
+    /// GetLaunchPosition (004fc3c0): a weapon of the unit's launches from its emitter of the weapon's type at that index,
+    /// or from the weapon's primary point when there is none (or it sits at the origin).
+    /// </summary>
+    public virtual void GetLaunchPosition(Weapon weapon, int index, out FVector pos, out FMatrix orientation, bool needOrientation)
+    {
+        if (WeaponList.Contains(weapon))
+        {
+            pos = new FVector(0, 0, 0);
+            orientation = FMatrix.Identity;
+            if (UnitData is not null)
+            {
+                GetEmitter(weapon.UnknownAC, index, out pos, out orientation);
+            }
+
+            if (pos.Equals(new FVector(0, 0, 0)))
+            {
+                pos = weapon.GetPrimaryPosition();
+                orientation = weapon.GetPrimaryOrientation();
+            }
+
+            return;
+        }
+
+        pos = weapon.GetPrimaryPosition();
+        orientation = weapon.GetPrimaryOrientation();
+    }
+
+    /// <summary>GetCurrentTarget (slot 81): the AI's target (a weapon's shot aims its round at it).</summary>
+    public virtual Thing? GetCurrentLaunchTarget() => AI?.Target.ToRead as Thing;
+
     /// <summary>GetTargetablePos (slot 90): the segments' centre, else the centre position. Cannons, mechs and boats override it.</summary>
     public FVector GetTargetablePos()
     {
