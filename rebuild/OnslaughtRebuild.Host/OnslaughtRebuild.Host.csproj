@@ -1,0 +1,19 @@
+<Project Sdk="Godot.NET.Sdk/4.8.0-dev.6">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OnslaughtRebuild.Host</RootNamespace>
+    <AssemblyName>OnslaughtRebuild.Host</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Deterministic>true</Deterministic>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnslaughtRebuild.Parity\OnslaughtRebuild.Parity.csproj" />
+  </ItemGroup>
+
+</Project>

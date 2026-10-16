@@ -25,6 +25,9 @@ public sealed class LevelResources
 
     public required (int BaseLevel, int WorldLevel, uint BasePosition, uint WorldPosition) Worlds { get; init; }
 
+    /// <summary>Where the ERES chunk's contents start in the decompressed stream, for a renderer to read them whole.</summary>
+    public uint EngineResourcesPosition { get; init; }
+
     /// <param name="fileName">The resource file's game path (its extension decides packing).</param>
     /// <param name="bytes">The file as stored.</param>
     /// <param name="meshFile">Reads data\resources\meshes\m_&lt;name&gt;.aya by game path.</param>
@@ -40,6 +43,7 @@ public sealed class LevelResources
         var meshes = new Dictionary<string, MeshData>(StringComparer.OrdinalIgnoreCase);
         HeightField? heightField = null;
         (int, int, uint, uint)? worlds = null;
+        uint engineResources = 0;
         uint tag;
         while ((tag = c.GetNext()) != 0)
         {
@@ -57,6 +61,7 @@ public sealed class LevelResources
                 // The chunk reader is flat: the engine's sub-chunks follow, so the rest of ERES (the mixer map and
                 // textures) is skipped to the end the ERES header gave.
                 uint end = c.WhereAmI + c.Size;
+                engineResources = c.WhereAmI;
                 heightField = EngineResources.Read(c).HeightField;
                 c.File.Skip((int)(end - c.WhereAmI));
             }
@@ -77,6 +82,7 @@ public sealed class LevelResources
             Meshes = meshes,
             HeightField = heightField ?? throw new InvalidDataException("no ERES chunk"),
             Worlds = worlds ?? throw new InvalidDataException("no WRES chunk"),
+            EngineResourcesPosition = engineResources,
         };
     }
 

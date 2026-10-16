@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
-Last updated: 2026-10-15 (reactivated; new parity core and retail tape harness; the sections after the proof-of-concept one describe the earlier fixed-point rebuild)
+Last updated: 2026-10-15 (reactivated; new parity core and retail tape harness; OnslaughtRebuild.Host as the successor host; the sections after the proof-of-concept one describe the earlier fixed-point rebuild)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -50,6 +50,28 @@ presentation and the machine to its host (the Godot host, M7). The host supplies
 Drawing, sound and music are the host's. Each page's `Render` override holds only the state its retail render changes
 (mouse hovers and clicks, scroll clamps). Mouse clicks that hit-test laid-out text (the main menu's items, the message
 box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
+
+### The Godot host (M7)
+
+`OnslaughtRebuild.Host` is the successor host: a Godot 4.8 .NET project, built in code, that runs the parity core and
+draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which retires (with Core and Client's
+earlier simulation, if nothing else needs them) in one cleanup commit once this host carries level 100 and the front
+end; until then pieces are copied over only as needed, noting their origin. Today it renders one level-100 Present:
+
+```bash
+cd rebuild/OnslaughtRebuild.Host
+HOST_PRESENT=150 HOST_CAPTURE=/var/tmp/host-present150.png godot-offscreen --path . --qa local-data/qa/run \
+  --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 -- --audio-driver Dummy
+python3 tools/side_by_side.py /var/tmp/host-present150.png <retail capture> /var/tmp/sbs.png
+```
+
+It draws the landscape (the lit cache ported from `CHeightField`, built at retail's 512 x 512, and the four texture
+stages with retail's matrices and cloud drift), the sky cube, and meshes with D3D's fixed-function lighting (the
+ambient render state and the sun and anti-sun, no light ambient for meshes, `MODULATE2X`) and EXP table fog, all
+blended in gamma space as retail does. Retail-derived textures and films are read from the installed game and the
+local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. Not drawn yet: water, the
+battle engine's animation pose, the landscape's per-patch levels of detail, particles and the HUD. Diagnostics:
+`HOST_TEXTURE_ONLY=1` and `HOST_DEBUG=lit|normal|colour|grey`.
 
 ## The earlier rebuild (parked state, 2026-09-26)
 

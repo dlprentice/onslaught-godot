@@ -1,0 +1,26 @@
+; Engine configuration file.
+; Edit through source review so the pinned project contract stays explicit.
+
+config_version=5
+
+[application]
+
+config/name="Onslaught Rebuild Host"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.8", "C#", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=480
+window/size/resizable=false
+
+[dotnet]
+
+project/assembly_name="OnslaughtRebuild.Host"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
