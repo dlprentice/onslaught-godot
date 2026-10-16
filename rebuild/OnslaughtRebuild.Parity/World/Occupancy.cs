@@ -141,11 +141,13 @@ public static class Occupancy
     }
 
     /// <summary>
-    /// BuildStatic: the static mask opens again; then every cell across each unit's bounding radius whose ground its
-    /// collision mesh reaches (all of them for a unit without one) closes on the mask and on every grid.
+    /// BuildStatic: the static mask opens again; then every cell across each unit's bounding radius closes on the mask and
+    /// on every grid when the unit has no collision mesh. A meshed unit's cells were meant to close where its mesh reaches
+    /// the ground, but retail's compiled cell position is NaN there, so its mesh tests run and never hit.
     /// </summary>
     public static void BuildStatic(OccupancyState s, HeightField map)
     {
+        float IndefiniteNaN = BitConverter.Int32BitsToSingle(unchecked((int)0xffc00000));
         Array.Fill(s.Static.Data, (byte)0xff);
         for (Thing? unit = s.Units.First(); unit is not null; unit = s.Units.Next())
         {
@@ -158,6 +160,13 @@ public static class Occupancy
                 {
                     var pos = new FVector(x + 0.5f, y + 0.5f, 0);
                     pos.Z = Height(map, X87.Fist(pos.X), X87.Fist(pos.Y));
+
+                    // As compiled (/QIfist, 004bce80..004bd003): the cell centre's fadd 0.5 is consumed by a popping
+                    // fistp, then stored from the emptied register, so the line move's X and Y are the x87 indefinite
+                    // NaN (ffc00000) and only the height is real. The mesh tests then never hit (StartLineSearch exits at
+                    // its first check), so retail clears only a meshless unit's cells (B, 521-rr runs).
+                    pos.X = IndefiniteNaN;
+                    pos.Y = IndefiniteNaN;
                     if (!u.HasCollisionMeshVolume() || u.ShadowHits(pos))
                     {
                         s.Static.ClearCross(x, y);
