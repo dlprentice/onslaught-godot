@@ -452,6 +452,15 @@ public abstract class Thing : Monitor, IOccupancyUnit
         // grid.
         Deleted();
         _mapWhoEntry?.RemoveFromMap(Context.MapWho);
+
+        // ~CThing deletes the collision seeker: its detector's pending checks lose their target, and other detectors'
+        // checks against it lose their data.
+        if (Seeker is { } seeker)
+        {
+            seeker.Detector.Destroy();
+            seeker.Destroy();
+            Seeker = null;
+        }
     }
 
     /// <summary>

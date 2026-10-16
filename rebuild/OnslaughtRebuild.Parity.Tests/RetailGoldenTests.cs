@@ -86,7 +86,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int FiringTapeMatchedThrough = 6000;
 
     /// <summary>The Present through which the static-target tape's run equals the port's at every Present (never lowered).</summary>
-    private const int TargetTapeMatchedThrough = 5826;
+    private const int TargetTapeMatchedThrough = 6114;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
