@@ -118,6 +118,9 @@ public sealed class LevelParticles : IParticleWorld
 
         // draw_fairly_late_stuff: the cockpit, after the particles.
         World.RenderCockpit();
+
+        // PostRender: the HUD.
+        World.RenderHud();
     }
 
     /// <summary>InitNoiseTable (004c7db0): diamond-square midpoints with random offsets, then normalised; once.</summary>

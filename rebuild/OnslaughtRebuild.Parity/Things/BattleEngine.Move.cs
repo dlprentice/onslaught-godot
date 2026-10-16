@@ -856,4 +856,34 @@ public sealed partial class BattleEngine
 
         sounds.PlayEffect(sounds.Find("hud\\" + name), Context.Crt);
     }
+
+    /// <summary>
+    /// TestDanger (0040dda0), from the HUD's render: at most every 8 seconds, standing in a cell either side's fear grid
+    /// fears starts the danger warning (Move plays its sample).
+    /// </summary>
+    public void TestDanger()
+    {
+        float now = Context.Events.Time;
+        if (DangerStartTime < now - 8.0f)
+        {
+            bool danger = false;
+            if (IsOnGround())
+            {
+                if (Context.Game?.ForsetiFearGrid?.InDanger(Pos) == true)
+                {
+                    danger = true;
+                }
+
+                if (Context.Game?.MuspellFearGrid?.InDanger(Pos) == true)
+                {
+                    danger = true;
+                }
+            }
+
+            if (danger)
+            {
+                DangerStartTime = now;
+            }
+        }
+    }
 }

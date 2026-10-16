@@ -28,6 +28,9 @@ public abstract class Camera : Monitor
     /// <summary>GetZoom: the tangent of half the horizontal view (1 is 90 degrees across).</summary>
     public virtual float GetZoom() => 1.0f;
 
+    /// <summary>GetShowHUD: whether the HUD draws over this camera's view (only a camera on a battle engine says so).</summary>
+    public virtual bool GetShowHud() => false;
+
     /// <summary>GetOldPos: the previous update's position (the current one unless the camera keeps it).</summary>
     public virtual FVector GetOldPos() => GetPos();
 
@@ -70,6 +73,9 @@ public sealed class ThingCamera : Camera
     public ThingCamera(Thing? forThing) => _forThing.SetReader(forThing);
 
     public Thing? ForThing => _forThing.ToRead;
+
+    /// <summary>GetShowHUD: on a battle engine.</summary>
+    public override bool GetShowHud() => _forThing.ToRead?.IsA(ThingType.BattleEngine) == true;
 
     public override FVector GetPos()
     {

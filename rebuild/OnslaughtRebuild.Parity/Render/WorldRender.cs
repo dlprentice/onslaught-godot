@@ -382,6 +382,27 @@ public sealed class WorldRender(ThingContext context)
         RenderMesh(false, rt);
     }
 
+    /// <summary>
+    /// PostRender's HUD.Render, as far as it affects the game: for viewpoint 0's player, when its camera shows the HUD
+    /// and its battle engine is alive (RenderOverlayForViewpoint), Render00485d50's warning line runs the battle engine's
+    /// TestDanger while the game is no further than playing and no radar threat is newer than 5 seconds. The radar
+    /// warning receiver is not ported; its threats are rounds homing on the battle engine, and rounds are not ported
+    /// either (spawning one throws), so its list is empty and the test always runs. The other HUD passes draw only.
+    /// </summary>
+    public void RenderHud()
+    {
+        if (context.Game is not { } game || game.GetPlayer(0)?.BattleEngine is not BattleEngine be
+            || game.GetCurrentCamera(0)?.GetShowHud() != true || be.IsDying)
+        {
+            return;
+        }
+
+        if (game.State <= Game.GameState.Playing)
+        {
+            be.TestDanger();
+        }
+    }
+
     /// <summary>CBattleEngine::Render's test: drawn unless its player (viewpoint 0's) is in first-person view.</summary>
     public bool BattleEngineDrawn(BattleEngine be)
     {
