@@ -93,6 +93,12 @@ public partial class Host : Node
         int meshes = 0;
         foreach (Thing thing in session.Context.World.Things.ToList())
         {
+            // CBattleEngine::Render: the player's own battle engine is not drawn from its first-person view.
+            if (thing is OnslaughtRebuild.Parity.Things.BattleEngine be && session.Context.Particles is { } lp && !lp.World.BattleEngineDrawn(be))
+            {
+                continue;
+            }
+
             if (meshViews.Build(thing, session.Game.Loop.Fraction) is { } drawn)
             {
                 world.AddChild(drawn);

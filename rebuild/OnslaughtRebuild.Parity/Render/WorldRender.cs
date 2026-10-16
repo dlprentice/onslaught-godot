@@ -265,7 +265,8 @@ public sealed class WorldRender(ThingContext context)
         RenderMesh(thing, rt);
     }
 
-    private bool BattleEngineDrawn(BattleEngine be)
+    /// <summary>CBattleEngine::Render's test: drawn unless its player (viewpoint 0's) is in first-person view.</summary>
+    public bool BattleEngineDrawn(BattleEngine be)
     {
         Game.Player? player = context.Game?.GetPlayer(0) is { } p0 && ReferenceEquals(p0.BattleEngine, be) ? p0 : null;
         return player is null || player.CurrentView != Game.PlayerView.FirstPerson || be.Visible || player.Number - 1 != 0;
