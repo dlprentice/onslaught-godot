@@ -222,20 +222,34 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// (port-probes-every50-with-ELD.txt: its ELD line after the close) exactly.
     /// </summary>
     [RetailGoldenFact("portrefs/tapes/level100-lose2-10000f.tape", "portrefs/l100-lose2-port/port-probes-every50-with-ELD.txt")]
-    public void Level100LoseTapeEndsTheLevelWithThePortsEndLevelData()
+    public void Level100LoseTapeEndsTheLevelWithThePortsEndLevelData() =>
+        LoseTapeEndsWithThePortsEndLevelData("portrefs/tapes/level100-lose2-10000f.tape",
+            "portrefs/l100-lose2-port/port-probes-every50-with-ELD.txt", "ELD", QuitType.RestartLevel, 8674);
+
+    /// <summary>
+    /// As the lose tape, with the level-end menu's Down (the arrow, an extended key) before Return (tapes/level100-lose3-quit.tape):
+    /// Quit, so the level ends to the front end after Present 7833, the port's last (its -level run then exits), and
+    /// END_LEVEL_DATA equals the port's on the way out (its ELDEXIT line).
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-lose3-quit.tape", "portrefs/l100-lose3-port/port-probes-every50-with-ELD.txt")]
+    public void Level100LoseThenQuitTapeEndsWithThePortsEndLevelData() =>
+        LoseTapeEndsWithThePortsEndLevelData("portrefs/tapes/level100-lose3-quit.tape",
+            "portrefs/l100-lose3-port/port-probes-every50-with-ELD.txt", "ELDEXIT", QuitType.UserQuitToFrontEnd, 7833);
+
+    private void LoseTapeEndsWithThePortsEndLevelData(string tape, string reference, string label, QuitType quit, long endedAfter)
     {
         byte[]? port = null;
-        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portrefs/l100-lose2-port/port-probes-every50-with-ELD.txt")!))
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File(reference)!))
         {
             string[] f = line.Split(' ');
-            if (f.Length == 4 && f[0] == "P" && f[2] == "ELD")
+            if (f.Length == 4 && f[0] == "P" && f[2] == label)
             {
                 port = Convert.FromHexString(f[3]);
             }
         }
 
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
-        session.Tape = RetailTape.Load(RetailGolden.File("portrefs/tapes/level100-lose2-10000f.tape")!);
+        session.Tape = RetailTape.Load(RetailGolden.File(tape)!);
         while (!session.Ended && session.PresentCount < 10000)
         {
             session.AdvanceToNextPresent();
@@ -243,7 +257,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
         output.WriteLine($"ended after Present {session.PresentCount}: quit {session.Game.Quit}, lost reason {session.EndLevelData.LevelLostReason:x8}");
         Assert.True(session.Ended);
-        Assert.Equal(QuitType.RestartLevel, session.Game.Quit);
+        Assert.Equal(quit, session.Game.Quit);
+        Assert.Equal(endedAfter, session.PresentCount);
         byte[] ours = session.EndLevelData.ToBytes();
         Assert.Equal(EndLevelData.ByteSize, port!.Length);
         int first = Enumerable.Range(0, ours.Length).FirstOrDefault(i => ours[i] != port[i], -1);

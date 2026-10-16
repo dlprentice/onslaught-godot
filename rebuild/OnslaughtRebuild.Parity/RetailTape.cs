@@ -97,7 +97,7 @@ public sealed class RetailTape
                         _ => throw new FormatException($"Tape line {n + 1}: key transition must be down or up."),
                     },
                     ParseHexByte(f[3], n),
-                    ParseHexByte(f[4], n),
+                    ParseScanCode(f[4], n),
                     f[5].Length > 0 ? f[5] : throw new FormatException($"Tape line {n + 1}: empty key name.")),
                 "M" when f.Length == 6 => new RetailMouseEvent(
                     ParseFrame(f[1], n),
@@ -128,6 +128,17 @@ public sealed class RetailTape
         }
 
         return frame;
+    }
+
+    /// <summary>A scan code: a hex byte, or with bit 8 set (0x1xx) an extended key, which lParam carries as bit 24.</summary>
+    private static int ParseScanCode(string s, int line)
+    {
+        if (s.Length is < 1 or > 3 || !int.TryParse(s, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out int v) || v > 0x1ff)
+        {
+            throw new FormatException($"Tape line {line + 1}: '{s}' is not a scan code (a hex byte, 0x1xx for an extended key).");
+        }
+
+        return v;
     }
 
     private static int ParseHexByte(string s, int line)
