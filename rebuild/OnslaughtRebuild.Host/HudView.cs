@@ -129,6 +129,23 @@ public sealed partial class HudView : Node2D
         };
         view.AddChild(bars);
         view.AddChild(marks);
+
+        // RenderTargetMarkers' crosshair at the projected auto-aim point: with no auto-aim offsets in the core that is one
+        // unit along the view's forward axis, the screen's centre. Nothing over it: the eased state rests at white
+        // (primary 0xaf), the secondary and dot at half alpha (0x7f), scale 1 (y times the screen shape scale, 1 at 4:3).
+        Texture2D? Tex(string name) => textures.Get(name) ?? textures.Find(name, 0);
+        var cross = new HudSprites(
+        [
+            (0.0f, 0.0f, 0.0f, 0xafffffffu, Tex(@"hud\v3\hud_crosshair_primary.tga")),
+            (0.0f, 0.0f, 0.0f, 0x7fffffffu, Tex(@"hud\v3\hud_crosshair_secondary.tga")),
+            (0.0f, 0.0f, 0.0f, 0x7fffffffu, Tex(@"hud\v3\hud_crosshair_dot.tga")),
+        ])
+        {
+            Name = "Crosshair",
+            Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Mix },
+            TextureFilter = TextureFilterEnum.Linear,
+        };
+        view.AddChild(cross);
         return view;
     }
 
