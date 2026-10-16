@@ -39,6 +39,9 @@ public sealed class WorldRender(ThingContext context)
 
     public Gamut Gamut { get; } = new();
 
+    /// <summary>The render-to-texture shadows: asked for in the world pass, drawn at the start of the next render.</summary>
+    public Shadows Shadows { get; } = new();
+
     private RenderThing? _renderedThisFrame;
     private RenderThing? _renderedLastFrame;
     private FVector _campos;
@@ -51,6 +54,9 @@ public sealed class WorldRender(ThingContext context)
     /// <summary>The things whose Render ran in the last render, in order (for checks).</summary>
     public List<Thing> Rendered { get; } = [];
 
+    /// <summary>Diagnostic: each mesh render's subject, LOD and whether its mesh was drawn, in the last render.</summary>
+    public List<(IRenderSubject Subject, float Lod, bool Drawn)> MeshLog { get; } = [];
+
     /// <summary>The world pass of one render, from the camera's render view.</summary>
     public void Render(ParityCamera camera, float fraction2)
     {
@@ -62,6 +68,11 @@ public sealed class WorldRender(ThingContext context)
         BuildScreenMatrix(matview, pos, NearZ * zoom, NearZ * zoom * AspectRatio);
         MeshesDrawn = 0;
         Rendered.Clear();
+        MeshLog.Clear();
+
+        // The shadows asked for in the last render are drawn first (each unit from the light), then the list restarts.
+        Shadows.RenderTextures(context.Game?.Clock.GetSysTimeFloat() ?? 0.0f, RenderThing);
+        Shadows.ResetShads();
         RenderThings(ori);
         UpdateRenderLists();
     }
@@ -115,6 +126,12 @@ public sealed class WorldRender(ThingContext context)
         float sy = ViewportWidth / ViewportHalfHeight;
         foreach (Thing thing in context.World.BigThings.ToList())
         {
+            // A big thing asks for its shadow before its screen test.
+            if (WantsShadow(thing, component: true))
+            {
+                Shadows.RequestShadow(thing, ShadowDistance(thing));
+            }
+
             if (OnScreen(thing, right, sx, sy, partial: true))
             {
                 RenderThing(thing);
@@ -199,6 +216,12 @@ public sealed class WorldRender(ThingContext context)
 
                         if (OnScreen(thing, right, sx, sy, partial))
                         {
+                            // A sector thing asks for its shadow once it passes the test (components never do).
+                            if (WantsShadow(thing, component: false))
+                            {
+                                Shadows.RequestShadow(thing, ShadowDistance(thing));
+                            }
+
                             RenderThing(thing);
                         }
                     }
@@ -259,6 +282,26 @@ public sealed class WorldRender(ThingContext context)
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>The shadow request's test: units and buildings, not the battle engine, not those statically shadowed.</summary>
+    private static bool WantsShadow(Thing thing, bool component) =>
+        (thing.IsA(ThingType.Unit) || thing.IsA(ThingType.Building)) && (component || !thing.IsA(ThingType.Component))
+        && !thing.IsA(ThingType.BattleEngine) && !thing.CanBeStaticallyShadowed;
+
+    /// <summary>The request's distance, 1 / cue: the cue factor over the squared distance to the box centre.</summary>
+    private float ShadowDistance(Thing thing)
+    {
+        FVector pos = thing is IRenderSubject subject ? subject.RenderPos : thing.Pos;
+        if (thing.RenderThing?.MeshOrNull?.BoundingBox is { } box)
+        {
+            pos += thing.GetOrientation().Transform(box.Origin);
+        }
+
+        float dist2 = (pos - _campos).MagnitudeSq();
+        float cueFactor = thing.RenderThing is null ? 0.0001f : thing.RenderThing.MeshOrNull?.CueFactor ?? 0.00001f;
+        float cue = cueFactor / (dist2 + 0.001f);
+        return 1.0f / cue;
     }
 
     /// <summary>The visibility test: drawn unless (partly open cells only) its screen extent misses and the camera is outside it.</summary>
@@ -388,6 +431,7 @@ public sealed class WorldRender(ThingContext context)
         float dist = (_campos - subject.RenderPos).Magnitude();
         float radius = mesh.BoundingBox?.Radius ?? mesh.Radius;
         float lod = dist / radius * imposterBias * MeshLodBias * _zoom;
+        MeshLog.Add((subject, lod, !(hasImposter && !(lod < ImposterFadeEnd))));
         if (hasImposter && !(lod < ImposterFadeEnd))
         {
             return;

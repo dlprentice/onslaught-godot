@@ -12,6 +12,8 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CFeature: icebergs, rocks and other scenery that can be destroyed.</summary>
 public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
 {
+    public override bool CanBeStaticallyShadowed => true;
+
     /// <summary>GetMaxVelocity (slot 15, the shared 004de700).</summary>
     public override float GetMaxVelocity() => 1.0f;
 

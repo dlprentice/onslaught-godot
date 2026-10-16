@@ -307,6 +307,8 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
 /// <summary>CBuilding: a building, with its own render thing (mesh and rubble) and destructable segments.</summary>
 public sealed class Building(ThingContext context) : Unit(context)
 {
+    public override bool CanBeStaticallyShadowed => true;
+
     /// <summary>GetMaxVelocity (slot 15, the shared 004bfc60).</summary>
     public override float GetMaxVelocity() => 0.0f;
 
@@ -407,6 +409,8 @@ public sealed class Building(ThingContext context) : Unit(context)
 /// <summary>CSimpleBuilding: a building without segments or AI.</summary>
 public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 {
+    public override bool CanBeStaticallyShadowed => true;
+
     /// <summary>GetMaxVelocity (slot 15, the shared 004bfc60).</summary>
     public override float GetMaxVelocity() => 0.0f;
 
