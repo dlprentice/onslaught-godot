@@ -45,6 +45,9 @@ public sealed class LevelParticles : IParticleWorld
 
     public float EventTime => _context.Events.Time;
 
+    /// <summary>GAME.mRenderFrameLength: the last render's length in game ticks (1 for the first).</summary>
+    public float RenderFrameLength { get; private set; } = 1.0f;
+
     public (FVector Pos, FMatrix Orientation)? Camera => _camera;
 
     public float FrameRenderFraction => _context.Game?.Loop.Fraction ?? 0.0f;
@@ -63,6 +66,7 @@ public sealed class LevelParticles : IParticleWorld
         float newTime = (_context.Events.Time + (game.Loop.Fraction * ClockTick)) / ClockTick;
         float length = _lastRenderFrameTime != -1.0f ? newTime - _lastRenderFrameTime : 1.0f;
         _lastRenderFrameTime = newTime;
+        RenderFrameLength = length;
         bool first = numRenders == 0;
         _camera = game.GetCurrentCamera(0) is { } camera
             ? (ParityCamera.RenderView(camera, game.Loop.Fraction2) is var v ? (v.Pos, v.Ori) : null)

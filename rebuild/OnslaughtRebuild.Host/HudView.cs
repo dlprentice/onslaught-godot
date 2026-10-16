@@ -34,7 +34,7 @@ public sealed partial class HudView : Node2D
 
     /// <summary>The compass for one render, from the battle engine's state.</summary>
     public static HudView Build(BattleEngine be, TextureLibrary textures, IEnumerable<Thing> objectives, ref int lastHealth, ref int lastEnergy,
-        byte[]? dial, float fraction, IEnumerable<Thing>? units = null)
+        byte[]? dial, float fraction, IEnumerable<Thing>? units = null, AmmoEase? ammo = null, float renderFrameLength = 1.0f)
     {
         var view = new HudView { Name = "Hud" };
         view._outer = OuterRing(dial);
@@ -183,6 +183,56 @@ public sealed partial class HudView : Node2D
         float dx = -MathF.Sin(iy) * -45.0f, dy = MathF.Cos(iy) * -45.0f;
         Run("RadioNorth", CanvasItemMaterial.BlendModeEnum.Mix,
             [(17.0f + 48.0f + dx, Bottom + 16.0f - 128.0f + 48.0f + dy, 4, iy, 0xff5f7fffu, Tex(@"hud\v2\RadioNorth.tga"), 1.0f)]);
+
+        // Render00486940: an energy weapon's heat bar on the right (filled from the right, its alpha easing to 0.8, or
+        // flashing between 0.8 and 0.1 while overheated); a store weapon's count is text, not drawn yet.
+        if (be.WalkerPart?.GetCurrentWeapon() is { } current && ammo is not null)
+        {
+            int store = current.Data.AmmoStore;
+            if (be.StoreHeat[store])
+            {
+                float value = be.StoreValue[store] / be.Configuration!.StoreValue[store];
+                float amount = value > 1.0f ? 1.0f : value;
+                float empty = 1.0f - amount;
+                float a63 = amount * 63.0f;
+                uint col = (uint)((((X87.Fist((empty * 127.0f) + (amount * 255.0f)) << 8) + X87.Fist((empty * 255.0f) + a63)) << 8)
+                    + X87.Fist((empty * 63.0f) + a63));
+                if (be.StoreOverheat[store])
+                {
+                    if (ammo.Alpha == ammo.Target)
+                    {
+                        ammo.Target = ammo.Target == 0.8f ? 0.1f : 0.8f;
+                    }
+                }
+                else
+                {
+                    ammo.Target = 0.8f;
+                }
+
+                float step = renderFrameLength * 0.1f;
+                if (ammo.Alpha + step < ammo.Target)
+                {
+                    ammo.Alpha += step;
+                }
+                else if (ammo.Alpha - step > ammo.Target)
+                {
+                    ammo.Alpha -= step;
+                }
+                else
+                {
+                    ammo.Alpha = ammo.Target;
+                }
+
+                col += (uint)X87.Fist(ammo.Alpha * 255.0f) << 24;
+                const float X = 640.0f - 122.0f + 9.0f - 28.0f;
+                Run("AmmoFill", CanvasItemMaterial.BlendModeEnum.Mix,
+                [
+                    (X, Bottom - 13.0f, 2, 0.0f, 0x3f000000u, fillTex, -1.0f),
+                    (X, Bottom - 13.0f, 2, 0.0f, col, fillTex, -amount),
+                ]);
+                Run("AmmoOutline", CanvasItemMaterial.BlendModeEnum.Add, [(X, Bottom - 13.0f, 2, 0.0f, 0xffaf8f6fu, Tex(@"hud\v2\WeaponOutline.tga"), -1.0f)]);
+            }
+        }
 
         // RenderRadar(96): the units round the engine, turned with it, by side; pads, objectives and engines on top.
         if (units is not null)
@@ -480,6 +530,17 @@ public sealed partial class HudQuads(List<(float X, float Y, int Align, float Tu
             }
 
             var c = new Color(((colour >> 16) & 255) / 255f, ((colour >> 8) & 255) / 255f, (colour & 255) / 255f, (colour >> 24) / 255f);
+            if (fill < 0.0f)
+            {
+                // SPT_FILL_LEFT: the right part a of the width, drawn mirrored (u = a at its left edge, 0 at the right).
+                float a = -fill;
+                Vector2[] pts = [new(left + size.X - (size.X * a), top), new(left + size.X, top), new(left + size.X, top + size.Y), new(left + size.X - (size.X * a), top + size.Y)];
+                Vector2[] uvs = [new(a, 0), new(0, 0), new(0, 1), new(a, 1)];
+                Color[] cs = [c, c, c, c];
+                DrawPrimitive(pts, cs, uvs, tex);
+                continue;
+            }
+
             if (fill < 1.0f)
             {
                 DrawTextureRectRegion(tex, new Rect2(left, top, size.X * fill, size.Y), new Rect2(0, 0, size.X * fill, size.Y), c);
@@ -492,4 +553,11 @@ public sealed partial class HudQuads(List<(float X, float Y, int Align, float Tu
             DrawSetTransform(Vector2.Zero, 0, Vector2.One);
         }
     }
+}
+
+/// <summary>CHud's mUnknown1dc / mUnknown1ec for viewpoint 0: the heat bar's alpha and the value it eases to.</summary>
+public sealed class AmmoEase
+{
+    public float Alpha;
+    public float Target;
 }

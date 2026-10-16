@@ -134,12 +134,22 @@ public partial class Host : Node
                 world.AddChild(cockpitNode);
             }
 
-            // The HUD (draw_fairly_late_stuff's HUD.Render, first-person view): the compass so far.
-            if (engine is OnslaughtRebuild.Parity.Things.BattleEngine hudBe && !hudBe.IsDying
-                && session.Game.GetPlayer(0)?.CurrentView == OnslaughtRebuild.Parity.Game.PlayerView.FirstPerson)
+            // PostRender: HUD.Render's overlay for viewpoint 0 when its camera shows the HUD and its battle engine lives, then
+            // the battle line whenever the camera shows the HUD.
+            bool showHud = session.Game.GetPlayer(0) is not null && session.Game.GetCurrentCamera(0)?.GetShowHud() == true;
+            if (showHud && engine is OnslaughtRebuild.Parity.Things.BattleEngine hudBe && !hudBe.IsDying)
             {
                 _view!.AddChild(HudView.Build(hudBe, textures, session.Context.World.ObjectiveThings.ToList(), ref _lastHealth, ref _lastEnergy,
-                    _dial ??= files.Read(@"data\Dial.raw").Bytes, session.Game.Loop.Fraction, session.Context.World.UnitNB.ToList()));
+                    _dial ??= files.Read(@"data\Dial.raw").Bytes, session.Game.Loop.Fraction, session.Context.World.UnitNB.ToList(), _ammo,
+                    session.Context.Particles?.RenderFrameLength ?? 1.0f));
+            }
+
+            if (showHud && session.Context.InfluenceMap is { } influence)
+            {
+                var nodes = influence.Nodes.ToList();
+                _battleLine ??= BattleLineData.Build(session.Context.Map, nodes);
+                _view!.AddChild(BattleLineView.Build(_battleLine, nodes, engine as OnslaughtRebuild.Parity.Things.BattleEngine,
+                    session.Context.World.ObjectiveThings.ToList(), session.Context.World.SquadNB.ToList(), session.Context.Events.Time, textures));
             }
 
             if (session.Context.Particles is { } particles)
@@ -194,6 +204,8 @@ public partial class Host : Node
     private float _waterAngle;
     private int _lastHealth = int.MinValue;
     private byte[]? _dial;
+    private BattleLineData? _battleLine;
+    private readonly AmmoEase _ammo = new();
     private int _lastEnergy = int.MinValue;
     private readonly TerrainView.LandscapeView _landscapeView = new();
     private float _waterScroll;
