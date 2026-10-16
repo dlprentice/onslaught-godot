@@ -9,6 +9,8 @@
 // Stuart's release, hence GPL-3.0-only.
 
 using System.Runtime.CompilerServices;
+using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Numerics;
@@ -217,10 +219,200 @@ public abstract partial class Unit
     }
 
     /// <summary>
-    /// Damage (004f9a90, slot 40): shields, life, death and the pilot's lines; not ported yet.
+    /// Damage (004f9a90, slot 40): a round from a unit tells the squad it was shot at; a dying big unit ignores explosions;
+    /// a deployed unit takes its deploy multiple. Damage (when vulnerable; a nexus unit only at its nexus, a weak point
+    /// five times) goes to the segments, else marks the hit (Unknown107), takes the shields first and then life; at
+    /// death a battle engine's round counts a unit destroyed, and the unit (unless it retreats instead) starts dying and
+    /// is told how (Unknown71). Shields over 2 show their effect. Negative damage repairs to full life. A wingman then
+    /// says a line (a GAME random; the message is not ported).
     /// </summary>
-    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1) =>
-        throw new NotSupportedException($"CUnit::Damage ({GetType().Name}) is not ported");
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
+    {
+        if (Squad is { } squad && byThis is Round round && byThis.IsA(ThingType.Ammunition) && round.Launcher.ToRead is Unit shooter
+            && shooter.IsA(ThingType.Unit))
+        {
+            squad.Unknown4e6660(shooter);
+        }
+
+        if (IsDying && byThis is not null && byThis.IsA(ThingType.Explosion) && UnitData is { Big: not 0 })
+        {
+            return;
+        }
+
+        if (DeployState is 4 or 3 or 5)
+        {
+            amount *= UnitData!.DeployDamageMultiplier;
+        }
+
+        if (amount > 0)
+        {
+            if (!Vulnerable)
+            {
+                return;
+            }
+
+            if (Unknown228Nexus && byThis is not null && byThis.IsA(ThingType.Explosion))
+            {
+                return;
+            }
+
+            if ((Unknown228Nexus || Unknown22CWeakPoint) && meshPart != -1)
+            {
+                throw new NotSupportedException("CUnit::Damage to a nexus or weak-point part is not ported");
+            }
+
+            if (HasSegments)
+            {
+                throw new NotSupportedException("CDestructableSegmentsController::Damage is not ported");
+            }
+
+            Unknown107(amount);
+            if (damageShields)
+            {
+                if (Shields >= amount)
+                {
+                    Shields -= amount;
+                    return;
+                }
+
+                if (amount > Shields)
+                {
+                    amount -= Shields;
+                    Shields = 0;
+                }
+            }
+
+            Life -= amount;
+            if (Life < 0 && !IsDying)
+            {
+                if (byThis is Round r && byThis.IsA(ThingType.Ammunition) && r.Launcher.ToRead is BattleEngine be
+                    && be.IsA(ThingType.BattleEngine))
+                {
+                    (be.Player as Game.Player)?.IncStat(Game.PlayerStat.UnitsDestroyed);
+                }
+
+                if (UnitData!.Retreat == 0)
+                {
+                    StartDieProcess();
+                    Unknown71(amount, byThis);
+                }
+
+                Unknown1F0 = 0;
+            }
+
+            if (Shields > 2.0f && UnitData!.EffectNames[0] is { } shieldEffect && Context.Particles is { } particles)
+            {
+                particles.Manager.CreateEffect(Context.FindParticle(shieldEffect), null, byThis!.Pos, false, false);
+            }
+        }
+        else if (Life < UnitData!.Life && Life > 0)
+        {
+            if (UnitData.Life - Life < -amount)
+            {
+                Life = UnitData.Life;
+            }
+            else
+            {
+                Life -= amount;
+            }
+        }
+
+        if (UnitData!.Retreat != 0 && Life < 0)
+        {
+            throw new NotSupportedException("CUnit::Unknown100 (a retreating unit going to its safe side) is not ported");
+        }
+
+        if (UnitData.Wingman != 0)
+        {
+            _ = Context.Random.Random() % 3;
+            if ((Life < 0 && !SaidDying) || (UnitData.Life * 0.25f > Life && !SaidQuarterLife) || (UnitData.Life * 0.5f > Life && !SaidHalfLife))
+            {
+                throw new NotSupportedException("CUnit::Damage's wingman line (CMessage) is not ported");
+            }
+        }
+    }
+
+    /// <summary>mSaidDying / mSaidQuarterLife / mSaidHalfLife: a wingman's lines already said.</summary>
+    public bool SaidDying, SaidQuarterLife, SaidHalfLife;
+
+    /// <summary>Unknown107 (004fe540): the hit's flash, a countdown the 4005 event runs down.</summary>
+    public void Unknown107(float a)
+    {
+        if (Unknown218 == 0)
+        {
+            Context.Events.AddEvent(UnitEvent.Event4005, this, EventManager.NextFrame);
+        }
+
+        Unknown218 += Numerics.X87.Fist(a * 100.0f);
+        if (Unknown218 > 100)
+        {
+            Unknown218 = 100;
+        }
+
+        Unknown21C = 10;
+    }
+
+    /// <summary>Unknown71 (slot 71): how the unit was killed (nothing for most; mechs override it).</summary>
+    public virtual void Unknown71(float amount, Thing? byThis)
+    {
+    }
+
+    /// <summary>
+    /// CUnit::StartDieProcess (004fd140): dying (no shutdown yet: the unit's own Move ends it), off its side's counter with
+    /// the score moved by its behaviour's priority, the segments told, the mission script told, the spawners cleared.
+    /// </summary>
+    public override bool StartDieProcess()
+    {
+        if (IsDying)
+        {
+            return false;
+        }
+
+        Context.Skip("SOUND.KillSamplesForThing (presentation)");
+        Flags |= ThingFlags.Dying;
+        if (UnitData is not null)
+        {
+            int behaviour = (int)UnitData.Behaviour;
+            if (Allegiance == 0)
+            {
+                Context.World.CountersA[behaviour]--;
+                Context.Game?.IncScore(-BehaviourPriority(UnitData.Behaviour));
+                Flags |= ThingFlags.RemovedUnitType;
+            }
+            else if (Allegiance == 1)
+            {
+                Context.World.CountersB[behaviour]--;
+                Context.Game?.IncScore(BehaviourPriority(UnitData.Behaviour));
+                Flags |= ThingFlags.RemovedUnitType;
+            }
+        }
+
+        if (HasSegments)
+        {
+            throw new NotSupportedException("CDestructableSegmentsController::Unknown4443f0 (segments told of death) is not ported");
+        }
+
+        Script?.StartedDying();
+        if (UnitData?.Spawners.Count > 0)
+        {
+            Context.Skip("CUnit::ClearSpawners (the unit's idle spawners)");
+        }
+
+        return true;
+    }
+
+    /// <summary>UPhysicsManager::GetBehaviourPriority (00511510): the score a unit of that behaviour is worth.</summary>
+    public static int BehaviourPriority(UnitBehaviour b) => b switch
+    {
+        UnitBehaviour.Mech or UnitBehaviour.Boat or UnitBehaviour.Building or UnitBehaviour.Fighter or UnitBehaviour.GroundAttackAircraft
+            or UnitBehaviour.DiveBomber or UnitBehaviour.Pod => 10,
+        UnitBehaviour.GroundUnit or UnitBehaviour.Turret or UnitBehaviour.Jeep => 5,
+        UnitBehaviour.Bomber or UnitBehaviour.Dropship or UnitBehaviour.Submarine => 20,
+        UnitBehaviour.Infantry or UnitBehaviour.Mine => 1,
+        UnitBehaviour.Carrier or UnitBehaviour.HiveBoss or UnitBehaviour.ThunderHead or UnitBehaviour.Carver or UnitBehaviour.GillM
+            or UnitBehaviour.Sentinel or UnitBehaviour.Warspite or UnitBehaviour.Fenrir or UnitBehaviour.WarspiteDome => 100,
+        _ => 0,
+    };
 
     /// <summary>GetCurrentTarget (slot 81): the AI's target (a weapon's shot aims its round at it).</summary>
     public virtual Thing? GetCurrentLaunchTarget() => AI?.Target.ToRead as Thing;

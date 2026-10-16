@@ -19,6 +19,10 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CGroundUnit: a unit on the ground, a full move every fourth frame.</summary>
 public abstract class GroundUnit(ThingContext context) : Unit(context)
 {
+    /// <summary>CGroundUnit::StartDieProcess (0047ce80): the class's death; not ported yet.</summary>
+    public override bool StartDieProcess() =>
+        IsDying ? false : throw new NotSupportedException("CGroundUnit::StartDieProcess (0047ce80) is not ported");
+
     /// <summary>CGroundUnit::InitCollisionSeekingThing (0047c8e0): without a shape, a sphere of 0.8 of the bounding radius.</summary>
     public override void InitCollisionSeekingThing(InitCollision init)
     {
@@ -159,6 +163,10 @@ public abstract class GroundUnit(ThingContext context) : Unit(context)
 /// <summary>CGroundVehicle: tanks and trucks.</summary>
 public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 {
+    /// <summary>CGroundVehicle::StartDieProcess (0041b590): the class's death; not ported yet.</summary>
+    public override bool StartDieProcess() =>
+        IsDying ? false : throw new NotSupportedException("CGroundVehicle::StartDieProcess (0041b590) is not ported");
+
     /// <summary>GetMaxVelocity (slot 15).</summary>
     public override float GetMaxVelocity() => 3.5f;
 
@@ -228,6 +236,10 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 /// <summary>CCannon: a turret.</summary>
 public sealed class Cannon(ThingContext context) : GroundUnit(context)
 {
+    /// <summary>CCannon::StartDieProcess (0041b590): the class's death; not ported yet.</summary>
+    public override bool StartDieProcess() =>
+        IsDying ? false : throw new NotSupportedException("CCannon::StartDieProcess (0041b590) is not ported");
+
     public int State;
     public bool AboveWater;
     public float LastTargetTime;
@@ -307,6 +319,10 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
 /// <summary>CBuilding: a building, with its own render thing (mesh and rubble) and destructable segments.</summary>
 public sealed class Building(ThingContext context) : Unit(context)
 {
+    /// <summary>CBuilding::StartDieProcess (unit.h slot 50): the class's death; not ported yet.</summary>
+    public override bool StartDieProcess() =>
+        IsDying ? false : throw new NotSupportedException("CBuilding::StartDieProcess (unit.h slot 50) is not ported");
+
     public override bool CanBeStaticallyShadowed => true;
 
     /// <summary>GetMaxVelocity (slot 15, the shared 004bfc60).</summary>
@@ -465,6 +481,10 @@ public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 /// <summary>CAirUnit: a flying unit.</summary>
 public abstract class AirUnit(ThingContext context) : Unit(context)
 {
+    /// <summary>CAirUnit::StartDieProcess (00403690): the class's death; not ported yet.</summary>
+    public override bool StartDieProcess() =>
+        IsDying ? false : throw new NotSupportedException("CAirUnit::StartDieProcess (00403690) is not ported");
+
     /// <summary>
     /// CAirUnit::Move (00402fa0): a dying aircraft tumbles; the guide's thrust and gravity join the velocity; a big unit
     /// in the water slows (0.95, sinking when dying), any other takes its drag (Unknown73); the speed is held to

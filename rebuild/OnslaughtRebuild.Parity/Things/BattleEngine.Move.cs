@@ -1190,4 +1190,8 @@ public sealed partial class BattleEngine
 
         (Player as Game.Player)?.KilledEnemyThing(killed);
     }
+
+    /// <summary>CBattleEngine::StartDieProcess: the battle engine's death; not ported yet.</summary>
+    public override bool StartDieProcess() =>
+        IsDying ? false : throw new NotSupportedException("CBattleEngine::StartDieProcess is not ported");
 }
