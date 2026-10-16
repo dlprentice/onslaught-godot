@@ -195,7 +195,9 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
                 CurrentUnitOverCrosshairRegardlessOfRange.SetReader(null);
             }
 
-            FMatrix autoAim = FMatrix.FromYawPitchRoll(AutoAimYawOffset, AutoAimPitchOffset, 0.0f);
+            // FMatrix(yaw, pitch, roll) out of line, then the inline product: win1 P4387's line end (44896c02 4447e6c1
+            // 42acaf32, the port = retail on the distance) needs both; the inline constructor's matrix ends one ulp short.
+            FMatrix autoAim = FMatrix.MakeRotationOutOfLine(AutoAimYawOffset, AutoAimPitchOffset, 0.0f);
             float range = GetCurrentWeapon()?.GetActualMaxRange(Pos) ?? 0.0f;
             if (range <= 0.0f)
             {
