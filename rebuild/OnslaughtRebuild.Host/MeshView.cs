@@ -19,7 +19,7 @@ namespace OnslaughtRebuild.Host;
 /// </summary>
 public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture map)
 {
-    private readonly Dictionary<MeshData, ArrayMesh?> _built = [];
+    private readonly Dictionary<(MeshData, bool), ArrayMesh?> _built = [];
 
     /// <summary>
     /// CState's default render state: the vertex colour is the material's diffuse and ambient (D3DMCS_COLOR1). D3D lights
@@ -117,10 +117,11 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
 
     private MeshInstance3D? BuildWhole(Thing thing, MeshData mesh)
     {
-        if (!_built.TryGetValue(mesh, out ArrayMesh? built))
+        bool tree = thing is OnslaughtRebuild.Parity.Things.Tree;
+        if (!_built.TryGetValue((mesh, tree), out ArrayMesh? built))
         {
-            built = BuildMesh(mesh);
-            _built[mesh] = built;
+            built = BuildMesh(mesh, -1, tree);
+            _built[(mesh, tree)] = built;
         }
 
         if (built is null)
@@ -139,7 +140,7 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
         return new Transform3D(new Basis(Column(Vector3.Right), Column(Vector3.Up), Column(Vector3.Back)), Host.ToGodot(pos));
     }
 
-    private ArrayMesh? BuildMesh(MeshData mesh, int onlyPart = -1)
+    private ArrayMesh? BuildMesh(MeshData mesh, int onlyPart = -1, bool tree = false)
     {
         var pose = new MeshPose(mesh.NumParts);
         pose.Build(new FVector(0, 0, 0), FMatrix.Identity, mesh.Parts[0], null, 0);
@@ -247,10 +248,32 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
                 material.SetShaderParameter("albedo", image);
             }
 
-            material.SetShaderParameter("ambient", Bytes(map.Ambient, 1 / 255f));
-            material.SetShaderParameter("sun", Bytes(map.Sun, 1 / 256f));
-            material.SetShaderParameter("anti_sun", Bytes(map.AntiSun, 1 / 256f));
-            material.SetShaderParameter("sun_dir", sunDir);
+            if (tree)
+            {
+                // CRTTree::Render's own lights (RTTree.cpp 004dd960): the sun straight down at a tenth, the anti-sun
+                // straight up at full strength, and an ambient of three quarters the map's plus a quarter of the sun's
+                // (green takes the sun's blue quarter, as retail does), each channel byte / 256, packed through * 255.
+                static float Channel(uint c, int shift) => ((c >> shift) & 255) / 256.0f;
+                uint amb = map.Ambient;
+                uint sunColour = map.Sun;
+                float sr = Channel(sunColour, 16) * 0.25f;
+                float sb = Channel(sunColour, 0) * 0.25f;
+                float red = (Channel(amb, 16) * 0.75f) + sr;
+                float green = (Channel(amb, 8) * 0.75f) + sb;
+                float blue = (Channel(amb, 0) * 0.75f) + sb;
+                uint ambient = ((uint)(int)(red * 255.0f) << 16) | ((uint)(int)(green * 255.0f) << 8) | (uint)(int)(blue * 255.0f);
+                material.SetShaderParameter("ambient", Bytes(ambient, 1 / 255f));
+                material.SetShaderParameter("sun", Bytes(sunColour, 1 / 256f) * 0.1f);
+                material.SetShaderParameter("anti_sun", Bytes(map.AntiSun, 1 / 256f));
+                material.SetShaderParameter("sun_dir", Host.ToGodot(new FVector(0, 0, 1.0f)).Normalized());
+            }
+            else
+            {
+                material.SetShaderParameter("ambient", Bytes(map.Ambient, 1 / 255f));
+                material.SetShaderParameter("sun", Bytes(map.Sun, 1 / 256f));
+                material.SetShaderParameter("anti_sun", Bytes(map.AntiSun, 1 / 256f));
+                material.SetShaderParameter("sun_dir", sunDir);
+            }
         material.SetShaderParameter("fog_colour", Bytes(map.Fog, 1 / 255f));
         material.SetShaderParameter("fog_density", map.FogDensity);
             result.SurfaceSetMaterial(result.GetSurfaceCount() - 1, material);
