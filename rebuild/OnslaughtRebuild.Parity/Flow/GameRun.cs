@@ -32,7 +32,7 @@ public sealed class GameRun : ISystemParts
         Input = new PlatformInput(new PlatformWindow());
         Bindings = ControlBindings.Defaults();
         Controls = new ControllerContext(Bindings, Input, Shared, new FrontEndGame(), Clock.GetSysTimeFloat);
-        _films = new FilmPlayer(Clock, Input, Controls, films, new HarnessFilmPacing());
+        _films = new FilmPlayer(Clock, Input, Controls, skipFmv ? new UnopenedFilms(films) : films, new HarnessFilmPacing());
         FrontEnd = FrontEndSetup.Create(Clock, Controls, Bindings, read, pcText, out Career.CareerOptions? options);
         if (options is not null)
         {
@@ -193,4 +193,15 @@ public sealed class GameRun : ISystemParts
 
         OnPresented?.Invoke();
     }
+}
+
+/// <summary>
+/// The films under -skipfmv, where CBinkOpenThread::Run skips BinkOpen: a film that exists plays but never reaches its
+/// last frame, so the attract films present until a skip (retail's idle -skipfmv front end hangs in the logo film from
+/// Present 905, B's measurement against the port's R2 reference).
+/// </summary>
+public sealed class UnopenedFilms(IFilmFiles files) : IFilmFiles
+{
+    public FilmHeader? Probe(string name) =>
+        files.Probe(name) is { } film ? film with { Frames = int.MaxValue } : null;
 }
