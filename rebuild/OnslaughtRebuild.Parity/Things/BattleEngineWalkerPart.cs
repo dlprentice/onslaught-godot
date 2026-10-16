@@ -459,8 +459,19 @@ public sealed class BattleEngineWalkerPart
         _main.Pitchvel = pitchvel - (zm * (mult * vy * 0.008547009f));
     }
 
-    public void ActivateLandingJets() =>
-        throw new NotSupportedException("CBattleEngineWalkerPart::ActivateLandingJets is not ported");
+    /// <summary>
+    /// ActivateLandingJets (004135e0): the jets brake the fall: a fortieth of the horizontal speed back, and when falling
+    /// faster than 0.01 a thirteenth-and-a-bit of the fall; the thrusters come on.
+    /// </summary>
+    public void ActivateLandingJets()
+    {
+        FVector vel = _main.GetVelocity();
+        vel.X = -vel.X * 0.025f;
+        vel.Y = -vel.Y * 0.025f;
+        vel.Z = vel.Z > 0.01f ? -vel.Z * 0.075f : 0;
+        _main.AddVelocity(vel);
+        _main.ThrustersOn = true;
+    }
 
     private ThingContext Context => _main.Context;
 

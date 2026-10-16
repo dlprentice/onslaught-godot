@@ -98,6 +98,9 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// </summary>
     private const int TankKillTapeMatchedThrough = 8000;
 
+    /// <summary>The Present through which David's recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).</summary>
+    private const int DavidTapeMatchedThrough = 4233;
+
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
 
@@ -263,6 +266,19 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         Assert.Equal(EndLevelData.ByteSize, port!.Length);
         int first = Enumerable.Range(0, ours.Length).FirstOrDefault(i => ours[i] != port[i], -1);
         Assert.True(first < 0, $"END_LEVEL_DATA differs first at byte 0x{first:x} (port {port[Math.Max(first, 0)]:x2}, ours {ours[Math.Max(first, 0)]:x2})");
+    }
+
+    /// <summary>
+    /// Level 100 as David played it (tapes/level100-david-win1-loss-retry.tape, a human recording: jumps and landing jets,
+    /// fire, a loss by friendly fire, the level-end menu's Retry, a quit) against the port's every-Present reference of a
+    /// replay (l100-david-win1-port), as the firing tape's test. Floor: <see cref="DavidTapeMatchedThrough"/>.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port/crt-per-present.txt",
+        "portrefs/l100-david-win1-port/port-probes-every1.txt")]
+    public void Level100DavidsRecordingMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port", 9000);
+        Assert.True(matched >= DavidTapeMatchedThrough, $"matched through Present {matched}, below {DavidTapeMatchedThrough}");
     }
 
     private long PortTapeMatchedThrough(string tape, string dir, long last)

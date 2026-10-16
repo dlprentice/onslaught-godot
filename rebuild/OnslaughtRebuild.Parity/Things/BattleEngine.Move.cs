@@ -571,12 +571,80 @@ public sealed partial class BattleEngine
         HandleSounds();
         if (ThrustersOn)
         {
-            throw new NotSupportedException("CBattleEngine::Move: the thrusters (not ported yet)");
+            // Burn things that are beneath you.
+            for (MapWhoEntry? entry = Context.MapWho.GetFirstEntryWithinRadius(Pos, 4); entry is not null;
+                 entry = Context.MapWho.GetNextEntryWithinRadius())
+            {
+                if (entry.Thing is { } thing && thing.IsA(ThingType.Unit) && thing != this && Pos.Z - 2.0f < thing.Pos.Z)
+                {
+                    FVector direction = thing.Pos - Pos;
+                    float magnitude = direction.Magnitude();
+                    if (magnitude < 2.5f)
+                    {
+                        thing.Damage(0.2f / magnitude, this, true, -1);
+                    }
+                }
+            }
+
+            GroundParticleEffect();
+            ActivateThrusters();
+        }
+        else
+        {
+            DeactivateThrusters();
         }
 
-        Context.Skip("CBattleEngine::DeactivateThrusters");
         ThrustersOn = false;
     }
+
+    /// <summary>
+    /// GroundParticleEffect (0040ef20): within 10 of the ground or the water below, a land or water effect there, half as
+    /// far again below as the altitude.
+    /// </summary>
+    private void GroundParticleEffect()
+    {
+        float waterLevel = Context.Map.WaterLevel;
+        float groundLevel = Context.Map.Collide(Pos);
+        float altitude = waterLevel < groundLevel ? waterLevel - Pos.Z : groundLevel - Pos.Z;
+        if (altitude < 10)
+        {
+            FVector particlePos = Pos;
+            particlePos.Z += altitude * 1.5f;
+            if (Context.Particles is { } particles)
+            {
+                var link = new Particles.ParticleEffectLink(particles.Manager);
+                particles.Manager.AddParticle(particles.Manager.Set.GetPD(waterLevel < groundLevel
+                    ? "BE Ground Effect Water Effect" : "BE Ground Effect Land Effect"), link);
+                link.SetPos(particlePos);
+                link.Release();
+            }
+            else
+            {
+                Context.Skip("CBattleEngine::GroundParticleEffect");
+            }
+        }
+    }
+
+    /// <summary>ActivateThrusters (0040e940): single player, only the in-flight sound when they start.</summary>
+    private void ActivateThrusters()
+    {
+        if (!ThrustersActive)
+        {
+            if (Context.SoundEffects is { } sounds)
+            {
+                sounds.PlayEffect(sounds.Find("BE Engines(in-flight)"), Context.Crt);
+            }
+            else
+            {
+                Context.Skip("CBattleEngine::ActivateThrusters: the in-flight sound");
+            }
+        }
+
+        ThrustersActive = true;
+    }
+
+    /// <summary>DeactivateThrusters (0040eb50): the in-flight sound fades (in the walker).</summary>
+    private void DeactivateThrusters() => ThrustersActive = false;
 
     private Weapon? CurrentWeaponForZoom() => State == BattleEngineState.Jet ? null : WalkerPart?.GetCurrentWeapon();
 
