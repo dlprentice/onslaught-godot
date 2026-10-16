@@ -415,39 +415,42 @@ public sealed partial class BattleEngine
         if (OldLife > lowLife && Life <= lowLife)
         {
             LowArmourStartTime = now;
-            Context.Skip("CBattleEngine::PlayHudSample");
+            PlayHudSample("hud_armour_low");
         }
 
         if (OldEnergy > lowEnergy && Energy <= lowEnergy)
         {
             LowEnergyStartTime = now;
-            Context.Skip("CBattleEngine::PlayHudSample");
+            PlayHudSample("hud_energy_low");
         }
 
         if (Life <= lowLife && Life <= OldLife && now - LowArmourStartTime > 15.0f)
         {
             LowArmourStartTime = now;
-            Context.Skip("CBattleEngine::PlayHudSample");
+            PlayHudSample("hud_armour_low");
         }
 
         if (Energy <= lowEnergy && Energy <= OldEnergy && now - LowEnergyStartTime > 15.0f)
         {
             LowEnergyStartTime = now;
-            Context.Skip("CBattleEngine::PlayHudSample");
+            PlayHudSample("hud_energy_low");
         }
 
         if (DangerStartTime + 8.0f > now && PlayedIncomingWarheadSound + 8.0f < now)
         {
+            PlayHudSample("hud_incoming_warhead");
             PlayedIncomingWarheadSound = now;
         }
 
         if (AmmoDepletedTime + 8.0f > now && PlayedAmmunitionDepletedSound + 8.0f < now)
         {
+            PlayHudSample("hud_ammunition_depleted");
             PlayedAmmunitionDepletedSound = now;
         }
 
         if (WeaponOverheatedTime + 8.0f > now && PlayedWeaponOverheatedSound + 8.0f < now)
         {
+            PlayHudSample("HUD_Weapon_Overheating");
             PlayedWeaponOverheatedSound = now;
         }
 
@@ -840,5 +843,17 @@ public sealed partial class BattleEngine
         m.MouseX = m.WindowWidth / 2;
         m.MouseY = m.WindowHeight / 2;
         m.LastFrame = m.Frame;
+    }
+
+    /// <summary>PlayHudSample(name) (0040d5f0): the effect "hud\\" + name through PlayEffect, which draws rand for its chain and pitch.</summary>
+    private void PlayHudSample(string name)
+    {
+        if (Context.SoundEffects is not { } sounds)
+        {
+            Context.Skip("CBattleEngine::PlayHudSample");
+            return;
+        }
+
+        sounds.PlayEffect(sounds.Find("hud\\" + name), Context.Crt);
     }
 }
