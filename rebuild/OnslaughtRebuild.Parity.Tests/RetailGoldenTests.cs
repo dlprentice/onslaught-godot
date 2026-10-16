@@ -103,6 +103,10 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
     /// <summary>The Presents through which the pause and restart tapes match the port (never lowered).</summary>
     private const int PauseQuitMatchedThrough = 3861;
+
+    /// <summary>The Presents through which the pause menu's controls and display lists match the port (never lowered).</summary>
+    private const int PauseControlsMatchedThrough = 4000;
+    private const int PauseVideoMatchedThrough = 4100;
     private const int PauseRetryMatchedThrough = 5200;
     private const int LoseRetryMatchedThrough = 9000;
 
@@ -297,6 +301,30 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     {
         long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pausequit.tape", "portrefs/l100-pausequit-port", 4000);
         Assert.True(matched >= PauseQuitMatchedThrough, $"matched through Present {matched}, below {PauseQuitMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 paused at P3400 (tapes/level100-pausecontrols.tape): Controller Options, the mouse sensitivity right and
+    /// left, down and up the list, Escape back and Escape to resume, against the port (l100-pausecontrols-port, to 4000).
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-pausecontrols.tape", "portrefs/l100-pausecontrols-port/crt-per-present.txt",
+        "portrefs/l100-pausecontrols-port/port-probes-every1.txt")]
+    public void Level100PauseControlsMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pausecontrols.tape", "portrefs/l100-pausecontrols-port", 4000);
+        Assert.True(matched >= PauseControlsMatchedThrough, $"matched through Present {matched}, below {PauseControlsMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 paused at P3400 (tapes/level100-pausevideo.tape): Video Options, the overall detail level's list opened,
+    /// moved in and closed, Escape back and Escape to resume, against the port (l100-pausevideo-port, to 4100).
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-pausevideo.tape", "portrefs/l100-pausevideo-port/crt-per-present.txt",
+        "portrefs/l100-pausevideo-port/port-probes-every1.txt")]
+    public void Level100PauseVideoMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pausevideo.tape", "portrefs/l100-pausevideo-port", 4100);
+        Assert.True(matched >= PauseVideoMatchedThrough, $"matched through Present {matched}, below {PauseVideoMatchedThrough}");
     }
 
     /// <summary>
