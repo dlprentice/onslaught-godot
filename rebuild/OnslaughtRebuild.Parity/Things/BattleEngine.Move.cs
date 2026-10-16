@@ -1179,4 +1179,15 @@ public sealed partial class BattleEngine
             }
         }
     }
+
+    /// <summary>ConfirmedKill (0040a560): a Muspell unit killed counts for the player.</summary>
+    public override void ConfirmedKill(Unit killed)
+    {
+        if (killed.Allegiance != 1)
+        {
+            return;
+        }
+
+        (Player as Game.Player)?.KilledEnemyThing(killed);
+    }
 }

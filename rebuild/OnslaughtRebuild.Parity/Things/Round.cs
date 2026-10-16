@@ -489,14 +489,74 @@ public class Round : Actor
     /// </summary>
     private void GoOff(CollideMode mode, CollisionReport? report, Thing? thing)
     {
+        var init = new InitThing { Originator = Launcher.ToRead };
+        if (init.Originator is not null && init.Originator.IsA(ThingType.BattleEngine))
+        {
+            init.Important = true;
+        }
+
+        int explosionIndex = Data.ExplosionName is { } explosionName ? Context.Physics.GetExplosionIndex(explosionName) : -1;
         if (Data.ExplosionName is not null)
         {
-            throw new NotSupportedException("CRound::Unknown4d9f30: the round's explosion (UPhysicsManager::GetExplosion, SpawnExplosion, CExplosion) is not ported");
+            init.Behaviour = explosionIndex >= 0 ? Context.Physics.Explosions[explosionIndex] : null;
+        }
+
+        if (init.Behaviour is { Oriented: not 0 })
+        {
+            switch (mode)
+            {
+                case CollideMode.Thing:
+                    if (report is not null && report.NumContacts >= 1)
+                    {
+                        FVector n = report.Normals[0];
+                        init.Yaw = WeaponMaths.Azimuth(Context, n);
+                        init.Pitch = WeaponMaths.Elevation(Context, n) + (MathF.PI / 2);
+                        init.Roll = 0;
+                    }
+                    else if (thing is not null)
+                    {
+                        FVector n = Pos - thing.Pos;
+                        init.Yaw = WeaponMaths.Azimuth(Context, n);
+                        init.Pitch = WeaponMaths.Elevation(Context, n) + (MathF.PI / 2);
+                        init.Roll = 0;
+                    }
+                    else
+                    {
+                        init.OrientationType = OrientationType.DirectionCosineMatrix;
+                        init.Orientation = Orientation.Multiply(FMatrix.FromYawPitchRoll(0, -MathF.PI / 2, 0));
+                    }
+
+                    break;
+                case CollideMode.Ground:
+                {
+                    FVector n = Context.Map.Normal(Pos);
+                    init.Yaw = WeaponMaths.Azimuth(Context, n);
+                    init.Pitch = WeaponMaths.Elevation(Context, n) + (MathF.PI / 2);
+                    init.Roll = 0;
+                    break;
+                }
+
+                case CollideMode.Nothing:
+                    init.OrientationType = OrientationType.DirectionCosineMatrix;
+                    init.Orientation = Orientation.Multiply(FMatrix.FromYawPitchRoll(0, MathF.PI / 2, 0));
+                    break;
+            }
         }
 
         if (mode == CollideMode.Ground)
         {
             Context.Skip("ENGINE.AddDamage (the landscape's damage where a round lands)");
+        }
+
+        if (init.Behaviour is not null && (mode != CollideMode.Nothing || Data.Flak != 0 || Data.Explode != 0)
+            && Explosion.Spawn(Context, explosionIndex) is { } explosion)
+        {
+            FVector vel = GetVelocity();
+            vel.Normalise();
+            init.Pos = Pos - (vel * 0.1f);
+            init.ColType = (int)mode;
+            init.Allegiance = Launcher.ToRead is Unit lu ? lu.Allegiance : 2;
+            explosion.Init(init);
         }
 
         if (Data.Jumps > JumpsPerformed && !Unknown120)

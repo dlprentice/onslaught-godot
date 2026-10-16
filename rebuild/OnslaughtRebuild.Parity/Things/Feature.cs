@@ -12,6 +12,10 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CFeature: icebergs, rocks and other scenery that can be destroyed.</summary>
 public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
 {
+    /// <summary>CFeature::Damage (0044cd20): not ported yet.</summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1) =>
+        throw new NotSupportedException("CFeature::Damage is not ported");
+
     public override bool CanBeStaticallyShadowed => true;
 
     /// <summary>GetMaxVelocity (slot 15, the shared 004de700).</summary>

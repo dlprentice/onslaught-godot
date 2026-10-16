@@ -199,6 +199,29 @@ public abstract partial class Unit
         orientation = weapon.GetPrimaryOrientation();
     }
 
+    /// <summary>
+    /// ConfirmedKill (004fe030, slot 101): an enemy killed; a wingman (the unit data's chatter flag) says a line of
+    /// three, at most every 40 seconds (a GAME random and a message; not ported, it throws).
+    /// </summary>
+    public virtual void ConfirmedKill(Unit killed)
+    {
+        if (!IsTargetAlligence(killed.Allegiance))
+        {
+            return;
+        }
+
+        if (UnitData is { Wingman: not 0 })
+        {
+            throw new NotSupportedException("CUnit::ConfirmedKill's wingman line (GAME.Random, CMessage) is not ported");
+        }
+    }
+
+    /// <summary>
+    /// Damage (004f9a90, slot 40): shields, life, death and the pilot's lines; not ported yet.
+    /// </summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1) =>
+        throw new NotSupportedException($"CUnit::Damage ({GetType().Name}) is not ported");
+
     /// <summary>GetCurrentTarget (slot 81): the AI's target (a weapon's shot aims its round at it).</summary>
     public virtual Thing? GetCurrentLaunchTarget() => AI?.Target.ToRead as Thing;
 

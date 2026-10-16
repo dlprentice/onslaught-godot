@@ -14,6 +14,10 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CTree: a tree (one draw for its variation, one more when its type has no variant number).</summary>
 public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 {
+    /// <summary>CTree::Damage (004f68e0): not ported yet.</summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1) =>
+        throw new NotSupportedException("CTree::Damage is not ported");
+
     public int Variation;
     public float TreeLife;
     public byte[] MeshName = [];

@@ -116,6 +116,15 @@ public sealed class InitThing
     public float InitialDelay;
     public float LifeSpan;
 
+    // CExplosionInitThing
+    public ExplosionData? Behaviour;
+    public int ColType;
+    public Thing? AttachedTo;
+    public bool UseAttachedRadius;
+    public bool AllowVolumetric;
+    public bool Important;
+    public Thing? Originator;
+
     // CSphereTriggerInitThing
     public float Radius;
 

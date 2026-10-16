@@ -377,6 +377,11 @@ public abstract class Thing : Monitor, IOccupancyUnit
         MoveTo(pos);
     }
 
+    /// <summary>Damage (slot 40, 00401490): nothing for a plain thing.</summary>
+    public virtual void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
+    {
+    }
+
     /// <summary>Hit (slot 39): nothing for a plain thing.</summary>
     public virtual void Hit(Thing other, Collision.CollisionReport? report)
     {
