@@ -256,6 +256,30 @@ public sealed class TerrainTexture
     /// The whole map at one mip shift: 512 << shift texels a side, R5G6B5, row-major, the map's x across and y down, as
     /// CLandscapeTexture lays its tiles.
     /// </summary>
+    /// <summary>
+    /// One of CDXLandscape's wrapping texture levels (CLandscapeTexture, 512 x 512 R5G6B5): each listed 8-metre tile built
+    /// at the level's mip shift (CHeightField::Unknown47eff0) into its slot, (tile x * 8) mod (512 >> level) << level
+    /// across (CLandscapeTexture::UpdateTile), so that world x * 2^level / 512, wrapped, finds it.
+    /// </summary>
+    public ushort[] BuildCacheLevel(int level, IEnumerable<int> tiles)
+    {
+        int step = 1 << level;
+        MapTex maptex = _mapTex.FirstOrDefault(m => m.Size == 16 * step)
+            ?? throw new NotSupportedException($"no mixer mip of {16 * step} texels for level {level}");
+        int tileMask = (512 >> level) - 1;
+        var map = new ushort[512 * 512];
+        var scratch = new int[1024];
+        foreach (int tile in tiles)
+        {
+            int x = (tile & 0x3f) << 3;
+            int y = (tile >> 6) << 3;
+            int origin = (((y & tileMask) << level) * 512) + ((x & tileMask) << level);
+            Tile(level, maptex, map, origin, 512, tile, scratch);
+        }
+
+        return map;
+    }
+
     public ushort[] BuildMap(int shift)
     {
         int step = 1 << shift;

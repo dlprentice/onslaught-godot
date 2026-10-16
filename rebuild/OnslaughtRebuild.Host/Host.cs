@@ -54,13 +54,13 @@ public partial class Host : Node
         _view.AddChild(world);
         var engineChunk = new OnslaughtRebuild.Parity.Data.ChunkReader(session.Resources.OpenAt(session.Resources.EngineResourcesPosition));
         Landscape.TerrainTexture terrain = Landscape.TerrainTexture.Read(engineChunk);
-        // Retail's lit cache at level 100 is 512 x 512 (shift 0: the port's d3dlog of Present 150, tex0 of the landscape).
-        int shift = int.TryParse(System.Environment.GetEnvironmentVariable("HOST_TERRAIN_SHIFT"), out int ts) ? ts : 0;
 
         // sCloudU and sCloudV advance by the render frame's length at each world render (unchecked: one Present each).
         GD.Print($"HOST: cloud drift {BitConverter.SingleToUInt32Bits(_cloudU):x8} {BitConverter.SingleToUInt32Bits(_cloudV):x8} after {_renders} world renders");
-        world.AddChild(TerrainView.Build(session.Context.Map, terrain, textures, shift, new Vector2(_cloudU, _cloudV)));
-        GD.Print($"HOST: terrain at shift {shift}, detail {terrain.DetailTexture}, sky {terrain.KempyCube}, ambient {terrain.Ambient:x8} sun {terrain.Sun:x8} anti {terrain.AntiSun:x8}, fog {terrain.Fog:x8} density {terrain.FogDensity}; light out of range {terrain.LightOutOfRange}");
+        int[] tileLevels = TerrainView.ChooseLevels(session.Context.Map, _landscapeView);
+        GD.Print($"HOST: landscape texture levels {string.Join(" ", Enumerable.Range(0, 5).Select(l => $"L{l}:{tileLevels.Count(v => v == l)}"))}");
+        world.AddChild(TerrainView.Build(session.Context.Map, terrain, textures, tileLevels, new Vector2(_cloudU, _cloudV)));
+        GD.Print($"HOST: terrain detail {terrain.DetailTexture}, sky {terrain.KempyCube}, ambient {terrain.Ambient:x8} sun {terrain.Sun:x8} anti {terrain.AntiSun:x8}, fog {terrain.Fog:x8} density {terrain.FogDensity}; light out of range {terrain.LightOutOfRange}");
         world.AddChild(new DirectionalLight3D { RotationDegrees = new Vector3(-50, 30, 0) });
 
         // D3D's table fog, EXP mode (PCLTShell's fog state): exp(-density * depth) towards the map's fog colour. Godot's
@@ -178,6 +178,7 @@ public partial class Host : Node
     private float _cloudU;
     private float _cloudV;
     private float _waterAngle;
+    private readonly TerrainView.LandscapeView _landscapeView = new();
     private float _waterScroll;
     private int _renders;
 
@@ -203,6 +204,12 @@ public partial class Host : Node
         }
 
         _waterAngle = WaterView.Advance(_waterAngle, length);
+        if (session.Game.GetCurrentCamera(0) is { } cam)
+        {
+            (FVector camPos, FMatrix camOri, _) = Interpolated(cam, session.Game.Loop.Fraction2);
+            _landscapeView.Advance(camPos, camOri);
+        }
+
         _waterScroll += length * 0.003f;
         if (_waterScroll > 1.0f)
         {
