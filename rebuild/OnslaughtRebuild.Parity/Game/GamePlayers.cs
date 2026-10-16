@@ -282,7 +282,10 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
     public void AssignBattleEngine(Thing? battleEngine)
     {
         _battleEngine.SetReader(battleEngine);
-        context.Skip("CBattleEngine::SetPlayer");
+        if (battleEngine is Things.BattleEngine be)
+        {
+            be.Player = this; // CBattleEngine::SetPlayer
+        }
     }
 
     /// <summary>CPlayer::Init: the first-person view (the sign-in timeout clock is the platform's).</summary>

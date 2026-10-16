@@ -161,12 +161,69 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     /// <summary>SetCollisionShape (004063b0): a cylinder of the radius and half the centre-of-gravity height.</summary>
     public void SetCollisionShape() => Seeker!.SetShape(new Collision.CylinderVolume(GetRadius(), COfGHeight() * 0.5f));
 
-    /// <summary>CBattleEngine::CalcUnitOverCrossHair: the target search, then (from the event) the next search.</summary>
-    public void CalcUnitOverCrossHair(ScheduledEvent? e)
+    /// <summary>mWlcr: the crosshair's last line test (CalcUnitOverCrossHair with its data updated).</summary>
+    public World.WorldLineReport Wlcr { get; } = new();
+
+    /// <summary>mCurrentUnitOverCrosshair: the unit under the crosshair within the weapon's range.</summary>
+    public ActiveReader<Unit> CurrentUnitOverCrosshair { get; } = new();
+
+    /// <summary>mCurrentUnitOverCrosshairRegardlessOfRange.</summary>
+    public ActiveReader<Unit> CurrentUnitOverCrosshairRegardlessOfRange { get; } = new();
+
+    /// <summary>mAutoAimYawOffset / mAutoAimPitchOffset: the aim's turn from the view.</summary>
+    public float AutoAimYawOffset, AutoAimPitchOffset;
+
+    /// <summary>GetCurrentWeapon (0040c4d0..): the walker part's, or the jet part's (not ported).</summary>
+    public Weapon? GetCurrentWeapon() => State == BattleEngineState.Jet
+        ? throw new NotSupportedException("CBattleEngineJetPart::GetCurrentWeapon (the jet part is not ported)")
+        : WalkerPart?.GetCurrentWeapon();
+
+    /// <summary>
+    /// CBattleEngine::CalcUnitOverCrossHair (0040acc0): a 1000-unit line from the player's view through the aim offsets
+    /// (FindFirstThingToHitLine: the map's water flag, mesh collision or the outer spheres, not trees or rounds); a unit
+    /// hit (not a dead building) is the result when nearer than the weapon's actual range (1000 without one), and with
+    /// the data updated the report and both crosshair units are kept. From the event, the next search in 0.1..0.3 s.
+    /// </summary>
+    public Unit? CalcUnitOverCrossHair(ScheduledEvent? e, bool meshCollision, bool updateData)
     {
-        if (Player is not null)
+        Unit? result = null;
+        if (Player is Game.Player player)
         {
-            Context.Skip("CBattleEngine::CalcUnitOverCrossHair's line test");
+            if (updateData)
+            {
+                CurrentUnitOverCrosshair.SetReader(null);
+                CurrentUnitOverCrosshairRegardlessOfRange.SetReader(null);
+            }
+
+            FMatrix autoAim = FMatrix.FromYawPitchRoll(AutoAimYawOffset, AutoAimPitchOffset, 0.0f);
+            float range = GetCurrentWeapon()?.GetActualMaxRange(Pos) ?? 0.0f;
+            if (range <= 0.0f)
+            {
+                range = 1000.0f;
+            }
+
+            Game.Camera? camera = Context.Game?.GetCurrentCamera(player.Number - 1);
+            FVector pos = camera?.GetPos() ?? new FVector(0, 0, 0);
+            FMatrix ori = (camera?.GetOrientation() ?? FMatrix.Identity).Multiply(autoAim);
+            FVector end = pos + ori.Transform(new FVector(0.0f, 1000.0f, 0.0f));
+            World.WorldLineReport wlcr = updateData ? Wlcr : new World.WorldLineReport();
+            if (World.WorldLineQuery.FindFirstThingToHitLine(Context, pos, end, this, wlcr, false, meshCollision,
+                    meshCollision ? (int)CollisionLevel.Mesh : (int)CollisionLevel.OuterSphere, ThingType.Tree + ThingType.Ammunition, true)
+                == World.LineHitType.Thing)
+            {
+                if (wlcr.HitThing is Unit unit && unit.IsA(ThingType.Unit) && (!unit.IsA(ThingType.Building) || unit.Life > 0.0f))
+                {
+                    if (range > wlcr.DistToImpact)
+                    {
+                        result = unit;
+                    }
+
+                    if (updateData)
+                    {
+                        CurrentUnitOverCrosshairRegardlessOfRange.SetReader(unit);
+                    }
+                }
+            }
         }
 
         if (e is not null)
@@ -174,6 +231,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
             Context.Events.AddEvent(BattleEngineEvent.CalcUnitOverCrosshair, this,
                 Context.Events.Time + (Context.Random.FloatRandom() * 0.2f) + 0.1f, EventPriority.StartOfFrame, null, e);
         }
+
+        return result;
     }
 
     /// <summary>CBattleEngine::HandleAutoAim: the auto-aim target search, then the next search.</summary>
@@ -193,7 +252,7 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         switch (e.EventNum)
         {
             case BattleEngineEvent.CalcUnitOverCrosshair:
-                CalcUnitOverCrossHair(e as ScheduledEvent);
+                CurrentUnitOverCrosshair.SetReader(CalcUnitOverCrossHair(e as ScheduledEvent, true, true));
                 break;
             case BattleEngineEvent.HandleAutoAim:
                 HandleAutoAim(e as ScheduledEvent);

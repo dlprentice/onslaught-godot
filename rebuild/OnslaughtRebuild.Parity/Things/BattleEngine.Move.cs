@@ -887,6 +887,12 @@ public sealed partial class BattleEngine
         }
     }
 
+    /// <summary>mAutoAimTarget: the target HandleAutoAim chose (its search is not ported: none yet).</summary>
+    public ActiveReader<Thing> AutoAimTarget { get; } = new();
+
+    /// <summary>mHadAutoAimTarget: what the aim sound last played for.</summary>
+    public ActiveReader<Thing> HadAutoAimTarget { get; } = new();
+
     /// <summary>mWalkSoundTime: the distance walked since the last step's count.</summary>
     public float WalkSoundTime;
 
@@ -899,7 +905,8 @@ public sealed partial class BattleEngine
     /// low-energy loops play when not already playing; the sound-playing state is not modelled, so reaching one throws
     /// rather than drop or invent a draw (their fades draw nothing). The incoming-missile sound waits on the radar
     /// warning receiver, the lock sounds on the locks and the aim sound on the auto-aim target or the unit over the
-    /// crosshair, none of them ported: none plays. The walking block: on the ground as a walker, every 1.5 units walked
+    /// crosshair: the radar warning receiver and the locks are not ported, so those never play; the aim sound plays when the
+    /// unit over the crosshair (CalcUnitOverCrossHair) is first an enemy (the auto-aim search is not ported). The walking block: on the ground as a walker, every 1.5 units walked
     /// counts a step, and standing still after more than 5 steps plays the hydraulics (PlayHudSample).
     /// </summary>
     private void HandleSounds()
@@ -928,6 +935,28 @@ public sealed partial class BattleEngine
             {
                 throw new NotSupportedException("CBattleEngine::HandleSounds: the low-energy loop's IsEffectPlaying (sound-playing state not modelled)");
             }
+        }
+
+        // Aiming: a new auto-aim target, or else an enemy unit coming under the crosshair, plays the aim sound once.
+        if (AutoAimTarget.ToRead is { } aimTarget)
+        {
+            if (HadAutoAimTarget.ToRead is null)
+            {
+                sounds.PlayEffect(sounds.Find("BE Target"), Context.Crt);
+                HadAutoAimTarget.SetReader(aimTarget);
+            }
+        }
+        else if (CurrentUnitOverCrosshair.ToRead is { } over && IsTargetAlligence(over.Allegiance))
+        {
+            if (HadAutoAimTarget.ToRead is null)
+            {
+                sounds.PlayEffect(sounds.Find("BE Target"), Context.Crt);
+                HadAutoAimTarget.SetReader(over);
+            }
+        }
+        else
+        {
+            HadAutoAimTarget.SetReader(null);
         }
 
         if (IsOnGround() && State == BattleEngineState.Walker)
