@@ -30,7 +30,8 @@ public partial class Host : Node
         _capture = System.Environment.GetEnvironmentVariable("HOST_CAPTURE");
 
         var textures = new TextureLibrary(files.Read);
-        LevelSession session = LevelSession.Load(100, files.Read, otherChunk: textures.ReadChunk);
+        var surf = new SurfView();
+        LevelSession session = LevelSession.Load(100, files.Read, otherChunk: (tag, c) => textures.ReadChunk(tag, c) || surf.ReadChunk(tag, c));
         GD.Print($"HOST: {textures.Count} textures read");
         try
         {
@@ -101,6 +102,16 @@ public partial class Host : Node
             (FVector pos, FMatrix ori, float zoom) = Interpolated(camera, session.Game.Loop.Fraction2);
             Place(view, pos, ori, zoom);
             world.AddChild(SkyView.Build(terrain.KempyCube, textures, pos));
+            if (surf.Build(terrain, textures, pos, ori, _waterAngle, _waterScroll) is { } surfMesh)
+            {
+                world.AddChild(surfMesh);
+            }
+
+            if (System.Environment.GetEnvironmentVariable("HOST_NO_GRID") != "1")
+            {
+                world.AddChild(WaterView.Build(terrain, session.Context.Map.WaterLevel, textures, pos, ori, _waterAngle));
+            }
+            GD.Print($"HOST: surf {surf.StripCount} strips; water scroll2 {BitConverter.SingleToUInt32Bits(_waterScroll):x8}");
             GD.Print($"HOST: camera {camera.GetType().Name} at {pos}, zoom {zoom}; battle engine at {engine?.Pos}");
         }
     }
@@ -166,12 +177,14 @@ public partial class Host : Node
     private float _lastRenderFrameTime = -1.0f;
     private float _cloudU;
     private float _cloudV;
+    private float _waterAngle;
+    private float _waterScroll;
     private int _renders;
 
     /// <summary>
     /// CGame::Render's frame length (game.cpp:1669..1685: (time + fraction * CLOCK_TICK) / CLOCK_TICK, less the last; 1
-    /// at the first render) and CDXLandscape's cloud drift (DXLandscape.cpp:558..563), for each Present that draws the
-    /// world. The loading screen's Present (3) draws no landscape.
+    /// at the first render), CDXLandscape's cloud drift (DXLandscape.cpp:558..563) and CDXWater's angle2 (WATER_ADVANCE),
+    /// for each Present that draws the world. The loading screen's Present (3) draws no landscape.
     /// </summary>
     private void AccumulateCloudDrift(LevelSession session)
     {
@@ -187,6 +200,13 @@ public partial class Host : Node
         if (_cloudU > 1.0f)
         {
             _cloudU -= 1.0f;
+        }
+
+        _waterAngle = WaterView.Advance(_waterAngle, length);
+        _waterScroll += length * 0.003f;
+        if (_waterScroll > 1.0f)
+        {
+            _waterScroll -= 1.0f;
         }
 
         _cloudV += length * 0.0005f;

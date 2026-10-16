@@ -68,10 +68,12 @@ python3 tools/side_by_side.py /var/tmp/host-present150.png <retail capture> /var
 It draws the landscape (the lit cache ported from `CHeightField`, built at retail's 512 x 512, and the four texture
 stages with retail's matrices and cloud drift), the sky cube, and meshes with D3D's fixed-function lighting (the
 ambient render state and the sun and anti-sun, no light ambient for meshes, `MODULATE2X`) and EXP table fog, all
-blended in gamma space as retail does. Retail-derived textures and films are read from the installed game and the
-local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. Not drawn yet: water, the
-battle engine's animation pose, the landscape's per-patch levels of detail, particles and the HUD. Diagnostics:
-`HOST_TEXTURE_ONLY=1` and `HOST_DEBUG=lit|normal|colour|grey`.
+blended in gamma space as retail does. Water is retail's fixed-function path (the GeForce FX shader path needs a
+cardid.txt tweak retail never applies here): the camera-centred grid and the shores' surf strips from the level's SURF
+chunk, with retail's stages, texture matrices and drift. Retail-derived textures and films are read from the installed game and the
+local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. Not drawn yet: the battle
+engine's animation pose, the landscape's per-patch levels of detail, particles and the HUD. Diagnostics:
+`HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
 
 ## The earlier rebuild (parked state, 2026-09-26)
 

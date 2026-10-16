@@ -37,6 +37,8 @@ public sealed class TerrainTexture
         Ambient = BinaryPrimitives.ReadUInt32LittleEndian(heightField.AsSpan(Properties + 0x14));
         FogDensity = BinaryPrimitives.ReadSingleLittleEndian(heightField.AsSpan(Properties + 0x20));
         KempyCube = heightField[Properties + 0x18];
+        WaterNumber = heightField[Properties + 0x18 + 5];
+        WaterColour = BinaryPrimitives.ReadUInt32LittleEndian(heightField.AsSpan(Properties + 0x24));
         DetailTexture = heightField[Properties + 0x18 + 4];
         uint sun = BinaryPrimitives.ReadUInt32LittleEndian(heightField.AsSpan(Properties + 0x04));
         AntiSun = BinaryPrimitives.ReadUInt32LittleEndian(heightField.AsSpan(Properties + 0x08));
@@ -84,6 +86,12 @@ public sealed class TerrainTexture
     public uint Ambient { get; }
 
     public float FogDensity { get; }
+
+    /// <summary>mHFP.mUnknown18[5]: ENGINE.SetWater's number (CDXWater::Load's mixers\caustic%.2d and reflection%.2d).</summary>
+    public int WaterNumber { get; }
+
+    /// <summary>MAP.GetWaterColour (mHFP +0x24): the water's texture factor.</summary>
+    public uint WaterColour { get; }
 
     /// <summary>mHFP.mUnknown18[0]: ENGINE.SetKempyCube's sky number.</summary>
     public int KempyCube { get; }
