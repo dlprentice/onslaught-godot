@@ -20,6 +20,9 @@ public sealed class Gamut
 
     public readonly byte[] Visible = new byte[GridSize * GridSize];
 
+    /// <summary>Diagnostic: each cell's unquantised low and high heights from the last MakeIt.</summary>
+    public readonly float[] RawLow = new float[GridSize * GridSize], RawHigh = new float[GridSize * GridSize];
+
     public int MinX, MinY, MaxX, MaxY;
 
     public FVector CameraPos;
@@ -28,8 +31,12 @@ public sealed class Gamut
     public bool Open(int x, int y) => Spans[((y * GridSize) + x) * 2] >= Spans[(((y * GridSize) + x) * 2) + 1];
 
     /// <summary>MakeIt: the apex (half a cell back) and the far corners (the second and fourth a tenth further out).</summary>
+    /// <summary>Diagnostic: the last MakeIt's arguments.</summary>
+    public (FMatrix View, float Far, float ZoomX, float ZoomY, FVector Pos) LastInputs;
+
     public void MakeIt(FMatrix view, float farDistance, float zoomx, float zoomy, FVector pos)
     {
+        LastInputs = (view, farDistance, zoomx, zoomy, pos);
         CameraPos = pos;
         float fx = farDistance * zoomx;
         float fy = farDistance * zoomy;
@@ -74,7 +81,8 @@ public sealed class Gamut
         }
     }
 
-    private static sbyte Quantise(float h) => (sbyte)Math.Clamp((int)(h * 127.0f / 60.0f), -127, 127);
+    /// <summary>Quantise: (h * 127) / 60 on the x87, kept wide until the truncating conversion, clamped to a signed byte.</summary>
+    private static sbyte Quantise(float h) => (sbyte)Math.Clamp((int)(h * 127.0 / 60.0), -127, 127);
 
     /// <summary>ComputePlanes: each side plane through the apex and two far corners, solved for height over the grid.</summary>
     private void ComputePlanes(FVector[] points)
@@ -160,6 +168,8 @@ public sealed class Gamut
 
                 Spans[span + 1] = Quantise(lo);
                 Spans[span] = Quantise(hi);
+                RawLow[span / 2] = lo;
+                RawHigh[span / 2] = hi;
                 span += 2;
                 for (int i = 0; i < 4; i++)
                 {

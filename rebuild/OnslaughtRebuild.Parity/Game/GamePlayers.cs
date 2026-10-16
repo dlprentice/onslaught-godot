@@ -28,31 +28,31 @@ public abstract class Camera : Monitor
     /// <summary>GetZoom: the tangent of half the horizontal view (1 is 90 degrees across).</summary>
     public virtual float GetZoom() => 1.0f;
 
+    /// <summary>GetOldPos: the previous update's position (the current one unless the camera keeps it).</summary>
+    public virtual FVector GetOldPos() => GetPos();
+
+    /// <summary>GetOldOrientation.</summary>
+    public virtual FMatrix GetOldOrientation() => GetOrientation();
+
+    /// <summary>GetOldZoom.</summary>
+    public virtual float GetOldZoom() => GetZoom();
+
     /// <summary>
-    /// CInterpolatedCamera (0041ad30): what a render draws from: position, orientation and zoom from the camera's previous
-    /// update towards its current one by the render fraction (the orientation's rows renormalised). Only the pan camera
-    /// keeps its previous update so far; the others are drawn where they are.
+    /// CInterpolatedCamera (0041ad30): what a render draws from: the position, orientation and zoom from the camera's
+    /// previous update towards its current one by GetFrameRenderFraction2, the orientation renormalised by FMatrix's
+    /// Normalise (rows 0 and 1, then the cross products).
     /// </summary>
     public static (FVector Pos, FMatrix Ori, float Zoom) RenderView(Camera camera, float fraction)
     {
         FVector pos = camera.GetPos();
+        FVector oldpos = camera.GetOldPos();
+        FVector p = oldpos + ((pos - oldpos) * fraction);
         FMatrix ori = camera.GetOrientation();
-        if (camera is PanCamera pan)
-        {
-            FVector old = pan.OldPos;
-            pos = old + ((pos - old) * fraction);
-            FMatrix o = pan.OldOrientation;
-            FVector Row(FVector a, FVector b)
-            {
-                FVector r = a + ((b - a) * fraction);
-                float m = MathF.Sqrt((r.X * r.X) + (r.Y * r.Y) + (r.Z * r.Z));
-                return m > 0 ? r * (1 / m) : r;
-            }
-
-            ori = new FMatrix(Row(o.Row0, ori.Row0), Row(o.Row1, ori.Row1), Row(o.Row2, ori.Row2));
-        }
-
-        return (pos, ori, camera.GetZoom());
+        FMatrix oldori = camera.GetOldOrientation();
+        FMatrix o = oldori.Add(ori.Add(oldori.Scale(-1.0f)).Scale(fraction)).NormaliseRows();
+        float zoom = camera.GetZoom();
+        float oldzoom = camera.GetOldZoom();
+        return (p, o, oldzoom + ((zoom - oldzoom) * fraction));
     }
 
     /// <summary>delete camera (SetCurrentCamera releasing the old one).</summary>
@@ -92,6 +92,30 @@ public sealed class ThingCamera : Camera
 
     /// <summary>GetZoom (00418eb0): a battle engine's zoom, otherwise 1.</summary>
     public override float GetZoom() => _forThing.ToRead is Things.BattleEngine engine ? engine.Zoom : 1.0f;
+
+    /// <summary>GetOldPos (00418dd0): the thing's previous position (a battle engine's as it is).</summary>
+    public override FVector GetOldPos()
+    {
+        Thing? thing = _forThing.ToRead;
+        if (thing is null)
+        {
+            return new FVector(0, 0, 0);
+        }
+
+        if (thing is not Things.Actor actor || !thing.IsA(ThingType.BattleEngine))
+        {
+            throw new NotSupportedException("CThingCamera::GetOldPos of a thing other than a battle engine (bounding boxes are not ported)");
+        }
+
+        return actor.OldPos;
+    }
+
+    /// <summary>GetOldOrientation (00418e80): the thing's previous orientation.</summary>
+    public override FMatrix GetOldOrientation() =>
+        _forThing.ToRead is Things.Actor actor ? actor.OldOrientation : _forThing.ToRead?.GetOrientation() ?? FMatrix.Identity;
+
+    /// <summary>GetOldZoom (00418ed0): a battle engine's previous zoom, otherwise 1.</summary>
+    public override float GetOldZoom() => _forThing.ToRead is Things.BattleEngine engine ? engine.OldZoom : 1.0f;
 }
 
 /// <summary>CPlayer: a player's number (from 1), battle engine and view.</summary>

@@ -48,6 +48,9 @@ public sealed class WorldRender(ThingContext context)
     /// <summary>Things drawn as meshes in the last render (for checks).</summary>
     public int MeshesDrawn { get; private set; }
 
+    /// <summary>The things whose Render ran in the last render, in order (for checks).</summary>
+    public List<Thing> Rendered { get; } = [];
+
     /// <summary>The world pass of one render, from the camera's render view.</summary>
     public void Render(ParityCamera camera, float fraction2)
     {
@@ -58,6 +61,7 @@ public sealed class WorldRender(ThingContext context)
         Gamut.MakeIt(matview, 2048, zoom * 1.0f, zoom * AspectRatio, pos);
         BuildScreenMatrix(matview, pos, NearZ * zoom, NearZ * zoom * AspectRatio);
         MeshesDrawn = 0;
+        Rendered.Clear();
         RenderThings(ori);
         UpdateRenderLists();
     }
@@ -203,6 +207,60 @@ public sealed class WorldRender(ThingContext context)
         }
     }
 
+    /// <summary>Diagnostic: the thing's sector tests and screen test values in the last render.</summary>
+    public string Explain(Thing thing)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (int layer in new[] { 4, 3 })
+        {
+            Sector s = context.MapWho.WorldToSector(thing.Pos, layer);
+            int scale = 1 << (4 - layer);
+            int sx0 = Math.Min(Math.Max((s.X - 1) * scale, Gamut.MinX), Gamut.MaxX);
+            int sy0 = Math.Min(Math.Max((s.Y - 1) * scale, Gamut.MinY), Gamut.MaxY);
+            int sx1 = Math.Min(Math.Max((s.X + 2) * scale, Gamut.MinX), Gamut.MaxX);
+            int sy1 = Math.Min(Math.Max((s.Y + 2) * scale, Gamut.MinY), Gamut.MaxY);
+            int open = 0, closed = 0;
+            for (int gy = sy0; gy < sy1; gy++)
+            {
+                for (int gx = sx0; gx < sx1; gx++)
+                {
+                    if (Gamut.Open(gx, gy)) open++; else closed++;
+                }
+            }
+
+            if (layer == 4)
+            {
+                for (int gy = sy0; gy < sy1; gy++)
+                {
+                    for (int gx = sx0; gx < sx1; gx++)
+                    {
+                        if (!Gamut.Open(gx, gy))
+                        {
+                            sb.Append($"closed ({gx},{gy}) high {Gamut.Spans[((gy * 64) + gx) * 2]} low {Gamut.Spans[(((gy * 64) + gx) * 2) + 1]} raw low {Gamut.RawLow[(gy * 64) + gx]:R} raw high {Gamut.RawHigh[(gy * 64) + gx]:R} campos {_campos.X} {_campos.Y} {_campos.Z}; ");
+                        }
+                    }
+                }
+            }
+
+            sb.Append($"L{layer} sector {s.X},{s.Y} cells [{sx0},{sx1})x[{sy0},{sy1}) open {open} closed {closed}; ");
+        }
+
+        if (thing is IRenderSubject subject && thing.RenderThing?.MeshOrNull is { } mesh)
+        {
+            FVector pos = subject.RenderPos;
+            if (mesh.BoundingBox is { } box)
+            {
+                pos += thing.GetOrientation().Transform(box.Origin);
+            }
+
+            var right = new FVector(_wvp[0], 0, 0);
+            (float x1, float y1, float w1) = Transform(pos);
+            sb.Append($"screen x/w {x1 / w1 + 1} y/w {y1 / w1 + 1} w {w1} radius {mesh.Radius} gamut x[{Gamut.MinX},{Gamut.MaxX}] y[{Gamut.MinY},{Gamut.MaxY}]");
+        }
+
+        return sb.ToString();
+    }
+
     /// <summary>The visibility test: drawn unless (partly open cells only) its screen extent misses and the camera is outside it.</summary>
     private bool OnScreen(Thing thing, FVector right, float sx, float sy, bool partial)
     {
@@ -262,6 +320,7 @@ public sealed class WorldRender(ThingContext context)
             return;
         }
 
+        Rendered.Add(thing);
         RenderMesh(thing, rt);
     }
 

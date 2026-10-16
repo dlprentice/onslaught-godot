@@ -122,6 +122,12 @@ public sealed class PanCamera : Camera
     /// <summary>GetOrientation (00419d70): facing the thing, from the last update.</summary>
     public override FMatrix GetOrientation() => _orientation;
 
+    /// <summary>GetOldPos (00419d90).</summary>
+    public override FVector GetOldPos() => OldPos;
+
+    /// <summary>GetOldOrientation (00419dc0).</summary>
+    public override FMatrix GetOldOrientation() => OldOrientation;
+
     /// <summary>The previous update's position and orientation (mOldPos, mOldOrientation), for the render's interpolation.</summary>
     public FVector OldPos { get; private set; }
 
