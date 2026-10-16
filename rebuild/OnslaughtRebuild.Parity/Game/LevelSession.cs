@@ -82,15 +82,37 @@ public sealed class LevelSession
             Input.Deliver(Tape.EventsAt(before));
         }
 
+        if (Ended)
+        {
+            throw new InvalidOperationException("the level has ended (CGame::RunLevel returned)");
+        }
+
         while (Clock.PresentCount == before)
         {
             _mainLoop ??= Game.MainLoop().GetEnumerator();
             if (!_mainLoop.MoveNext())
             {
+                // One CGame::MainLoop done; RunLevel repeats it until mQuit is set. Then RunLevel's close fills the
+                // end-of-level data before the world is cleared (game.cpp 1506), and the front end takes it from there.
                 _mainLoop = null;
+                if (Game.Quit == OnslaughtRebuild.Parity.Clock.QuitType.None)
+                {
+                    continue;
+                }
+
+                Context.Skip("CGame::RunLevel's close: the samples killed, the music stopped, the language bank reloaded");
+                Game.FillOutEndLevelData(EndLevelData, Context.World);
+                Ended = true;
+                return;
             }
         }
     }
+
+    /// <summary>The level's main loop returned (it quit to the front end, timed out, restarted or the game quit).</summary>
+    public bool Ended { get; private set; }
+
+    /// <summary>END_LEVEL_DATA as RunLevel's close filled it.</summary>
+    public Career.EndLevelData EndLevelData { get; } = new();
 
     public ThingContext Context { get; }
 
