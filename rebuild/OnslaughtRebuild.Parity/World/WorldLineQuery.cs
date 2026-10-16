@@ -42,7 +42,9 @@ public static class WorldLineQuery
         bool hitGround = context.Map.LineHits(start, end, out FVector ground, mapFlag);
         if (hitGround)
         {
-            groundDistance = (start - ground).Magnitude();
+            // (Y*Y + Z*Z) + X*X, as VC6 compiles this Magnitude too (retail's distance at C's P136, a ground hit).
+            FVector toGround = start - ground;
+            groundDistance = MathF.Sqrt(((toGround.Y * toGround.Y) + (toGround.Z * toGround.Z)) + (toGround.X * toGround.X));
             output.HitType = LineHitType.Ground;
             output.DistToImpact = groundDistance;
         }
@@ -92,7 +94,10 @@ public static class WorldLineQuery
                 accept = false;
                 if (volume.CollideWithLine(ref own, ref incoming, line, report))
                 {
-                    distance = (report.ContactPos - start).Magnitude();
+                    // VC6 compiles this Magnitude as (Y*Y + Z*Z) + X*X (its product rank order): retail's distance on C's
+                    // level 100 tape at P68, a building's mesh, is that sum's root, one ulp from the written order's.
+                    FVector toContact = report.ContactPos - start;
+                    distance = MathF.Sqrt(((toContact.Y * toContact.Y) + (toContact.Z * toContact.Z)) + (toContact.X * toContact.X));
                     if ((!hitGround || groundDistance >= distance) && distance <= nearest)
                     {
                         accept = true;
