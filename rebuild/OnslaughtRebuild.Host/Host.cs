@@ -128,8 +128,8 @@ public partial class Host : Node
             // The cockpit, in first-person view (draw_fairly_late_stuff).
             if (engine is OnslaughtRebuild.Parity.Things.BattleEngine be0 && !be0.IsDying
                 && session.Game.GetPlayer(0)?.CurrentView == OnslaughtRebuild.Parity.Game.PlayerView.FirstPerson
-                && be0.Cockpit is { ShouldRender: true, RenderThing.MeshOrNull: { } cockpitMesh } cockpit
-                && meshViews.BuildAt(cockpitMesh, cockpit.RenderPos, cockpit.RenderOrientation) is { } cockpitNode)
+                && be0.Cockpit is { ShouldRender: true, RenderThing: { MeshOrNull: not null } cockpitRt }
+                && meshViews.BuildPosed(cockpitRt, session.Context.TransformStatics) is { } cockpitNode)
             {
                 world.AddChild(cockpitNode);
             }

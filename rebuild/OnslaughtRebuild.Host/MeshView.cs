@@ -132,6 +132,34 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
         return new MeshInstance3D { Mesh = built, Name = mesh.HeaderName, Transform = Place(thing.Pos, thing.GetOrientation()) };
     }
 
+    /// <summary>
+    /// A render thing drawn part by part at its pose (the cockpit, whose animation moves its parts): each part's world
+    /// transform from the core's EvaluatePose.
+    /// </summary>
+    public Node3D? BuildPosed(RenderThing rt, MeshTransformStatics statics)
+    {
+        MeshData mesh = rt.Mesh;
+        var root = new Node3D { Name = mesh.HeaderName };
+        foreach (MeshPart part in mesh.Parts)
+        {
+            if (!_builtParts.TryGetValue((mesh, part.PartNumber), out ArrayMesh? partMesh))
+            {
+                partMesh = BuildMesh(mesh, part.PartNumber);
+                _builtParts[(mesh, part.PartNumber)] = partMesh;
+            }
+
+            if (partMesh is null)
+            {
+                continue;
+            }
+
+            MeshPose.EvaluatePose(mesh, rt.Pose, rt.Subject, part, statics, out FVector pos, out FMatrix ori, local: false, force: false);
+            root.AddChild(new MeshInstance3D { Mesh = partMesh, Name = part.Name, Transform = Place(pos, ori) });
+        }
+
+        return root;
+    }
+
     /// <summary>A mesh at a placement (the cockpit: its render position and orientation), whole in its rest pose.</summary>
     public MeshInstance3D? BuildAt(MeshData mesh, FVector pos, FMatrix ori)
     {
