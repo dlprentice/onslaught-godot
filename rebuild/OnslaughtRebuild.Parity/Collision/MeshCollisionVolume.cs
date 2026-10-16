@@ -42,6 +42,13 @@ public interface IMeshCollisionSource
 /// </summary>
 public sealed class MeshCollisionVolume(IMeshCollisionSource? source, bool useFixedTransforms, bool ignoreAnimation)
 {
+    /// <summary>A diagnostic hook for collision traces (float bits); null in normal runs.</summary>
+    public static Action<string>? Trace;
+
+    internal static string Bits(float f) => BitConverter.SingleToUInt32Bits(f).ToString("x8");
+
+    internal static string Bits(FVector v) => $"{Bits(v.X)} {Bits(v.Y)} {Bits(v.Z)}";
+
     /// <summary>A part's cached transform (0x74 bytes): the orientation, its transpose, the position and its time (-1: none).</summary>
     public sealed class PartTransform
     {
