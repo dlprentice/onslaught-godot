@@ -58,9 +58,15 @@ public sealed class LevelSession
         if (!_started)
         {
             _started = true;
-            Clock.Present();
-            Clock.GetSysTimeFloat();
-            Clock.Present();
+            if (!FromFrontEnd)
+            {
+                Clock.Present();
+                Clock.GetSysTimeFloat();
+                Clock.Present();
+            }
+
+            // From the front end the boot's Presents are long past; the load's own Presents follow the same order
+            // (to be measured against a front-end run: the loading screen's throttle reads the clock between fractions).
             Game.StartLevelTiming();
             Game.PreRun();
 
@@ -127,7 +133,10 @@ public sealed class LevelSession
     public bool Ended { get; private set; }
 
     /// <summary>END_LEVEL_DATA as RunLevel's close filled it.</summary>
-    public Career.EndLevelData EndLevelData { get; } = new();
+    public Career.EndLevelData EndLevelData { get; private init; } = new();
+
+    /// <summary>Started from the front end (<see cref="LevelHost"/>): no boot Presents before the level.</summary>
+    public bool FromFrontEnd { get; private init; }
 
     public ThingContext Context { get; }
 
@@ -143,7 +152,7 @@ public sealed class LevelSession
     /// </summary>
     public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read,
         Func<Clock.PlatformClock, IMessageVoice>? voice = null,
-        Func<uint, Data.ChunkReader, bool>? otherChunk = null)
+        Func<uint, Data.ChunkReader, bool>? otherChunk = null, LevelHost? host = null)
     {
         (string pname, byte[] pbytes) = read(@"data\default physics.dat");
         PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
@@ -152,26 +161,37 @@ public sealed class LevelSession
         (string rname, byte[] rbytes) = read($@"data\Resources\{level}_res_PC.aya");
         LevelResources resources = LevelResources.Read(rname, rbytes, read, otherChunk: otherChunk);
 
-        var clock = new Clock.PlatformClock();
+        var clock = host?.Clock ?? new Clock.PlatformClock();
         var events = new EventManager();
-        // WinMain's boot load of the saved options (defaultoptions.bea): the bindings and gMouseSensitivity.
-        Platform.ControlBindings bindings = Platform.ControlBindings.Defaults();
-        Career.CareerOptions? options = null;
-        try
+        LevelInput input;
+        Platform.ControlBindings bindings;
+        if (host is not null)
         {
-            options = Career.DefaultOptions.Load(Career.Career.Constructed(), bindings, read(Career.DefaultOptions.FileName).Bytes);
+            // Started from the front end: the process's window, input, bindings and controller state carry on.
+            bindings = host.Bindings;
+            input = new LevelInput(clock, bindings, host.Input, host.Shared);
         }
-        catch (FileNotFoundException)
+        else
         {
-        }
+            // WinMain's boot load of the saved options (defaultoptions.bea): the bindings and gMouseSensitivity.
+            bindings = Platform.ControlBindings.Defaults();
+            Career.CareerOptions? options = null;
+            try
+            {
+                options = Career.DefaultOptions.Load(Career.Career.Constructed(), bindings, read(Career.DefaultOptions.FileName).Bytes);
+            }
+            catch (FileNotFoundException)
+            {
+            }
 
-        var input = new LevelInput(clock, bindings);
-        if (options is not null)
-        {
-            input.Shared.MouseSensitivity = options.MouseSensitivity;
+            input = new LevelInput(clock, bindings);
+            if (options is not null)
+            {
+                input.Shared.MouseSensitivity = options.MouseSensitivity;
+            }
         }
         var services = new ScriptGameServices(input);
-        var game = new Game(clock, events, services) { CurrentLevel = level };
+        var game = new Game(clock, events, services) { CurrentLevel = level, CareerSlots = host?.CareerSlots };
         game.InitRestartLoop();
         input.InitMouse();
         var pool = new SPtrSetPool();
@@ -183,6 +203,12 @@ public sealed class LevelSession
             BattleEngines = battleEngines,
             Game = game,
         };
+        if (host is not null)
+        {
+            // The process's C runtime: rand()'s state carries on from the front end.
+            context.Crt = host.Crt;
+        }
+
         foreach ((string name, Mesh.MeshData mesh) in resources.Meshes)
         {
             context.Meshes[name] = mesh;
@@ -257,6 +283,20 @@ public sealed class LevelSession
 
             context.Particles.Render(numRenders);
         };
-        return new LevelSession(context, game, resources, clock) { Input = input };
+        return new LevelSession(context, game, resources, clock)
+        {
+            Input = input,
+            EndLevelData = host?.EndLevelData ?? new Career.EndLevelData(),
+            FromFrontEnd = host is not null,
+        };
     }
 }
+
+/// <summary>
+/// What a level started from the front end shares with the process (CSystem::Run's GAME.RunLevel): the platform clock,
+/// the window's input, the bindings and controller state, the C runtime's main-thread rand(), END_LEVEL_DATA, which
+/// the level fills as it ends and the front end reads, and the career's slots (CAREER.GetSlots, which InitRestartLoop
+/// copies).
+/// </summary>
+public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput Input, Platform.ControlBindings Bindings,
+    Platform.ControllerShared Shared, Crt.CrtRandStream Crt, Career.EndLevelData EndLevelData, int[] CareerSlots);

@@ -25,13 +25,19 @@ public sealed class LevelInput : IGameServices, IControllerGame
     private Game? _game;
 
     public LevelInput(PlatformClock clock, ControlBindings bindings)
+        : this(clock, bindings, new PlatformInput(new PlatformWindow()), new ControllerShared())
+    {
+    }
+
+    /// <summary>A level's input on the process's window and input (a level started from the front end).</summary>
+    public LevelInput(PlatformClock clock, ControlBindings bindings, PlatformInput input, ControllerShared shared)
     {
         _clock = clock;
         _rest = new NullGameServices(clock.Present);
-        Window = new PlatformWindow();
-        Input = new PlatformInput(Window);
+        Window = input.Window;
+        Input = input;
         Mouse = new DirectInputMouse(Input.Mouse, Window);
-        Shared = new ControllerShared();
+        Shared = shared;
         Context = new ControllerContext(bindings, Input, Shared, this, () => clock.GetSysTimeFloat());
     }
 

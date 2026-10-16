@@ -109,8 +109,11 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
             }
         }
 
-        // With no goodies the fade has already started, so the last position is never read.
-        if (Fade == 0f && x[NumGoodies - 1] > 0f) Fade = 0.001f;
+        // With no goodies the fade has normally already started, so the last position is never read. While the page is
+        // inactive before its first transition (no goodies, no fade) retail reads mPositions[-1], the memory manager's
+        // word before the array: whatever it does to the fade, TransitionNotification sets the fade again before the
+        // page shows, so the core reads nothing there.
+        if (Fade == 0f && NumGoodies > 0 && x[NumGoodies - 1] > 0f) Fade = 0.001f;
         if (Fade != 0f)
         {
             Fade = (float)X87.Add(Fade, 0.02f);

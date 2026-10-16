@@ -34,7 +34,7 @@ public sealed class RetailChainTests
     }
 
     // fe-explore4's mouse events: (completed Presents when retail's Process handles it, message, x, y, wParam).
-    private static readonly (int Present, MouseMessage Message, int X, int Y, int WParam)[] Tape =
+    internal static readonly (int Present, MouseMessage Message, int X, int Y, int WParam)[] ClickTape =
     [
         (2590, MouseMessage.Move, 320, 240, 0), (2592, MouseMessage.LeftDown, 320, 240, 1), (2596, MouseMessage.LeftUp, 320, 240, 0),
         (2698, MouseMessage.Move, 219, 304, 0), (2700, MouseMessage.LeftDown, 219, 304, 1), (2704, MouseMessage.LeftUp, 219, 304, 0),
@@ -87,44 +87,8 @@ public sealed class RetailChainTests
         PlatformInput input = new(new PlatformWindow());
         ControlBindings bindings = ControlBindings.Defaults();
         ControllerContext controls = new(bindings, input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
-        FrontEnd frontEnd = new(clock, new FrontEndTiming(), controls);
-
-        // WinMain's boot: the shipped defaultoptions.bea loads its bindings and options, and the career is wiped.
-        CareerOptions? options = DefaultOptions.Load(frontEnd.Career, bindings, GameData.Read(DefaultOptions.FileName).Bytes);
-        frontEnd.ReadDataFile = path => GameData.Read(path).Bytes;
-        frontEnd.CurrentOptions = () => options ?? CareerOptions.Read(new byte[CareerOptions.Size]);
-        frontEnd.Video = new NoVideo();
-        (string bedName, byte[] bedBytes) = GameData.Read(@"data\battle engine configurations.dat");
-        BattleEngineDataManager engines = BattleEngineDataManager.Load(MemBuffer.FromFile(bedName, bedBytes));
-        frontEnd.CockpitOf = name => engines.GetConfiguration(name)?.CockpitText;
-        frontEnd.SmallFont = new BitmapFont(Inflated(@"data\resources\textures\mustbe_Font13PS.tga(0)A8R8G8B8.aya"), 16, charSwapHack: false);
-        frontEnd.NormalFont = new BitmapFont(Inflated(@"data\resources\textures\mustbe_font22.512.tga(0)A8R8G8B8.aya"), 32, charSwapHack: false);
-        frontEnd.Texts = new FrontEndTexts(
-            TextDatabase.Load(GameData.Read(TextDatabase.FileName(0, americanText: false)).Bytes),
-            TextIds.Read(GameData.Read(TextIds.FileName).Bytes), input,
-            pcText: id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id]);
-
-        DevSelectPage devSelect = new(frontEnd);
-        VirtualKeyboardPage keyboard = new(frontEnd);
-        DirectoryPage directory = new(frontEnd);
-        LevelSelectPage levelSelect = new(frontEnd);
-        LoadGamePage loadGame = new(frontEnd);
-        frontEnd[FrontEndPage.Intro] = new IntroPage(frontEnd);
-        frontEnd[FrontEndPage.Main] = new MainPage(frontEnd);
-        frontEnd[FrontEndPage.DevSelect] = devSelect;
-        frontEnd[FrontEndPage.VirtualKeyboard] = keyboard;
-        frontEnd[FrontEndPage.Directory] = directory;
-        frontEnd[FrontEndPage.SaveGame] = new SaveGamePage(frontEnd);
-        frontEnd[FrontEndPage.LoadGame] = loadGame;
-        frontEnd[FrontEndPage.LevelSelect] = levelSelect;
-        frontEnd[FrontEndPage.Briefing] = new BriefingPage(frontEnd);
-        frontEnd[FrontEndPage.BeConfig] = new BeConfigPage(frontEnd);
-        frontEnd.DevSelect = devSelect;
-        frontEnd.VirtualKeyboard = keyboard;
-        frontEnd.Directory = directory;
-        frontEnd.LevelSelect = levelSelect;
-        frontEnd.LoadGame = loadGame;
-
+        FrontEnd frontEnd = FrontEndSetup.Create(clock, controls, bindings, GameData.Read,
+            id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id], out _, new NoVideo());
         return (frontEnd, input);
     }
 
@@ -149,8 +113,8 @@ public sealed class RetailChainTests
         {
             lastProcess = clock.PresentCount;
             Assert.True(lastProcess < 4000, "the front end never returned");
-            for (; next < Tape.Length && Tape[next].Present == lastProcess; next++)
-                input.PostMouseMessage(Tape[next].Message, Tape[next].X, Tape[next].Y, Tape[next].WParam);
+            for (; next < ClickTape.Length && ClickTape[next].Present == lastProcess; next++)
+                input.PostMouseMessage(ClickTape[next].Message, ClickTape[next].X, ClickTape[next].Y, ClickTape[next].WParam);
             if (!frontEnd.Step()) break;
         }
 
