@@ -1088,8 +1088,8 @@ public sealed partial class BattleEngine
                 float t = (bp - op).Magnitude() / bv.Magnitude() * 20.0f;
                 FVector predictedPos = op + (ov * t);
                 FVector diff = predictedPos - (Pos + GetVelocity());
-                DesiredAutoAimYawOffset = -AngleDifference(currentYaw, WeaponMaths.Azimuth(Context, diff));
-                DesiredAutoAimPitchOffset = -AngleDifference(currentPitch, WeaponMaths.Elevation(Context, diff));
+                DesiredAutoAimYawOffset = -WeaponMaths.AngleDifference(currentYaw, WeaponMaths.AzimuthUnrounded(diff));
+                DesiredAutoAimPitchOffset = -WeaponMaths.AngleDifference(currentPitch, WeaponMaths.ElevationUnrounded(diff));
                 if (MathF.Abs(DesiredAutoAimYawOffset) + MathF.Abs(DesiredAutoAimPitchOffset) > 0.2f)
                 {
                     TrackingYawOffset = DesiredAutoAimYawOffset;
@@ -1112,8 +1112,8 @@ public sealed partial class BattleEngine
             else
             {
                 FVector diff = op - (Pos + GetVelocity());
-                DesiredAutoAimYawOffset = -AngleDifference(currentYaw, WeaponMaths.Azimuth(Context, diff));
-                DesiredAutoAimPitchOffset = -AngleDifference(currentPitch, WeaponMaths.Elevation(Context, diff));
+                DesiredAutoAimYawOffset = -WeaponMaths.AngleDifference(currentYaw, WeaponMaths.AzimuthUnrounded(diff));
+                DesiredAutoAimPitchOffset = -WeaponMaths.AngleDifference(currentPitch, WeaponMaths.ElevationUnrounded(diff));
                 TrackingActive = false;
             }
         }

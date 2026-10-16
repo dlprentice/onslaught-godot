@@ -117,6 +117,35 @@ public static class WeaponMaths
         return 0.0f;
     }
 
+    /// <summary>
+    /// FVector::Azimuth as an inline caller keeps it: fpatan's result stays on the FPU stack unrounded (the precision
+    /// control rounds only arithmetic), so a difference taken from it rounds once. CBattleEngine::UpdateAutoAim's desired
+    /// offsets read it so (retail win1 P4199: 3d5b9024 where a rounded azimuth gives 3d5b9020).
+    /// </summary>
+    public static double AzimuthUnrounded(FVector v) => -X87.Atan2(v.X, v.Y);
+
+    /// <summary>FVector::Elevation kept unrounded as <see cref="AzimuthUnrounded"/>: the CRT asin's double result.</summary>
+    public static double ElevationUnrounded(FVector v)
+    {
+        float m = v.Magnitude();
+        return m > 0.0f ? X87.Asin(v.Z / m) : 0.0;
+    }
+
+    /// <summary>AngleDifference of a float and an unrounded angle: each subtraction rounds to a float (precision control 24 bits).</summary>
+    public static float AngleDifference(float a, double b)
+    {
+        if (a < -Pi / 2 && b > Pi / 2)
+        {
+            b = (float)(b - PiM2);
+        }
+        else if (a > Pi / 2 && b < -Pi / 2)
+        {
+            b = (float)(b + PiM2);
+        }
+
+        return (float)(a - b);
+    }
+
     /// <summary>AngleDifference: a - b, with b taken round by 2PI when the two sit either side of +-PI/2.</summary>
     public static float AngleDifference(float a, float b)
     {
