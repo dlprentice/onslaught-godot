@@ -131,4 +131,21 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(680, r.CrtMatchedThrough);
     }
+
+    /// <summary>
+    /// R2 (fe-r2-idle-port): no input. The title's 30 seconds idle end the front end (the port's CFrontEnd::Shutdown and
+    /// the logo film at Present 904); rand() is untouched. Compared to Present 3000: the port's film playback never ends
+    /// under its replay, so the attract films' Presents come from retail's boot (RetailChainTests) instead.
+    /// </summary>
+    [RetailGoldenFact("portrefs/fe-r2-idle-port/empty.tape", "portrefs/fe-r2-idle-port/crt-per-present.txt",
+        "portrefs/fe-r2-idle-port/frontend-trace.txt")]
+    public void IdleOnTheTitleMatchesThePort()
+    {
+        RouteResult r = Run("portrefs/fe-r2-idle-port/empty.tape", "portrefs/fe-r2-idle-port", 3000);
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; flow {string.Join(" | ", r.Run.Flow!.Trace)}");
+        Assert.Equal(r.PortPages, r.Pages);
+        Assert.Null(r.FirstCrtDifference);
+        Assert.Equal(3000, r.CrtMatchedThrough);
+        Assert.Equal(["front end Start", "attract"], r.Run.Flow.Trace);
+    }
 }
