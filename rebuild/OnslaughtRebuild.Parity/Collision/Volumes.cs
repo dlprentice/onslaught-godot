@@ -30,6 +30,25 @@ public abstract class GeneralVolume
 
     public abstract bool CollideWithSphere(ref CollisionMove own, ref CollisionMove move, SphereVolume other, CollisionReport report);
 
+    public abstract bool CollideWithLine(ref CollisionMove own, ref CollisionMove move, LineVolume other, CollisionReport report);
+
+    /// <summary>
+    /// TestAtOffset (004780f0, Geometry.cpp): this volume at the origin against <paramref name="other"/> at
+    /// <paramref name="offset"/> (only the positions and stopped flags are set; the moves are left as they are).
+    /// </summary>
+    public bool TestAtOffset(GeneralVolume other, FVector offset, CollisionReport report)
+    {
+        var own = new CollisionMove { Stopped = false, Pos = new FVector(0, 0, 0) };
+        var incoming = new CollisionMove { Stopped = false, Pos = offset };
+        return Collide(ref own, ref incoming, other, report);
+    }
+
+    /// <summary>FVector's dot product (maths.h): (X*aX + Y*aY) + Z*aZ.</summary>
+    protected static float Dot(FVector v, FVector a) => (v.X * a.X) + (v.Y * a.Y) + (v.Z * a.Z);
+
+    /// <summary>MagnitudeSq (maths.h): (X*X + Y*Y) + Z*Z.</summary>
+    protected static float MagnitudeSq(FVector v) => (v.X * v.X) + (v.Y * v.Y) + (v.Z * v.Z);
+
     /// <summary>FVector::Normalise inline: the reciprocal of the length multiplies each axis, unless the length is 0.</summary>
     protected static FVector Normalised(FVector v)
     {
@@ -53,6 +72,31 @@ public sealed class SphereVolume(float radius) : GeneralVolume
     /// <summary>Slot 1 is Collide's body (folded at 00426320): the mesh tests the sphere.</summary>
     public override bool CollideWithMesh(ref CollisionMove own, ref CollisionMove move, MeshVolume other, CollisionReport report) =>
         other.CollideWithSphere(ref move, ref own, this, report);
+
+    /// <summary>
+    /// CollideWithLine (004e4b90): the line, offset by the movements' difference, starts or ends inside, or its nearest
+    /// point within the segment is.
+    /// </summary>
+    public override bool CollideWithLine(ref CollisionMove own, ref CollisionMove move, LineVolume other, CollisionReport report)
+    {
+        FVector offset = move.Pos - own.Pos;
+        FVector start = offset + other.Start;
+        FVector end = offset + other.End;
+        if (MagnitudeSq(start) < RadiusSquared || MagnitudeSq(end) < RadiusSquared)
+        {
+            return true;
+        }
+
+        FVector delta = start - end;
+        float fraction = Dot(delta, start) / MagnitudeSq(delta);
+        if (fraction >= 0.0 && fraction <= 1.0)
+        {
+            FVector closest = start + ((end - start) * fraction);
+            return MagnitudeSq(closest) <= RadiusSquared;
+        }
+
+        return false;
+    }
 
     /// <summary>CollideWithCylinder (004e4d70): this sphere as a cylinder of its radius each way.</summary>
     public override bool CollideWithCylinder(ref CollisionMove own, ref CollisionMove move, CylinderVolume other, CollisionReport report) =>
@@ -162,6 +206,63 @@ public sealed class CylinderVolume(float radius, float halfHeight) : GeneralVolu
 
     public override bool CollideWithSphere(ref CollisionMove own, ref CollisionMove move, SphereVolume other, CollisionReport report) =>
         other.CollideWithCylinder(ref move, ref own, this, report);
+
+    /// <summary>
+    /// CollideWithLine (Cylinder.cpp): the line, offset by the movements' difference, clear of the cylinder's height band or
+    /// its radius misses; otherwise, when an end lies beyond the band or a response is asked for, the entry and exit
+    /// points along it decide, and a response moves the line's movement to the entry.
+    /// </summary>
+    public override bool CollideWithLine(ref CollisionMove own, ref CollisionMove move, LineVolume other, CollisionReport report)
+    {
+        FVector offset = move.Pos - own.Pos;
+        FVector start = offset + other.Start;
+        FVector end = offset + other.End;
+        if ((start.Z > Height && end.Z > Height) || (start.Z < -Height && end.Z < -Height))
+        {
+            return false;
+        }
+
+        FVector delta = start - end;
+        if (MagnitudeSq(start) > RadiusSquared && MagnitudeSq(end) > RadiusSquared)
+        {
+            float fraction = Dot(delta, start) / MagnitudeSq(delta);
+            if (fraction < 0.0 || fraction > 1.0)
+            {
+                return false;
+            }
+
+            FVector closest = start + ((end - start) * fraction);
+            if ((closest.X * closest.X) + (closest.Y * closest.Y) > RadiusSquared)
+            {
+                return false;
+            }
+        }
+
+        if (MathF.Abs(start.Z) > Height || MathF.Abs(end.Z) > Height || report.TestTriangles != 0)
+        {
+            float speed = (end - start).Magnitude();
+            float distance = -start.Magnitude();
+            float aa = speed * speed;
+            float bb = 2 * (speed * distance);
+            float root = MathF.Sqrt((bb * bb) - (4 * aa * ((distance * distance) - RadiusSquared)));
+            float firstFraction = Math.Clamp((-bb - root) / (2 * aa), 0.0f, 1.0f);
+            float lastFraction = Math.Clamp((-bb + root) / (2 * aa), 0.0f, 1.0f);
+            FVector first = start + (-delta * firstFraction);
+            FVector last = start + (-delta * lastFraction);
+            if ((first.Z > Height && last.Z > Height) || (first.Z < -Height && last.Z < -Height))
+            {
+                return false;
+            }
+
+            if (report.TestTriangles != 0)
+            {
+                move.Pos = move.Pos + (first - offset);
+                move.Stopped = true;
+            }
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// CollideWithCylinder (0043fe20): they meet when the radial gap and the vertical gap both close. With the response
@@ -294,4 +395,34 @@ public sealed class MeshVolume(MeshCollisionVolume mesh) : GeneralVolume
 
     public override bool CollideWithSphere(ref CollisionMove own, ref CollisionMove move, SphereVolume other, CollisionReport report) =>
         Mesh.CollideWithSphere(ref move, other.Radius, report);
+
+    /// <summary>CollideWithLine (004ad830): the line in each collision part.</summary>
+    public override bool CollideWithLine(ref CollisionMove own, ref CollisionMove move, LineVolume other, CollisionReport report) =>
+        Mesh.CollideWithLine(ref move, other.Start, other.End, report);
+}
+
+/// <summary>CLine: a segment from <see cref="Start"/> to <see cref="End"/> (relative to its movement's position).</summary>
+public sealed class LineVolume(FVector start, FVector end) : GeneralVolume
+{
+    public FVector Start { get; } = start;
+
+    public FVector End { get; } = end;
+
+    public override int Type => 1;
+
+    /// <summary>Collide and the CollideWith slots (004098c0): the other volume tests this line, the movements swapped.</summary>
+    public override bool Collide(ref CollisionMove own, ref CollisionMove move, GeneralVolume other, CollisionReport report) =>
+        other.CollideWithLine(ref move, ref own, this, report);
+
+    public override bool CollideWithMesh(ref CollisionMove own, ref CollisionMove move, MeshVolume other, CollisionReport report) =>
+        other.CollideWithLine(ref move, ref own, this, report);
+
+    public override bool CollideWithCylinder(ref CollisionMove own, ref CollisionMove move, CylinderVolume other, CollisionReport report) =>
+        other.CollideWithLine(ref move, ref own, this, report);
+
+    public override bool CollideWithSphere(ref CollisionMove own, ref CollisionMove move, SphereVolume other, CollisionReport report) =>
+        other.CollideWithLine(ref move, ref own, this, report);
+
+    /// <summary>CollideWithLine (004098b0): two lines never meet.</summary>
+    public override bool CollideWithLine(ref CollisionMove own, ref CollisionMove move, LineVolume other, CollisionReport report) => false;
 }

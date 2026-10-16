@@ -7,6 +7,7 @@
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.World;
 using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Things;
@@ -530,7 +531,22 @@ public sealed partial class BattleEngine
         // The forced movement (mPos less the position before the standing-on-object move): none, since that move throws
         // above.
         MotionController?.AddMovement(new FVector(0, 0, 0));
-        Context.Skip("CBattleEngine::Move: the step-up line test (WORLD.FindFirstThingToHitLine; not ported yet)");
+        // The step-up: a line 2.4 down from the centre; a walkable thing hit closer than the centre of gravity's height
+        // lifts the battle engine onto it.
+        var wlcr = new WorldLineReport();
+        WorldLineQuery.FindFirstThingToHitLine(Context, Pos, Pos + new FVector(0.0f, 0.0f, 2.4f), this, wlcr, false, true, 2,
+            ThingType.Ammunition, false);
+        float dist = wlcr.DistToImpact;
+        if (dist > 0.0f && dist < COfGHeight())
+        {
+            if (wlcr.HitThing is { } hitThing && hitThing.IsA(ThingType.CanBeWalkedOn))
+            {
+                Pos.Z += dist - COfGHeight();
+                DeclareOnObject(hitThing);
+                DeclareOnGround();
+            }
+        }
+
         UpdateRotation();
         for (int n = 0; n < Stores; n++)
         {
@@ -564,12 +580,13 @@ public sealed partial class BattleEngine
     /// <summary>IsStandingOnAMoveingObject: on an object that is moving.</summary>
     private bool IsStandingOnAMovingObject()
     {
-        if (StandingOnThing.ToRead is not { } thing || !IsOnObject())
+        if (!IsOnObject() || StandingOnThing.ToRead is not { } thing)
         {
             return false;
         }
 
-        throw new NotSupportedException("CBattleEngine::IsStandingOnAMoveingObject (not ported yet)");
+        FVector v = thing.GetVelocity();
+        return (v.X * v.X) + (v.Y * v.Y) + (v.Z * v.Z) > 0.0f;
     }
 
     /// <summary>The velocity clamps that stop the engine leaving the map (20 beyond its edges, 150 below).</summary>

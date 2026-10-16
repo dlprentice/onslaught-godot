@@ -22,6 +22,9 @@ public static class ActorEvent
 public abstract class Actor(ThingContext context, int classId) : ComplexThing(context, classId), IRenderSubject
 {
     public FVector Velocity;
+
+    /// <summary>GetVelocity (actor.h): mVelocity.</summary>
+    public override FVector GetVelocity() => Velocity;
     public FVector OldPos;
     public FMatrix OldOrientation;
     public float LastTimeOnGround;

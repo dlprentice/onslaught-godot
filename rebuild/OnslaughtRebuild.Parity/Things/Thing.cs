@@ -221,6 +221,9 @@ public abstract class Thing : Monitor, IOccupancyUnit
 
     public bool HasCollisionMeshVolume() => CollisionMeshVolume is not null;
 
+    /// <summary>GetVelocity (slot 27): zero for a plain thing.</summary>
+    public virtual FVector GetVelocity() => new(0, 0, 0);
+
     /// <summary>GetOrientation (virtual): the identity for a plain thing.</summary>
     public virtual FMatrix GetOrientation() => FMatrix.Identity;
 
