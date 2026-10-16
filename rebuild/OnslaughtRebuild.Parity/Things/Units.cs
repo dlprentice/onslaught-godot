@@ -19,9 +19,17 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CGroundUnit: a unit on the ground, a full move every fourth frame.</summary>
 public abstract class GroundUnit(ThingContext context) : Unit(context)
 {
-    /// <summary>CGroundUnit::StartDieProcess (0047ce80): the class's death; not ported yet.</summary>
-    public override bool StartDieProcess() =>
-        IsDying ? false : throw new NotSupportedException("CGroundUnit::StartDieProcess (0047ce80) is not ported");
+    /// <summary>CGroundUnit::StartDieProcess (0047ce80): CUnit's, and the bob stops.</summary>
+    public override bool StartDieProcess()
+    {
+        if (!base.StartDieProcess())
+        {
+            return false;
+        }
+
+        BobPhase = 0;
+        return true;
+    }
 
     /// <summary>CGroundUnit::InitCollisionSeekingThing (0047c8e0): without a shape, a sphere of 0.8 of the bounding radius.</summary>
     public override void InitCollisionSeekingThing(InitCollision init)
@@ -163,9 +171,20 @@ public abstract class GroundUnit(ThingContext context) : Unit(context)
 /// <summary>CGroundVehicle: tanks and trucks.</summary>
 public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 {
-    /// <summary>CGroundVehicle::StartDieProcess (0041b590): the class's death; not ported yet.</summary>
-    public override bool StartDieProcess() =>
-        IsDying ? false : throw new NotSupportedException("CGroundVehicle::StartDieProcess (0041b590) is not ported");
+    /// <summary>Unknown112 (slot 112): a vehicle shuts down half a second after its removal.</summary>
+    public override float Unknown112() => 0.5f;
+
+    /// <summary>CGroundVehicle::StartDieProcess (0041b590): the ground unit's death, then Remove (its explosion, its script, its shutdown).</summary>
+    public override bool StartDieProcess()
+    {
+        if (!base.StartDieProcess())
+        {
+            return false;
+        }
+
+        Remove();
+        return true;
+    }
 
     /// <summary>GetMaxVelocity (slot 15).</summary>
     public override float GetMaxVelocity() => 3.5f;
@@ -236,9 +255,17 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 /// <summary>CCannon: a turret.</summary>
 public sealed class Cannon(ThingContext context) : GroundUnit(context)
 {
-    /// <summary>CCannon::StartDieProcess (0041b590): the class's death; not ported yet.</summary>
-    public override bool StartDieProcess() =>
-        IsDying ? false : throw new NotSupportedException("CCannon::StartDieProcess (0041b590) is not ported");
+    /// <summary>CCannon::StartDieProcess (0041b590): the ground unit's death, then Remove (its explosion, its script, its shutdown).</summary>
+    public override bool StartDieProcess()
+    {
+        if (!base.StartDieProcess())
+        {
+            return false;
+        }
+
+        Remove();
+        return true;
+    }
 
     public int State;
     public bool AboveWater;

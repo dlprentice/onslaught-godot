@@ -332,6 +332,65 @@ public abstract partial class Unit
         }
     }
 
+    /// <summary>Unknown112 (slot 112): how long after its removal a unit shuts down.</summary>
+    public virtual float Unknown112() => 0.05f;
+
+    /// <summary>
+    /// Remove (004fd040): the children released (killed when dying), the spawners cleared, the unit's explosion, its
+    /// script told it died and deleted, and its shutdown after Unknown112 seconds.
+    /// </summary>
+    public void Remove()
+    {
+        if (UnitData?.Components.Count > 0)
+        {
+            throw new NotSupportedException("CUnit::ReleaseChildren (a unit's components) is not ported");
+        }
+
+        if (UnitData?.Spawners.Count > 0)
+        {
+            Context.Skip("CUnit::ClearSpawners (the unit's idle spawners)");
+        }
+
+        SpawnUnitExplosion();
+        if (Script is not null)
+        {
+            Script.Died();
+            Script.Delete();
+            Script = null;
+        }
+
+        Context.Events.AddEvent(ThingEvent.Shutdown, this, Unknown112() + Context.Events.Time);
+    }
+
+    /// <summary>
+    /// SpawnExplosion (004fd230): the unit data's explosion at the unit, its radius the unit's, its effects free to scatter
+    /// over the unit; on the ground, in water or in the air as the unit is.
+    /// </summary>
+    public void SpawnUnitExplosion()
+    {
+        if (UnitData is null)
+        {
+            return;
+        }
+
+        int index = UnitData.Explosion;
+        Explosion? explosion = Explosion.Spawn(Context, index);
+        var init = new InitThing
+        {
+            Behaviour = index >= 0 && index < Context.Physics.Explosions.Count ? Context.Physics.Explosions[index] : null,
+            Allegiance = Allegiance,
+            AttachedTo = this,
+            UseAttachedRadius = true,
+            AllowVolumetric = true,
+            ColType = IsOnGround() ? 1 : IsInWater() ? 2 : 0,
+        };
+        if (explosion is not null)
+        {
+            init.Pos = Pos;
+            explosion.Init(init);
+        }
+    }
+
     /// <summary>mSaidDying / mSaidQuarterLife / mSaidHalfLife: a wingman's lines already said.</summary>
     public bool SaidDying, SaidQuarterLife, SaidHalfLife;
 
