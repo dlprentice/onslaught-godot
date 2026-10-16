@@ -50,6 +50,9 @@ public sealed partial class Game
     /// </summary>
     public int[]? CareerSlots { get; set; }
 
+    /// <summary>CAREER.SetSlot (the script's SetSlotSave sets the career's slot too); null without a career.</summary>
+    public Action<int, int>? CareerSetSlot { get; set; }
+
     public MissionObjective[] PrimaryObjectives { get; } = NewObjectives(MaxPrimaryObjectives);
 
     public MissionObjective[] SecondaryObjectives { get; } = NewObjectives(MaxSecondaryObjectives);

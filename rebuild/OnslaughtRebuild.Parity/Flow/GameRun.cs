@@ -40,6 +40,10 @@ public sealed class GameRun : ISystemParts
         }
 
         FrontEnd.Crt = Crt;
+        Loading = new LoadingScreen(Clock, () => Input.Process(Clock.QueryPerformanceCounter()));
+        FrontEnd.Loading = Loading;
+        Sound.SoundEffects sounds = Sound.SoundEffects.Load(read(Sound.SoundEffects.FileName).Bytes);
+        FrontEnd.PlayEffect = name => sounds.PlayEffect(sounds.Find(name), Crt.MainThread);
         Clock.Presented = Presented;
     }
 
@@ -57,6 +61,9 @@ public sealed class GameRun : ISystemParts
     public Crt.CrtRand Crt { get; } = new();
 
     public FrontEnd FrontEnd { get; }
+
+    /// <summary>CONSOLE's loading screen.</summary>
+    public LoadingScreen Loading { get; }
 
     /// <summary>The level running now, or the last one.</summary>
     public LevelSession? Level { get; private set; }
@@ -78,12 +85,23 @@ public sealed class GameRun : ISystemParts
     /// </summary>
     public int Run()
     {
-        Clock.GetSysTimeFloat();
         Input.FlushInputBuffers();
-        BootFilms.Play(_films, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: _skipFmv, Attract: false));
-        for (int i = 0; i < BootFilms.PresentsAfterFilms; i++)
+        if (_skipFmv)
         {
+            // No films: the boot's two Presents, with the game's first clock read (GetSysTimeFloat's origin) after the
+            // first, as a -level start has them (the level-100 golden; the port's front-end run's frame times agree).
             Clock.Present();
+            Clock.GetSysTimeFloat();
+            Clock.Present();
+        }
+        else
+        {
+            Clock.GetSysTimeFloat();
+            BootFilms.Play(_films, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: false, Attract: false));
+            for (int i = 0; i < BootFilms.PresentsAfterFilms; i++)
+            {
+                Clock.Present();
+            }
         }
 
         Flow = new SystemFlow(this);
@@ -115,7 +133,7 @@ public sealed class GameRun : ISystemParts
         }
 
         Level = LevelSession.Load(level, _read, _voice,
-            host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots));
+            host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots, Loading, FrontEnd.Career.SetSlot));
         while (!Level.Ended)
         {
             Level.AdvanceToNextPresent();

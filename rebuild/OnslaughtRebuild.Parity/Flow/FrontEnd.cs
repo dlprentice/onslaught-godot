@@ -290,10 +290,29 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary><c>RECONNECT_INTERFACE</c>: player 0's and player 1's controller-reconnect prompts.</summary>
     public ReconnectInterface[] Reconnect { get; } = [new(), new()];
 
-    /// <summary>The sounds the front end plays (<c>EFrontEndSound</c>); recorded for the host, not modelled further.</summary>
+    /// <summary>The sounds the front end plays (<c>EFrontEndSound</c>), recorded for the host.</summary>
     public List<FrontEndSound> SoundsPlayed { get; } = [];
 
-    public void PlaySound(FrontEndSound sound) => SoundsPlayed.Add(sound);
+    /// <summary>
+    /// SOUND.PlayEffect for a front-end sound by its effect name (<c>CFrontEnd::GetSoundName</c>: "Front End Move",
+    /// "Front End Select", "Front End Back"), which draws on the main thread's rand(); null where no sound manager runs.
+    /// </summary>
+    public Action<string>? PlayEffect { get; set; }
+
+    /// <summary>CONSOLE's loading screen, which Init shows while it loads; null where no console runs.</summary>
+    public LoadingScreen? Loading { get; set; }
+
+    /// <summary><c>CFrontEnd::PlaySound</c> (0x00468770): <c>SOUND.PlayEffect(SOUND.GetEffectByName(name), NULL)</c>.</summary>
+    public void PlaySound(FrontEndSound sound)
+    {
+        SoundsPlayed.Add(sound);
+        PlayEffect?.Invoke(sound switch
+        {
+            FrontEndSound.Move => "Front End Move",
+            FrontEndSound.Select => "Front End Select",
+            _ => "Front End Back",
+        });
+    }
 
     /// <summary><c>mControllers</c>: one per port, created when the front end begins.</summary>
     public Controller?[] Controllers { get; } = new Controller?[ControllerPorts];
@@ -452,6 +471,10 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public bool Init(FrontEndEntry entry)
     {
+        // CONSOLE.SetLoading(TRUE, TRUE, FALSE) and the loaded system's range (CSystem::Run passes inLoadedSystem): the
+        // loading screen renders if its last render is 0.05 s old, which after a level it is.
+        Loading?.SetLoading(true);
+        Loading?.SetLoadingRange(50f, 62.5f);
         Career.Update(EndLevelData);
         MessageBox.Init();
         bool ok = true;
@@ -497,6 +520,7 @@ public sealed class FrontEnd : IButtonReceiver
         }
 
         SelectedLevel = 100;
+        Loading?.SetLoading(false);
         return true;
     }
 

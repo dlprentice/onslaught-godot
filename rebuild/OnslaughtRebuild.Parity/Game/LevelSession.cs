@@ -65,12 +65,19 @@ public sealed class LevelSession
                 Clock.Present();
             }
 
-            // From the front end the boot's Presents are long past; the load's own Presents follow the same order
-            // (to be measured against a front-end run: the loading screen's throttle reads the clock between fractions).
             Game.StartLevelTiming();
             Game.PreRun();
 
-            Clock.Present();
+            if (Loading is { } loading)
+            {
+                // SetLoadingFraction(1.0f): the 100% screen; RestartLoopRunLevel then releases the loading screen.
+                loading.Complete();
+                loading.SetLoading(false);
+            }
+            else
+            {
+                Clock.Present();
+            }
 
             // RestartLoopRunLevel after the pre-run and the loading screen's last Present: each unit starts its looping init noise (one draw for the chain).
             foreach (Thing thing in Context.World.UnitNB.ToList())
@@ -138,6 +145,9 @@ public sealed class LevelSession
     /// <summary>Started from the front end (<see cref="LevelHost"/>): no boot Presents before the level.</summary>
     public bool FromFrontEnd { get; private init; }
 
+    /// <summary>The process's loading screen, for a level from the front end.</summary>
+    public Flow.LoadingScreen? Loading { get; private init; }
+
     public ThingContext Context { get; }
 
     public Game Game { get; }
@@ -162,6 +172,15 @@ public sealed class LevelSession
         LevelResources resources = LevelResources.Read(rname, rbytes, read, otherChunk: otherChunk);
 
         var clock = host?.Clock ?? new Clock.PlatformClock();
+        if (host is not null)
+        {
+            // From the front end, RunLevel's CONSOLE.SetLoading(TRUE) and RenderLoadingScreen: the screen's first render
+            // of the load, before the load draws anything (the port's front-end run); the load's later fractions fall
+            // in the same instant and do not render.
+            host.Loading.SetLoading(true);
+            host.Loading.Render();
+        }
+
         var events = new EventManager();
         LevelInput input;
         Platform.ControlBindings bindings;
@@ -191,7 +210,7 @@ public sealed class LevelSession
             }
         }
         var services = new ScriptGameServices(input);
-        var game = new Game(clock, events, services) { CurrentLevel = level, CareerSlots = host?.CareerSlots };
+        var game = new Game(clock, events, services) { CurrentLevel = level, CareerSlots = host?.CareerSlots, CareerSetSlot = host?.CareerSetSlot };
         game.InitRestartLoop();
         input.InitMouse();
         var pool = new SPtrSetPool();
@@ -288,6 +307,7 @@ public sealed class LevelSession
             Input = input,
             EndLevelData = host?.EndLevelData ?? new Career.EndLevelData(),
             FromFrontEnd = host is not null,
+            Loading = host?.Loading,
         };
     }
 }
@@ -295,8 +315,9 @@ public sealed class LevelSession
 /// <summary>
 /// What a level started from the front end shares with the process (CSystem::Run's GAME.RunLevel): the platform clock,
 /// the window's input, the bindings and controller state, the C runtime's main-thread rand(), END_LEVEL_DATA, which
-/// the level fills as it ends and the front end reads, and the career's slots (CAREER.GetSlots, which InitRestartLoop
-/// copies).
+/// the level fills as it ends and the front end reads, the career's slots (CAREER.GetSlots, which InitRestartLoop
+/// copies) and CAREER.SetSlot (the script's SetSlotSave).
 /// </summary>
 public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput Input, Platform.ControlBindings Bindings,
-    Platform.ControllerShared Shared, Crt.CrtRandStream Crt, Career.EndLevelData EndLevelData, int[] CareerSlots);
+    Platform.ControllerShared Shared, Crt.CrtRandStream Crt, Career.EndLevelData EndLevelData, int[] CareerSlots,
+    Flow.LoadingScreen Loading, Action<int, int>? CareerSetSlot = null);

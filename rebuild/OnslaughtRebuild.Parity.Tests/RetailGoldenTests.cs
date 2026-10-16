@@ -91,12 +91,12 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int TargetTapeMatchedThrough = 8000;
 
     /// <summary>
-    /// The Present through which the tank-kill tape matches the port (never lowered). From the target tank's shrapnel on
-    /// (P6016) the port's reference is not retail's: clang evaluates FVector(RandomScaled, RandomScaled, RandomScaled)
-    /// left to right where VC6 draws Z first (CPDEmitter::Unknown10, 004c1a90), so its shrapnel fly differently and two
-    /// that land in the core at P6069/6070 do not land in the port. Raise it when the port's reference is regenerated.
+    /// The Present through which the tank-kill tape matches the port (never lowered). The reference is the port with its
+    /// call arguments evaluated in VC6's order (bea-decomp 12d023ca): before that, clang drew
+    /// FVector(RandomScaled, RandomScaled, RandomScaled) X first where VC6 draws Z first (CPDEmitter::Unknown10, 004c1a90),
+    /// and the tank's shrapnel flew differently from P6016.
     /// </summary>
-    private const int TankKillTapeMatchedThrough = 6068;
+    private const int TankKillTapeMatchedThrough = 8000;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;

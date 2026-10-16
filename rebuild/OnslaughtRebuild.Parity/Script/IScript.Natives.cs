@@ -184,7 +184,14 @@ public sealed partial class IScript
     public void SetSlotSave(ScriptData?[] args, int numArgs, ref ScriptData? result)
     {
         Game.SetSlot(args[0]!.GetInt(), args[1]!.IsTrue());
-        _runtime.Context.Skip("IScript::SetSlotSave: CCareer::SetSlot (the career is not wired)");
+        if (Game.CareerSetSlot is { } careerSetSlot)
+        {
+            careerSetSlot(args[0]!.GetInt(), args[1]!.IsTrue() ? 1 : 0);
+        }
+        else
+        {
+            _runtime.Context.Skip("IScript::SetSlotSave: CCareer::SetSlot (no career: a -level run)");
+        }
     }
 
     /// <summary>GetSlot 005339a0.</summary>
