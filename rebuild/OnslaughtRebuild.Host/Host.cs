@@ -116,32 +116,9 @@ public partial class Host : Node
         }
     }
 
-    /// <summary>
-    /// CInterpolatedCamera (0041ad30): position, orientation and zoom from the camera's previous update towards its
-    /// current one by the render fraction (the orientation's rows renormalised). Only the pan camera keeps its previous
-    /// update so far; the others are drawn where they are.
-    /// </summary>
-    public static (FVector Pos, FMatrix Ori, float Zoom) Interpolated(ParityCamera camera, float fraction)
-    {
-        FVector pos = camera.GetPos();
-        FMatrix ori = camera.GetOrientation();
-        if (camera is PanCamera pan)
-        {
-            FVector old = pan.OldPos;
-            pos = old + ((pos - old) * fraction);
-            FMatrix o = pan.OldOrientation;
-            FVector Row(FVector a, FVector b)
-            {
-                FVector r = a + ((b - a) * fraction);
-                float m = MathF.Sqrt((r.X * r.X) + (r.Y * r.Y) + (r.Z * r.Z));
-                return m > 0 ? r * (1 / m) : r;
-            }
-
-            ori = new FMatrix(Row(o.Row0, ori.Row0), Row(o.Row1, ori.Row1), Row(o.Row2, ori.Row2));
-        }
-
-        return (pos, ori, camera.GetZoom());
-    }
+    /// <summary>The render's view of the camera (the parity core's CInterpolatedCamera).</summary>
+    public static (FVector Pos, FMatrix Ori, float Zoom) Interpolated(ParityCamera camera, float fraction) =>
+        ParityCamera.RenderView(camera, fraction);
 
     /// <summary>
     /// CEngine::GetViewMatrixFromCamera's view: the orientation's local Y looks forward and local -Z is up (Z is down);

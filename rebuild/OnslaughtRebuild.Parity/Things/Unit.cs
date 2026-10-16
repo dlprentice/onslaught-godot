@@ -6,6 +6,7 @@ using System.Text;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.World;
@@ -25,6 +26,15 @@ public static class UnitEvent
 /// <summary>CUnit: a unit with physics-script data, weapons, AI, life and shields.</summary>
 public abstract partial class Unit(ThingContext context, int classId = Oid.Unit) : Actor(context, classId)
 {
+    /// <summary>mUnknown1AC: the weapon's effect link (made at Init).</summary>
+    public ParticleEffectLink? Unknown1AC;
+
+    /// <summary>mUnknown1B4: one link per Dust emitter.</summary>
+    public readonly List<ParticleEffectLink> DustLinks = [];
+
+    /// <summary>mUnknown1C4: one link per Vent emitter.</summary>
+    public readonly List<ParticleEffectLink> VentLinks = [];
+
     /// <summary>
     /// CUnit::Hit (004fcc30): the squad's script hears of it; touching a unit sets mUnknown248; a falling unit that met
     /// something walkable from above (a contact normal within 0.89 of straight down, or with several contacts the sum of
@@ -283,18 +293,25 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
                 throw new NotSupportedException("unit components (SpawnCharacter) are not ported yet");
             }
 
-            // The dust and vent links: one per emitter, when the particle set has the effect (stood in for here by the
-            // effect being named; the particle set is not loaded yet).
-            if (UnitData.EffectNames[6] is not null)
+            // The weapon's effect link, and the dust and vent links: one per emitter, when the particle set has the effect.
+            if (Context.Particles is { } particles)
             {
-                RenderThing!.CountEmitters("Dust");
-                Context.Skip("PARTICLE_SET lookup stood in by the effect name (dust)");
-            }
+                Unknown1AC = new ParticleEffectLink(particles.Manager);
+                if (Context.FindParticle(UnitData.EffectNames[6]) is not null)
+                {
+                    for (int n = RenderThing!.CountEmitters("Dust"); n > 0; n--)
+                    {
+                        DustLinks.Add(new ParticleEffectLink(particles.Manager));
+                    }
+                }
 
-            if (UnitData.EffectNames[7] is not null)
-            {
-                RenderThing!.CountEmitters("Vent");
-                Context.Skip("PARTICLE_SET lookup stood in by the effect name (vent)");
+                if (Context.FindParticle(UnitData.EffectNames[7]) is not null)
+                {
+                    for (int n = RenderThing!.CountEmitters("Vent"); n > 0; n--)
+                    {
+                        VentLinks.Add(new ParticleEffectLink(particles.Manager));
+                    }
+                }
             }
         }
 

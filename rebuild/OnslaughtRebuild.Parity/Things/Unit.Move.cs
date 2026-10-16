@@ -7,6 +7,7 @@
 
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Things;
@@ -125,9 +126,26 @@ public abstract partial class Unit
             Unknown170 = Unknown174;
         }
 
-        if (UnitData!.Hover != 0 && IsOnGround())
+        // Dust, while it is on the ground: each link without an effect gets one, and each with one follows its emitter.
+        if (UnitData!.Hover != 0 && IsOnGround() && Context.Particles is { } particles)
         {
-            Context.Skip("CUnit::Move's dust particles");
+            int n = 1;
+            foreach (ParticleEffectLink link in DustLinks)
+            {
+                if (!link.Full)
+                {
+                    particles.Manager.AddParticle(Context.FindParticle(UnitData.EffectNames[6]), link);
+                }
+
+                if (link.Full)
+                {
+                    GetEmitter(22, n, out FVector pos, out FMatrix ori);
+                    link.SetPos(pos);
+                    link.SetOrientation(ori);
+                }
+
+                n++;
+            }
         }
 
         if (!IsDying && !(Life < 0) && Unknown1F0 != 0 && UnitData.Spawners.Count > 0)
@@ -450,6 +468,25 @@ public abstract partial class Unit
             // ~CSpawner only releases the squad it is assembling; a spawner sets one only when it spawns, and every
             // path that starts a spawner throws in this core, so deleting the idle spawners changes nothing.
             Context.Skip("CUnit::Shutdown: delete the unit's idle spawners");
+        }
+
+        // The effects stop: the weapon's, then the dust and vent links.
+        if (Unknown1AC is not null)
+        {
+            Unknown1AC.Stop(false);
+            Unknown1AC.Release();
+            Unknown1AC = null;
+        }
+
+        foreach (List<ParticleEffectLink> links in new[] { DustLinks, VentLinks })
+        {
+            foreach (ParticleEffectLink link in links)
+            {
+                link.Stop(false);
+                link.Release();
+            }
+
+            links.Clear();
         }
 
         Context.World.UnitNB.Remove(this);

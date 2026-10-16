@@ -36,6 +36,14 @@ public sealed class HeightField
     /// <summary>mHeightScale (+0x102c).</summary>
     public float HeightScale => BinaryPrimitives.ReadSingleLittleEndian(Record.AsSpan(0x102c));
 
+    /// <summary>mHFP.VisibleSun (+0x1078 + 0x28): the level draws its sun sprite.</summary>
+    public bool VisibleSun => Record[0x1078 + 0x28] != 0;
+
+    /// <summary>mHFP.SunPosX..Z (+0x1078 + 0x2c).</summary>
+    public FVector SunPos => new(BinaryPrimitives.ReadSingleLittleEndian(Record.AsSpan(0x1078 + 0x2c)),
+        BinaryPrimitives.ReadSingleLittleEndian(Record.AsSpan(0x1078 + 0x30)),
+        BinaryPrimitives.ReadSingleLittleEndian(Record.AsSpan(0x1078 + 0x34)));
+
     /// <summary>mWaterLevel (+0x1034).</summary>
     public float WaterLevel => BinaryPrimitives.ReadSingleLittleEndian(Record.AsSpan(0x1034));
 

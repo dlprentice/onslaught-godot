@@ -91,6 +91,16 @@ public sealed class ThingContext(
     /// <summary>The PC's mouse look: CBattleEngine::UpdateMouseLookAngles's statics and the platform's mouse.</summary>
     public MouseLookState MouseLook { get; } = new();
 
+    /// <summary>The main thread's C runtime rand() (shared by particles, sounds and parts of the simulation).</summary>
+    public Crt.CrtRandStream Crt { get; set; } = new();
+
+    /// <summary>The level's particles, once the particle set is loaded.</summary>
+    public Particles.LevelParticles? Particles { get; set; }
+
+    /// <summary>PARTICLE_SET.FindByName of a script-given name (CUnitData::Resolve and its kind): none for no name.</summary>
+    public Particles.ParticleDescriptor? FindParticle(byte[]? name) =>
+        name is null || Particles is null ? null : Particles.Manager.Set.FindByName(System.Text.Encoding.Latin1.GetString(name));
+
     /// <summary>CMCMech::sFirst's list: the motion controllers, which drawing marks used each render.</summary>
     public List<MCBattleEngine> MotionControllers { get; } = [];
 

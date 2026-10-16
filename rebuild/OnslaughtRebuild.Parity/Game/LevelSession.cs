@@ -5,6 +5,7 @@
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.Script;
 using OnslaughtRebuild.Parity.Text;
@@ -149,6 +150,15 @@ public sealed class LevelSession
         scripts.Text = text;
         scripts.MessageBox = new MessageBox(context, text, voice?.Invoke(clock) ?? new UnmodelledVoice());
 
+        // CGame::LoadResources's particle set.
+        var particleSet = new ParticleSet();
+        if (!particleSet.ReadData(read(ParticleSet.InGameFile).Bytes))
+        {
+            throw new InvalidDataException("the particle set did not load");
+        }
+
+        context.Particles = new LevelParticles(context, particleSet);
+
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
         scripts.Spawner = spawner;
         scripts.Waypoints = spawner.Waypoints;
@@ -166,13 +176,16 @@ public sealed class LevelSession
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
 
-        // Retail draws the player's battle engine each render, which asks its motion controller for every part.
-        input.Rendered = () =>
+        // Retail draws the player's battle engine each render, which asks its motion controller for every part; the
+        // particles step and draw after the world.
+        input.Rendered = numRenders =>
         {
             foreach (MCBattleEngine mc in context.MotionControllers)
             {
                 mc.Rendered();
             }
+
+            context.Particles.Render(numRenders);
         };
         return new LevelSession(context, game, resources, clock) { Input = input };
     }
