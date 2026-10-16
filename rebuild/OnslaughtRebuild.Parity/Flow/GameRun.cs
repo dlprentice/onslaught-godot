@@ -140,6 +140,7 @@ public sealed class GameRun : ISystemParts
             host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots, Loading, FrontEnd.Career.SetSlot)
             {
                 Career = FrontEnd.Career,
+                MenuHost = FrontEnd,
             });
         while (true)
         {

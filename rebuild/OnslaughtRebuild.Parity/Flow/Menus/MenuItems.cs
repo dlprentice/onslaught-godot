@@ -50,11 +50,11 @@ public class MenuItem(int text, int pcText = 0)
 /// <summary>CScaleMenuItem (0x38 bytes): a bar of <see cref="Steps"/> segments, moved left and right.</summary>
 public class ScaleMenuItem : MenuItem
 {
-    private readonly FrontEnd _frontEnd;
+    private readonly IMenuHost _frontEnd;
     private readonly Action<ScaleMenuItem>? _changed;
 
     /// <param name="changed">CGameMenu::MenuItemChanged of the menu told when the value is committed.</param>
-    public ScaleMenuItem(FrontEnd frontEnd, int text, int pcText, float value, Action<ScaleMenuItem>? changed, int steps, bool immediate)
+    public ScaleMenuItem(IMenuHost frontEnd, int text, int pcText, float value, Action<ScaleMenuItem>? changed, int steps, bool immediate)
         : base(text, pcText)
     {
         _frontEnd = frontEnd;
@@ -137,9 +137,9 @@ public class ScaleMenuItem : MenuItem
 }
 
 /// <summary>CMenuMenuItem (0x28 bytes): a choice from a list, dropped down when selected.</summary>
-public abstract class MenuMenuItem(FrontEnd frontEnd, int pcText, bool deferred) : MenuItem(0, pcText)
+public abstract class MenuMenuItem(IMenuHost frontEnd, int pcText, bool deferred) : MenuItem(0, pcText)
 {
-    protected FrontEnd FrontEnd { get; } = frontEnd;
+    protected IMenuHost FrontEnd { get; } = frontEnd;
 
     /// <summary>mValue: the value as the setting has it.</summary>
     public int Value { get; set; }
@@ -246,13 +246,13 @@ public abstract class MenuMenuItem(FrontEnd frontEnd, int pcText, bool deferred)
 }
 
 /// <summary>CBOOLMenuItem: off and on.</summary>
-public abstract class BoolMenuItem(FrontEnd frontEnd, int pcText, bool deferred) : MenuMenuItem(frontEnd, pcText, deferred)
+public abstract class BoolMenuItem(IMenuHost frontEnd, int pcText, bool deferred) : MenuMenuItem(frontEnd, pcText, deferred)
 {
     public override int GetNumChoices() => 2;
 }
 
 /// <summary>A choice of one of the options' settings (the CLIPARAMS fields the options file keeps).</summary>
-public sealed class SettingMenuItem(FrontEnd frontEnd, int pcText, bool deferred, int choices, Func<int> get, Action<int> set)
+public sealed class SettingMenuItem(IMenuHost frontEnd, int pcText, bool deferred, int choices, Func<int> get, Action<int> set)
     : MenuMenuItem(frontEnd, pcText, deferred)
 {
     public override int GetNumChoices() => choices;
@@ -263,7 +263,7 @@ public sealed class SettingMenuItem(FrontEnd frontEnd, int pcText, bool deferred
 }
 
 /// <summary>A boolean setting.</summary>
-public sealed class BoolSettingMenuItem(FrontEnd frontEnd, int pcText, bool deferred, Func<int> get, Action<int> set)
+public sealed class BoolSettingMenuItem(IMenuHost frontEnd, int pcText, bool deferred, Func<int> get, Action<int> set)
     : BoolMenuItem(frontEnd, pcText, deferred)
 {
     public override int GetValue() => get();

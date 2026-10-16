@@ -74,6 +74,12 @@ public interface IGameServices
     /// <summary>The level-end menu (lost, multiplayer won or drawn) once the end count runs down.</summary>
     void ShowLevelEndMenu();
 
+    /// <summary>CGame::Pause's menu part: mPauseMenu->Activate(TRUE), ShutdownMouse, the controller takes the menu.</summary>
+    void ShowPauseMenu(Platform.Controller from);
+
+    /// <summary>CGame::UnPause's mPauseMenu->DeActivate(TRUE).</summary>
+    void HidePauseMenu();
+
 
     /// <summary>SCRIPT_EVENT_NB.PostEvent(name).</summary>
     void PostScriptEvent(string name);
@@ -344,6 +350,12 @@ public sealed class NullGameServices : IGameServices
     }
 
     public void ShowLevelEndMenu()
+    {
+    }
+
+    public void ShowPauseMenu(Platform.Controller from) => throw new NotSupportedException("the pause menu needs the level's input");
+
+    public void HidePauseMenu()
     {
     }
 

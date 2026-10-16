@@ -80,6 +80,10 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
 
     public void ShowLevelEndMenu() => inner.ShowLevelEndMenu();
 
+    public void ShowPauseMenu(Platform.Controller from) => inner.ShowPauseMenu(from);
+
+    public void HidePauseMenu() => inner.HidePauseMenu();
+
 
     public void HandleGameEvent(GameEvent gameEvent, Event e) => inner.HandleGameEvent(gameEvent, e);
 

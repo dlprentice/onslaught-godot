@@ -1,77 +1,119 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/PauseMenu.cpp and src/PauseMenu.h (CPauseMenu: the constructor 004cde60, Resume 004d06e0,
-// ButtonPressed 004d0810, Activate 004d0ff0, DeActivate 004d10b0, MenuItemChanged 004d1110, Render 004d11d0,
-// ReceiveButtonAction 004d15d0; reconstructed from the retail program, not in Stuart's release).
+// ButtonPressed 004d0810, HandleEvent 004d0e50, Activate 004d0ff0, DeActivate 004d10b0, MenuItemChanged 004d1110, Render
+// 004d11d0, ReceiveButtonAction 004d15d0; CSimpleGameMenu: ReceiveButtonAction 004d1810, AddItem; reconstructed from the
+// retail program, not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Platform;
 
 namespace OnslaughtRebuild.Parity.Flow.Menus;
 
 /// <summary>
-/// CPauseMenu as the PC options page shows it (<c>CPauseMenu(TRUE)</c>): four lists, the first (controls, sound, display,
-/// credits) and the sound list ported; the controls and display lists' items are not ported and stop a run that enters
-/// them. The in-game form (continue, message log, briefing, retry, quit and their confirmation) is not ported yet.
+/// CPauseMenu: the in-game menu (Escape in a level) and, as <c>CPauseMenu(TRUE)</c>, the PC options page. Its first list
+/// (the game's continue, message log and briefing; controls, sound and display; the game's retry and quit, or the
+/// options page's credits) and the sound list are ported, with the retry and quit confirmation. The controls and display
+/// lists, the message log and the briefing are not ported and stop a run that enters them.
 /// </summary>
-public sealed class PauseMenu
+public sealed class PauseMenu : IButtonReceiver
 {
-    private readonly FrontEnd _frontEnd;
+    /// <summary>PAUSE_MENU_YES / PAUSE_MENU_NO: the confirmation's events.</summary>
+    public const int EventYes = 2000;
+    public const int EventNo = 2001;
+
+    private readonly IMenuHost _host;
+    private readonly IPauseMenuGame? _game;
     private readonly PlatformClock _clock;
     private readonly int _back;
     private readonly int _credits;
     private readonly int _musicVolume;
     private readonly int _soundVolume;
+    private readonly int _continue;
+    private readonly int _messageLog;
+    private readonly int _briefing;
+    private readonly int _retry;
+    private readonly int _quit;
+    private readonly int _sure;
+    private readonly int _no;
+    private readonly int _yes;
 
-    public PauseMenu(FrontEnd frontEnd, bool optionsPage)
+    /// <param name="game">The game, for the in-game form; null for the options page.</param>
+    public PauseMenu(IMenuHost host, bool optionsPage, IPauseMenuGame? game = null)
     {
-        if (!optionsPage)
+        if (!optionsPage && game is null)
         {
-            throw new NotSupportedException("CPauseMenu's in-game form is not ported");
+            throw new ArgumentException("the in-game pause menu needs the game", nameof(game));
         }
 
-        _frontEnd = frontEnd;
-        _clock = frontEnd.Clock;
-        Text.TextIds ids = frontEnd.Texts?.Ids ?? throw new InvalidOperationException("the pause menu needs the text ids");
+        _host = host;
+        _game = game;
+        _clock = host.Clock;
+        Text.TextIds ids = host.Ids;
         int Id(string name) => (int)ids[name];
         _back = Id("GI_BACK");
         _credits = Id("JCL_CREDITS");
         _musicVolume = Id("MUSIC_VOLUME");
         _soundVolume = Id("SOUND_VOLUME");
+        _continue = Id("GI_CONTINUE");
+        _messageLog = Id("GI_MESSAGE_LOG");
+        _briefing = Id("GI_BRIEFING");
+        _retry = Id("GI_RETRY");
+        _quit = Id("GI_QUIT");
+        _sure = Id("IG_SURE");
+        _no = Id("IG_NO");
+        _yes = Id("IG_YES");
         OptionsPage = optionsPage;
 
-        // The menu: controls (PC text 3), sound (1), display (2), credits.
-        var list = new MenuOptionsList(frontEnd);
+        // The menu.
+        var list = new MenuOptionsList(host);
+        if (!optionsPage)
+        {
+            list.AddItem(new MenuItem(_continue));
+            list.AddItem(new MenuItem(_messageLog));
+            list.AddItem(new MenuItem(_briefing));
+        }
+
         list.AddItem(new MenuItem(0, 3));
         list.AddItem(new MenuItem(0, 1));
         list.AddItem(new MenuItem(0, 2));
-        list.AddItem(new MenuItem(_credits));
+        if (optionsPage)
+        {
+            list.AddItem(new MenuItem(_credits));
+        }
+        else
+        {
+            list.AddItem(new MenuItem(_retry));
+            list.AddItem(new MenuItem(_quit));
+        }
+
         Lists.Add(list);
 
         // The controls (mouse sensitivity, configuration name, god mode with its cheat, the controller definition, four
         // joysticks, back) and the display (the detail items and the device): not ported.
-        list = new MenuOptionsList(frontEnd);
+        list = new MenuOptionsList(host);
         list.AddItem(new NotPortedMenuItem("the options' controls list"));
         Lists.Add(list);
-        list = new MenuOptionsList(frontEnd);
+        list = new MenuOptionsList(host);
         list.AddItem(new NotPortedMenuItem("the options' display list"));
         Lists.Add(list);
 
         // The sound.
-        Career.Career career = frontEnd.Career;
-        list = new MenuOptionsList(frontEnd);
-        list.AddItem(new ScaleMenuItem(frontEnd, _soundVolume, 0, career.Record.SoundVolume, MenuItemChanged, 10, true));
-        list.AddItem(new ScaleMenuItem(frontEnd, _musicVolume, 0, career.Record.MusicVolume, MenuItemChanged, 10, true));
-        list.AddItem(new BoolSettingMenuItem(frontEnd, 4, false, () => Options.FlipSpeakers,
+        Career.Career career = host.Career;
+        list = new MenuOptionsList(host);
+        list.AddItem(new ScaleMenuItem(host, _soundVolume, 0, career.Record.SoundVolume, MenuItemChanged, 10, true));
+        list.AddItem(new ScaleMenuItem(host, _musicVolume, 0, career.Record.MusicVolume, MenuItemChanged, 10, true));
+        list.AddItem(new BoolSettingMenuItem(host, 4, false, () => Options.FlipSpeakers,
             v => SetOptions(Options with { FlipSpeakers = v })));
-        list.AddItem(new BoolSettingMenuItem(frontEnd, 7, true, () => Options.HardwareSound,
+        list.AddItem(new BoolSettingMenuItem(host, 7, true, () => Options.HardwareSound,
             v => SetOptions(Options with { HardwareSound = v })));
-        list.AddItem(new SettingMenuItem(frontEnd, 0xd8, true, 3, () => Options.SoundRate,
+        list.AddItem(new SettingMenuItem(host, 0xd8, true, 3, () => Options.SoundRate,
             v => SetOptions(Options with { SoundRate = v })));
-        list.AddItem(new SettingMenuItem(frontEnd, 9, true, Math.Max(1, frontEnd.SoundDevices), () => Options.SoundDevice,
+        list.AddItem(new SettingMenuItem(host, 9, true, Math.Max(1, host.SoundDevices), () => Options.SoundDevice,
             v => SetOptions(Options with { SoundDevice = v })));
-        list.AddItem(new SettingMenuItem(frontEnd, 0xa, true, 3,
-            () => Options.Sound3DMethod == -1 ? frontEnd.Sound3DMethod : Options.Sound3DMethod,
+        list.AddItem(new SettingMenuItem(host, 0xa, true, 3,
+            () => Options.Sound3DMethod == -1 ? host.Sound3DMethod : Options.Sound3DMethod,
             v => SetOptions(Options with { Sound3DMethod = v })));
         list.AddItem(new ApplyMenuItem(list));
         list.AddItem(new MenuItem(_back));
@@ -103,12 +145,23 @@ public sealed class PauseMenu
 
     public bool NoFade { get; private set; }
 
-    private CareerOptions Options => _frontEnd.CurrentOptions?.Invoke() ?? CareerOptions.Read(new byte[CareerOptions.Size]);
+    /// <summary>mConfirm: the retry or quit confirmation while it is up.</summary>
+    public ConfirmMenu? Confirm { get; private set; }
 
-    private void SetOptions(CareerOptions options) =>
-        (_frontEnd.SetOptions ?? throw new InvalidOperationException("the options cannot be changed (FrontEnd.SetOptions)"))(options);
+    /// <summary>IsConfirming (004d05c0).</summary>
+    public bool IsConfirming => Confirm is { Active: true };
 
-    /// <summary>Activate (004d0ff0): open on the first list. (The briefing item is the in-game form's.)</summary>
+    bool IButtonReceiver.CanBeControlledWhenInPause => true;
+
+    ControlType IButtonReceiver.ControlType => ControlType.GameMenu;
+
+    private CareerOptions Options => _host.Options;
+
+    private void SetOptions(CareerOptions options) => _host.Options = options;
+
+    private IPauseMenuGame Game => _game ?? throw new InvalidOperationException("the options page's menu has no game");
+
+    /// <summary>Activate (004d0ff0): open on the first list; the briefing only for a level that has one.</summary>
     public void Activate(bool fade)
     {
         Result = 0;
@@ -119,18 +172,43 @@ public sealed class PauseMenu
         Page = 0;
         Lists[0].Reset();
         NoFade = !fade;
+        if (_game is { } game)
+        {
+            bool noBriefing = (game.NumPrimaryObjectives == 0 && game.NumSecondaryObjectives == 0 && game.IsMultiplayer)
+                || game.CurrentLevel >= 900;
+            Lists[0].SetItemEnabled(_briefing, !noBriefing);
+        }
+        else
+        {
+            Lists[0].SetItemEnabled(_briefing, true);
+        }
     }
 
-    /// <summary>DeActivate (004d10b0).</summary>
+    /// <summary>DeActivate (004d10b0): closed, and the confirmation gone.</summary>
     public void DeActivate(bool fade)
     {
         Active = false;
         CloseTime = _clock.GetSysTimeFloat();
+        Confirm = null;
         NoFade = !fade;
     }
 
-    /// <summary>Resume (004d06e0): the options page only closes (the game's form saves and unpauses).</summary>
-    public void Resume() => DeActivate(true);
+    /// <summary>
+    /// Resume (004d06e0): in a game, the menu's controllers let it go, the game unpauses, the mouse comes back and the
+    /// career and options are saved; then the menu closes.
+    /// </summary>
+    public void Resume()
+    {
+        if (!OptionsPage)
+        {
+            Game.RelinquishControl(this);
+            Game.UnPause();
+            Game.InitMouse();
+            _host.SaveFromPause();
+        }
+
+        DeActivate(true);
+    }
 
     /// <summary>
     /// MenuItemChanged (004d1110): the volumes, as MUSIC.SetVolume and SOUND.SetMasterVolume set them, which keep them
@@ -144,24 +222,33 @@ public sealed class PauseMenu
             volume = (float)X87.Div(volume, scale.Steps);
             if (item.Text == _musicVolume)
             {
-                _frontEnd.Career.Record.MusicVolume = volume;
+                _host.Career.Record.MusicVolume = volume;
             }
             else
             {
-                _frontEnd.Career.Record.SoundVolume = volume;
+                _host.Career.Record.SoundVolume = volume;
             }
         }
     }
 
-    /// <summary>ButtonPressed (004d0810): the options form's items.</summary>
+    /// <summary>ButtonPressed (004d0810).</summary>
     public void ButtonPressed(MenuItem item)
     {
         bool backSound = false;
         Chosen = item.Text;
-        if (item.Text == _credits)
+        if (item.Text == _credits && OptionsPage)
         {
             DeActivate(false);
             Result = 1;
+        }
+        else if (item.Text == _retry || item.Text == _quit)
+        {
+            var confirm = new ConfirmMenu(_host);
+            confirm.AddItem(new MenuItem(_no), this, EventNo);
+            confirm.AddItem(new MenuItem(_yes), this, EventYes);
+            Confirm = confirm;
+            Game.HandControl(this, confirm);
+            confirm.Active = true;
         }
         else if (item.Text == _back)
         {
@@ -190,12 +277,61 @@ public sealed class PauseMenu
                     return;
             }
         }
+        else if (item.Text == _briefing)
+        {
+            throw new NotSupportedException("CPauseMenu: the level briefing log is not ported");
+        }
+        else if (item.Text == _continue && !OptionsPage)
+        {
+            Resume();
+            backSound = true;
+        }
         else if (item.Text == _musicVolume || item.Text == _soundVolume)
         {
             return;
         }
+        else if (item.Text == _messageLog)
+        {
+            throw new NotSupportedException("CPauseMenu: the message log is not ported");
+        }
 
-        _frontEnd.PlaySound(backSound ? FrontEndSound.Back : FrontEndSound.Select);
+        _host.PlaySound(backSound ? FrontEndSound.Back : FrontEndSound.Select);
+    }
+
+    /// <summary>
+    /// HandleEvent (004d0e50): the confirmation's No closes it (its controllers come back to the menu); its Yes sets the
+    /// quit (to the front end, or the level again).
+    /// </summary>
+    public void HandleEvent(int eventNum)
+    {
+        switch (eventNum)
+        {
+            case EventNo:
+                _host.PlaySound(FrontEndSound.Back);
+                if (Confirm is { } confirm)
+                {
+                    confirm.Active = false;
+                    Game.RelinquishControl(confirm);
+                    Confirm = null;
+                }
+
+                break;
+            case EventYes:
+                if (Confirm is not null)
+                {
+                    if (Chosen == _quit)
+                    {
+                        Game.SetQuit(QuitType.UserQuitToFrontEnd);
+                    }
+
+                    if (Chosen == _retry)
+                    {
+                        Game.SetQuit(QuitType.RestartLevel);
+                    }
+                }
+
+                break;
+        }
     }
 
     /// <summary>ReceiveButtonAction (004d15d0): nothing in the first 0.4 seconds; an open list takes it first.</summary>
@@ -216,7 +352,7 @@ public sealed class PauseMenu
             default:
                 Lists[Page].ReceiveButtonAction(button, value);
                 break;
-            case Platform.Buttons.PauseMenuSelect:
+            case Buttons.PauseMenuSelect:
                 MenuOptionsList list = Lists[Page];
                 ButtonPressed(list.Items[list.Selected]);
                 break;
@@ -226,21 +362,23 @@ public sealed class PauseMenu
                     // BackToFirstPage (the controls page's binding warning is the controls list's, not ported).
                     Page = 0;
                     Lists[0].Reset();
-                    _frontEnd.PlaySound(FrontEndSound.Back);
+                    _host.PlaySound(FrontEndSound.Back);
                 }
                 else
                 {
                     Resume();
-                    _frontEnd.PlaySound(FrontEndSound.Back);
+                    _host.PlaySound(FrontEndSound.Back);
                 }
 
                 break;
         }
     }
 
+    void IButtonReceiver.ReceiveButtonAction(Controller from, int button, float value) => ReceiveButtonAction(button, value);
+
     /// <summary>
     /// The state Render (004d11d0) changes: closed for 0.4 seconds or more, nothing; open for more than 0.4 seconds, the
-    /// shown list renders. (SyncDetailItems is the display list's, not ported.)
+    /// shown list renders, then the confirmation's. (SyncDetailItems is the display list's, not ported.)
     /// </summary>
     public void Render()
     {
@@ -258,6 +396,60 @@ public sealed class PauseMenu
         if (fade > 0.4f)
         {
             Lists[Page].Render();
+            Confirm?.List.Render();
+        }
+    }
+}
+
+/// <summary>CSimpleGameMenu (0x4c bytes): the confirmation a pause menu raises; each item sends its event to the menu.</summary>
+public sealed class ConfirmMenu(IMenuHost host) : IButtonReceiver
+{
+    private readonly List<(MenuItem Item, PauseMenu ToCall, int Event)> _events = [];
+
+    /// <summary>mActive.</summary>
+    public bool Active { get; set; }
+
+    /// <summary>mList (a CConfirmMenuOptionsList).</summary>
+    public MenuOptionsList List { get; } = new(host);
+
+    bool IButtonReceiver.CanBeControlledWhenInPause => true;
+
+    ControlType IButtonReceiver.ControlType => ControlType.GameMenu;
+
+    /// <summary>AddItem: the item, and the event it sends.</summary>
+    public void AddItem(MenuItem item, PauseMenu toCall, int eventNum)
+    {
+        _events.Insert(0, (item, toCall, eventNum)); // mEvents.Add: SPtrSet::Add puts it at the head
+        List.AddItem(item);
+    }
+
+    /// <summary>SendEvent: the item's event, straight to its menu.</summary>
+    private void SendEvent(MenuItem item)
+    {
+        foreach ((MenuItem i, PauseMenu toCall, int eventNum) in _events)
+        {
+            if (i == item)
+            {
+                toCall.HandleEvent(eventNum);
+                return;
+            }
+        }
+    }
+
+    /// <summary>ReceiveButtonAction (004d1810): up and down move; select sends the selection's event; back sends No's.</summary>
+    public void ReceiveButtonAction(Controller from, int button, float value)
+    {
+        switch (button)
+        {
+            default:
+                List.ReceiveButtonAction(button, value);
+                break;
+            case Buttons.PauseMenuSelect:
+                SendEvent(List.Items[List.Selected]);
+                break;
+            case FrontEndButtons.MenuBack:
+                SendEvent(List.Items[0]);
+                break;
         }
     }
 }

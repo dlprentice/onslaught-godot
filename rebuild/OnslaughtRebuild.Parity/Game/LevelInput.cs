@@ -17,7 +17,7 @@ namespace OnslaughtRebuild.Parity.Game;
 /// is the player. Everything else is the do-nothing services'. A replay tape's events go in through
 /// <see cref="Deliver"/> after the Present they follow.
 /// </summary>
-public sealed class LevelInput : IGameServices, IControllerGame
+public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPauseMenuGame
 {
     private readonly PlatformClock _clock;
     private readonly NullGameServices _rest;
@@ -140,6 +140,69 @@ public sealed class LevelInput : IGameServices, IControllerGame
     public bool IsMultiplayer => false;
 
     public bool PlayerOneInControl => _rest.PlayerOneInControl;
+
+    /// <summary>GAME's mPauseMenu (InitRestartLoop makes it): the in-game menu, rendered after every frame.</summary>
+    public Flow.Menus.PauseMenu? PauseMenu { get; private set; }
+
+    /// <summary>InitRestartLoop's mPauseMenu = new CPauseMenu, on the menus' host.</summary>
+    public void CreatePauseMenu(Flow.Menus.IMenuHost host)
+    {
+        PauseMenuHost = host;
+        PauseMenu = new Flow.Menus.PauseMenu(host, optionsPage: false, this);
+    }
+
+    /// <summary>The menus' host the pause menu was made on.</summary>
+    public Flow.Menus.IMenuHost? PauseMenuHost { get; private set; }
+
+    /// <summary>CGame::Pause's menu part: the menu opens, the DirectInput mouse goes (ShutdownMouse), the controller takes it.</summary>
+    public void ShowPauseMenu(Controller from)
+    {
+        Flow.Menus.PauseMenu menu = PauseMenu ?? throw new InvalidOperationException("no pause menu (CreatePauseMenu)");
+        menu.Activate(true);
+
+        // GetCursorPos's answer is the system cursor's, which the window's last mouse position stands for here.
+        Mouse.Shutdown(Input.Mouse.X, Input.Mouse.Y);
+        from.SetToControl(menu);
+    }
+
+    /// <summary>CGame::UnPause's mPauseMenu->DeActivate(TRUE).</summary>
+    public void HidePauseMenu() => PauseMenu?.DeActivate(true);
+
+    void Flow.Menus.IPauseMenuGame.SetQuit(QuitType quit) => _game!.SetQuit(quit);
+
+    void Flow.Menus.IPauseMenuGame.UnPause() => _game!.UnPause();
+
+    void Flow.Menus.IPauseMenuGame.InitMouse() => Mouse.Init();
+
+    void Flow.Menus.IPauseMenuGame.HandControl(IButtonReceiver from, IButtonReceiver to)
+    {
+        foreach (Controller? controller in _controllers)
+        {
+            if (controller is not null && controller.ToControl == from)
+            {
+                controller.SetToControl(to);
+            }
+        }
+    }
+
+    void Flow.Menus.IPauseMenuGame.RelinquishControl(IButtonReceiver menu)
+    {
+        foreach (Controller? controller in _controllers)
+        {
+            if (controller is not null && controller.ToControl == menu)
+            {
+                controller.RelinquishControl();
+            }
+        }
+    }
+
+    bool Flow.Menus.IPauseMenuGame.IsMultiplayer => false;
+
+    int Flow.Menus.IPauseMenuGame.NumPrimaryObjectives => _game!.GetNumPrimaryObjectives();
+
+    int Flow.Menus.IPauseMenuGame.NumSecondaryObjectives => _game!.GetNumSecondaryObjectives();
+
+    int Flow.Menus.IPauseMenuGame.CurrentLevel => _game!.CurrentLevel;
 
     /// <summary>GAMEINTERFACE.</summary>
     public GameInterface? GameInterface { get; private set; }

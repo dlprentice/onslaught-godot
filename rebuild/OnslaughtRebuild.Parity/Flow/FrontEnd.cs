@@ -123,7 +123,7 @@ public sealed class FrontEndTiming
 /// process with its filtered frame step, and the run loop of one process and one Present per iteration
 /// (<c>CFrontEnd::Run</c> 0x004684d0). Pages not yet ported are <see cref="InertPage"/>.
 /// </summary>
-public sealed class FrontEnd : IButtonReceiver
+public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
 {
     /// <summary><c>NUM_CONTROLLER_PORTS</c>.</summary>
     public const int ControllerPorts = 2;
@@ -311,6 +311,26 @@ public sealed class FrontEnd : IButtonReceiver
     /// <summary>SOUND.m3DSoundMethod: the method the sound manager chose (the options' -1 means it).</summary>
     public int Sound3DMethod { get; set; }
 
+    void Menus.IMenuHost.SaveFromPause()
+    {
+        OnslaughtRebuild.Parity.Career.CareerOptions options = ((Menus.IMenuHost)this).Options;
+        byte[] image = OnslaughtRebuild.Parity.Career.CareerSaveGame.Save(Career, Controls.Bindings.SaveConfigurable(), options);
+        if (SaveGameName.Length != 0 && MemoryCard.CreateSave(SaveGameName, true, out _) == MemoryCard.Success)
+        {
+            MemoryCard.WriteSave(SaveGameName, image);
+        }
+
+        WriteDefaultOptionsFile?.Invoke(image);
+    }
+
+    Text.TextIds Menus.IMenuHost.Ids => Texts?.Ids ?? throw new InvalidOperationException("the menus need the text ids");
+
+    Career.CareerOptions Menus.IMenuHost.Options
+    {
+        get => CurrentOptions?.Invoke() ?? OnslaughtRebuild.Parity.Career.CareerOptions.Read(new byte[OnslaughtRebuild.Parity.Career.CareerOptions.Size]);
+        set => (SetOptions ?? throw new InvalidOperationException("the options cannot be changed (FrontEnd.SetOptions)"))(value);
+    }
+
     /// <summary>CONSOLE's loading screen, which Init shows while it loads; null where no console runs.</summary>
     public LoadingScreen? Loading { get; set; }
 
@@ -318,13 +338,16 @@ public sealed class FrontEnd : IButtonReceiver
     public void PlaySound(FrontEndSound sound)
     {
         SoundsPlayed.Add(sound);
-        PlayEffect?.Invoke(sound switch
-        {
-            FrontEndSound.Move => "Front End Move",
-            FrontEndSound.Select => "Front End Select",
-            _ => "Front End Back",
-        });
+        PlayEffect?.Invoke(SoundName(sound));
     }
+
+    /// <summary>CFrontEnd::GetSoundName: the sound's effect name.</summary>
+    public static string SoundName(FrontEndSound sound) => sound switch
+    {
+        FrontEndSound.Move => "Front End Move",
+        FrontEndSound.Select => "Front End Select",
+        _ => "Front End Back",
+    };
 
     /// <summary><c>mControllers</c>: one per port, created when the front end begins.</summary>
     public Controller?[] Controllers { get; } = new Controller?[ControllerPorts];

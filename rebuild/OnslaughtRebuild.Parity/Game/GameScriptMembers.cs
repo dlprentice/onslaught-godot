@@ -170,14 +170,38 @@ public sealed partial class Game
         }
     }
 
-    /// <summary>CGame::Pause(FALSE, NULL): pauses once PRE_RUNNING is over (the pause menu path is the platform's).</summary>
-    public void Pause()
+    /// <summary>CGame::Pause(FALSE, NULL): pauses once PRE_RUNNING is over.</summary>
+    public void Pause() => Pause(false, null);
+
+    /// <summary>
+    /// CGame::Pause (0046fb00): once PRE_RUNNING is over and not already paused, pause (the controllers' rumble off is
+    /// the host's); asked from a controller, the pause menu opens, the PC releases the mouse, and the controller takes
+    /// the menu.
+    /// </summary>
+    public void Pause(bool togglePauseMenu, Platform.Controller? from)
     {
         if (State > GameState.PreRunning && !Paused)
         {
             Paused = true;
+            if (togglePauseMenu && from is not null)
+            {
+                _services.ShowPauseMenu(from);
+            }
         }
     }
+
+    /// <summary>CGame::UnPause (0046fae0): unpaused; the pause menu closes unless the free camera is on.</summary>
+    public void UnPause()
+    {
+        Paused = false;
+        if (!FreeCameraOn)
+        {
+            _services.HidePauseMenu();
+        }
+    }
+
+    /// <summary>GetNumPrimaryObjectives (00472670): the defined ones.</summary>
+    public int GetNumPrimaryObjectives() => PrimaryObjectives.Count(o => o.State != MissionObjectiveState.NotDefined);
 
     /// <summary>GetNumSecondaryObjectives (00472690): the defined ones.</summary>
     public int GetNumSecondaryObjectives() => SecondaryObjectives.Count(o => o.State != MissionObjectiveState.NotDefined);

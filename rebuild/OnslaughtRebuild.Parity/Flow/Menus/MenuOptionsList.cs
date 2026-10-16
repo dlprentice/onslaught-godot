@@ -6,7 +6,7 @@
 namespace OnslaughtRebuild.Parity.Flow.Menus;
 
 /// <summary>CMenuOptionsList: a list of menu items driven as one menu.</summary>
-public sealed class MenuOptionsList(FrontEnd frontEnd)
+public sealed class MenuOptionsList(IMenuHost frontEnd)
 {
     public List<MenuItem> Items { get; } = [];
 

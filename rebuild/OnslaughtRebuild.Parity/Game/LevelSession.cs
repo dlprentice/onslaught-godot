@@ -187,6 +187,7 @@ public sealed class LevelSession
             Loading ?? new Flow.LoadingScreen(Clock, () => Input.Input.Process(Clock.QueryPerformanceCounter())), career.SetSlot)
         {
             Career = career,
+            MenuHost = Input.PauseMenuHost,
         };
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Tape = Tape;
@@ -233,6 +234,7 @@ public sealed class LevelSession
         LevelInput input;
         Platform.ControlBindings bindings;
         OnslaughtRebuild.Parity.Career.Career? bootCareer = null;
+        OnslaughtRebuild.Parity.Career.CareerOptions? bootOptions = null;
         if (host is not null)
         {
             // Started from the front end: the process's window, input, bindings and controller state carry on.
@@ -255,6 +257,7 @@ public sealed class LevelSession
             }
 
             input = new LevelInput(clock, bindings);
+            bootOptions = options;
             if (options is not null)
             {
                 input.Shared.MouseSensitivity = options.MouseSensitivity;
@@ -349,6 +352,11 @@ public sealed class LevelSession
             }
         });
         context.Bindings = bindings;
+
+        // InitRestartLoop's pause menu, on the front end's menus when the level came from it.
+        input.CreatePauseMenu(host?.MenuHost ?? new LevelMenuHost(context, clock, career!,
+            Text.TextIds.Read(read(Text.TextIds.FileName).Bytes),
+            bootOptions ?? OnslaughtRebuild.Parity.Career.CareerOptions.Read(new byte[OnslaughtRebuild.Parity.Career.CareerOptions.Size]), bindings));
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
 
@@ -364,6 +372,9 @@ public sealed class LevelSession
             }
 
             context.Particles.Render(numRenders);
+
+            // CDXEngine::PostRender: the pause menu after every frame.
+            input.PauseMenu?.Render();
         };
         return new LevelSession(context, game, resources, clock)
         {
@@ -392,4 +403,7 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
 {
     /// <summary>CAREER itself, kept for a restart's slots.</summary>
     public OnslaughtRebuild.Parity.Career.Career? Career { get; init; }
+
+    /// <summary>The menus' host (the front end's), for the pause menu.</summary>
+    public Flow.Menus.IMenuHost? MenuHost { get; init; }
 }

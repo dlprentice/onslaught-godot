@@ -183,7 +183,8 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
         TimeoutTime = game.Clock.GetSysTimeFloat();
         if (button == Platform.Buttons.Pause)
         {
-            throw new NotSupportedException("CPlayer::ReceiveButtonAction: the pause is not ported");
+            game.Pause(true, from);
+            return;
         }
 
         if (button == Platform.Buttons.SkipPanning && CurrentView == PlayerView.Pan && game.State == GameState.Panning)
