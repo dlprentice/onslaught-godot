@@ -1126,8 +1126,10 @@ public sealed partial class BattleEngine
 
         OldAutoAimYawOffset = AutoAimYawOffset;
         OldAutoAimPitchOffset = AutoAimPitchOffset;
-        AutoAimYawOffset += (DesiredAutoAimYawOffset - AutoAimYawOffset) * 0.5f;
-        AutoAimPitchOffset += (DesiredAutoAimPitchOffset - AutoAimPitchOffset) * 0.5f;
+        // On the x87 the sum keeps the extended exponent range and rounds to a denormal float only at its store: the
+        // eased offsets halve towards zero through denormals exactly (retail win1 P4571 pitch 003daf78).
+        AutoAimYawOffset = (float)X87.Add(AutoAimYawOffset, X87.Mul(X87.Sub(DesiredAutoAimYawOffset, AutoAimYawOffset), 0.5));
+        AutoAimPitchOffset = (float)X87.Add(AutoAimPitchOffset, X87.Mul(X87.Sub(DesiredAutoAimPitchOffset, AutoAimPitchOffset), 0.5));
     }
 
     /// <summary>mCurrentTarget: the fired-lock index GetCurrentTarget walks (ResetTarget zeroes it).</summary>
