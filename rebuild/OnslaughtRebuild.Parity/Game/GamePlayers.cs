@@ -127,6 +127,19 @@ public sealed class ThingCamera : Camera
 /// <summary>CPlayer: a player's number (from 1), battle engine and view.</summary>
 public sealed class Player(int number, ThingContext context) : Monitor, Platform.IButtonReceiver
 {
+    /// <summary>mThingsKilled: the enemies this player killed, by kind (KillType's order).</summary>
+    public int[] ThingsKilled { get; } = new int[5];
+
+    /// <summary>KilledEnemyThing (004d30d0): each kind the unit is counts it.</summary>
+    public void KilledEnemyThing(Unit thing)
+    {
+        if (thing.IsA(ThingType.AirUnit)) ThingsKilled[0]++;
+        if (thing.IsA(ThingType.Vehicle)) ThingsKilled[1]++;
+        if (thing.IsA(ThingType.Emplacement)) ThingsKilled[2]++;
+        if (thing.IsA(ThingType.Infantry)) ThingsKilled[3]++;
+        if (thing.IsA(ThingType.Mech)) ThingsKilled[4]++;
+    }
+
     /// <summary>mTimeoutTime: the platform time of the last button.</summary>
     public float TimeoutTime;
 

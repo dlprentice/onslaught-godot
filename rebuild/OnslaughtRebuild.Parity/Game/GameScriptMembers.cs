@@ -175,4 +175,114 @@ public sealed partial class Game
             Paused = true;
         }
     }
+
+    /// <summary>GetNumSecondaryObjectives (00472690): the defined ones.</summary>
+    public int GetNumSecondaryObjectives() => SecondaryObjectives.Count(o => o.State != MissionObjectiveState.NotDefined);
+
+    /// <summary>
+    /// FillOutEndLevelData (0046d470), as the level ends (RunLevel's close, before the world is cleared): whether each base
+    /// thing is still alive, the level, its end state, objectives, score, time, lost reason and slots, the player's kills,
+    /// and the ranking. With a score time window the score is scaled by the time multiplier (1 until the full-score time,
+    /// falling to the percentage at the percentage time) and the ranking placed between the D and S grade scores, 0
+    /// raised to 0.001; with secondary objectives, all complete lifts it to at least 0.4 and otherwise caps it at 0.6.
+    /// </summary>
+    public void FillOutEndLevelData(Career.EndLevelData end, Things.WorldRegistry world)
+    {
+        List<ActiveReader<Things.Thing>> list = world.BaseWorldThingNB;
+        if (list.Count <= Career.EndLevelData.BaseThingsCount)
+        {
+            for (int index = 0; index < list.Count; index++)
+            {
+                end.BaseThingsLeft[index] = list[index].ToRead is { IsDying: false } ? 1 : 0;
+            }
+        }
+
+        end.WorldFinished = CurrentLevel;
+        end.FinalState = State switch
+        {
+            GameState.LevelWon => Career.EndLevelState.Won,
+            GameState.LevelLost => Career.EndLevelState.Lost,
+            _ => Career.EndLevelState.Other,
+        };
+        for (int i = 0; i < MaxPrimaryObjectives; i++)
+        {
+            end.PrimaryObjectives[i] = (Career.ObjectiveState)PrimaryObjectives[i].State;
+            end.SecondaryObjectives[i] = (Career.ObjectiveState)SecondaryObjectives[i].State;
+        }
+
+        end.Ranking = 1.0f;
+        end.Score = Score;
+        float now = Events.Time;
+        end.TimeTaken = now;
+        end.LevelLostReason = LevelLostReason;
+        Array.Copy(Slots, end.Slots, Math.Min(Slots.Length, end.Slots.Length));
+        if (GetPlayer(0) is { } player)
+        {
+            Array.Copy(player.ThingsKilled, end.ThingsKilled, end.ThingsKilled.Length);
+        }
+        else
+        {
+            Array.Clear(end.ThingsKilled);
+        }
+
+        if (PercentageScoreTime - FullScoreTime > 0)
+        {
+            float multiplier;
+            if (now < FullScoreTime)
+            {
+                multiplier = 1.0f;
+            }
+            else if (now < PercentageScoreTime)
+            {
+                multiplier = (-((now - PercentageScoreTime) / (PercentageScoreTime - FullScoreTime)) * (1 - ScorePercentage)) + ScorePercentage;
+            }
+            else
+            {
+                multiplier = ScorePercentage;
+            }
+
+            multiplier = multiplier > 1.0f ? 1.0f : multiplier < 0.0f ? 0.0f : multiplier;
+            Score = Numerics.X87.Fist(Score * multiplier);
+            if (Score >= SGradeScore)
+            {
+                end.Ranking = 1.0f;
+            }
+            else if (Score < DGradeScore)
+            {
+                end.Ranking = -1.0f;
+            }
+            else
+            {
+                end.Ranking = ((float)Score - DGradeScore) / ((float)SGradeScore - DGradeScore);
+            }
+
+            if (end.Ranking > 1.0f)
+            {
+                end.Ranking = 1.0f;
+            }
+            else if (end.Ranking < 0.0f)
+            {
+                end.Ranking = 0.0f;
+            }
+            else if (end.Ranking == 0.0f)
+            {
+                end.Ranking = 0.001f;
+            }
+        }
+
+        if (GetNumSecondaryObjectives() != 0)
+        {
+            if (end.IsAllSecondaryObjectivesComplete())
+            {
+                if (end.Ranking < 0.4f)
+                {
+                    end.Ranking = 0.4f;
+                }
+            }
+            else if (end.Ranking > 0.6f)
+            {
+                end.Ranking = 0.6f;
+            }
+        }
+    }
 }

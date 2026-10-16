@@ -48,6 +48,16 @@ public sealed class EndLevelData
 
     public ObjectiveState[] SecondaryObjectives { get; } = new ObjectiveState[SecondaryObjectiveCount];
 
+    public ObjectiveState[] PrimaryObjectives { get; } = new ObjectiveState[SecondaryObjectiveCount];
+
+    public int Score { get; set; }
+
+    /// <summary>The event time the level ended at.</summary>
+    public float TimeTaken { get; set; }
+
+    /// <summary>The text id DeclareLevelLost was given.</summary>
+    public int LevelLostReason { get; set; }
+
     /// <summary>
     /// <c>CEndLevelData::IsAllSecondaryObjectivesComplete</c> (0x004496e0): at least one secondary objective must be
     /// complete or failed, and none failed.

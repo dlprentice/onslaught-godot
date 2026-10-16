@@ -138,7 +138,9 @@ public sealed class WorldLoader(ThingContext context, LevelResources resources, 
             things[i]!.Init(init);
             if (isBase)
             {
-                context.Skip("CWorld::mBaseWorldThingNB reader");
+                var reader = new Events.ActiveReader<Thing>();
+                reader.SetReader(things[i]);
+                context.World.BaseWorldThingNB.Add(reader);
             }
         }
 

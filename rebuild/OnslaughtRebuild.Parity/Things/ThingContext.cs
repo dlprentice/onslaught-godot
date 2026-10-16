@@ -130,6 +130,9 @@ public sealed class WorldRegistry(SPtrSetPool pool)
     public SPtrSet<Thing> NamedThings { get; } = new(pool);
     public SPtrSet<Thing> ObjectiveThings { get; } = new(pool);
 
+    /// <summary>mBaseWorldThingNB: a reader per base-world thing in file order (empty for one the career destroyed).</summary>
+    public List<ActiveReader<Thing>> BaseWorldThingNB { get; } = [];
+
     /// <summary>mSetD0: the safe sides (CSafeSide::Init adds itself at the head; CUnit::FindNearestSafeSide walks it).</summary>
     public SPtrSet<Thing> SafeSides { get; } = new(pool);
     public SPtrSet<Thing> BigThings { get; } = new(pool);
