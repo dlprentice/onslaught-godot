@@ -4,7 +4,7 @@
 // (GetViewMatrixFromCamera 00449ef0), renderinfo.cpp (SetProjection 00550b10, SetView 00550be0), gcgamut.cpp
 // (RenderThings 00476fe0), thing.cpp (CThing::Render 004f36d0), Building.cpp (CBuilding::Render 00417540),
 // BattleEngine.cpp (CBattleEngine::Render 0040d530), rtmesh.cpp (CRTMesh::Init's effect tables, Render 004dcba0,
-// UpdateRenderLists 004dd0c0) and MeshRenderer.cpp (RenderPart's effect emitters, 004b6350).
+// UpdateRenderLists 004dd0c0) and MeshRenderer.cpp (Render's pose update 004b6260, RenderPart's effect emitters, 004b6350).
 
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
@@ -473,6 +473,14 @@ public sealed class WorldRender(ThingContext context)
         }
 
         MeshesDrawn++;
+
+        // CMeshRenderer::Render (004b6260): a render thing with a pose rebuilds it for the drawn mesh, once a render
+        // frame. Collision between renders reads that pose, interpolated as the render saw it.
+        if (drawn.NumParts > 0 && rt.Pose is { } pose)
+        {
+            pose.Update(drawn, subject, context.RenderFrameNumber, force: true);
+        }
+
         RunEffects(rt, drawn, subject);
     }
 

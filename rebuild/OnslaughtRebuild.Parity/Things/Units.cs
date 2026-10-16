@@ -192,6 +192,9 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 
     public int TiltsWithGround;
 
+    /// <summary>mMotionController when it is a CMCGroundVehicle (Init: a vehicle without wheel motion).</summary>
+    public GroundVehicleMotionController? MotionController;
+
     /// <summary>COfGHeight (slot 48): 0.1.</summary>
     public override float COfGHeight() => 0.1f;
 
@@ -244,7 +247,7 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
         }
         else
         {
-            Context.Skip("CMCGroundVehicle (motion controller)");
+            MotionController = new GroundVehicleMotionController(this);
         }
 
         Guide = new GroundVehicleGuide(this);
