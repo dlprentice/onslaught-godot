@@ -174,17 +174,20 @@ public abstract partial class Unit
     /// <summary>GetTargetablePos (slot 90): the segments' centre, else the centre position. Cannons, mechs and boats override it.</summary>
     public FVector GetTargetablePos()
     {
-        if (this is Cannon)
-        {
-            throw new NotSupportedException("CCannon::GetTargetablePos is not ported");
-        }
-
         if (HasSegments)
         {
             throw new NotSupportedException("CDestructableSegmentsController::GetCentre is not ported");
         }
 
-        return GetCentrePos();
+        FVector pos = GetCentrePos();
+        if (this is Cannon)
+        {
+            // CCannon::GetTargetablePos (0041b540): halfway between CUnit's point and its position.
+            pos += Pos;
+            pos *= 0.5f;
+        }
+
+        return pos;
     }
 
     /// <summary>The AnyWeaponBusy scan: a weapon in the middle of a burst.</summary>

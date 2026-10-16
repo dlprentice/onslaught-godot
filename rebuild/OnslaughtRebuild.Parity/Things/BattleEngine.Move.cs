@@ -567,7 +567,7 @@ public sealed partial class BattleEngine
             }
         }
 
-        Context.Skip("CBattleEngine::UpdateAutoAim (not ported yet)");
+        UpdateAutoAim();
         HandleSounds();
         if (ThrustersOn)
         {
@@ -983,5 +983,82 @@ public sealed partial class BattleEngine
         {
             WalkSounds = 0;
         }
+    }
+
+    /// <summary>mOldAutoAimYawOffset / mOldAutoAimPitchOffset: the last update's offsets (the HUD interpolates).</summary>
+    public float OldAutoAimYawOffset, OldAutoAimPitchOffset;
+
+    /// <summary>mDesiredAutoAimYawOffset / mDesiredAutoAimPitchOffset.</summary>
+    public float DesiredAutoAimYawOffset, DesiredAutoAimPitchOffset;
+
+    /// <summary>mTrackingYawOffset / mTrackingPitchOffset and their last update's values; mTrackingActive.</summary>
+    public float TrackingYawOffset, TrackingPitchOffset, OldTrackingYawOffset, OldTrackingPitchOffset;
+
+    public bool TrackingActive;
+
+    /// <summary>
+    /// UpdateAutoAim (0040b120): towards the auto-aim target's targetable point, predicted along its velocity by the
+    /// round's flight time for a predicting weapon (a lead over 0.2 rad becomes the tracking offsets instead); the aim
+    /// offsets then ease half way to the desired ones.
+    /// </summary>
+    private void UpdateAutoAim()
+    {
+        Weapon? weapon = GetCurrentWeapon();
+        float currentYaw = CurrentOrientation.Yaw;
+        float currentPitch = CurrentOrientation.Pitch;
+        OldTrackingYawOffset = TrackingYawOffset;
+        OldTrackingPitchOffset = TrackingPitchOffset;
+        if (AutoAimTarget.ToRead is { } target)
+        {
+            FVector op = target is Unit unit && target.IsA(ThingType.Unit) ? unit.GetTargetablePos() : target.GetCentrePos();
+            if (weapon!.CanPredict())
+            {
+                FVector bp = Pos + GetVelocity();
+                var launchVector = new FVector(0, weapon.GetLaunchVelocity(), 0);
+                FVector bv = Orientation.Transform(launchVector);
+                FVector ov = target.GetVelocity();
+                float t = (bp - op).Magnitude() / bv.Magnitude() * 20.0f;
+                FVector predictedPos = op + (ov * t);
+                FVector diff = predictedPos - (Pos + GetVelocity());
+                DesiredAutoAimYawOffset = -AngleDifference(currentYaw, WeaponMaths.Azimuth(Context, diff));
+                DesiredAutoAimPitchOffset = -AngleDifference(currentPitch, WeaponMaths.Elevation(Context, diff));
+                if (MathF.Abs(DesiredAutoAimYawOffset) + MathF.Abs(DesiredAutoAimPitchOffset) > 0.2f)
+                {
+                    TrackingYawOffset = DesiredAutoAimYawOffset;
+                    TrackingPitchOffset = DesiredAutoAimPitchOffset;
+                    if (!TrackingActive)
+                    {
+                        OldTrackingYawOffset = TrackingYawOffset;
+                        OldTrackingPitchOffset = TrackingPitchOffset;
+                    }
+
+                    TrackingActive = true;
+                    DesiredAutoAimYawOffset = 0;
+                    DesiredAutoAimPitchOffset = 0;
+                }
+                else
+                {
+                    TrackingActive = false;
+                }
+            }
+            else
+            {
+                FVector diff = op - (Pos + GetVelocity());
+                DesiredAutoAimYawOffset = -AngleDifference(currentYaw, WeaponMaths.Azimuth(Context, diff));
+                DesiredAutoAimPitchOffset = -AngleDifference(currentPitch, WeaponMaths.Elevation(Context, diff));
+                TrackingActive = false;
+            }
+        }
+        else
+        {
+            DesiredAutoAimYawOffset = 0.0f;
+            DesiredAutoAimPitchOffset = 0.0f;
+            TrackingActive = false;
+        }
+
+        OldAutoAimYawOffset = AutoAimYawOffset;
+        OldAutoAimPitchOffset = AutoAimPitchOffset;
+        AutoAimYawOffset += (DesiredAutoAimYawOffset - AutoAimYawOffset) * 0.5f;
+        AutoAimPitchOffset += (DesiredAutoAimPitchOffset - AutoAimPitchOffset) * 0.5f;
     }
 }

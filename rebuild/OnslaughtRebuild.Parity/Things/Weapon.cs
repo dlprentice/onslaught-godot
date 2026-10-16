@@ -305,6 +305,9 @@ public sealed class Weapon(ThingContext context, WeaponData data, int type) : Eq
 
     public bool ValidRound() => Mode?.Round is not null;
 
+    /// <summary>GetLaunchVelocity (weapon.h): a beam's 1000, a round's speed, 0 without a round.</summary>
+    public float GetLaunchVelocity() => ValidRound() ? (Mode!.Round!.Beam != 0 ? 1000.0f : Mode.Round.Speed) : 0.0f;
+
     public bool CanPredict() => Mode is not null && Mode.Predictive != 0;
 
     public bool IsSmart() => Data.Smart != 0;

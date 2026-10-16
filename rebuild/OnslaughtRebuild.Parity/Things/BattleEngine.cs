@@ -235,14 +235,131 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         return result;
     }
 
-    /// <summary>CBattleEngine::HandleAutoAim: the auto-aim target search, then the next search.</summary>
+    /// <summary>
+    /// CBattleEngine::HandleAutoAim (0040b6d0): with a smart weapon, the enemy unit (or lockable enemy feature) within the
+    /// weapon's ranges whose direction is nearest the battle engine's heading, within 0.2 rad of yaw plus pitch (0.8 for a
+    /// predicting weapon, 0.2 for a target that hardly moves); units the auto-aim may not take (aircraft without
+    /// prediction, big, inactive, with a nexus or weak point, not lockable) are left; stealth shortens the range and
+    /// being off the scanner halves it. A building is dropped, and a target the line of sight does not reach first. Then
+    /// the next search in 0.2..0.3 s.
+    /// </summary>
     public void HandleAutoAim(ScheduledEvent? e)
     {
+        Weapon? weapon = GetCurrentWeapon();
+        FVector forward = Orientation.Transform(new FVector(0, 1, 0));
+        float currentYaw = WeaponMaths.Azimuth(Context, forward);
+        float currentPitch = WeaponMaths.Elevation(Context, forward);
+        float minRange = weapon?.GetMinRange(Pos) ?? 0.0f;
+        float maxRange = weapon?.GetMaxRange(Pos) ?? 0.0f;
+        AutoAimTarget.SetReader(null);
+
         // GAME.GetAllowedAutoAim(): TRUE from CGame::InitRestartLoop (game.cpp:316) until a script turns it off; read
         // as TRUE until CGame carries the flag.
         Context.Skip("GAME.GetAllowedAutoAim read as TRUE");
+        if (weapon is not null && weapon.IsSmart())
+        {
+            float range = maxRange;
+            if (range <= 0.0f)
+            {
+                range = 1000.0f;
+                maxRange = 1000.0f;
+            }
 
-        Context.Skip("CBattleEngine::HandleAutoAim's target search (weapons and map-who)");
+            float bestAngleDiff = weapon.CanPredict() ? 0.8f : 0.2f;
+            for (MapWhoEntry? entry = Context.MapWho.GetFirstEntryWithinRadius(Pos, range); entry is not null;
+                 entry = Context.MapWho.GetNextEntryWithinRadius())
+            {
+                Thing thing = entry.Thing;
+                FVector targetPos;
+                float distSq;
+                float tempMaxRange = maxRange;
+                if (thing.IsA(ThingType.Unit) && thing is Unit unit)
+                {
+                    if (!IsTargetAlligence(unit.Allegiance) || unit.IsDying)
+                    {
+                        continue;
+                    }
+
+                    bool canAutoAim = !(unit.IsA(ThingType.AirUnit) && !weapon.CanPredict());
+                    if (unit.UnitData is { Big: not 0 } || !unit.Active || unit.Unknown228Nexus || unit.Unknown22CWeakPoint
+                        || unit.UnitData is { CanBeLocked: 0 })
+                    {
+                        canAutoAim = false;
+                    }
+
+                    if (!canAutoAim)
+                    {
+                        continue;
+                    }
+
+                    targetPos = unit.GetTargetablePos();
+                    FVector diffU = targetPos - Pos;
+                    distSq = diffU.MagnitudeSq();
+                    tempMaxRange = maxRange * (1.0f - (unit.GetStealth() / 100.0f));
+                }
+                else if (thing.IsA(ThingType.Feature) && thing is Feature feature)
+                {
+                    if (feature.Data?.Lockable is null or 0 || !IsTargetAlligence(feature.Allegiance))
+                    {
+                        continue;
+                    }
+
+                    targetPos = feature.GetCentrePos();
+                    FVector d = targetPos - Pos;
+                    float zSquared = d.Z * d.Z;
+                    distSq = (zSquared + (d.X * d.X)) + (d.Y * d.Y);
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (!(minRange * minRange <= distSq && tempMaxRange * tempMaxRange >= distSq))
+                {
+                    continue;
+                }
+
+                FVector diff = targetPos - Pos;
+                float yawDiff = -Unit.AngleDifference(currentYaw, WeaponMaths.Azimuth(Context, diff));
+                float pitchDiff = -Unit.AngleDifference(currentPitch, WeaponMaths.Elevation(Context, diff));
+                float angleDiff = MathF.Abs(yawDiff) + MathF.Abs(pitchDiff);
+                float tempAngleDiff = bestAngleDiff;
+                if (thing.GetVelocity().MagnitudeSq() < 0.1f * 0.1f && tempAngleDiff > 0.2f)
+                {
+                    tempAngleDiff = 0.2f;
+                }
+
+                if (angleDiff < tempAngleDiff)
+                {
+                    AutoAimTarget.SetReader(thing);
+                    bestAngleDiff = angleDiff;
+                }
+            }
+        }
+
+        if (AutoAimTarget.ToRead is { } building && building.IsA(ThingType.Building))
+        {
+            AutoAimTarget.SetReader(null);
+        }
+
+        if (AutoAimTarget.ToRead is { } target)
+        {
+            FVector targetPos = target is Unit tu && target.IsA(ThingType.Unit) ? tu.GetTargetablePos() : target.GetCentrePos();
+            var wlcr = new World.WorldLineReport();
+            if (World.WorldLineQuery.FindFirstThingToHitLine(Context, Pos, targetPos, this, wlcr, false, true,
+                    (int)CollisionLevel.ApproxGeometryShapes, ThingType.Ammunition, true) == World.LineHitType.Thing)
+            {
+                if (!ReferenceEquals(wlcr.HitThing, target))
+                {
+                    AutoAimTarget.SetReader(null);
+                }
+            }
+            else
+            {
+                AutoAimTarget.SetReader(null);
+            }
+        }
+
         Context.Events.AddEvent(BattleEngineEvent.HandleAutoAim, this,
             Context.Events.Time + (Context.Random.FloatRandom() * 0.1f) + 0.2f, EventPriority.StartOfFrame, null, e);
     }
