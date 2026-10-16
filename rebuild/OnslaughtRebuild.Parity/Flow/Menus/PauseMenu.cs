@@ -12,10 +12,10 @@ using OnslaughtRebuild.Parity.Platform;
 namespace OnslaughtRebuild.Parity.Flow.Menus;
 
 /// <summary>
-/// CPauseMenu: the in-game menu (Escape in a level) and, as <c>CPauseMenu(TRUE)</c>, the PC options page. Its first list
-/// (the game's continue, message log and briefing; controls, sound and display; the game's retry and quit, or the
-/// options page's credits) and the sound list are ported, with the retry and quit confirmation. The controls and display
-/// lists, the message log and the briefing are not ported and stop a run that enters them.
+/// CPauseMenu: the in-game menu (Escape in a level) and, as <c>CPauseMenu(TRUE)</c>, the PC options page. Its lists: the
+/// first (the game's continue, message log and briefing; controls, sound and display; the game's retry and quit, or the
+/// options page's credits), the controls, the display and the sound, with the retry and quit confirmation. What their
+/// settings change beyond the menu (a display reset, the key presets, the joysticks, god mode) stops a run that reaches it.
 /// </summary>
 public sealed class PauseMenu : IButtonReceiver
 {
@@ -38,6 +38,8 @@ public sealed class PauseMenu : IButtonReceiver
     private readonly int _sure;
     private readonly int _no;
     private readonly int _yes;
+    private readonly int _godOn;
+    private readonly int _godOff;
 
     /// <param name="game">The game, for the in-game form; null for the options page.</param>
     public PauseMenu(IMenuHost host, bool optionsPage, IPauseMenuGame? game = null)
@@ -64,6 +66,8 @@ public sealed class PauseMenu : IButtonReceiver
         _sure = Id("IG_SURE");
         _no = Id("IG_NO");
         _yes = Id("IG_YES");
+        _godOn = Id("GI_GOD_ON");
+        _godOff = Id("GI_GOD_OFF");
         OptionsPage = optionsPage;
 
         // The menu.
@@ -90,14 +94,9 @@ public sealed class PauseMenu : IButtonReceiver
 
         Lists.Add(list);
 
-        // The controls (mouse sensitivity, configuration name, god mode with its cheat, the controller definition, four
-        // joysticks, back) and the display (the detail items and the device): not ported.
-        list = new MenuOptionsList(host);
-        list.AddItem(new NotPortedMenuItem("the options' controls list"));
-        Lists.Add(list);
-        list = new MenuOptionsList(host);
-        list.AddItem(new NotPortedMenuItem("the options' display list"));
-        Lists.Add(list);
+        // The controls and the display.
+        Lists.Add(OptionsLists.Controls(host, _godOn, _godOff, _back));
+        Lists.Add(OptionsLists.Display(host, _back));
 
         // The sound.
         Career.Career career = host.Career;
@@ -258,6 +257,11 @@ public sealed class PauseMenu : IButtonReceiver
         }
         else if (item.Text == _back)
         {
+            if (!CanReturnToPauseRoot())
+            {
+                return;
+            }
+
             Page = 0;
             Lists[0].Reset();
             backSound = true;
@@ -282,6 +286,16 @@ public sealed class PauseMenu : IButtonReceiver
                 case 79:
                     return;
             }
+        }
+        else if (item.Text == _godOff && _godOff != 0)
+        {
+            item.Text = _godOn;
+            Game.SetPlayerGod(true);
+        }
+        else if (item.Text == _godOn && _godOn != 0)
+        {
+            item.Text = _godOff;
+            Game.SetPlayerGod(false);
         }
         else if (item.Text == _briefing)
         {
@@ -373,10 +387,13 @@ public sealed class PauseMenu : IButtonReceiver
             case FrontEndButtons.MenuBack:
                 if (Page > 0)
                 {
-                    // BackToFirstPage (the controls page's binding warning is the controls list's, not ported).
-                    Page = 0;
-                    Lists[0].Reset();
-                    _host.PlaySound(FrontEndSound.Back);
+                    // BackToFirstPage: not from the controls page while a player has no free binding.
+                    if (CanReturnToPauseRoot())
+                    {
+                        Page = 0;
+                        Lists[0].Reset();
+                        _host.PlaySound(FrontEndSound.Back);
+                    }
                 }
                 else
                 {
@@ -391,11 +408,22 @@ public sealed class PauseMenu : IButtonReceiver
     void IButtonReceiver.ReceiveButtonAction(Controller from, int button, float value) => ReceiveButtonAction(button, value);
 
     /// <summary>
+    /// GetBindingWarning (004d0de0): player 1 has a configurable action with no key, or in a running multiplayer game
+    /// player 2 has.
+    /// </summary>
+    public bool HasBindingWarning() =>
+        !OptionSettings.AllControlBindingsSet(_host.Bindings, 0)
+        || (_game is { IsMultiplayer: true } && !OptionSettings.AllControlBindingsSet(_host.Bindings, 1));
+
+    private bool CanReturnToPauseRoot() => Page != 1 || !HasBindingWarning();
+
+    /// <summary>
     /// The state Render (004d11d0) changes: closed for 0.4 seconds or more, nothing; open for more than 0.4 seconds, the
-    /// shown list renders, then the confirmation's. (SyncDetailItems is the display list's, not ported.)
+    /// shown list renders, then the confirmation's. First, whether shown or not, SyncDetailItems.
     /// </summary>
     public void Render()
     {
+        OptionSettings.SyncDetailItems(_host);
         if (!Active)
         {
             if (CloseTime < 0.0f || X87.Sub(_clock.GetSysTimeFloat(), CloseTime) > 0.4f)

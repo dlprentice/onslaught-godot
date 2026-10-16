@@ -27,6 +27,24 @@ public sealed class LevelMenuHost(ThingContext context, PlatformClock clock, Ons
 
     public int Sound3DMethod => 0;
 
+    public Platform.ControlBindings Bindings => bindings;
+
+    /// <summary>gMouseSensitivity: the mouse look's (the level's controllers read the same shared value).</summary>
+    public float MouseSensitivity
+    {
+        get => context.MouseLook.Sensitivity;
+        set
+        {
+            context.MouseLook.Sensitivity = value;
+            Options = Options with { MouseSensitivity = value };
+        }
+    }
+
+    /// <summary>No save name in a -level run: a cheat is active only when every cheat is enabled, which nothing sets here.</summary>
+    public bool IsCheatActive(int cheat) => false;
+
+    public MachineDisplay Machine { get; } = new();
+
     /// <summary>defaultoptions.bea as the pause menu last wrote it, or null.</summary>
     public byte[]? DefaultOptionsFile { get; private set; }
 

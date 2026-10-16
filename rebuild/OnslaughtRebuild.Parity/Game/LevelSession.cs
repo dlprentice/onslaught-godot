@@ -363,7 +363,7 @@ public sealed class LevelSession
             bootOptions ?? OnslaughtRebuild.Parity.Career.CareerOptions.Read(new byte[OnslaughtRebuild.Parity.Career.CareerOptions.Size]), bindings),
             () => scripts.MessageBox!.Shown);
         context.MouseLook.Platform = input.Input.Mouse;
-        context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
+        context.MouseLook.Shared = input.Shared;
 
         // Retail draws the player's battle engine each render, which asks its motion controller for every part; the
         // particles step and draw after the world.

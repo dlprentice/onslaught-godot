@@ -290,13 +290,3 @@ public sealed class ApplyMenuItem(MenuOptionsList list) : MenuItem(0)
         }
     }
 }
-
-/// <summary>An item the core does not port yet: the list it is in cannot be shown.</summary>
-public sealed class NotPortedMenuItem(string what) : MenuItem(0)
-{
-    public override void Refresh() => throw new NotSupportedException($"{what} is not ported");
-
-    public override void ReceiveButtonAction(int button, float value) => throw new NotSupportedException($"{what} is not ported");
-
-    public override void Render(bool selected) => throw new NotSupportedException($"{what} is not ported");
-}

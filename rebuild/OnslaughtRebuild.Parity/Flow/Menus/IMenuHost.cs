@@ -28,6 +28,18 @@ public interface IMenuHost
     /// <summary>SOUND.m3DSoundMethod.</summary>
     int Sound3DMethod { get; }
 
+    /// <summary>CONTROL_BINDINGS.</summary>
+    Platform.ControlBindings Bindings { get; }
+
+    /// <summary>gMouseSensitivity, the live value (the options file's copy is written with it).</summary>
+    float MouseSensitivity { get; set; }
+
+    /// <summary>FRONTEND.mFEPSaveGame.IsCheatActive: the save name's cheat, or every cheat when enabled.</summary>
+    bool IsCheatActive(int cheat);
+
+    /// <summary>The display and joysticks the options' display and controls lists read.</summary>
+    MachineDisplay Machine { get; }
+
     /// <summary>
     /// CPauseMenu::Resume's save (004d06e0): CAREER.Save's image to the career's memory-card slot when it has a name,
     /// and to defaultoptions.bea.
@@ -56,6 +68,9 @@ public interface IPauseMenuGame
     void RelinquishControl(Platform.IButtonReceiver menu);
 
     bool IsMultiplayer { get; }
+
+    /// <summary>PausePlayer(0)->SetIsGod: the pause menu's god mode item.</summary>
+    void SetPlayerGod(bool god);
 
     int NumPrimaryObjectives { get; }
 

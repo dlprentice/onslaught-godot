@@ -187,6 +187,25 @@ public sealed class MouseLookState
             _mouseY = value;
         }
     }
-    public float Sensitivity = 7.0f;
+    private float _sensitivity = 7.0f;
+
+    /// <summary>The controllers' shared state, whose gMouseSensitivity this reads when the level has controllers.</summary>
+    public Platform.ControllerShared? Shared { get; set; }
+
+    /// <summary>gMouseSensitivity: one value, which the controllers' mouse axes read too.</summary>
+    public float Sensitivity
+    {
+        get => Shared?.MouseSensitivity ?? _sensitivity;
+        set
+        {
+            if (Shared is not null)
+            {
+                Shared.MouseSensitivity = value;
+            }
+
+            _sensitivity = value;
+        }
+    }
+
     public bool InvertY;
 }

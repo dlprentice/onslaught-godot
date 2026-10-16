@@ -2,6 +2,7 @@
 
 using System.Text;
 using OnslaughtRebuild.Parity.Clock;
+using OnslaughtRebuild.Parity.Flow.Menus;
 using OnslaughtRebuild.Parity.Game;
 using Xunit;
 using Xunit.Abstractions;
@@ -122,5 +123,62 @@ public sealed class PauseMenuTests(ITestOutputHelper output)
         Assert.False(briefing().Active);
         Assert.True(briefing().Fade <= 0);
         Assert.False(session.Game.Paused);
+    }
+
+    /// <summary>
+    /// The options' controls and display lists, on the port harness's machine (MachineDisplay's defaults): Escape, Down ×3,
+    /// Return opens the controls on the mouse sensitivity (7 reads as step 2); Down reaches the preset, and Down again
+    /// skips the bindings item and the four joysticks (none, once drawn) to Back, whose Return goes back to the first
+    /// page (on Continue). Down ×5 and Return open the display; Down reaches the detail preset, Right opens its list a choice on and
+    /// Return chooses it, which sets the other items' choices (not their settings: those wait for Apply); Escape goes back
+    /// and Escape again resumes the game.
+    /// </summary>
+    [GameDataFact]
+    public void TheControlsAndDisplayListsOpenAndReturn()
+    {
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        session.Tape = Keys((400, "1b", "01"), (440, "28", "150"), (450, "28", "150"), (460, "28", "150"), (480, "0d", "1c"),
+            (520, "28", "150"), (540, "28", "150"), (560, "0d", "1c"), (600, "28", "150"), (610, "28", "150"), (620, "28", "150"),
+            (630, "28", "150"), (640, "28", "150"), (660, "0d", "1c"), (700, "28", "150"), (720, "27", "14d"), (740, "0d", "1c"),
+            (780, "1b", "01"), (820, "1b", "01"));
+        var menu = () => session.Input.PauseMenu!;
+        var seen = new List<string>();
+        string last = "";
+        var detailSeen = new List<string>();
+        while (session.PresentCount < 860)
+        {
+            session.AdvanceToNextPresent();
+            PauseMenu m = menu();
+            string now = $"paused {session.Game.Paused} menu {m.Active} page {m.Page} sel {m.Lists[m.Page].Selected}";
+            if (now != last)
+            {
+                seen.Add($"P{session.PresentCount} {now}");
+                last = now;
+            }
+        }
+
+        foreach (string line in seen)
+        {
+            output.WriteLine(line);
+        }
+
+        PauseMenu final = menu();
+        MenuOptionsList controls = final.Lists[1];
+        MenuOptionsList display = final.Lists[2];
+        var sensitivity = (MouseSensitivityMenuItem)controls.Items[0];
+        var detail = (VideoDetailLevelMenuItem)display.Items[1];
+        output.WriteLine($"sensitivity step {sensitivity.Value}; joysticks enabled {string.Join(",", controls.Items.OfType<JoystickEnableMenuItem>().Select(j => j.Enabled))}");
+        output.WriteLine($"detail value {detail.Value} selection {detail.Selection}; resolution {detail.Resolution.Selection}/{detail.Resolution.Value} shadows {detail.ShadowDetail.Selection}/{detail.ShadowDetail.Value} trees {detail.TreeDetail.Selection}/{detail.TreeDetail.Value} multisample choices {detail.MultiSample.GetNumChoices()} 32-bit choices {detail.Bits32.GetNumChoices()}");
+        Assert.Equal(2, sensitivity.Value);
+        Assert.Contains(seen, l => l.Contains("page 1 sel 7"));
+        Assert.Contains(seen, l => l.Contains("page 2 sel 1"));
+        Assert.All(controls.Items.OfType<JoystickEnableMenuItem>(), j => Assert.False(j.Enabled));
+        Assert.Equal(1, detail.Value);
+        Assert.Equal(0, detail.ShadowDetail.Selection);
+        Assert.Equal(2, detail.ShadowDetail.Value);
+        Assert.Equal(4, detail.MultiSample.GetNumChoices());
+        Assert.Equal(3, detail.Bits32.GetNumChoices());
+        Assert.False(session.Game.Paused);
+        Assert.False(final.Active);
     }
 }

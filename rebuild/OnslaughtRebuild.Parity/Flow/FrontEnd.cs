@@ -311,6 +311,24 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// <summary>SOUND.m3DSoundMethod: the method the sound manager chose (the options' -1 means it).</summary>
     public int Sound3DMethod { get; set; }
 
+    Platform.ControlBindings Menus.IMenuHost.Bindings => Controls.Bindings;
+
+    float Menus.IMenuHost.MouseSensitivity
+    {
+        get => Controls.Shared.MouseSensitivity;
+        set
+        {
+            Controls.Shared.MouseSensitivity = value;
+            Menus.IMenuHost host = this;
+            host.Options = host.Options with { MouseSensitivity = value };
+        }
+    }
+
+    bool Menus.IMenuHost.IsCheatActive(int cheat) => Pages.SaveGamePage.CheatActive(SaveGameName, AllCheatsEnabled, cheat);
+
+    /// <summary>The display and joysticks the options' display and controls lists read (the port's harness by default).</summary>
+    public Menus.MachineDisplay Machine { get; } = new();
+
     void Menus.IMenuHost.SaveFromPause()
     {
         OnslaughtRebuild.Parity.Career.CareerOptions options = ((Menus.IMenuHost)this).Options;
