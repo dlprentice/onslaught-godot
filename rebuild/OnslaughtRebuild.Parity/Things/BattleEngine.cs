@@ -184,6 +184,30 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     /// hit (not a dead building) is the result when nearer than the weapon's actual range (1000 without one), and with
     /// the data updated the report and both crosshair units are kept. From the event, the next search in 0.1..0.3 s.
     /// </summary>
+    /// <summary>
+    /// CalcUnitOverCrossHair's (view * autoAim) * FVector(0, 1000, 0), inlined: only the product's Y column is used, each
+    /// element's three terms summed in retail's ranked order, (k2 + k1) + k0 in row 0 and (k0 + k2) + k1 in rows 1 and 2
+    /// (0040ada5..0040aec7, B's patch 0024), then scaled by 1000 (005d8c54). The written order ended win1 P4387's line
+    /// one ulp short of retail's 44896c02 4447e6c2 42acaf32.
+    /// </summary>
+    private static FVector CrosshairDirection(FMatrix view, FMatrix autoAim)
+    {
+        float k0, k1, k2;
+        k0 = view.Row0.X * autoAim.Row0.Y;
+        k1 = view.Row0.Y * autoAim.Row1.Y;
+        k2 = view.Row0.Z * autoAim.Row2.Y;
+        float x = (k2 + k1) + k0;
+        k0 = view.Row1.X * autoAim.Row0.Y;
+        k1 = view.Row1.Y * autoAim.Row1.Y;
+        k2 = view.Row1.Z * autoAim.Row2.Y;
+        float y = (k0 + k2) + k1;
+        k0 = view.Row2.X * autoAim.Row0.Y;
+        k1 = view.Row2.Y * autoAim.Row1.Y;
+        k2 = view.Row2.Z * autoAim.Row2.Y;
+        float z = (k0 + k2) + k1;
+        return new FVector(x * 1000.0f, y * 1000.0f, z * 1000.0f);
+    }
+
     public Unit? CalcUnitOverCrossHair(ScheduledEvent? e, bool meshCollision, bool updateData)
     {
         Unit? result = null;
@@ -206,8 +230,7 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
             Game.Camera? camera = Context.Game?.GetCurrentCamera(player.Number - 1);
             FVector pos = camera?.GetPos() ?? new FVector(0, 0, 0);
-            FMatrix ori = (camera?.GetOrientation() ?? FMatrix.Identity).Multiply(autoAim);
-            FVector end = pos + ori.Transform(new FVector(0.0f, 1000.0f, 0.0f));
+            FVector end = pos + CrosshairDirection(camera?.GetOrientation() ?? FMatrix.Identity, autoAim);
             World.WorldLineReport wlcr = updateData ? Wlcr : new World.WorldLineReport();
             if (World.WorldLineQuery.FindFirstThingToHitLine(Context, pos, end, this, wlcr, false, meshCollision,
                     meshCollision ? (int)CollisionLevel.Mesh : (int)CollisionLevel.OuterSphere, ThingType.Tree + ThingType.Ammunition, true)
