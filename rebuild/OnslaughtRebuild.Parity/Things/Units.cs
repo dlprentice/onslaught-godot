@@ -588,6 +588,9 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
         base.Shutdown();
     }
 
+    /// <summary>GetRenderImposterBias: an aircraft keeps its mesh to twice the distance.</summary>
+    public override float GetRenderImposterBias() => 0.5f;
+
     /// <summary>GetMaxVelocity: 13 for an air unit.</summary>
     public override float GetMaxVelocity() => 13.0f;
 

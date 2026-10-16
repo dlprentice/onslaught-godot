@@ -697,7 +697,7 @@ public sealed partial class PdTrail
             if (UseSegmentLength != 0)
             {
                 FVector d = f.Pos - f.Unknown90;
-                p.Unknown80 = (int)((float)Math.Sqrt((d.X * d.X) + ((d.Y * d.Y) + (d.Z * d.Z))) / SegmentLength) + 3;
+                p.Unknown80 = Numerics.X87.Fist((float)Math.Sqrt((d.X * d.X) + ((d.Y * d.Y) + (d.Z * d.Z))) / SegmentLength) + 3;
             }
             else
             {

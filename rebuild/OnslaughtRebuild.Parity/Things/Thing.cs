@@ -221,6 +221,9 @@ public abstract class Thing : Monitor, IOccupancyUnit
 
     public bool HasCollisionMeshVolume() => CollisionMeshVolume is not null;
 
+    /// <summary>GetRenderImposterBias (IRenderableThing 23): scales the distance at which the mesh gives way to its imposter.</summary>
+    public virtual float GetRenderImposterBias() => 1.0f;
+
     /// <summary>GetVelocity (slot 27): zero for a plain thing.</summary>
     public virtual FVector GetVelocity() => new(0, 0, 0);
 

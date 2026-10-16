@@ -349,6 +349,11 @@ public sealed class WorldRender(ThingContext context)
     /// <summary>CRTMesh::Render: onto this frame's list; drawn as a mesh when near enough (no imposter, or within the fade).</summary>
     private void RenderMesh(bool hasImposter, RenderThing rt)
     {
+        RenderMesh(hasImposter, rt, (rt.Subject as Thing)?.GetRenderImposterBias() ?? 1.0f);
+    }
+
+    private void RenderMesh(bool hasImposter, RenderThing rt, float imposterBias)
+    {
         if (rt.NextRendered is not null)
         {
             rt.NextRendered.PrevRendered = rt.PrevRendered;
@@ -382,7 +387,7 @@ public sealed class WorldRender(ThingContext context)
         IRenderSubject subject = rt.Subject;
         float dist = (_campos - subject.RenderPos).Magnitude();
         float radius = mesh.BoundingBox?.Radius ?? mesh.Radius;
-        float lod = dist / radius * 1.0f * MeshLodBias * _zoom;
+        float lod = dist / radius * imposterBias * MeshLodBias * _zoom;
         if (hasImposter && !(lod < ImposterFadeEnd))
         {
             return;

@@ -3,6 +3,7 @@
 // MakeIt 00476a20).
 
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Render;
 
@@ -57,10 +58,10 @@ public sealed class Gamut
         MaxX = MaxY = -12340;
         for (int i = 0; i < 5; i++)
         {
-            int x = (int)points[i].X;
+            int x = X87.Fist(points[i].X);
             MaxX = Math.Max(MaxX, x);
             MinX = Math.Min(MinX, x);
-            int y = (int)points[i].Y;
+            int y = X87.Fist(points[i].Y);
             MaxY = Math.Max(MaxY, y);
             MinY = Math.Min(MinY, y);
         }
@@ -81,8 +82,11 @@ public sealed class Gamut
         }
     }
 
-    /// <summary>Quantise: (h * 127) / 60 on the x87, kept wide until the truncating conversion, clamped to a signed byte.</summary>
-    private static sbyte Quantise(float h) => (sbyte)Math.Clamp((int)(h * 127.0 / 60.0), -127, 127);
+    /// <summary>
+    /// Quantise: (h * 127) / 60 on the x87, converted as /QIfist compiles (SINT): fistp in the current rounding mode, to
+    /// nearest; then clamped to a signed byte.
+    /// </summary>
+    private static sbyte Quantise(float h) => (sbyte)Math.Clamp(X87.Fist(h * 127.0 / 60.0), -127, 127);
 
     /// <summary>ComputePlanes: each side plane through the apex and two far corners, solved for height over the grid.</summary>
     private void ComputePlanes(FVector[] points)
