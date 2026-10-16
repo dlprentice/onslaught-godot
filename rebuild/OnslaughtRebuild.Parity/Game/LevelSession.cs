@@ -63,7 +63,17 @@ public sealed class LevelSession
             Clock.Present();
             Game.StartLevelTiming();
             Game.PreRun();
+
             Clock.Present();
+
+            // RestartLoopRunLevel after the pre-run and the loading screen's last Present: each unit starts its looping init noise (one draw for the chain).
+            foreach (Thing thing in Context.World.UnitNB.ToList())
+            {
+                if (thing is Unit { UnitData: { } data } && data.EffectNames[11] is { } noise && Context.SoundEffects is { } sounds)
+                {
+                    sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(noise)), Context.Crt);
+                }
+            }
             return;
         }
 
@@ -149,6 +159,9 @@ public sealed class LevelSession
         TextDatabase text = TextDatabase.Load(read(TextDatabase.FileName(0, americanText: false)).Bytes);
         scripts.Text = text;
         scripts.MessageBox = new MessageBox(context, text, voice?.Invoke(clock) ?? new UnmodelledVoice());
+
+        // The sound manager's effects (data\sounds\sounds.sfx).
+        context.SoundEffects = Sound.SoundEffects.Load(read(Sound.SoundEffects.FileName).Bytes);
 
         // CGame::LoadResources's particle set.
         var particleSet = new ParticleSet();

@@ -31,10 +31,14 @@ public sealed class LevelParticles : IParticleWorld
     {
         _context = context;
         Manager = new ParticleManager(set, context.Crt, this);
+        World = new Render.WorldRender(context);
         _sunPD = set.GetPD(SunSprite);
     }
 
     public ParticleManager Manager { get; }
+
+    /// <summary>The world pass: which meshes are drawn, and so which of their effect emitters run.</summary>
+    public Render.WorldRender World { get; private set; } = null!;
 
     /// <summary>The 32 x 32 fractal noise the sprites are drawn with (-1..1), once built.</summary>
     public float[]? Noise { get; private set; }
@@ -63,6 +67,12 @@ public sealed class LevelParticles : IParticleWorld
         _camera = game.GetCurrentCamera(0) is { } camera
             ? (ParityCamera.RenderView(camera, game.Loop.Fraction2) is var v ? (v.Pos, v.Ori) : null)
             : null;
+
+        // The world pass (CDXEngine::Render draws the world before the particles step).
+        if (game.GetCurrentCamera(0) is { } worldCamera)
+        {
+            World.Render(worldCamera, game.Loop.Fraction2);
+        }
 
         if (!game.Paused)
         {

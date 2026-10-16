@@ -94,6 +94,9 @@ public sealed class ThingContext(
     /// <summary>The main thread's C runtime rand() (shared by particles, sounds and parts of the simulation).</summary>
     public Crt.CrtRandStream Crt { get; set; } = new();
 
+    /// <summary>The sound effects (their names, chains and pitch variance), for the draws playing one makes.</summary>
+    public Sound.SoundEffects? SoundEffects { get; set; }
+
     /// <summary>The level's particles, once the particle set is loaded.</summary>
     public Particles.LevelParticles? Particles { get; set; }
 

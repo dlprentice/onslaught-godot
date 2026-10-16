@@ -25,6 +25,12 @@ public sealed class RenderThing : IMeshCollisionSource
 
     public MeshData? MeshOrNull { get; }
 
+    /// <summary>mNextRendered, mPrevRendered: CRTMesh's rendered-this-frame and rendered-last-frame lists.</summary>
+    public RenderThing? NextRendered, PrevRendered;
+
+    /// <summary>The mesh's effect emitters (records named '_' + descriptor), made the first time the mesh is drawn.</summary>
+    public MeshEffects? Effects;
+
     public MeshData Mesh => MeshOrNull ?? throw new InvalidOperationException("this render thing has no mesh loaded");
 
     public MeshPose? Pose { get; }
@@ -55,4 +61,14 @@ public sealed class RenderThing : IMeshCollisionSource
 
         return n - 1;
     }
+}
+
+/// <summary>CRTMesh's effect tables: per effect emitter, its part, id, descriptor, link and whether it has started.</summary>
+public sealed class MeshEffects
+{
+    public required Mesh.MeshPart?[] Parts;
+    public required int[] Ids;
+    public required Particles.ParticleDescriptor?[] Types;
+    public required Particles.ParticleEffectLink?[] Links;
+    public required bool[] Active;
 }
