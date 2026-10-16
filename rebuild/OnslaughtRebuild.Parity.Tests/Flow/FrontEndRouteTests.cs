@@ -19,7 +19,13 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
 
     /// <summary>What a route's run gave, against its port reference.</summary>
     internal sealed record RouteResult(GameRun Run, List<string> PortPages, List<string> Pages, long CrtMatchedThrough,
-        string? FirstCrtDifference, int? Returned);
+        string? FirstCrtDifference, int? Returned)
+    {
+        /// <summary>With the port's front-end probes: the Presents whose EVT and FE lines were compared, and the first that differed.</summary>
+        public long TimeCompared { get; set; }
+
+        public string? FirstTimeDifference { get; set; }
+    }
 
     /// <summary>
     /// Runs <paramref name="tape"/> from boot to <paramref name="end"/> (or until the front end quits to the system),
@@ -63,6 +69,35 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
             run.FrontEnd.MemoryCard.Folder.Write(name, File.ReadAllBytes(RetailGolden.File(file)!));
         }
 
+        // The port's EVT (EVENT_MANAGER's time) and FE line (gFrontEndFrameStep, the active page, the transition's pages,
+        // count and time, mCounter) while the front end runs, when the reference has them.
+        var portTime = new Dictionary<long, (string Evt, string Fe)>();
+        string? timeFile = RetailGolden.File(dir + "/port-probes-every1-with-FE.txt");
+        if (timeFile is not null && File.Exists(timeFile))
+        {
+            var evt = new Dictionary<long, string>();
+            foreach (string line in File.ReadLines(timeFile))
+            {
+                string[] f = line.Split(' ');
+                if (f.Length < 4 || f[0] != "P")
+                {
+                    continue;
+                }
+
+                long n = long.Parse(f[1], CultureInfo.InvariantCulture);
+                if (f[2] == "EVT")
+                {
+                    evt[n] = f[3];
+                }
+                else if (f[2] == "FE")
+                {
+                    portTime[n] = (evt.GetValueOrDefault(n, ""), f[3]);
+                }
+            }
+        }
+
+        long timeCompared = 0;
+        string? firstTime = null;
         var pages = new List<string>();
         run.FrontEnd.SetPageTrace = (page, time) => pages.Add($"P{run.Clock.PresentCount + 1} page={PageName(page)}");
         long matched = 0;
@@ -83,6 +118,29 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
                 }
             }
 
+            if (firstTime is null && portTime.TryGetValue(p, out var t))
+            {
+                FrontEnd fe = run.FrontEnd;
+                var b = new byte[28];
+                BitConverter.TryWriteBytes(b.AsSpan(0), fe.Timing.FrameStep);
+                BitConverter.TryWriteBytes(b.AsSpan(4), (int)fe.ActivePage);
+                BitConverter.TryWriteBytes(b.AsSpan(8), (int)fe.TransitionFrom);
+                BitConverter.TryWriteBytes(b.AsSpan(12), (int)fe.TransitionTo);
+                BitConverter.TryWriteBytes(b.AsSpan(16), fe.TransitionCount);
+                BitConverter.TryWriteBytes(b.AsSpan(20), fe.TransitionTime);
+                BitConverter.TryWriteBytes(b.AsSpan(24), fe.Counter);
+                string ours = Convert.ToHexString(b).ToLowerInvariant();
+                string oursEvt = Convert.ToHexString(BitConverter.GetBytes(fe.Events.Time)).ToLowerInvariant();
+                if (ours != t.Fe || oursEvt != t.Evt)
+                {
+                    firstTime = $"Present {p}: EVT {t.Evt}/{oursEvt} FE {t.Fe}/{ours} (port/ours)";
+                }
+                else
+                {
+                    timeCompared = p;
+                }
+            }
+
             if (p >= end)
             {
                 throw new StopRun();
@@ -98,7 +156,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         {
         }
 
-        return new RouteResult(run, portPages, pages, matched, first, returned);
+        return new RouteResult(run, portPages, pages, matched, first, returned) { TimeCompared = timeCompared, FirstTimeDifference = firstTime };
     }
 
     private static string PageName(FrontEndPage page) => page switch
@@ -127,10 +185,16 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     public void TheMainMenusQuitMatchesThePort()
     {
         RouteResult r = Run("portrefs/fe-r1-quit-port/fer1.tape", "portrefs/fe-r1-quit-port", 2000);
-        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}");
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; time (EVT, FE) matches through {r.TimeCompared}: {r.FirstTimeDifference ?? "none"}");
         Assert.Equal(r.PortPages, r.Pages);
         Assert.Equal(SystemFlow.QuitToSystem, r.Returned);
         Assert.Equal(680, r.Run.Clock.PresentCount);
+        if (RetailGolden.File("portrefs/fe-r1-quit-port/port-probes-every1-with-FE.txt") is { } time && File.Exists(time))
+        {
+            // EVENT_MANAGER's time and the front end's frame step, page, transition and counter, every Present.
+            Assert.Null(r.FirstTimeDifference);
+            Assert.Equal(680, r.TimeCompared);
+        }
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(680, r.CrtMatchedThrough);
     }
@@ -146,7 +210,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     public void IdleOnTheTitleMatchesThePort()
     {
         RouteResult r = Run("portrefs/fe-r2-idle-port/empty.tape", "portrefs/fe-r2-idle-port", 3500);
-        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; flow {string.Join(" | ", r.Run.Flow!.Trace)}");
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; time (EVT, FE) matches through {r.TimeCompared}: {r.FirstTimeDifference ?? "none"}; flow {string.Join(" | ", r.Run.Flow!.Trace)}");
         Assert.Equal(r.PortPages, r.Pages);
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(3500, r.CrtMatchedThrough);
@@ -166,7 +230,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     {
         byte[] afterLoad;
         RouteResult r = Run("portrefs/fe-r3-load-port/fer3b.tape", "portrefs/fe-r3-load-port", 1600, ("BEA 1", "portrefs/fe-r3-load-port/BEA 1.bes"));
-        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}");
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; time (EVT, FE) matches through {r.TimeCompared}: {r.FirstTimeDifference ?? "none"}");
         Assert.Equal(r.PortPages, r.Pages);
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(1600, r.CrtMatchedThrough);
@@ -186,7 +250,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     public void TheOptionsSoundVolumeMatchesThePort()
     {
         RouteResult r = Run("portrefs/fe-r4-options-port/feopt.tape", "portrefs/fe-r4-options-port", 3000);
-        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}");
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; time (EVT, FE) matches through {r.TimeCompared}: {r.FirstTimeDifference ?? "none"}");
         Assert.Equal(r.PortPages, r.Pages);
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(1500, r.CrtMatchedThrough);
@@ -205,7 +269,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     public void TheFullBootIdleMatchesThePort()
     {
         RouteResult r = Run("portrefs/fe-r5-fullboot-idle-port/empty.tape", "portrefs/fe-r5-fullboot-idle-port", 5700, skipFmv: false);
-        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; flow {string.Join(" | ", r.Run.Flow!.Trace)}");
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; time (EVT, FE) matches through {r.TimeCompared}: {r.FirstTimeDifference ?? "none"}; flow {string.Join(" | ", r.Run.Flow!.Trace)}");
         Assert.Equal(r.PortPages, r.Pages);
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(5700, r.CrtMatchedThrough);

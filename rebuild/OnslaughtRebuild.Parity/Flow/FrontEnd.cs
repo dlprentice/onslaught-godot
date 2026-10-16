@@ -149,6 +149,9 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
 
     public PlatformClock Clock { get; }
     public FrontEndTiming Timing { get; }
+
+    /// <summary>EVENT_MANAGER while the front end runs: Init starts it, each process ticks it.</summary>
+    public Events.EventManager Events { get; } = new();
     public ControllerContext Controls { get; }
     public PlatformInput Platform => Controls.Input;
 
@@ -528,6 +531,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         // loading screen renders if its last render is 0.05 s old, which after a level it is.
         Loading?.SetLoading(true);
         Loading?.SetLoadingRange(50f, 62.5f);
+        Events.Init();
         Career.Update(EndLevelData);
         MessageBox.Init();
         bool ok = true;
@@ -609,6 +613,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         }
         foreach (FrontEndPageBase page in _pages) page.Shutdown();
         for (int port = 0; port < ControllerPorts; port++) Controllers[port] = null;
+        Events.Shutdown();
     }
 
     /// <summary>
@@ -674,7 +679,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// advances by the previous step, the platform handles the window's messages (a quit request ends the front end),
     /// the controllers flush and deliver their button actions, the frame step is filtered from the clock, a transition
     /// in progress advances (and completes once it reaches its time), every page processes in page order, and the
-    /// message box processes. Not modelled: the event manager, particles, sound, music and video updates
+    /// message box processes. The event manager ticks (EVENT_MANAGER.Update). Not modelled: particles, sound, music and video updates
     /// (presentation), the inactivity quit (playable demo only), and the second player's reconnect check on the
     /// multiplayer start page (not ported).
     /// </summary>
@@ -686,6 +691,9 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         Counter = (float)X87.Add(Counter, X87.Mul(Timing.FrameStep, 50f));
         Platform.Process(Clock.QueryPerformanceCounter());
         if (platformQuit) Quit = QuitToSystem;
+
+        // EVENT_MANAGER.Update: a tick on (nothing the front end runs schedules events).
+        Events.Update();
 
         foreach (Controller? controller in Controllers) controller?.Flush(Controls);
 
