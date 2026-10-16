@@ -6,6 +6,9 @@
 using Godot;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Physics;
+using OnslaughtRebuild.Parity.Render;
 using OnslaughtRebuild.Parity.Things;
 
 namespace OnslaughtRebuild.Host;
@@ -31,7 +34,7 @@ public sealed partial class HudView : Node2D
 
     /// <summary>The compass for one render, from the battle engine's state.</summary>
     public static HudView Build(BattleEngine be, TextureLibrary textures, IEnumerable<Thing> objectives, ref int lastHealth, ref int lastEnergy,
-        byte[]? dial, float fraction)
+        byte[]? dial, float fraction, IEnumerable<Thing>? units = null)
     {
         var view = new HudView { Name = "Hud" };
         view._outer = OuterRing(dial);
@@ -146,7 +149,191 @@ public sealed partial class HudView : Node2D
             TextureFilter = TextureFilterEnum.Linear,
         };
         view.AddChild(cross);
+
+        // RenderWeaponPanel: the radio's backing, the radar outline, the weapon charge and the north pointer.
+        Node2D Run(string name, CanvasItemMaterial.BlendModeEnum blend, List<(float, float, int, float, uint, Texture2D?, float)> list)
+        {
+            var node = new HudQuads(list)
+            {
+                Name = name,
+                Material = new CanvasItemMaterial { BlendMode = blend },
+                TextureFilter = TextureFilterEnum.Linear,
+            };
+            view.AddChild(node);
+            return node;
+        }
+
+        const float Bottom = 480.0f;
+        Run("RadioView", CanvasItemMaterial.BlendModeEnum.Mix, [(17.0f, Bottom + 16.0f, 2, 0.0f, 0x6fffffffu, Tex(@"hud\v2\RadioView.tga"), 1.0f)]);
+        Run("RadarOutline", CanvasItemMaterial.BlendModeEnum.Add, [(17.0f, Bottom + 16.0f, 2, 0.0f, 0xff6f8fafu, Tex(@"hud\v2\RadarOutline.tga"), 1.0f)]);
+        float charge = 0.0f;
+        if (be.WalkerPart?.GetCurrentWeapon() is { } weapon && weapon.GetMaxCharge() != 0)
+        {
+            charge = weapon.ChargeValue / weapon.GetMaxCharge();
+        }
+
+        Texture2D? fillTex = Tex(@"hud\v2\WeaponFill.tga");
+        Run("WeaponFill", CanvasItemMaterial.BlendModeEnum.Mix,
+        [
+            (9.0f, Bottom - 13.0f, 2, 0.0f, 0x3f000000u, fillTex, 1.0f),
+            (9.0f, Bottom - 13.0f, 2, 0.0f, 0x7f7fff3fu, fillTex, MathF.Min(charge, 1.0f)),
+        ]);
+        Run("WeaponOutline", CanvasItemMaterial.BlendModeEnum.Add, [(9.0f, Bottom - 13.0f, 2, 0.0f, 0xffaf8f6fu, Tex(@"hud\v2\WeaponOutline.tga"), 1.0f)]);
+        float iy = view._outerYaw;
+        float dx = -MathF.Sin(iy) * -45.0f, dy = MathF.Cos(iy) * -45.0f;
+        Run("RadioNorth", CanvasItemMaterial.BlendModeEnum.Mix,
+            [(17.0f + 48.0f + dx, Bottom + 16.0f - 128.0f + 48.0f + dy, 4, iy, 0xff5f7fffu, Tex(@"hud\v2\RadioNorth.tga"), 1.0f)]);
+
+        // RenderRadar(96): the units round the engine, turned with it, by side; pads, objectives and engines on top.
+        if (units is not null)
+        {
+            Run("Radar", CanvasItemMaterial.BlendModeEnum.Mix, RadarBlobs(be, units, objectives, Tex, -iy));
+        }
+
         return view;
+    }
+
+    private static List<(float, float, int, float, uint, Texture2D?, float)> RadarBlobs(BattleEngine be, IEnumerable<Thing> units,
+        IEnumerable<Thing> objectives, Func<string, Texture2D?> tex, float yaw)
+    {
+        const float Size = 96.0f;
+        const float Cy = 480.0f - 44.0f;
+        var blobs = new List<(float, float, int, float, uint, Texture2D?, float)>();
+        FVector centre = ((IRenderSubject)be).RenderPos;
+        float s = MathF.Sin(yaw) * 40.0f / Size;
+        float c = MathF.Cos(yaw) * 40.0f / Size;
+        Texture2D? small = tex(@"hud\ScannerBlobSmall.tga"), medium = tex(@"hud\ScannerBlobMedium.tga");
+        Texture2D? large = tex(@"hud\ScannerBlobLarge.tga"), pad = tex(@"hud\ScannerBlobRepairPad.tga");
+
+        Texture2D? BlobFor(Thing thing)
+        {
+            if (thing.IsA(ThingType.Unknown08000000))
+            {
+                return large;
+            }
+
+            if (thing.IsA(ThingType.Unit) && thing is Unit { UnitData: { } data })
+            {
+                if (data.Big != 0 || data.Behaviour is UnitBehaviour.Bomber or UnitBehaviour.ThunderHead or UnitBehaviour.Warspite
+                    or UnitBehaviour.WarspiteDome)
+                {
+                    return large;
+                }
+            }
+
+            if (thing.IsA(ThingType.Infantry))
+            {
+                return small;
+            }
+
+            return thing.IsA(ThingType.Building | ThingType.Naval | ThingType.Unknown04000000) || thing.IsA(ThingType.Animal) ? large : medium;
+        }
+
+        (float X, float Y, float D) Turned(Thing thing)
+        {
+            FVector pos = thing is IRenderSubject subject ? subject.RenderPos : thing.Pos;
+            float dx = pos.X - centre.X, dy = pos.Y - centre.Y;
+            float tx = (dx * c) - (dy * s);
+            float ty = (dy * c) + (dx * s);
+            return (tx, ty, (ty * ty) + (tx * tx));
+        }
+
+        void Add(float tx, float ty, Texture2D? t, uint col) => blobs.Add((69.0f + tx - 1.0f, Cy - 20.0f - ty + 1.0f, 4, 0.0f, col, t, 1.0f));
+
+        void Faded(Thing thing, uint col)
+        {
+            (float tx, float ty, float d2) = Turned(thing);
+            if (!(d2 < 8464.0f))
+            {
+                return;
+            }
+
+            float d = MathF.Sqrt(d2);
+            uint alpha = 0xff000000;
+            float k = 46.0f / d;
+            if (k < 1.0f)
+            {
+                tx *= k;
+                ty *= k;
+                alpha = unchecked((uint)(X87.Fist((1.0f - ((d - 46.0f) * (1.0f / 46.0f))) * 255.0f) << 24));
+            }
+
+            Add(tx, ty, BlobFor(thing), alpha + col);
+        }
+
+        void Clamped(Thing thing, Texture2D? t, uint col)
+        {
+            (float tx, float ty, float d2) = Turned(thing);
+            float k = 46.0f / MathF.Sqrt(d2);
+            if (k < 1.0f)
+            {
+                tx *= k;
+                ty *= k;
+            }
+
+            Add(tx, ty, t, col);
+        }
+
+        var engines = new List<Unit>();
+        var pads = new List<Unit>();
+        var side1 = new List<Unit>();
+        var side0 = new List<Unit>();
+        foreach (Thing thing in units)
+        {
+            if (thing is not Unit unit || unit.IsDying)
+            {
+                continue;
+            }
+
+            if (unit.IsA(ThingType.BattleEngine))
+            {
+                engines.Add(unit);
+            }
+            else if (unit.AI is RepairPadAI)
+            {
+                pads.Add(unit);
+            }
+            else if (unit.Allegiance == 1)
+            {
+                side1.Add(unit);
+            }
+            else if (unit.Allegiance == 0)
+            {
+                side0.Add(unit);
+            }
+            else if (!unit.IsObjective() && (unit.Flags & ThingFlags.Invisible) == 0 && unit.RenderThing is not null)
+            {
+                Faded(unit, unit.IsA(ThingType.AirUnit) ? 0x707070u : 0x606060u);
+            }
+        }
+
+        foreach (Unit unit in side0)
+        {
+            Faded(unit, unit.IsA(ThingType.AirUnit) ? 0x9090ffu : 0x5050afu);
+        }
+
+        foreach (Unit unit in side1)
+        {
+            Faded(unit, unit.IsA(ThingType.AirUnit) ? 0xff5050u : 0xaf0808u);
+        }
+
+        foreach (Unit unit in pads)
+        {
+            uint col = unit.Allegiance switch { 0 => 0x5050afu, 1 => 0xaf0808u, 2 => 0x606060u, _ => 0u };
+            Clamped(unit, pad, col + 0xff000000u);
+        }
+
+        foreach (Thing thing in objectives)
+        {
+            Clamped(thing, BlobFor(thing), 0xffffff00u);
+        }
+
+        foreach (Unit unit in engines)
+        {
+            Clamped(unit, medium, 0xffffffffu);
+        }
+
+        return blobs;
     }
 
     /// <summary>
@@ -264,6 +451,44 @@ public sealed partial class HudSprites(List<(float A, float Radius, float Turn, 
             var c = new Color(((colour >> 16) & 255) / 255f, ((colour >> 8) & 255) / 255f, (colour & 255) / 255f, (colour >> 24) / 255f);
             DrawSetTransform(at, turn, Vector2.One);
             DrawTexture(tex, -tex.GetSize() / 2, c);
+            DrawSetTransform(Vector2.Zero, 0, Vector2.One);
+        }
+    }
+}
+
+/// <summary>
+/// CSPRITERENDERER::DrawSprite sprites at screen positions: each anchored by its alignment (0 top left, 2 bottom left,
+/// 4 centre), turned about its centre, tinted, and for a fill (SPT_FILL_RIGHT) cut to the left part of its width.
+/// </summary>
+public sealed partial class HudQuads(List<(float X, float Y, int Align, float Turn, uint Colour, Texture2D? Tex, float Fill)> sprites) : Node2D
+{
+    public override void _Draw()
+    {
+        foreach ((float x, float y, int align, float turn, uint colour, Texture2D? tex, float fill) in sprites)
+        {
+            if (tex is null)
+            {
+                continue;
+            }
+
+            Vector2 size = tex.GetSize();
+            float left = x, top = y;
+            switch (align)
+            {
+                case 2: top -= size.Y; break;
+                case 4: left -= size.X * 0.5f; top -= size.Y * 0.5f; break;
+            }
+
+            var c = new Color(((colour >> 16) & 255) / 255f, ((colour >> 8) & 255) / 255f, (colour & 255) / 255f, (colour >> 24) / 255f);
+            if (fill < 1.0f)
+            {
+                DrawTextureRectRegion(tex, new Rect2(left, top, size.X * fill, size.Y), new Rect2(0, 0, size.X * fill, size.Y), c);
+                continue;
+            }
+
+            var centre = new Vector2(left, top) + (size / 2);
+            DrawSetTransform(centre, turn, Vector2.One);
+            DrawTexture(tex, -size / 2, c);
             DrawSetTransform(Vector2.Zero, 0, Vector2.One);
         }
     }

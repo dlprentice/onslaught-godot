@@ -139,7 +139,7 @@ public partial class Host : Node
                 && session.Game.GetPlayer(0)?.CurrentView == OnslaughtRebuild.Parity.Game.PlayerView.FirstPerson)
             {
                 _view!.AddChild(HudView.Build(hudBe, textures, session.Context.World.ObjectiveThings.ToList(), ref _lastHealth, ref _lastEnergy,
-                    _dial ??= files.Read(@"data\Dial.raw").Bytes, session.Game.Loop.Fraction));
+                    _dial ??= files.Read(@"data\Dial.raw").Bytes, session.Game.Loop.Fraction, session.Context.World.UnitNB.ToList()));
             }
 
             if (session.Context.Particles is { } particles)
