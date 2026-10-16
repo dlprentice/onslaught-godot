@@ -43,6 +43,7 @@ internal static class RetailGolden
         (string prefix, string variable) = name.StartsWith("vds/", StringComparison.Ordinal) ? ("vds/", "ONSLAUGHT_GOLDEN_VDS")
             : name.StartsWith("beobjvds/", StringComparison.Ordinal) ? ("beobjvds/", "ONSLAUGHT_BEOBJ_VDS")
             : name.StartsWith("portcrt/", StringComparison.Ordinal) ? ("portcrt/", "ONSLAUGHT_PORT_CRT")
+            : name.StartsWith("portrefs/", StringComparison.Ordinal) ? ("portrefs/", "ONSLAUGHT_PORT_REFS")
             : ("", "ONSLAUGHT_RETAIL_GOLDEN");
         string? root = Environment.GetEnvironmentVariable(variable);
         name = name[prefix.Length..];
@@ -80,6 +81,9 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
     /// <summary>The Present through which the main thread's rand() count and state equal the port's at every Present (never lowered).</summary>
     private const int PortCrtMatchedThrough = 10000;
+
+    /// <summary>The Present through which the firing tape's run equals the port's at every Present (never lowered).</summary>
+    private const int FiringTapeMatchedThrough = 6000;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
@@ -149,6 +153,110 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
         output.WriteLine($"{stopped}; rand() matches the port through Present {matched}; first difference: {first ?? "none"}");
         Assert.True(matched >= PortCrtMatchedThrough, $"matched through Present {matched}, below {PortCrtMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 on the port's firing tape (tapes/level100-fire1-6000f.tape, recorded by the port's autopilot: C's tape
+    /// to Present 3300, then to Target Zone 1 and the firing range, where the script enables the Pulse Cannon Pod, and
+    /// three bursts from Present 5653) against the port's every-Present reference (l100-fire1-port: the main-thread
+    /// rand() count and holdrand, and the probes EVT, FT, RNG, POS and LIFE). ONSLAUGHT_PORT_REFS names the shared
+    /// directory holding both. Every Present from 3 must match through <see cref="FiringTapeMatchedThrough"/>; the
+    /// first difference is reported. It covers the shot, the round in flight and its explosion.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-fire1-6000f.tape", "portrefs/l100-fire1-port/crt-per-present.txt",
+        "portrefs/l100-fire1-port/port-probes-every1.txt")]
+    public void Level100FiringTapeMatchesThePortEveryPresent()
+    {
+        var port = new Dictionary<long, (uint Count, uint Hold)>();
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portrefs/l100-fire1-port/crt-per-present.txt")!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length >= 4 && f[0] == "P" && f[2] == "CRT")
+            {
+                byte[] b = Convert.FromHexString(f[3]);
+                port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
+            }
+        }
+
+        var probes = new Dictionary<(long Present, string Name), string>();
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portrefs/l100-fire1-port/port-probes-every1.txt")!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length == 4 && f[0] == "P" && f[2] is "EVT" or "FT" or "RNG" or "POS" or "LIFE")
+            {
+                probes[(long.Parse(f[1], CultureInfo.InvariantCulture), f[2])] = f[3];
+            }
+        }
+
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        session.Tape = RetailTape.Load(RetailGolden.File("portrefs/tapes/level100-fire1-6000f.tape")!);
+        static string Hex(byte[] b) => Convert.ToHexString(b).ToLowerInvariant();
+        long matched = 0;
+        string? first = null;
+        session.Clock.Presented = () =>
+        {
+            long p = session.Clock.PresentCount;
+            if (p < 3 || first is not null || !port.TryGetValue(p, out var want))
+            {
+                return;
+            }
+
+            var crt = session.Context.Crt;
+            if ((uint)crt.Calls != want.Count || crt.HoldRand != want.Hold)
+            {
+                first = $"Present {p}: rand() count {want.Count}/{crt.Calls}, holdrand {want.Hold:x8}/{crt.HoldRand:x8} (port/ours)";
+            }
+        };
+        string stopped = "ran to Present 6000";
+        while (session.PresentCount < 6000 && first is null)
+        {
+            try
+            {
+                session.AdvanceToNextPresent();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped after Present {session.PresentCount}: {e.Message}";
+                break;
+            }
+
+            long p = session.PresentCount;
+            if (first is not null || !probes.ContainsKey((p, "EVT")))
+            {
+                continue;
+            }
+
+            var ours = new Dictionary<string, string>
+            {
+                ["EVT"] = Hex(BitConverter.GetBytes(session.Context.Events.Time)),
+                ["FT"] = Hex(BitConverter.GetBytes(session.Game.Loop.FrameTime)),
+            };
+            if (session.Game.GetPlayer(0)?.BattleEngine is Unit be)
+            {
+                ours["POS"] = Hex([.. BitConverter.GetBytes(be.Pos.X), .. BitConverter.GetBytes(be.Pos.Y), .. BitConverter.GetBytes(be.Pos.Z)]);
+                ours["LIFE"] = Hex([.. BitConverter.GetBytes(be.Life), .. BitConverter.GetBytes(be.Energy)]);
+            }
+
+            string? bad = ours.Where(kv => probes.TryGetValue((p, kv.Key), out string? g) && g != kv.Value)
+                .Select(kv => $"{kv.Key} {probes[(p, kv.Key)]}/{kv.Value}").FirstOrDefault();
+            string ourRng = Hex(BitConverter.GetBytes(session.Context.Random.Value));
+            if (bad is null && probes.TryGetValue((p, "RNG"), out string? rng) && !rng.StartsWith(ourRng, StringComparison.Ordinal))
+            {
+                bad = $"RNG {rng}/{ourRng}";
+            }
+
+            if (bad is null)
+            {
+                matched = p;
+            }
+            else
+            {
+                first = $"Present {p}: {bad} (port/ours)";
+            }
+        }
+
+        output.WriteLine($"{stopped}; the firing tape matches the port through Present {matched}; first difference: {first ?? "none"}");
+        Assert.True(matched >= FiringTapeMatchedThrough, $"matched through Present {matched}, below {FiringTapeMatchedThrough}");
     }
 
     /// <summary>
