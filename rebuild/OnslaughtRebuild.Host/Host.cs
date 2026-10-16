@@ -125,6 +125,15 @@ public partial class Host : Node
             {
                 world.AddChild(WaterView.Build(terrain, session.Context.Map.WaterLevel, textures, pos, ori, _waterAngle));
             }
+            // The cockpit, in first-person view (draw_fairly_late_stuff).
+            if (engine is OnslaughtRebuild.Parity.Things.BattleEngine be0 && !be0.IsDying
+                && session.Game.GetPlayer(0)?.CurrentView == OnslaughtRebuild.Parity.Game.PlayerView.FirstPerson
+                && be0.Cockpit is { ShouldRender: true, RenderThing.MeshOrNull: { } cockpitMesh } cockpit
+                && meshViews.BuildAt(cockpitMesh, cockpit.RenderPos, cockpit.RenderOrientation) is { } cockpitNode)
+            {
+                world.AddChild(cockpitNode);
+            }
+
             if (session.Context.Particles is { } particles)
             {
                 world.AddChild(ParticleView.Build(particles.Manager, textures, pos, ori, session.Context.Events.Time));

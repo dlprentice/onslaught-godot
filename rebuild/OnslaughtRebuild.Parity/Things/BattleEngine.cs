@@ -67,6 +67,9 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     public BattleEngineState State;
     public bool Visible;
     public RenderThing? OtherMeshRenderThing;
+
+    /// <summary>mCockpit: the cockpit drawn in first-person view.</summary>
+    public Cockpit? Cockpit;
     public int ThrusterFrames;
     public int EngineFrames;
     public float Zoom;
@@ -143,7 +146,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         Visible = false;
         base.Init(init);
         SetCollisionShape();
-        Context.Skip("CBattleEngine::Init: the cockpit, the radar warning receiver and the stores");
+        Context.Skip("CBattleEngine::Init: the radar warning receiver and the stores");
+        Cockpit = new Cockpit(Context, this, Configuration?.Cockpit is { } cockpit && Context.Meshes.TryGetValue(System.Text.Encoding.ASCII.GetString(cockpit), out Mesh.MeshData? cm) ? cm : null);
         Zoom = 1.0f;
         PoweredUp = true;
         ShieldRegeneration = 0;

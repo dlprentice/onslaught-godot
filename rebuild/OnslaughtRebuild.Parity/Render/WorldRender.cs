@@ -321,7 +321,22 @@ public sealed class WorldRender(ThingContext context)
         }
 
         Rendered.Add(thing);
-        RenderMesh(thing, rt);
+        RenderMesh(CanBeImpostered(thing), rt);
+    }
+
+    /// <summary>
+    /// draw_fairly_late_stuff's cockpit: in first-person view, a living battle engine's cockpit is drawn (CDXCockpit::Render
+    /// through its CRTMesh, which cannot be impostered), after the particles.
+    /// </summary>
+    public void RenderCockpit()
+    {
+        if (context.Game?.GetPlayer(0) is not { } player || player.BattleEngine is not BattleEngine be || be.IsDying
+            || player.CurrentView != Game.PlayerView.FirstPerson || be.Cockpit is not { ShouldRender: true, RenderThing: { } rt })
+        {
+            return;
+        }
+
+        RenderMesh(false, rt);
     }
 
     /// <summary>CBattleEngine::Render's test: drawn unless its player (viewpoint 0's) is in first-person view.</summary>
@@ -332,7 +347,7 @@ public sealed class WorldRender(ThingContext context)
     }
 
     /// <summary>CRTMesh::Render: onto this frame's list; drawn as a mesh when near enough (no imposter, or within the fade).</summary>
-    private void RenderMesh(Thing thing, RenderThing rt)
+    private void RenderMesh(bool hasImposter, RenderThing rt)
     {
         if (rt.NextRendered is not null)
         {
@@ -368,7 +383,6 @@ public sealed class WorldRender(ThingContext context)
         float dist = (_campos - subject.RenderPos).Magnitude();
         float radius = mesh.BoundingBox?.Radius ?? mesh.Radius;
         float lod = dist / radius * 1.0f * MeshLodBias * _zoom;
-        bool hasImposter = CanBeImpostered(thing);
         if (hasImposter && !(lod < ImposterFadeEnd))
         {
             return;

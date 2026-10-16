@@ -132,6 +132,18 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
         return new MeshInstance3D { Mesh = built, Name = mesh.HeaderName, Transform = Place(thing.Pos, thing.GetOrientation()) };
     }
 
+    /// <summary>A mesh at a placement (the cockpit: its render position and orientation), whole in its rest pose.</summary>
+    public MeshInstance3D? BuildAt(MeshData mesh, FVector pos, FMatrix ori)
+    {
+        if (!_built.TryGetValue((mesh, false), out ArrayMesh? built))
+        {
+            built = BuildMesh(mesh);
+            _built[(mesh, false)] = built;
+        }
+
+        return built is null ? null : new MeshInstance3D { Mesh = built, Name = mesh.HeaderName, Transform = Place(pos, ori) };
+    }
+
     /// <summary>A retail position and orientation as a Godot transform (the frame's mirror on both sides).</summary>
     public static Transform3D Place(FVector pos, FMatrix ori)
     {
