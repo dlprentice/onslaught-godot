@@ -26,8 +26,8 @@ public sealed partial class BattleEngine
     /// <summary>kBattleEngineStores.</summary>
     public const int Stores = 6;
 
-    /// <summary>kWeaponCoolRate (weapon.h): what an overheated store cools by each move.</summary>
-    public const float WeaponCoolRate = 0.5f;
+    /// <summary>kWeaponCoolRate (weapon.h: <c>static int kWeaponCoolRate = 1</c>): what a heat store cools by each move.</summary>
+    public const int WeaponCoolRate = 1;
 
     public BattleEngineWalkerPart? WalkerPart;
     public float Yawvel;
