@@ -270,10 +270,14 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
     /// AddEvents with priority 1 or 2 has a dispatch line), so ours leave those out too. A measurement: it reports the first divergence with the lines around it, and asserts
     /// the matched prefix never shrinks below <see cref="PreRunEventsMatchedFloor"/>.
     /// </summary>
-    [PortLogFact(Skip = "the log is the 2026-10-15 native port's (bea-ea54a466), from before the port's LIBCMT rand and ResolveContact fixes; it diverges at U88 where the core now keeps GAME.mRenderFrameNumber at 0 through the pre-run as retail does (reset in InitRestartLoop, counted only in CGame::Render) and builds a segmented building's part transforms through its motion controller, which B's current retail-exact port confirms at U2651; re-enable against the port's regenerated log")]
+    [PortLogFact]
     public void PreRunEventsFollowRetailsLog()
     {
-        (ThingContext context, ParityGame game) = Level100Run();
+        // The session's own loop: PreRun's Updates, then the main loop's, with its renders between them (which count
+        // GAME.mRenderFrameNumber, 0 through the pre-run). Each event goes to the Update in progress.
+        LevelSession session = LevelSession.Load(100, GameData.Read);
+        ThingContext context = session.Context;
+        ParityGame game = session.Game;
         var ours = new List<string>();
         context.Events.Log = [];
         int update = 0;
@@ -296,23 +300,31 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
             context.Events.Log!.Clear();
         }
 
-        while (update < TraceUpdates)
+        int baseUpdate = game.UpdateFrameNumber;
+        game.UpdateStarting = () =>
         {
-            update++;
-            try
+            Take();
+            update = game.UpdateFrameNumber - baseUpdate + 1;
+        };
+        try
+        {
+            while (game.UpdateFrameNumber - baseUpdate < TraceUpdates)
             {
-                game.Update();
-            }
-            catch (NotSupportedException e)
-            {
-                stopped = $"stopped in U{update}: {e.Message}";
-                break;
-            }
-            finally
-            {
-                Take();
+                session.AdvanceToNextPresent();
             }
         }
+        catch (NotSupportedException e)
+        {
+            stopped = $"stopped in U{update}: {e.Message}";
+        }
+        finally
+        {
+            game.UpdateStarting = null;
+        }
+
+        // Keep the 100 Updates' events (the last Present may have run into the next Update).
+        Take();
+        ours.RemoveAll(l => int.Parse(l.Split(' ')[1][1..]) > TraceUpdates);
 
         var retail = new List<string>();
         foreach (string line in File.ReadLines(PortLogs.File("l100-prerun-events.txt")))

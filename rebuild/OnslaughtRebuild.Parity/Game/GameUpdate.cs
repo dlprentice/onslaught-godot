@@ -115,8 +115,12 @@ public sealed partial class Game
     /// three are false (no pause, no single-step, no resource build), so it runs on every call. The -buildresources
     /// branch at the end exists only in RESBUILDER builds; retail is not one.
     /// </summary>
+    /// <summary>A diagnostic hook called as each Update starts (null in normal runs).</summary>
+    public Action? UpdateStarting { get; set; }
+
     public void Update()
     {
+        UpdateStarting?.Invoke();
         UpdateFrameNumber++;
 
         if (AutoConfigTest)
