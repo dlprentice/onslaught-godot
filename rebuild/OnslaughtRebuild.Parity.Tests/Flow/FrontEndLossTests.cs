@@ -19,7 +19,7 @@ namespace OnslaughtRebuild.Parity.Tests.Flow;
 public sealed class FrontEndLossTests(ITestOutputHelper output)
 {
     /// <summary>The Present through which rand() matches the port every Present (never lowered).</summary>
-    private const int CrtMatchedThrough = 4941;
+    private const int CrtMatchedThrough = 7300;
 
     [RetailGoldenFact("portrefs/tapes/fe-level100-lose-quit-7300f.tape", "portrefs/fe-lose-port/crt-per-present.txt",
         "portrefs/fe-lose-port/frontend-trace.txt", "portrefs/fe-lose-port/port-probes-every1.txt", "portrefs/fe-lose-port/BEA 1.bes")]

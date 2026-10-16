@@ -63,7 +63,9 @@ public sealed class LevelParticles : IParticleWorld
     public void Render(int numRenders)
     {
         Game.Game game = _context.Game ?? throw new InvalidOperationException("particles render without a game");
-        float newTime = (_context.Events.Time + (game.Loop.Fraction * ClockTick)) / ClockTick;
+        // VC6 folds the division by CLOCK_TICK into a multiplication by its reciprocal (20): the port's per-render
+        // new_time agrees with the product at the last bit where the quotient does not (fe-lose P4942, P4943).
+        float newTime = (_context.Events.Time + (game.Loop.Fraction * ClockTick)) * (1.0f / ClockTick);
         float length = _lastRenderFrameTime != -1.0f ? newTime - _lastRenderFrameTime : 1.0f;
         _lastRenderFrameTime = newTime;
         RenderFrameLength = length;
