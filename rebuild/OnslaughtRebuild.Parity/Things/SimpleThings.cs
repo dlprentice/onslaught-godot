@@ -9,6 +9,7 @@
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.World;
 
@@ -118,16 +119,24 @@ public sealed class SphereTrigger : ComplexThing
         base.Init(init);
     }
 
-    /// <summary>CSphereTrigger::Activate: an objective shows the "Sphere Trigger Effect" particle.</summary>
+    /// <summary>mEffect: the trigger's effect link (a member, made with the trigger).</summary>
+    private ParticleEffectLink? _effect;
+
+    private ParticleEffectLink? Effect => _effect ??= Context.Particles is { } p ? new ParticleEffectLink(p.Manager) : null;
+
+    /// <summary>CSphereTrigger::Activate: an objective shows the "Sphere Trigger Effect" particle (important) at its position.</summary>
     public override void Activate()
     {
-        if (IsObjective())
+        if (IsObjective() && Context.Particles is { } particles && Effect is { } effect)
         {
-            Context.Skip("CSphereTrigger::Activate particle effect");
+            effect.Kill();
+            particles.Manager.CreateEffect(particles.Manager.Set.GetPD("Sphere Trigger Effect"), effect, new FVector(0, 0, 0), false, true);
+            effect.SetPos(Pos);
         }
     }
 
-    public override void Deactivate() => Context.Skip("CSphereTrigger::Deactivate particle effect");
+    /// <summary>CSphereTrigger::Deactivate: the effect stops.</summary>
+    public override void Deactivate() => Effect?.Kill();
 
     public override void Shutdown()
     {

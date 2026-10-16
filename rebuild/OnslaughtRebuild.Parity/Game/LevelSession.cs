@@ -167,6 +167,13 @@ public sealed class LevelSession
         // CGame::LoadLevel's players after the load, then PostLoadProcess's start positions, its map-who sort (trees
         // to the back of each sector's list, which orders the collision detectors' scans) and the quick-collision map.
         game.CreatePlayers(context, multiplayerWorld: false);
+        // PostLoadProcess's atmospherics, before the start positions: CSnow::Init (DXSnow.cpp, 00555020) places its
+        // thousand flakes (x, y, z, time) and fifty offsets (x, y) with rand(), with vertex shaders enabled as here.
+        for (int i = 0; i < (1000 * 4) + (50 * 2); i++)
+        {
+            context.Crt.Rand();
+        }
+
         game.AssignPlayersToStarts(context);
         context.MapWho.SortEntries();
         context.Map.InitQuickCollisionMap();

@@ -8,6 +8,7 @@
 
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Particles;
 
 using OnslaughtRebuild.Parity.Numerics;
 
@@ -510,9 +511,49 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
         }
 
         Unknown170 *= 1.0f - (GetStealth() / 100.0f);
-        if (TrailLinks > 0 || EngineLinks > 0)
+        // The trails (each wide as Unknown170) and, while it moves, the engines.
+        if (Context.Particles is { } particles)
         {
-            Context.Skip("CAirUnit::Move's trail and engine particles (presentation)");
+            int n = 1;
+            foreach (ParticleEffectLink link in Trails)
+            {
+                if (Unknown170 > 0 && link.Effect is null)
+                {
+                    particles.Manager.CreateEffect(Context.FindParticle(UnitData!.EffectNames[2]), link, new FVector(0, 0, 0), false, false);
+                }
+
+                GetEmitter(24, n, out FVector pos, out FMatrix _);
+                link.SetPos(pos);
+                link.SetOrientation(Orientation);
+                if (link.Effect?.Particle is { } p)
+                {
+                    p.Radius = Unknown170;
+                }
+
+                n++;
+            }
+
+            n = 1;
+            foreach (ParticleEffectLink link in Engines)
+            {
+                if (Unknown117())
+                {
+                    if (link.Effect is null)
+                    {
+                        particles.Manager.CreateEffect(Context.FindParticle(UnitData!.EffectNames[5]), link, new FVector(0, 0, 0), false, false);
+                    }
+
+                    GetEmitter(23, n, out FVector pos, out FMatrix ori);
+                    link.SetPos(pos);
+                    link.SetOrientation(ori);
+                }
+                else
+                {
+                    link.Stop(false);
+                }
+
+                n++;
+            }
         }
 
         if (Life < 0)
@@ -525,9 +566,16 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
     public override void Shutdown()
     {
         Context.World.Set50.Remove(this);
-        if (TrailLinks > 0 || EngineLinks > 0)
+        Effect?.Stop(false);
+        foreach (List<ParticleEffectLink> links in new[] { Trails, Engines })
         {
-            Context.Skip("CAirUnit::Shutdown's trail and engine effects (presentation)");
+            foreach (ParticleEffectLink link in links)
+            {
+                link.Stop(false);
+                link.Release();
+            }
+
+            links.Clear();
         }
 
         base.Shutdown();
@@ -581,8 +629,14 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
         Guide.GoToPoint(point, inOverride);
     }
 
-    public int TrailLinks;
-    public int EngineLinks;
+    /// <summary>mTrails: one link per Trail emitter.</summary>
+    public readonly List<ParticleEffectLink> Trails = [];
+
+    /// <summary>mEngines: one link per Engine emitter.</summary>
+    public readonly List<ParticleEffectLink> Engines = [];
+
+    /// <summary>mEffect: the smoke's link (a member, so on the manager's list from construction).</summary>
+    public ParticleEffectLink? Effect;
 
     public override void SetThingType(uint t) => base.SetThingType(t | ThingType.Unknown40000000 | ThingType.AirUnit);
 
@@ -594,16 +648,24 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
         Shields = init.Stats.AirShields;
         MaxShields = Shields;
         ShieldRegeneration = init.Stats.AirShieldRegeneration;
-        if (UnitData!.EffectNames[2] is not null)
+        if (Context.Particles is { } particles)
         {
-            TrailLinks = RenderThing!.CountEmitters("Trail");
-            Context.Skip("PARTICLE_SET lookup stood in by the effect name (trails)");
-        }
+            Effect = new ParticleEffectLink(particles.Manager);
+            if (Context.FindParticle(UnitData!.EffectNames[2]) is not null)
+            {
+                for (int n = RenderThing!.CountEmitters("Trail"); n > 0; n--)
+                {
+                    Trails.Add(new ParticleEffectLink(particles.Manager));
+                }
+            }
 
-        if (UnitData.EffectNames[5] is not null)
-        {
-            EngineLinks = RenderThing!.CountEmitters("Engine");
-            Context.Skip("PARTICLE_SET lookup stood in by the effect name (engines)");
+            if (Context.FindParticle(UnitData.EffectNames[5]) is not null)
+            {
+                for (int n = RenderThing!.CountEmitters("Engine"); n > 0; n--)
+                {
+                    Engines.Add(new ParticleEffectLink(particles.Manager));
+                }
+            }
         }
 
         Context.World.Set50.Add(this);

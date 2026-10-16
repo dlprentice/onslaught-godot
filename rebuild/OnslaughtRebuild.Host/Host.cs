@@ -31,7 +31,15 @@ public partial class Host : Node
 
         var textures = new TextureLibrary(files.Read);
         var surf = new SurfView();
-        LevelSession session = LevelSession.Load(100, files.Read, otherChunk: (tag, c) => textures.ReadChunk(tag, c) || surf.ReadChunk(tag, c));
+        // HOST_TAPE: a recorded input tape to replay (as the retail goldens do: with the virtual DirectSound voice model).
+        string? tape = System.Environment.GetEnvironmentVariable("HOST_TAPE");
+        LevelSession session = LevelSession.Load(100, files.Read, tape is null ? null : LevelSession.VirtualVoiceFor(files.Read),
+            (tag, c) => textures.ReadChunk(tag, c) || surf.ReadChunk(tag, c));
+        if (tape is not null)
+        {
+            session.Tape = OnslaughtRebuild.Parity.RetailTape.Load(tape);
+        }
+
         GD.Print($"HOST: {textures.Count} textures read");
         try
         {

@@ -23,10 +23,14 @@ public sealed class CrtRandStream
     /// <summary>srand(seed).</summary>
     public void Srand(uint seed) => HoldRand = seed;
 
+    /// <summary>A diagnostic observer called on each rand() (null in normal runs).</summary>
+    public Action? Observer { get; set; }
+
     /// <summary>rand().</summary>
     public int Rand()
     {
         Calls++;
+        Observer?.Invoke();
         HoldRand = unchecked((HoldRand * 214013u) + 2531011u);
         return (int)((HoldRand >> 16) & RandMax);
     }
