@@ -568,7 +568,7 @@ public sealed partial class BattleEngine
         }
 
         Context.Skip("CBattleEngine::UpdateAutoAim (not ported yet)");
-        Context.Skip("CBattleEngine::HandleSounds");
+        HandleSounds();
         if (ThrustersOn)
         {
             throw new NotSupportedException("CBattleEngine::Move: the thrusters (not ported yet)");
@@ -884,6 +884,75 @@ public sealed partial class BattleEngine
             {
                 DangerStartTime = now;
             }
+        }
+    }
+
+    /// <summary>mWalkSoundTime: the distance walked since the last step's count.</summary>
+    public float WalkSoundTime;
+
+    /// <summary>mWalkSounds: the steps counted since the battle engine last stood still.</summary>
+    public int WalkSounds;
+
+    /// <summary>
+    /// HandleSounds (00409950), as far as it draws rand(). Each PlayEffect draws for its chain (and pitch), unless the
+    /// effect is missing (level 100's sound table has no "BE On 02", so the hum never plays). The low-health and
+    /// low-energy loops play when not already playing; the sound-playing state is not modelled, so reaching one throws
+    /// rather than drop or invent a draw (their fades draw nothing). The incoming-missile sound waits on the radar
+    /// warning receiver, the lock sounds on the locks and the aim sound on the auto-aim target or the unit over the
+    /// crosshair, none of them ported: none plays. The walking block: on the ground as a walker, every 1.5 units walked
+    /// counts a step, and standing still after more than 5 steps plays the hydraulics (PlayHudSample).
+    /// </summary>
+    private void HandleSounds()
+    {
+        if (Context.SoundEffects is not { } sounds)
+        {
+            Context.Skip("CBattleEngine::HandleSounds");
+            return;
+        }
+
+        if (sounds.Find("BE On 02") is not null)
+        {
+            throw new NotSupportedException("CBattleEngine::HandleSounds: the hum's IsEffectPlaying (sound-playing state not modelled)");
+        }
+
+        if (Life < 7.0f)
+        {
+            if (sounds.Find("BE Energy Critical") is not null)
+            {
+                throw new NotSupportedException("CBattleEngine::HandleSounds: the low-health loop's IsEffectPlaying (sound-playing state not modelled)");
+            }
+        }
+        else if (Energy < 2.0f)
+        {
+            if (sounds.Find("BE Energy Low") is not null)
+            {
+                throw new NotSupportedException("CBattleEngine::HandleSounds: the low-energy loop's IsEffectPlaying (sound-playing state not modelled)");
+            }
+        }
+
+        if (IsOnGround() && State == BattleEngineState.Walker)
+        {
+            float magnitude = Velocity.Magnitude();
+            WalkSoundTime += magnitude;
+            if (WalkSoundTime > 1.5f)
+            {
+                WalkSoundTime -= 1.5f;
+                WalkSounds++;
+            }
+
+            if (magnitude < 0.01f)
+            {
+                if (WalkSounds > 5)
+                {
+                    sounds.PlayEffect(sounds.Find("BE Hydraulics 02"), Context.Crt);
+                }
+
+                WalkSounds = 0;
+            }
+        }
+        else
+        {
+            WalkSounds = 0;
         }
     }
 }

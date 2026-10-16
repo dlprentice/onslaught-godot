@@ -79,7 +79,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int VirtualDsFloor = 10000;
 
     /// <summary>The Present through which the main thread's rand() count and state equal the port's at every Present (never lowered).</summary>
-    private const int PortCrtMatchedThrough = 3501;
+    private const int PortCrtMatchedThrough = 4344;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
