@@ -138,7 +138,8 @@ public partial class Host : Node
             if (engine is OnslaughtRebuild.Parity.Things.BattleEngine hudBe && !hudBe.IsDying
                 && session.Game.GetPlayer(0)?.CurrentView == OnslaughtRebuild.Parity.Game.PlayerView.FirstPerson)
             {
-                _view!.AddChild(HudView.Build(hudBe, textures, session.Context.World.ObjectiveThings.ToList(), ref _lastHealth, ref _lastEnergy));
+                _view!.AddChild(HudView.Build(hudBe, textures, session.Context.World.ObjectiveThings.ToList(), ref _lastHealth, ref _lastEnergy,
+                    _dial ??= files.Read(@"data\Dial.raw").Bytes, session.Game.Loop.Fraction));
             }
 
             if (session.Context.Particles is { } particles)
@@ -192,6 +193,7 @@ public partial class Host : Node
     private float _cloudV;
     private float _waterAngle;
     private int _lastHealth = int.MinValue;
+    private byte[]? _dial;
     private int _lastEnergy = int.MinValue;
     private readonly TerrainView.LandscapeView _landscapeView = new();
     private float _waterScroll;

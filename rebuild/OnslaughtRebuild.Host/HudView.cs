@@ -23,14 +23,20 @@ public sealed partial class HudView : Node2D
     private const float PiM2 = 6.28318530717958f;
 
     private ImageTexture? _inner;
+    private ImageTexture? _outer;
+    private float _outerYaw;
     private Texture2D? _barLine;
     private Texture2D? _objective;
     private readonly List<(float A, float Radius, float Turn, uint Colour, Texture2D? Tex)> _sprites = [];
 
     /// <summary>The compass for one render, from the battle engine's state.</summary>
-    public static HudView Build(BattleEngine be, TextureLibrary textures, IEnumerable<Thing> objectives, ref int lastHealth, ref int lastEnergy)
+    public static HudView Build(BattleEngine be, TextureLibrary textures, IEnumerable<Thing> objectives, ref int lastHealth, ref int lastEnergy,
+        byte[]? dial, float fraction)
     {
         var view = new HudView { Name = "Hud" };
+        view._outer = OuterRing(dial);
+        // GetInterpolatedEulerOrientation's yaw: the last update's towards this one's.
+        view._outerYaw = be.OldEulerAngles.Yaw + ((be.CurrentOrientation.Yaw - be.OldEulerAngles.Yaw) * fraction);
         float initialLife = be.Configuration?.Life ?? 1.0f;
         float maxEnergy = be.Configuration?.Energy ?? 1.0f;
         int health = (InnerWidth * 150 / 360) - X87.Fist(be.Life * ((InnerWidth * 150 / 360) - (InnerWidth * 60 / 360)) / initialLife);
@@ -126,8 +132,81 @@ public sealed partial class HudView : Node2D
         return view;
     }
 
+    /// <summary>
+    /// DrawThreats (0053c2e0) with no threats (the radar warning receiver is not ported): a 512 x 30 byte map, clear, its
+    /// rows 13..17 set to 2 (a faint band), the "dial" byte sprite's frame 0 centred at (0, 15) wrapping round; then the
+    /// 512 x 32 texture's rows 1..30 through the palette 0, 0x2222, 0x2444, 0x2666 (A4R4G4B4).
+    /// </summary>
+    private static ImageTexture OuterRing(byte[]? dial)
+    {
+        var map = new byte[512 * 30];
+        for (int i = 0x1a00; i < 0x1a00 + 0xa00; i++)
+        {
+            map[i] = 2;
+        }
+
+        if (dial is not null && dial.Length >= 256)
+        {
+            // Frame 0: 16 x 16 indices, those under 4 opaque, centred on the point (the encoder's offsets less half the size).
+            for (int fy = 0; fy < 16; fy++)
+            {
+                for (int fx = 0; fx < 16; fx++)
+                {
+                    byte v = dial[(fy * 16) + fx];
+                    int y = 15 + fy - 8;
+                    if (v < 4 && y >= 0 && y < 30)
+                    {
+                        map[(y * 512) + (((fx - 8) % 512) + 512) % 512] = v;
+                    }
+                }
+            }
+        }
+
+        int[] palette = [0, 0x2222, 0x2444, 0x2666];
+        var image = Image.CreateEmpty(512, 32, false, Image.Format.Rgba8);
+        for (int y = 0; y < 30; y++)
+        {
+            for (int x = 0; x < 512; x++)
+            {
+                int p = palette[map[(y * 512) + x] & 3];
+                image.SetPixel(x, y + 1, new Color(((p >> 8) & 15) * 17 / 255f, ((p >> 4) & 15) * 17 / 255f, (p & 15) * 17 / 255f, ((p >> 12) & 15) * 17 / 255f));
+            }
+        }
+
+        return ImageTexture.CreateFromImage(image);
+    }
+
+    private void Ring(Texture2D? tex, int segments, float radius, float thickness, float turn)
+    {
+        float outer = (thickness + 1.0f) * radius * 320.0f;
+        float inner = (1.0f - thickness) * radius * 320.0f;
+        var centre = new Vector2(320, 240);
+        float c = MathF.Cos(turn), s = MathF.Sin(turn);
+        Vector2 P(float a, float rad)
+        {
+            // The vertex (sin a, cos a) * rad through the world matrix's turn (row vector times [c -s; s c]), y up.
+            float x = MathF.Sin(a) * rad, y = MathF.Cos(a) * rad;
+            return centre + new Vector2((x * c) + (y * s), -((x * -s) + (y * c)));
+        }
+
+        for (int k = 0; k < segments; k++)
+        {
+            float a0 = k * PiM2 / segments;
+            float a1 = (k + 1) * PiM2 / segments;
+            float u0 = (float)k / segments;
+            float u1 = (float)(k + 1) / segments;
+            Vector2[] pts = [P(a0, inner), P(a0, outer), P(a1, outer), P(a1, inner)];
+            Vector2[] uvs = [new(u0, 1), new(u0, 0), new(u1, 0), new(u1, 1)];
+            Color[] cols = [Colors.White, Colors.White, Colors.White, Colors.White];
+            DrawPrimitive(pts, cols, uvs, tex);
+        }
+    }
+
     public override void _Draw()
     {
+        // The outer ring: BuildRing(512, 32, 50 segments, radius 31, v 1), turned by -yaw.
+        Ring(_outer, 50, 0.31f, 32.0f * MathF.PI / 512.0f, _outerYaw);
+
         // The inner ring: BuildRing(256, 8, 40 segments, radius 27, v 1) in the compass's projection (0.5 .. 100,
         // 640 * 0.00078125 by 480 * 0.00078125): x and y scale to 320 pixels per unit around the centre.
         const int Segments = 40;
