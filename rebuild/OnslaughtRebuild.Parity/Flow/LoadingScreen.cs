@@ -32,6 +32,11 @@ public sealed class LoadingScreen(PlatformClock clock, Action? process = null)
     /// <summary>The Presents the screen has made.</summary>
     public int Renders { get; private set; }
 
+    /// <summary>
+    /// A render the boot made (its Presents after the films are the loading screen's): the throttle counts from now.
+    /// </summary>
+    public void RenderedByBoot() => LastRender = clock.GetSysTimeFloat();
+
     /// <summary>CConsole::SetLoading: on, the start time read and (with <paramref name="loadScreen"/>) the picture loaded; off, released.</summary>
     public void SetLoading(bool on, bool loadScreen = true)
     {

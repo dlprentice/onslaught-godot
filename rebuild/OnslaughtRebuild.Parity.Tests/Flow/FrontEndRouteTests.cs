@@ -26,7 +26,10 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     /// with <paramref name="saves"/> on the memory card first, against the reference in <paramref name="dir"/>
     /// (crt-per-present.txt, frontend-trace.txt).
     /// </summary>
-    internal static RouteResult Run(string tape, string dir, long end, params (string Name, string File)[] saves)
+    internal static RouteResult Run(string tape, string dir, long end, params (string Name, string File)[] saves) =>
+        Run(tape, dir, end, skipFmv: true, saves);
+
+    internal static RouteResult Run(string tape, string dir, long end, bool skipFmv, params (string Name, string File)[] saves)
     {
         var port = new Dictionary<long, (uint Count, uint Hold)>();
         foreach (string line in File.ReadLines(RetailGolden.File(dir + "/crt-per-present.txt")!))
@@ -51,7 +54,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         }
 
         var run = new GameRun(GameData.Read, id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id],
-            new RetailChainTests.InstalledFilms(), skipFmv: true, LevelSession.VirtualVoiceFor(GameData.Read))
+            new RetailChainTests.InstalledFilms(), skipFmv, LevelSession.VirtualVoiceFor(GameData.Read))
         {
             Tape = RetailTape.Load(RetailGolden.File(tape)!),
         };
@@ -189,5 +192,23 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         Assert.Equal(1500, r.CrtMatchedThrough);
         Assert.Equal(SystemFlow.QuitToSystem, r.Returned);
         Assert.Equal(File.ReadAllBytes(RetailGolden.File("portrefs/fe-r4-options-port/defaultoptions.bea")!), r.Run.DefaultOptionsFile);
+    }
+
+    /// <summary>
+    /// R5 (fe-r5-fullboot-idle-port, no -skipfmv): the boot films (logo, opening), the front end at 2288 with no loading
+    /// Present before its title (the boot's last Present was the loading screen's), the title's idle, the attract films,
+    /// and the front end again from 5474 (its Init's loading screen renders: the title at 5475). SetPage at the port's
+    /// Presents and rand() every Present to 5700.
+    /// </summary>
+    [RetailGoldenFact("portrefs/fe-r5-fullboot-idle-port/empty.tape", "portrefs/fe-r5-fullboot-idle-port/crt-per-present.txt",
+        "portrefs/fe-r5-fullboot-idle-port/frontend-trace.txt")]
+    public void TheFullBootIdleMatchesThePort()
+    {
+        RouteResult r = Run("portrefs/fe-r5-fullboot-idle-port/empty.tape", "portrefs/fe-r5-fullboot-idle-port", 5700, skipFmv: false);
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}; flow {string.Join(" | ", r.Run.Flow!.Trace)}");
+        Assert.Equal(r.PortPages, r.Pages);
+        Assert.Null(r.FirstCrtDifference);
+        Assert.Equal(5700, r.CrtMatchedThrough);
+        Assert.Equal(["front end Start", "attract", "front end FromAttract"], r.Run.Flow.Trace);
     }
 }

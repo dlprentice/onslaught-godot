@@ -108,6 +108,10 @@ public sealed class GameRun : ISystemParts
             }
         }
 
+        // The boot's last Present is the loading screen's: the front end's first Init comes within its 0.05 s throttle
+        // and does not render (the port's full-boot run: CFrontEnd::Init and FEP_INTRO at 2288, with no Present between).
+        Loading.RenderedByBoot();
+
         Flow = new SystemFlow(this);
         return Flow.Run();
     }
