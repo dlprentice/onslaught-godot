@@ -99,7 +99,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int TankKillTapeMatchedThrough = 8000;
 
     /// <summary>The Present through which David's recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).</summary>
-    private const int DavidTapeMatchedThrough = 5322;
+    private const int DavidTapeMatchedThrough = 7504;
 
     /// <summary>The Presents through which the pause and restart tapes match the port (never lowered).</summary>
     private const int PauseQuitMatchedThrough = 3861;

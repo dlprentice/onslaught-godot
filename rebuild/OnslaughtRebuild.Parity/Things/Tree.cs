@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/tree.h and src/tree.cpp (CTree::Init 004f6080, SetThingType, CFallingTree's constructor
-// 004f5f60, CreateFallingTree 004f69b0, Hit 004f6aa0, UpdateFallingTree 004f6b80, HandleEvent 004f7050). Float forms read
+// 004f5f60, Damage 004f68e0, CreateFallingTree 004f69b0, Hit 004f6aa0, UpdateFallingTree 004f6b80, HandleEvent 004f7050). Float forms read
 // from the pristine executable (74154bfa...). Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Game;
@@ -14,9 +14,23 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CTree: a tree (one draw for its variation, one more when its type has no variant number).</summary>
 public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
 {
-    /// <summary>CTree::Damage (004f68e0): not ported yet.</summary>
-    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1) =>
-        throw new NotSupportedException("CTree::Damage is not ported");
+    /// <summary>CTree::Damage (004f68e0): a standing tree loses life, and at none falls away from what damaged it.</summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
+    {
+        if (Falling is not null || TreeLife == 0)
+        {
+            return;
+        }
+
+        TreeLife -= amount;
+        if (TreeLife <= 0)
+        {
+            TreeLife = 0;
+            FVector dir = Pos - byThis!.Pos;
+            dir.Normalise();
+            CreateFallingTree(dir);
+        }
+    }
 
     public int Variation;
     public float TreeLife;
