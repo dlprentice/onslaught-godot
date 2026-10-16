@@ -148,4 +148,45 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         Assert.Equal(3000, r.CrtMatchedThrough);
         Assert.Equal(["front end Start", "attract"], r.Run.Flow.Trace);
     }
+
+    /// <summary>
+    /// R3 (fe-r3-load-port, the port's final run with its save-file fix): with fe-lose's career save 'BEA 1' on the card,
+    /// the title, the main menu's Load, the device step, the load, then the briefing: SetPage at the port's Presents (the
+    /// load and the level select at 701, the briefing at 1201), rand() every Present to 1600, and the career after
+    /// CCareer::Load equal to the port's 9,404 bytes.
+    /// </summary>
+    [RetailGoldenFact("portrefs/fe-r3-load-port/fer3b.tape", "portrefs/fe-r3-load-port/crt-per-present.txt",
+        "portrefs/fe-r3-load-port/frontend-trace.txt", "portrefs/fe-r3-load-port/BEA 1.bes",
+        "portrefs/fe-r3-load-port/frontend-trace.txt.career-after-load-P701.bin")]
+    public void LoadingASavedCareerMatchesThePort()
+    {
+        byte[] afterLoad;
+        RouteResult r = Run("portrefs/fe-r3-load-port/fer3b.tape", "portrefs/fe-r3-load-port", 1600, ("BEA 1", "portrefs/fe-r3-load-port/BEA 1.bes"));
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}");
+        Assert.Equal(r.PortPages, r.Pages);
+        Assert.Null(r.FirstCrtDifference);
+        Assert.Equal(1600, r.CrtMatchedThrough);
+        afterLoad = r.Run.FrontEnd.Career.Record.Bytes.ToArray();
+        Assert.Equal(File.ReadAllBytes(RetailGolden.File("portrefs/fe-r3-load-port/frontend-trace.txt.career-after-load-P701.bin")!), afterLoad);
+    }
+
+    /// <summary>
+    /// R4 (fe-r4-options-port): the main menu's Options (the options page's CPauseMenu), its sound list, the music volume
+    /// three steps down (immediate: the career's volume follows), Apply, Back twice (the menu closes; the page saves
+    /// defaultoptions.bea and returns to the main page at 1221), then the main menu's Quit. SetPage at the port's
+    /// Presents, rand() every Present to the exit after 1500 (each move, select and back is a sound's draw), and
+    /// defaultoptions.bea equal to the port's 10,004 bytes.
+    /// </summary>
+    [RetailGoldenFact("portrefs/fe-r4-options-port/feopt.tape", "portrefs/fe-r4-options-port/crt-per-present.txt",
+        "portrefs/fe-r4-options-port/frontend-trace.txt", "portrefs/fe-r4-options-port/defaultoptions.bea")]
+    public void TheOptionsSoundVolumeMatchesThePort()
+    {
+        RouteResult r = Run("portrefs/fe-r4-options-port/feopt.tape", "portrefs/fe-r4-options-port", 3000);
+        output.WriteLine($"rand() matches the port through Present {r.CrtMatchedThrough}; first difference: {r.FirstCrtDifference ?? "none"}");
+        Assert.Equal(r.PortPages, r.Pages);
+        Assert.Null(r.FirstCrtDifference);
+        Assert.Equal(1500, r.CrtMatchedThrough);
+        Assert.Equal(SystemFlow.QuitToSystem, r.Returned);
+        Assert.Equal(File.ReadAllBytes(RetailGolden.File("portrefs/fe-r4-options-port/defaultoptions.bea")!), r.Run.DefaultOptionsFile);
+    }
 }

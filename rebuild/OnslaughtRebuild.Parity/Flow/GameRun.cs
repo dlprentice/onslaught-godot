@@ -42,6 +42,7 @@ public sealed class GameRun : ISystemParts
         FrontEnd.Crt = Crt;
         Loading = new LoadingScreen(Clock, () => Input.Process(Clock.QueryPerformanceCounter()));
         FrontEnd.Loading = Loading;
+        FrontEnd.WriteDefaultOptionsFile = bytes => DefaultOptionsFile = bytes;
         Sound.SoundEffects sounds = Sound.SoundEffects.Load(read(Sound.SoundEffects.FileName).Bytes);
         FrontEnd.PlayEffect = name => sounds.PlayEffect(sounds.Find(name), Crt.MainThread);
         Clock.Presented = Presented;
@@ -61,6 +62,9 @@ public sealed class GameRun : ISystemParts
     public Crt.CrtRand Crt { get; } = new();
 
     public FrontEnd FrontEnd { get; }
+
+    /// <summary>defaultoptions.bea as the options page last wrote it, or null.</summary>
+    public byte[]? DefaultOptionsFile { get; private set; }
 
     /// <summary>CONSOLE's loading screen.</summary>
     public LoadingScreen Loading { get; }

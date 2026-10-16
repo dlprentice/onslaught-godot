@@ -43,6 +43,9 @@ public enum FrontEndText
 public sealed class FrontEndTexts(TextDatabase database, TextIds ids, PlatformInput platform,
     Func<int, string>? pcText = null, Func<FrontEndText, string>? englishFallback = null)
 {
+    /// <summary>text.stf's names.</summary>
+    public TextIds Ids => ids;
+
     /// <summary><c>Localization_GetStringById</c> (0x00524830): a PC text, from the host.</summary>
     public string PcText(int id) =>
         (pcText ?? throw new NotSupportedException("The PC texts come from the player's executable; the host must supply them."))(id);

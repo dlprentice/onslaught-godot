@@ -299,6 +299,18 @@ public sealed class FrontEnd : IButtonReceiver
     /// </summary>
     public Action<string>? PlayEffect { get; set; }
 
+    /// <summary>Replaces the live options (the options menu's settings); null where they cannot change.</summary>
+    public Action<Career.CareerOptions>? SetOptions { get; set; }
+
+    /// <summary>CFEPOptions::WriteDefaultOptionsFile: defaultoptions.bea's new contents.</summary>
+    public Action<byte[]>? WriteDefaultOptionsFile { get; set; }
+
+    /// <summary>CPCSoundManager::GetNumDevices: the sound devices the host lists.</summary>
+    public int SoundDevices { get; set; } = 1;
+
+    /// <summary>SOUND.m3DSoundMethod: the method the sound manager chose (the options' -1 means it).</summary>
+    public int Sound3DMethod { get; set; }
+
     /// <summary>CONSOLE's loading screen, which Init shows while it loads; null where no console runs.</summary>
     public LoadingScreen? Loading { get; set; }
 

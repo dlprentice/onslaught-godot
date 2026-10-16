@@ -61,6 +61,7 @@ public static class FrontEndSetup
         options = loaded;
         frontEnd.ReadDataFile = path => read(path).Bytes;
         frontEnd.CurrentOptions = () => loaded ?? CareerOptions.Read(new byte[CareerOptions.Size]);
+        frontEnd.SetOptions = o => loaded = o;
         frontEnd.Video = video ?? new NoFrontEndVideo();
         (string bedName, byte[] bedBytes) = read(@"data\battle engine configurations.dat");
         BattleEngineDataManager engines = BattleEngineDataManager.Load(MemBuffer.FromFile(bedName, bedBytes));
@@ -87,6 +88,7 @@ public static class FrontEndSetup
         frontEnd[FrontEndPage.Briefing] = new BriefingPage(frontEnd);
         frontEnd[FrontEndPage.BeConfig] = new BeConfigPage(frontEnd);
         frontEnd[FrontEndPage.Debriefing] = new DebriefingPage(frontEnd);
+        frontEnd[FrontEndPage.Options] = new OptionsPage(frontEnd);
         frontEnd.DevSelect = devSelect;
         frontEnd.VirtualKeyboard = keyboard;
         frontEnd.Directory = directory;
