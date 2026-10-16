@@ -5,6 +5,7 @@
 
 using Godot;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Particles;
 
 namespace OnslaughtRebuild.Host;
@@ -91,7 +92,7 @@ public static class ParticleView
         FVector back, float eventTime)
     {
         float invlife = pd.Life == 0 ? 0 : 1.0f / pd.Life;
-        int fadescale = (int)(invlife * 65536.0f);
+        int fadescale = X87.Fist(invlife * 65536.0f);
         for (Particle? p = pd.OldestParticle; p is not null; p = p.PDNext)
         {
             FoR? f = p.FoR;
@@ -144,7 +145,7 @@ public static class ParticleView
             float u0 = p.U0, v0 = p.V0, u1 = p.U1, v1 = p.V1;
             if (pd.AnimType != 0)
             {
-                (u0, v0, u1, v1) = FrameUV(pd.TextureSize, (int)(p.Frame - 0.5f) + pd.TextureNumber);
+                (u0, v0, u1, v1) = FrameUV(pd.TextureSize, X87.Fist(p.Frame - 0.5f) + pd.TextureNumber);
             }
 
             int r = 255, g = 255, b = 255;
@@ -159,7 +160,7 @@ public static class ParticleView
                 FVector normal = -new FVector(ori.Row0.Y, ori.Row1.Y, ori.Row2.Y);
                 float facing = Math.Max(Dot(normal, up), 0);
                 renderRadius = facing * p.Radius;
-                int s = (int)(facing * 255.0f);
+                int s = X87.Fist(facing * 255.0f);
                 r = (r * s) >> 8;
                 g = (g * s) >> 8;
                 b = (b * s) >> 8;
@@ -168,7 +169,7 @@ public static class ParticleView
             uint colour;
             if (pd.FadeCol != 0)
             {
-                int alpha = pd.Life > 0 ? ((int)p.Life * fadescale * 255) >> 16 : 255;
+                int alpha = pd.Life > 0 ? (X87.Fist(p.Life) * fadescale * 255) >> 16 : 255;
                 if (alpha > 30)
                 {
                     alpha -= 30;
@@ -285,7 +286,7 @@ public static class ParticleView
     /// <summary>The colour range's colour at f (0 born .. 1 dead), each channel 0..255.</summary>
     private static (int, int, int) RangeColour(ParticleManager m, PdColourRange cr, float f, Particle p)
     {
-        static int B(float v) => (byte)(int)(v * 255.0f);
+        static int B(float v) => (byte)X87.Fist(v * 255.0f);
         if (cr.UseTransition != 0)
         {
             if (f < cr.TransitionPoint)
