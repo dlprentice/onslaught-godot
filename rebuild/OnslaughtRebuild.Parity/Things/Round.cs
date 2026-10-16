@@ -129,6 +129,8 @@ public class Round : Actor
 
     public override bool CanGoUnderWater() => Data.CanGoUnderWater != 0;
 
+    public override int GetSoundMaterial() => Data.SoundMaterial;
+
     /// <summary>GetRadius (004d8ac0): half a frame's travel plus the round's radius.</summary>
     public override float GetRadius() => (Data.Speed / GameFr * 0.5f) + Data.Radius;
 
@@ -168,7 +170,7 @@ public class Round : Actor
             cst.NotSeekCollisionWith |= ThingType.Ammunition;
         }
 
-        cst.CollisionResponse = 0; // ECR_STATIC
+        cst.CollisionResponse = 1; // ECR_STATIC
         if (Data.TreeCollision == 2)
         {
             cst.NotSeekCollisionWith |= ThingType.Tree;
@@ -190,7 +192,7 @@ public class Round : Actor
             cst.IgnoreThing = Launcher.ToRead;
             if (Data.PassiveCollision != 0)
             {
-                cst.CollisionResponse = 1; // ECR_PASSIVE
+                cst.CollisionResponse = 0; // ECR_PASSIVE
             }
         }
         else
@@ -285,7 +287,44 @@ public class Round : Actor
             return;
         }
 
-        throw new NotSupportedException($"CRound::Hit: the damage to {other.GetType().Name} (CThing::Damage, ConfirmedKill, Rearm, the impact sound) is not ported");
+        if (Launcher.ToRead is BattleEngine shooter && other.IsA(ThingType.Unit) && other is Unit hitUnit && hitUnit.Allegiance != shooter.Allegiance)
+        {
+            (shooter.Player as Game.Player)?.IncStat(Game.PlayerStat.RoundsHit);
+        }
+
+        if (Data.Beam != 0)
+        {
+            throw new NotSupportedException("CRound::Hit of a beam is not ported");
+        }
+
+        Unknown124 = 1;
+        int part = -1;
+        if (report is { Unknown00: not 0, NumContacts: > 0 })
+        {
+            part = report.ContactParts[0];
+        }
+
+        bool wasDying = other.IsDying;
+        other.Damage(Data.Damage, this, true, part);
+        if (other is BattleEngine rearmed)
+        {
+            rearmed.Rearm(Data.Rearm);
+        }
+
+        if (Launcher.ToRead is Unit killer && killer.IsA(ThingType.Unit) && other.IsA(ThingType.Unit) && other is Unit killed
+            && other.IsDying && !wasDying)
+        {
+            killer.ConfirmedKill(killed);
+        }
+
+        PlayImpactSound(this, other);
+        GoOff(CollideMode.Thing, report, other);
+        if (Data.Fire == 0)
+        {
+            StartDieProcess();
+        }
+
+        Unknown124 = 0;
     }
 
     /// <summary>Shutdown (004d8dc0): off the fear grid's list, the effect killed, the target released.</summary>

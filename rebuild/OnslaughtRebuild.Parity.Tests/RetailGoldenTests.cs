@@ -85,6 +85,9 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The Present through which the firing tape's run equals the port's at every Present (never lowered).</summary>
     private const int FiringTapeMatchedThrough = 6000;
 
+    /// <summary>The Present through which the static-target tape's run equals the port's at every Present (never lowered).</summary>
+    private const int TargetTapeMatchedThrough = 5826;
+
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
 
@@ -167,8 +170,29 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         "portrefs/l100-fire1-port/port-probes-every1.txt")]
     public void Level100FiringTapeMatchesThePortEveryPresent()
     {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-fire1-6000f.tape", "portrefs/l100-fire1-port", 6000);
+        Assert.True(matched >= FiringTapeMatchedThrough, $"matched through Present {matched}, below {FiringTapeMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 on the port's static-target tape (tapes/level100-fire2-8000f.tape, the port's autopilot: the firing range,
+    /// then bursts at the first target tank that fly over it into the warehouse, then the second tank and the warehouse)
+    /// against the port's every-Present reference of a replay (l100-fire2-port), as the firing tape's test. It covers a
+    /// round's damage to a segmented building, the segments' rubble and pickup explosions. Floor:
+    /// <see cref="TargetTapeMatchedThrough"/>.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-fire2-8000f.tape", "portrefs/l100-fire2-port/crt-per-present.txt",
+        "portrefs/l100-fire2-port/port-probes-every1.txt")]
+    public void Level100TargetTapeMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-fire2-8000f.tape", "portrefs/l100-fire2-port", 8000);
+        Assert.True(matched >= TargetTapeMatchedThrough, $"matched through Present {matched}, below {TargetTapeMatchedThrough}");
+    }
+
+    private long PortTapeMatchedThrough(string tape, string dir, long last)
+    {
         var port = new Dictionary<long, (uint Count, uint Hold)>();
-        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portrefs/l100-fire1-port/crt-per-present.txt")!))
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File(dir + "/crt-per-present.txt")!))
         {
             string[] f = line.Split(' ');
             if (f.Length >= 4 && f[0] == "P" && f[2] == "CRT")
@@ -179,7 +203,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         }
 
         var probes = new Dictionary<(long Present, string Name), string>();
-        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portrefs/l100-fire1-port/port-probes-every1.txt")!))
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File(dir + "/port-probes-every1.txt")!))
         {
             string[] f = line.Split(' ');
             if (f.Length == 4 && f[0] == "P" && f[2] is "EVT" or "FT" or "RNG" or "POS" or "LIFE")
@@ -189,7 +213,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         }
 
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
-        session.Tape = RetailTape.Load(RetailGolden.File("portrefs/tapes/level100-fire1-6000f.tape")!);
+        session.Tape = RetailTape.Load(RetailGolden.File(tape)!);
         static string Hex(byte[] b) => Convert.ToHexString(b).ToLowerInvariant();
         long matched = 0;
         string? first = null;
@@ -207,8 +231,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
                 first = $"Present {p}: rand() count {want.Count}/{crt.Calls}, holdrand {want.Hold:x8}/{crt.HoldRand:x8} (port/ours)";
             }
         };
-        string stopped = "ran to Present 6000";
-        while (session.PresentCount < 6000 && first is null)
+        string stopped = $"ran to Present {last}";
+        while (session.PresentCount < last && first is null)
         {
             try
             {
@@ -255,8 +279,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             }
         }
 
-        output.WriteLine($"{stopped}; the firing tape matches the port through Present {matched}; first difference: {first ?? "none"}");
-        Assert.True(matched >= FiringTapeMatchedThrough, $"matched through Present {matched}, below {FiringTapeMatchedThrough}");
+        output.WriteLine($"{stopped}; {tape} matches the port through Present {matched}; first difference: {first ?? "none"}");
+        return matched;
     }
 
     /// <summary>

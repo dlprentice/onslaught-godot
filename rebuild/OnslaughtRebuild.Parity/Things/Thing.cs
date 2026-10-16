@@ -377,6 +377,33 @@ public abstract class Thing : Monitor, IOccupancyUnit
         MoveTo(pos);
     }
 
+    /// <summary>GetSoundMaterial (slot 43): what the thing sounds like when hit (0 for a plain thing).</summary>
+    public virtual int GetSoundMaterial() => 0;
+
+    /// <summary>
+    /// PlayImpactSound (004e2e60): two things meeting, when the lower of their materials is 1..8, play wood (material 0x66)
+    /// or one of six hits (main-thread rand) through PlayEffect.
+    /// </summary>
+    public static void PlayImpactSound(Thing a, Thing b)
+    {
+        int ma = a.GetSoundMaterial(), mb = b.GetSoundMaterial();
+        int lo = ma, hi = mb;
+        if (ma > mb)
+        {
+            lo = mb;
+            hi = ma;
+        }
+
+        if (lo >= 1 && lo < 9 && a.Context.SoundEffects is { } sounds)
+        {
+            Sound.SoundEffect? effect = hi == 0x66 ? sounds.Find("impact\\Wood") : sounds.Find($"hit {(a.Context.Crt.Rand() % 6) + 1}");
+            if (effect is not null)
+            {
+                sounds.PlayEffect(effect, a.Context.Crt);
+            }
+        }
+    }
+
     /// <summary>Damage (slot 40, 00401490): nothing for a plain thing.</summary>
     public virtual void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
     {

@@ -18,7 +18,7 @@ namespace OnslaughtRebuild.Parity.Things;
 /// larger damaging one grows by a step each frame. It damages what its sphere touches, more nearer its centre, crediting
 /// its originator with the kills; a smart one spares its own side.
 /// </summary>
-/// <remarks>Not ported yet: volumetric effects scattered over the thing it went off on, and damage by segment parts.</remarks>
+/// <remarks>Not ported yet: volumetric effects scattered over the thing it went off on.</remarks>
 public sealed class Explosion(ThingContext context) : ComplexThing(context, Oid.Explosion)
 {
     public const int GrowEvent = 3000;
@@ -86,7 +86,7 @@ public sealed class Explosion(ThingContext context) : ComplexThing(context, Oid.
             }
 
             cst.MaxCollision = CollisionLevel.ApproxGeometryShapes;
-            cst.CollisionResponse = 1; // ECR_PASSIVE
+            cst.CollisionResponse = 0; // ECR_PASSIVE
             cst.StartCollideOnNextFrame = false;
             cst.DoObbForMeshCollision = true;
             ColType = init.ColType;
@@ -165,35 +165,49 @@ public sealed class Explosion(ThingContext context) : ComplexThing(context, Oid.
         }
 
         base.Hit(other, report);
+        int n = 0;
         float dist = (Pos - other.Pos).Magnitude() - other.GetRadius();
-        if (other.IsA(ThingType.Unit) && other is Unit { HasSegments: true } && report is { Unknown00: not 0, NumContacts: > 0 })
+        bool parts = other.IsA(ThingType.Unit) && other is Unit { HasSegments: true } && report is { Unknown00: not 0, NumContacts: > 0 };
+        do
         {
-            throw new NotSupportedException("CExplosion::Hit by segment parts (the destructable segments' damage) is not ported");
-        }
-
-        if (dist < 0)
-        {
-            dist = 0;
-        }
-
-        if (dist <= CurrentRadius)
-        {
-            bool wasDying = other.IsDying;
-            if (Radius > 3.0f)
+            int part;
+            if (parts)
             {
-                other.Damage(b.Damage / b.Time * (Radius - dist) / Radius, this, true, -1);
+                part = report!.ContactParts[n];
+                dist = Radius + report.ContactDistances[n];
             }
             else
             {
-                other.Damage((Radius - dist) * b.Damage / Radius, this, true, -1);
+                part = -1;
             }
 
-            if (Originator.ToRead is Unit originator && originator.IsA(ThingType.Unit) && other is Unit victim
-                && other.IsA(ThingType.Unit) && other.IsDying && !wasDying)
+            if (dist < 0)
             {
-                originator.ConfirmedKill(victim);
+                dist = 0;
             }
+
+            if (dist <= CurrentRadius)
+            {
+                bool wasDying = other.IsDying;
+                if (Radius > 3.0f)
+                {
+                    other.Damage(b.Damage / b.Time * (Radius - dist) / Radius, this, true, part);
+                }
+                else
+                {
+                    other.Damage((Radius - dist) * b.Damage / Radius, this, true, part);
+                }
+
+                if (Originator.ToRead is Unit originator && originator.IsA(ThingType.Unit) && other is Unit victim
+                    && other.IsA(ThingType.Unit) && other.IsDying && !wasDying)
+                {
+                    originator.ConfirmedKill(victim);
+                }
+            }
+
+            n++;
         }
+        while (parts && report!.NumContacts > n);
     }
 
     /// <summary>Unknown66 (0044c0f0): a step of growth, then the next frame's or its end.</summary>

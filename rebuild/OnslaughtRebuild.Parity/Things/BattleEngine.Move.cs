@@ -1194,4 +1194,26 @@ public sealed partial class BattleEngine
     /// <summary>CBattleEngine::StartDieProcess: the battle engine's death; not ported yet.</summary>
     public override bool StartDieProcess() =>
         IsDying ? false : throw new NotSupportedException("CBattleEngine::StartDieProcess is not ported");
+
+    /// <summary>GetSoundMaterial (00405f40): SM_BATTLE_ENGINE.</summary>
+    public override int GetSoundMaterial() => 0x68;
+
+    /// <summary>Rearm (0040ac50): each ammunition store (not heat) gains that share of its full amount, up to full.</summary>
+    public void Rearm(float amount)
+    {
+        if (amount > 0)
+        {
+            for (int n = 0; n < StoreValue.Length; n++)
+            {
+                if (!StoreHeat[n])
+                {
+                    StoreValue[n] += amount * Configuration!.StoreValue[n];
+                    if (StoreValue[n] > Configuration.StoreValue[n])
+                    {
+                        StoreValue[n] = Configuration.StoreValue[n];
+                    }
+                }
+            }
+        }
+    }
 }

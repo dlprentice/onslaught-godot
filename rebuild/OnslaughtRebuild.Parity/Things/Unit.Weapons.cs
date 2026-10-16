@@ -261,9 +261,10 @@ public abstract partial class Unit
                 throw new NotSupportedException("CUnit::Damage to a nexus or weak-point part is not ported");
             }
 
-            if (HasSegments)
+            if (Segments is { } segments)
             {
-                throw new NotSupportedException("CDestructableSegmentsController::Damage is not ported");
+                segments.Damage(meshPart, amount, byThis);
+                return;
             }
 
             Unknown107(amount);
@@ -331,6 +332,9 @@ public abstract partial class Unit
             }
         }
     }
+
+    /// <summary>GetSoundMaterial (slot 43): the unit data's.</summary>
+    public override int GetSoundMaterial() => UnitData?.SoundMaterial ?? 0;
 
     /// <summary>Unknown112 (slot 112): how long after its removal a unit shuts down.</summary>
     public virtual float Unknown112() => 0.05f;
@@ -446,10 +450,7 @@ public abstract partial class Unit
             }
         }
 
-        if (HasSegments)
-        {
-            throw new NotSupportedException("CDestructableSegmentsController::Unknown4443f0 (segments told of death) is not ported");
-        }
+        Segments?.OwnerDying();
 
         Script?.StartedDying();
         if (UnitData?.Spawners.Count > 0)

@@ -346,9 +346,130 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
 /// <summary>CBuilding: a building, with its own render thing (mesh and rubble) and destructable segments.</summary>
 public sealed class Building(ThingContext context) : Unit(context)
 {
-    /// <summary>CBuilding::StartDieProcess (unit.h slot 50): the class's death; not ported yet.</summary>
-    public override bool StartDieProcess() =>
-        IsDying ? false : throw new NotSupportedException("CBuilding::StartDieProcess (unit.h slot 50) is not ported");
+    /// <summary>
+    /// CRTBuilding::Unknown10 (004dba40): the rubble mesh (the unit data's rubble name, else "m-b-rubble") at a random one of
+    /// its six levels of detail (main-thread rand), stopping at the chain's end.
+    /// </summary>
+    public Mesh.MeshData? PickRubble()
+    {
+        string name = (UnitData?.Rubble is { } r ? System.Text.Encoding.ASCII.GetString(r) : "m-b-rubble") + ".msh";
+        if (!Context.Meshes.TryGetValue(name, out Mesh.MeshData? rubble) && !Context.Meshes.TryGetValue("m-b-rubble.msh", out rubble))
+        {
+            throw new NotSupportedException($"CRTBuilding: the rubble mesh {name} is not in the level resources");
+        }
+
+        int n = Context.Crt.Rand() % 6;
+        Mesh.MeshData m = rubble;
+        for (int i = 0; i < n && m.NextInChain is not null; i++)
+        {
+            m = m.NextInChain;
+        }
+
+        return m;
+    }
+
+    /// <summary>
+    /// CBuilding::Damage (004179a0): noted as hit; an open door begins to shut; a segmented building, or one not yet dying,
+    /// takes CUnit's damage.
+    /// </summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
+    {
+        Unknown268 = Context.Events.Time;
+        if (Unknown260 && Unknown264 == 3)
+        {
+            SetAnimMode(AnimModeByName("shutting"), true, false);
+            Unknown264 = 0;
+        }
+
+        if (Segments is not null || !IsDying)
+        {
+            base.Damage(amount, byThis, damageShields, meshPart);
+        }
+    }
+
+    /// <summary>
+    /// CBuilding::StartDieProcess (00417a40): CUnit's, the children released; an unsegmented building explodes (its
+    /// explosion, its life to -1, the explosion's own effect) and throws forty pieces of its rubble (three main-thread
+    /// rand draws each, and the rubble pick); a scripted building tells its script next frame (5000).
+    /// </summary>
+    public override bool StartDieProcess()
+    {
+        if (!base.StartDieProcess())
+        {
+            return false;
+        }
+
+        if (UnitData?.Components.Count > 0)
+        {
+            throw new NotSupportedException("CUnit::ReleaseChildren (a unit's components) is not ported");
+        }
+
+        if (Segments is null)
+        {
+            int explosionId = UnitData!.Explosion;
+            Physics.ExplosionData? data = explosionId >= 0 && explosionId < Context.Physics.Explosions.Count ? Context.Physics.Explosions[explosionId] : null;
+            if (Explosion.Spawn(Context, explosionId) is { } explosion)
+            {
+                explosion.Init(new InitThing { Behaviour = data, Pos = Pos, Allegiance = Allegiance });
+            }
+
+            Life = -1.0f;
+            if (Context.Particles is { } particles)
+            {
+                if (explosionId != -1)
+                {
+                    particles.Manager.CreateEffect(particles.Manager.Set.GetPD(data!.NameText), null, Pos, false, false);
+                }
+
+                Particles.ParticleDescriptor? pd = particles.Manager.Set.GetPD("Generic Mesh");
+                for (int i = 0; i < 40; i++)
+                {
+                    var link = new Particles.ParticleEffectLink(particles.Manager);
+                    particles.Manager.CreateEffect(pd, link, new FVector(0, 0, 0), false, false);
+                    int a = (Context.Crt.Rand() & 0xff) - 128;
+                    int b = (Context.Crt.Rand() & 0xff) - 128;
+                    int c = (Context.Crt.Rand() & 0xff) - 128;
+                    var vel = new FVector(c * 0.0003125f, b * 0.0003125f, a * 0.0003125f);
+                    FVector displacement = vel * 20.0f;
+                    FVector pos = displacement + (Pos - new FVector(0, 0, 1.0f));
+                    link.SetPos(pos);
+                    if (link.Full && link.Effect!.Particle is { } particle)
+                    {
+                        vel.Z = (vel.Z * 2) - 0.04f;
+                        particle.Velocity = vel;
+                        if (PickRubble() is { } rubble)
+                        {
+                            particle.Data = rubble;
+                            particle.Radius = rubble.Radius;
+                        }
+                    }
+
+                    link.Release();
+                }
+            }
+        }
+
+        if (Script is not null)
+        {
+            Context.Events.AddEvent(5000, this, Events.EventManager.NextFrame);
+        }
+
+        return true;
+    }
+
+    public override void HandleEvent(Events.Event e)
+    {
+        if (e.EventNum == 5000 && Script is not null)
+        {
+            Script.Died();
+            Script.Delete();
+            Script = null;
+        }
+        else
+        {
+            base.HandleEvent(e);
+        }
+    }
 
     public override bool CanBeStaticallyShadowed => true;
 

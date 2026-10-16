@@ -31,6 +31,25 @@ public sealed class RenderThing : IMeshCollisionSource
     /// <summary>The mesh's effect emitters (records named '_' + descriptor), made the first time the mesh is drawn.</summary>
     public MeshEffects? Effects;
 
+    /// <summary>FindEffect then GetEffect: the effect link of that emitter part, if it has one.</summary>
+    public Particles.ParticleEffectLink? FindEffectLink(Mesh.MeshPart part)
+    {
+        if (Effects is not { } e)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < e.Parts.Length; i++)
+        {
+            if (ReferenceEquals(e.Parts[i], part))
+            {
+                return e.Links[i];
+            }
+        }
+
+        return null;
+    }
+
     public MeshData Mesh => MeshOrNull ?? throw new InvalidOperationException("this render thing has no mesh loaded");
 
     public MeshPose? Pose { get; }
