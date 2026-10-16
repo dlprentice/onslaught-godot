@@ -71,8 +71,8 @@ ambient render state and the sun and anti-sun, no light ambient for meshes, `MOD
 blended in gamma space as retail does. Water is retail's fixed-function path (the GeForce FX shader path needs a
 cardid.txt tweak retail never applies here): the camera-centred grid and the shores' surf strips from the level's SURF
 chunk, with retail's stages, texture matrices and drift. Retail-derived textures and films are read from the installed game and the
-local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. Not drawn yet: the battle
-engine's animation pose, the landscape's per-patch levels of detail, particles and the HUD. Diagnostics:
+local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. The battle engine is drawn part by part
+at its motion controller's bones (CMCMech, in the parity core). Not drawn yet: the landscape's per-patch levels of detail, particles and the HUD. Diagnostics:
 `HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
 
 ## The earlier rebuild (parked state, 2026-09-26)

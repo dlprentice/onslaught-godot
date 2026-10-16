@@ -236,9 +236,38 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
 
     float IRenderSubject.RenderFrame => GetRenderFrame();
 
-    FVector IRenderSubject.RenderPos => Pos;
+    FVector IRenderSubject.RenderPos => GetRenderPos();
 
-    FMatrix IRenderSubject.RenderOrientation => Orientation;
+    FMatrix IRenderSubject.RenderOrientation => GetRenderOrientation();
+
+    /// <summary>GAME.GetFrameRenderFraction.</summary>
+    protected float FrameRenderFraction => Context.Game?.Loop.Fraction ?? 0.0f;
+
+    /// <summary>
+    /// GetFractionTime (00401b50): the render fraction, or, for a thing that moves every few frames, how far it is
+    /// between its moves (clamped to 0..1).
+    /// </summary>
+    public float GetFractionTime()
+    {
+        float mm = GetMoveMultiplier();
+        if (mm > 1.0f)
+        {
+            float t = Context.Events.Time - LastMoveTime;
+            float step = 1 / GetMoveMultiplier();
+            float fraction = step * t * 20.0f;
+            fraction += step * FrameRenderFraction;
+            return Math.Clamp(fraction, 0.0f, 1.0f);
+        }
+
+        return FrameRenderFraction;
+    }
+
+    /// <summary>GetRenderPos (00401be0): the old position towards the new one by the render fraction.</summary>
+    public virtual FVector GetRenderPos() => OldPos + ((Pos - OldPos) * FrameRenderFraction);
+
+    /// <summary>GetRenderOrientation (00401c50): the old orientation towards the new one by GetFractionTime (not renormalised).</summary>
+    public virtual FMatrix GetRenderOrientation() =>
+        OldOrientation.Add(Orientation.Add(OldOrientation.Scale(-1.0f)).Scale(GetFractionTime()));
 
     bool IRenderSubject.HasMotionController => false;
 

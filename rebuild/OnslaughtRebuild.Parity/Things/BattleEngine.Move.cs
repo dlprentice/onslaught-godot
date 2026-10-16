@@ -150,6 +150,31 @@ public sealed partial class BattleEngine
     /// <summary>Deactivate (00406020): powered down.</summary>
     public override void Deactivate() => PoweredUp = false;
 
+    /// <summary>GetRenderPos (00406050): CActor's, raised by the centre-of-gravity height while the walker mesh is shown.</summary>
+    public override FVector GetRenderPos()
+    {
+        FVector pos = base.GetRenderPos();
+        // mHackRenderThingIsWalker: MassiveHackPutUsInRightMesh shows the jet mesh while jetting or morphing into a jet.
+        if (State is not (BattleEngineState.Jet or BattleEngineState.MorphingIntoJet))
+        {
+            pos.Z += COfGHeight();
+        }
+
+        return pos;
+    }
+
+    /// <summary>GetRenderOrientation (004060b0): CActor's; a walker (or morphing) engine is drawn by its yaw alone.</summary>
+    public override FMatrix GetRenderOrientation()
+    {
+        FMatrix ori = base.GetRenderOrientation();
+        if (State is BattleEngineState.Walker or BattleEngineState.MorphingIntoWalker or BattleEngineState.MorphingIntoJet)
+        {
+            return FMatrix.FromYawPitchRoll(EulerAngles.FromMatrix(ori).Yaw, 0.0f, 0.0f);
+        }
+
+        return ori;
+    }
+
     /// <summary>COfGHeight (0040dfa0).</summary>
     public override float COfGHeight() => CofGHeight;
 
@@ -367,7 +392,10 @@ public sealed partial class BattleEngine
 
         if (Context.Game?.State > GameState.Panning)
         {
-            Context.Skip("CMCBattleEngine::SetAnimationBlend");
+            if (MotionController is not null)
+            {
+                MotionController.AnimationBlend = 0.0f;
+            }
         }
 
         if (AugActive)
@@ -498,7 +526,10 @@ public sealed partial class BattleEngine
         }
 
         StandingOnObjectMovement = new FVector(0, 0, 0);
-        Context.Skip("CMCBattleEngine::AddMovement");
+
+        // The forced movement (mPos less the position before the standing-on-object move): none, since that move throws
+        // above.
+        MotionController?.AddMovement(new FVector(0, 0, 0));
         Context.Skip("CBattleEngine::Move: the step-up line test (WORLD.FindFirstThingToHitLine; not ported yet)");
         UpdateRotation();
         for (int n = 0; n < Stores; n++)

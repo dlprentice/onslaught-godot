@@ -165,6 +165,15 @@ public sealed class LevelSession
         context.Bindings = bindings;
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
+
+        // Retail draws the player's battle engine each render, which asks its motion controller for every part.
+        input.Rendered = () =>
+        {
+            foreach (MCBattleEngine mc in context.MotionControllers)
+            {
+                mc.Rendered();
+            }
+        };
         return new LevelSession(context, game, resources, clock) { Input = input };
     }
 }

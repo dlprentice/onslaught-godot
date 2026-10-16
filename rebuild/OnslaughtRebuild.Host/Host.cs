@@ -85,7 +85,7 @@ public partial class Host : Node
         int meshes = 0;
         foreach (Thing thing in session.Context.World.Things.ToList())
         {
-            if (meshViews.Build(thing) is { } drawn)
+            if (meshViews.Build(thing, session.Game.Loop.Fraction) is { } drawn)
             {
                 world.AddChild(drawn);
                 meshes++;

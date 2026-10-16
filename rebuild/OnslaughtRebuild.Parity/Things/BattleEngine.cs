@@ -132,7 +132,12 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         EngineFrames = OtherMeshRenderThing!.CountEmitters("Engine");
         if (AnimModeByName("LegMotion") != -1)
         {
-            MotionController = new MCBattleEngine(Context);
+            MotionController = new MCBattleEngine(Context, this);
+            MotionController.SetMechParameters(0.0f, 400.0f, 1.0f, 0.4f, 0.9f, 0.05f, 2);
+            if (Context.Game?.CurrentLevel is 231 or 232 or 331 or 221 or 222 or 524 or 523 or 332)
+            {
+                MotionController.AnimationBlend = 1.0f; // "SRG massive hack": legs through the carrier on those levels
+            }
         }
 
         Visible = false;

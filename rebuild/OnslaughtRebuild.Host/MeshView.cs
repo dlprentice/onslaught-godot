@@ -72,7 +72,14 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
     private Shader? _shader;
     private bool _loggedSun;
 
-    public MeshInstance3D? Build(Thing thing)
+    private readonly Dictionary<(MeshData, int), ArrayMesh?> _builtParts = [];
+
+    /// <summary>
+    /// The thing's mesh as retail draws it: whole in its rest pose, or, for a thing with a motion controller, part by part
+    /// at the controller's transforms between its last two rebuilds by the render <paramref name="fraction"/> (each part's
+    /// vertices are in its own space, and retail sets each part's world matrix).
+    /// </summary>
+    public Node3D? Build(Thing thing, float fraction)
     {
         MeshData? mesh = thing.RenderThing?.MeshOrNull;
         if (mesh is null || mesh.NumParts == 0)
@@ -80,6 +87,36 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
             return null;
         }
 
+        if (thing is BattleEngine { MotionController: { } mc })
+        {
+            var root = new Node3D { Name = mesh.HeaderName };
+            foreach (MeshPart part in mesh.Parts)
+            {
+                if (mc.GetPartTransform(part.PartNumber, fraction) is not { } t)
+                {
+                    return BuildWhole(thing, mesh);
+                }
+
+                if (!_builtParts.TryGetValue((mesh, part.PartNumber), out ArrayMesh? partMesh))
+                {
+                    partMesh = BuildMesh(mesh, part.PartNumber);
+                    _builtParts[(mesh, part.PartNumber)] = partMesh;
+                }
+
+                if (partMesh is not null)
+                {
+                    root.AddChild(new MeshInstance3D { Mesh = partMesh, Name = part.Name, Transform = Place(t.Pos, t.Ori) });
+                }
+            }
+
+            return root;
+        }
+
+        return BuildWhole(thing, mesh);
+    }
+
+    private MeshInstance3D? BuildWhole(Thing thing, MeshData mesh)
+    {
         if (!_built.TryGetValue(mesh, out ArrayMesh? built))
         {
             built = BuildMesh(mesh);
@@ -102,7 +139,7 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
         return new Transform3D(new Basis(Column(Vector3.Right), Column(Vector3.Up), Column(Vector3.Back)), Host.ToGodot(pos));
     }
 
-    private ArrayMesh? BuildMesh(MeshData mesh)
+    private ArrayMesh? BuildMesh(MeshData mesh, int onlyPart = -1)
     {
         var pose = new MeshPose(mesh.NumParts);
         pose.Build(new FVector(0, 0, 0), FMatrix.Identity, mesh.Parts[0], null, 0);
@@ -118,8 +155,14 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
             int stride = vb.Stride;
             bool skinned = stride == 0x30;
             int primitive = BinaryPrimitives.ReadInt32LittleEndian(vb.Record.AsSpan(0x11c));
-            FMatrix partOri = pose.Orientations[part.PartNumber];
-            FVector partPos = pose.Positions[part.PartNumber];
+            if (onlyPart >= 0 && part.PartNumber != onlyPart)
+            {
+                continue;
+            }
+
+            // One part alone is built in its own space; the whole mesh in its rest pose.
+            FMatrix partOri = onlyPart >= 0 ? FMatrix.Identity : pose.Orientations[part.PartNumber];
+            FVector partPos = onlyPart >= 0 ? new FVector(0, 0, 0) : pose.Positions[part.PartNumber];
             int count = vb.Vertices.Length / stride;
             foreach (MeshVertexBufferPiece piece in vb.Pieces)
             {

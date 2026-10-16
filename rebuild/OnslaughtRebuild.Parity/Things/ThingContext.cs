@@ -91,6 +91,9 @@ public sealed class ThingContext(
     /// <summary>The PC's mouse look: CBattleEngine::UpdateMouseLookAngles's statics and the platform's mouse.</summary>
     public MouseLookState MouseLook { get; } = new();
 
+    /// <summary>CMCMech::sFirst's list: the motion controllers, which drawing marks used each render.</summary>
+    public List<MCBattleEngine> MotionControllers { get; } = [];
+
 }
 
 /// <summary>CWorld's runtime sets, in retail's member order (world.h): what each Init adds itself to.</summary>

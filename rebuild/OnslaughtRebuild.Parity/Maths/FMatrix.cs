@@ -157,6 +157,62 @@ public struct FMatrix
             ((r0.Z * m.Row2.Z) + (r0.Y * m.Row1.Z)) + (r0.X * m.Row0.Z));
         return new FMatrix(c0, c1, c2);
     }
+
+    /// <summary>operator+ (maths.h): row by row.</summary>
+    public readonly FMatrix Add(FMatrix m) => new(Row0 + m.Row0, Row1 + m.Row1, Row2 + m.Row2);
+
+    /// <summary>operator*(float) (maths.h): each row scaled.</summary>
+    public readonly FMatrix Scale(float f) => new(Row0 * f, Row1 * f, Row2 * f);
+
+    /// <summary>Inverse (maths.h): the cofactors, transposed, over the determinant.</summary>
+    public readonly FMatrix Inverse()
+    {
+        var c0 = new FVector((Row1.Y * Row2.Z) - (Row1.Z * Row2.Y), -((Row1.X * Row2.Z) - (Row2.X * Row1.Z)), (Row1.X * Row2.Y) - (Row2.X * Row1.Y));
+        var c1 = new FVector(-((Row0.Y * Row2.Z) - (Row0.Z * Row2.Y)), (Row0.X * Row2.Z) - (Row2.X * Row0.Z), -((Row0.X * Row2.Y) - (Row2.X * Row0.Y)));
+        var c2 = new FVector((Row0.Y * Row1.Z) - (Row0.Z * Row1.Y), -((Row0.X * Row1.Z) - (Row1.X * Row0.Z)), (Row0.X * Row1.Y) - (Row1.X * Row0.Y));
+        float det = (Row0.X * c0.X) + (Row0.Y * c0.Y) + (Row0.Z * c0.Z);
+        var t = new FMatrix(new FVector(c0.X, c1.X, c2.X), new FVector(c0.Y, c1.Y, c2.Y), new FVector(c0.Z, c1.Z, c2.Z));
+        return new FMatrix(
+            new FVector(t.Row0.X / det, t.Row0.Y / det, t.Row0.Z / det),
+            new FVector(t.Row1.X / det, t.Row1.Y / det, t.Row1.Z / det),
+            new FVector(t.Row2.X / det, t.Row2.Y / det, t.Row2.Z / det));
+    }
+
+    /// <summary>
+    /// MakeFromDirection (maths.h): columns side, top and back from a direction and an up vector (back = -dir,
+    /// side = back ^ up, top = back ^ side, each normalised).
+    /// </summary>
+    public static FMatrix MakeFromDirection(FVector dir, FVector up)
+    {
+        FVector back = -dir;
+        FVector side = FVector.Cross(back, up);
+        FVector top = FVector.Cross(back, side);
+        side.Normalise();
+        top.Normalise();
+        back.Normalise();
+        return new FMatrix(new FVector(side.X, top.X, back.X), new FVector(side.Y, top.Y, back.Y), new FVector(side.Z, top.Z, back.Z));
+    }
+
+    /// <summary>Normalise (maths.h): rows 0 and 1 normalised, row 2 = row0 ^ row1 normalised, row 1 = row2 ^ row0.</summary>
+    public readonly FMatrix NormaliseRows()
+    {
+        FVector r0 = Row0;
+        FVector r1 = Row1;
+        r0.Normalise();
+        r1.Normalise();
+        FVector r2 = FVector.Cross(r0, r1);
+        r2.Normalise();
+        r1 = FVector.Cross(r2, r0);
+        return new FMatrix(r0, r1, r2);
+    }
+
+    /// <summary>MakeRotationPitchF (maths.h): about X, the float cosine and sine.</summary>
+    public static FMatrix MakeRotationPitchF(float pitch)
+    {
+        float c = (float)Math.Cos(pitch);
+        float s = (float)Math.Sin(pitch);
+        return new FMatrix(new FVector(1, 0, 0), new FVector(0, c, -s), new FVector(0, s, c));
+    }
 }
 
 /// <summary>CEulerAngles: yaw, pitch and roll.</summary>

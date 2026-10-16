@@ -151,7 +151,14 @@ public sealed class LevelInput : IGameServices, IControllerGame
 
     public void AfterUpdate() => _rest.AfterUpdate();
 
-    public void Render(int numRenders) => _rest.Render(numRenders);
+    /// <summary>The render's effect on the simulation: drawing asks the motion controllers for their parts.</summary>
+    public Action? Rendered { get; set; }
+
+    public void Render(int numRenders)
+    {
+        _rest.Render(numRenders);
+        Rendered?.Invoke();
+    }
 
     public void Flip() => _rest.Flip();
 }
