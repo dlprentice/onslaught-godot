@@ -134,6 +134,13 @@ public partial class Host : Node
                 world.AddChild(cockpitNode);
             }
 
+            // The HUD (draw_fairly_late_stuff's HUD.Render, first-person view): the compass so far.
+            if (engine is OnslaughtRebuild.Parity.Things.BattleEngine hudBe && !hudBe.IsDying
+                && session.Game.GetPlayer(0)?.CurrentView == OnslaughtRebuild.Parity.Game.PlayerView.FirstPerson)
+            {
+                _view!.AddChild(HudView.Build(hudBe, textures, session.Context.World.ObjectiveThings.ToList(), ref _lastHealth, ref _lastEnergy));
+            }
+
             if (session.Context.Particles is { } particles)
             {
                 world.AddChild(ParticleView.Build(particles.Manager, textures, pos, ori, session.Context.Events.Time));
@@ -184,6 +191,8 @@ public partial class Host : Node
     private float _cloudU;
     private float _cloudV;
     private float _waterAngle;
+    private int _lastHealth = int.MinValue;
+    private int _lastEnergy = int.MinValue;
     private readonly TerrainView.LandscapeView _landscapeView = new();
     private float _waterScroll;
     private int _renders;
