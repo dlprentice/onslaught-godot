@@ -53,10 +53,14 @@ public sealed class LevelInput : IGameServices, IControllerGame
         Controller.UpdateMouseCentre(Input, Shared, reset: true);
     }
 
-    /// <summary>LoadLevel's controllers: one per player, the player as the object it controls.</summary>
-    public void AttachPlayers(Game game)
+    /// <summary>
+    /// LoadLevel's controllers: one per player, the player as the object it controls; and the in-game menu, whose front-end
+    /// sounds <paramref name="playFrontEndSound"/> plays.
+    /// </summary>
+    public void AttachPlayers(Game game, Action<string> playFrontEndSound)
     {
         _game = game;
+        GameInterface = new GameInterface(game, Mouse, Input.Mouse, playFrontEndSound);
         for (int i = 0; i < game.Players && i < _controllers.Length; i++)
         {
             if (game.GetPlayer(i) is { } player)
@@ -87,9 +91,17 @@ public sealed class LevelInput : IGameServices, IControllerGame
 
     bool IControllerGame.IsMultiplayer => false;
 
-    /// <summary>CGame::ReceiveButtonAction: the hardwired debug buttons (none of the tape's).</summary>
-    void IControllerGame.ReceiveButtonAction(Controller from, int button, float value) =>
-        throw new NotSupportedException($"CGame::ReceiveButtonAction (debug button {button}) is not ported");
+    /// <summary>
+    /// CGame::ReceiveButtonAction (0046f7e0): the hardwired debug buttons. BUTTON_SKIP_CUTSCENE (Space, Return, Escape)
+    /// stops the current cutscene, and none plays here (the script's PlayCutscene is not ported); the rest are not ported.
+    /// </summary>
+    void IControllerGame.ReceiveButtonAction(Controller from, int button, float value)
+    {
+        if (button != Buttons.SkipCutscene)
+        {
+            throw new NotSupportedException($"CGame::ReceiveButtonAction (debug button {button}) is not ported");
+        }
+    }
 
     public bool HasController(int player) => player < _controllers.Length && _controllers[player] is not null;
 
@@ -121,7 +133,10 @@ public sealed class LevelInput : IGameServices, IControllerGame
 
     public bool PlayerOneInControl => _rest.PlayerOneInControl;
 
-    public bool IsMenuUp => false;
+    /// <summary>GAMEINTERFACE.</summary>
+    public GameInterface? GameInterface { get; private set; }
+
+    public bool IsMenuUp => GameInterface?.MenuUp == true;
 
     public void AutoConfigTestFrame(int updateFrameNumber) => _rest.AutoConfigTestFrame(updateFrameNumber);
 
@@ -139,7 +154,27 @@ public sealed class LevelInput : IGameServices, IControllerGame
 
     public void SetAllSamplesPaused(bool paused) => _rest.SetAllSamplesPaused(paused);
 
-    public void ShowLevelEndMenu() => _rest.ShowLevelEndMenu();
+    /// <summary>
+    /// CGame::Update's level-end menu (0046ed71): continue, the logs and options unavailable (restart and quit stay), no
+    /// background, the box lower, the free camera off, controller 0 to the menu, and the menu up.
+    /// </summary>
+    public void ShowLevelEndMenu()
+    {
+        GameInterface menu = GameInterface!;
+        menu.SetNotAvailable(0);
+        menu.SetNotAvailable(1);
+        menu.SetNotAvailable(2);
+        menu.SetNotAvailable(5);
+        menu.RenderBackground = false;
+        menu.YBoxOffset = 70;
+        if (_game!.FreeCameraOn)
+        {
+            throw new NotSupportedException("CGame::ToggleFreeCameraOff is not ported");
+        }
+
+        _controllers[0]!.SetToControl(menu);
+        menu.ToggleMenuDisplay();
+    }
 
     public void PostScriptEvent(string name) => _rest.PostScriptEvent(name);
 

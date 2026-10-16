@@ -70,6 +70,7 @@ public static class Buttons
     public const int FrontEndMenuLeft = 54;
     public const int FrontEndMenuRight = 55;
     public const int Pause = 56;
+    public const int Help = 57;
     public const int SkipPanning = 58;
     public const int MechCloak = 59;
 

@@ -100,7 +100,22 @@ public sealed class LevelSession
                     continue;
                 }
 
-                Context.Skip("CGame::RunLevel's close: the samples killed, the music stopped, the language bank reloaded");
+                Context.Skip("CGame::RunLevel's close: the samples killed");
+                if (Game.Quit is OnslaughtRebuild.Parity.Clock.QuitType.UserQuitToFrontEnd or OnslaughtRebuild.Parity.Clock.QuitType.RestartLevel
+                    or OnslaughtRebuild.Parity.Clock.QuitType.UserQuitToTitleScreen)
+                {
+                    // CFrontEnd::PlaySound(FES_SELECT) (0046e1b7), then SOUND.UpdateStatus once.
+                    if (Context.SoundEffects is { } sounds)
+                    {
+                        sounds.PlayEffect(sounds.Find("Front End Select"), Context.Crt);
+                    }
+                    else
+                    {
+                        Context.Skip("CFrontEnd::PlaySound");
+                    }
+                }
+
+                Context.Skip("CGame::RunLevel's close: the music stopped, the language bank reloaded");
                 Game.FillOutEndLevelData(EndLevelData, Context.World);
                 Ended = true;
                 return;
@@ -213,7 +228,18 @@ public sealed class LevelSession
         context.MapWho.SortEntries();
         context.Map.InitQuickCollisionMap();
         scripts.Player = n => game.GetPlayer(n) is { } player ? (true, player.BattleEngine) : (false, null);
-        input.AttachPlayers(game);
+        input.AttachPlayers(game, name =>
+        {
+            // CFrontEnd::PlaySound in a level: SOUND.PlayEffect(SOUND.GetEffectByName(name), NULL).
+            if (context.SoundEffects is { } sounds)
+            {
+                sounds.PlayEffect(sounds.Find(name), context.Crt);
+            }
+            else
+            {
+                context.Skip("CFrontEnd::PlaySound");
+            }
+        });
         context.Bindings = bindings;
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
