@@ -130,6 +130,111 @@ public sealed class ScriptMessage : Monitor
 
     public bool HasSpeaker { get; }
 
+    /// <summary>
+    /// CMessage::WordWrap (004b6f70): the revealed text (and its waiting dots) in lines of fewer than
+    /// <paramref name="width"/> characters, a word kept whole (a space before !, ?, ; or : does not break), at most
+    /// <paramref name="maxLines"/> lines (the earliest scroll away). Returns the eight lines, empty ones as "".
+    /// </summary>
+    public string[] WordWrap(int width, int maxLines)
+    {
+        const int Stride = 0x56;
+        var lines = new char[8 * Stride];
+        string text = Text;
+        int total = text.Length + Dots;
+        int revealed = Revealed;
+        int end = revealed + Dots;
+        int col = 0;
+        int n = 0;
+        char At(int i) => i < text.Length ? text[i] : '\0';
+        if (end > 0)
+        {
+            int pos = 0;
+            for (int i = 0; i < end; i++)
+            {
+                int len = 0;
+                if (i < revealed)
+                {
+                    int p = i;
+                    while (true)
+                    {
+                        bool last = i + len >= total;
+                        bool space = At(p) == ' ';
+                        if (space && i + len + 1 < total)
+                        {
+                            char c = At(i + len + 1);
+                            if (c is '!' or '?' or ';' or ':')
+                            {
+                                space = false;
+                            }
+                        }
+
+                        if (space || last)
+                        {
+                            break;
+                        }
+
+                        len++;
+                        p++;
+                        if (Dots != 0 && i + len >= revealed)
+                        {
+                            len += Dots;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    len = revealed - i + 5;
+                }
+
+                if (len + col >= width)
+                {
+                    lines[pos + col] = '\0';
+                    col = 0;
+                    n++;
+                    pos += Stride;
+                    if (n >= maxLines)
+                    {
+                        for (int k = 0; k < 7; k++)
+                        {
+                            for (int j = 0; j < 0x55; j++)
+                            {
+                                lines[(k * Stride) + j] = lines[((k + 1) * Stride) + j];
+                            }
+                        }
+
+                        n--;
+                        pos -= Stride;
+                    }
+                }
+
+                char ch = At(i);
+                if (ch == ' ' && col == 0)
+                {
+                    continue;
+                }
+
+                lines[pos + col++] = i < revealed ? ch : '.';
+            }
+        }
+
+        lines[(n * Stride) + col] = '\0';
+        var result = new string[8];
+        for (int l = 0; l < 8; l++)
+        {
+            int start = l * Stride;
+            int length = 0;
+            while (length < Stride && lines[start + length] != '\0')
+            {
+                length++;
+            }
+
+            result[l] = new string(lines, start, length);
+        }
+
+        return result;
+    }
+
     /// <summary>SampleFinishedPlaying (004b71d0): the sound system's callback.</summary>
     public void SampleFinishedPlaying() => FinishedPlaying = true;
 

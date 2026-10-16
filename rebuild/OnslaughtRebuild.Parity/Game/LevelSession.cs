@@ -356,7 +356,8 @@ public sealed class LevelSession
         // InitRestartLoop's pause menu, on the front end's menus when the level came from it.
         input.CreatePauseMenu(host?.MenuHost ?? new LevelMenuHost(context, clock, career!,
             Text.TextIds.Read(read(Text.TextIds.FileName).Bytes),
-            bootOptions ?? OnslaughtRebuild.Parity.Career.CareerOptions.Read(new byte[OnslaughtRebuild.Parity.Career.CareerOptions.Size]), bindings));
+            bootOptions ?? OnslaughtRebuild.Parity.Career.CareerOptions.Read(new byte[OnslaughtRebuild.Parity.Career.CareerOptions.Size]), bindings),
+            () => scripts.MessageBox!.Shown);
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Sensitivity = input.Shared.MouseSensitivity;
 
@@ -373,7 +374,9 @@ public sealed class LevelSession
 
             context.Particles.Render(numRenders);
 
-            // CDXEngine::PostRender: the pause menu after every frame.
+            // CDXEngine::PostRender after every frame: the message log, the briefing log, the pause menu.
+            input.MessageLog?.Render();
+            input.BriefingLog?.Render();
             input.PauseMenu?.Render();
         };
         return new LevelSession(context, game, resources, clock)

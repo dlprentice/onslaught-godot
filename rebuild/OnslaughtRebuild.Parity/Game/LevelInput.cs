@@ -145,11 +145,21 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
     public Flow.Menus.PauseMenu? PauseMenu { get; private set; }
 
     /// <summary>InitRestartLoop's mPauseMenu = new CPauseMenu, on the menus' host.</summary>
-    public void CreatePauseMenu(Flow.Menus.IMenuHost host)
+    public void CreatePauseMenu(Flow.Menus.IMenuHost host, Func<IReadOnlyList<Script.ScriptMessage>> shownMessages)
     {
         PauseMenuHost = host;
         PauseMenu = new Flow.Menus.PauseMenu(host, optionsPage: false, this);
+        MessageLog = new Flow.Menus.MessageLog(host, this, shownMessages, Flow.Menus.MessageLog.ShippedCharsPerLine) { PauseMenu = PauseMenu };
+        PauseMenu.MessageLog = MessageLog;
+        BriefingLog = new Flow.Menus.BriefingLog(host, this) { PauseMenu = PauseMenu };
+        PauseMenu.BriefingLog = BriefingLog;
     }
+
+    /// <summary>GAME's mLevelBriefingLog (InitRestartLoop makes it).</summary>
+    public Flow.Menus.BriefingLog? BriefingLog { get; private set; }
+
+    /// <summary>GAME's mMessageLog (InitRestartLoop makes it).</summary>
+    public Flow.Menus.MessageLog? MessageLog { get; private set; }
 
     /// <summary>The menus' host the pause menu was made on.</summary>
     public Flow.Menus.IMenuHost? PauseMenuHost { get; private set; }

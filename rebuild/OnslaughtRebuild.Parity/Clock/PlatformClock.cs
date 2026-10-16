@@ -61,9 +61,43 @@ public sealed class PlatformClock
     /// <summary>A Present call returning: the shim's frame counter moves and its spin count restarts.</summary>
     public void Present()
     {
+        FrameTimerFrame();
         PresentCount++;
         _spin = 0;
         Presented?.Invoke();
+    }
+
+    private long _frameTimerLast = -1;
+    private long _frameTicks;
+
+    /// <summary>
+    /// CFrameTimer's mFramesPerSec (PLATFORM.GetFPS, 00515950): started at 1 when the platform starts (CPCPlatform::Init),
+    /// then at each flip a quarter of the instant rate plus three quarters of the last, at least 1.
+    /// </summary>
+    public float FramesPerSec { get; private set; } = 1.0f;
+
+    /// <summary>
+    /// CFrameTimer::Frame (00423720), called from CPCPlatform::DeviceFlip before the flip: the counter's ticks since the
+    /// last frame make the instant rate. (Every Present here: the films' and loading screen's flips are taken to pass
+    /// through DeviceFlip too.)
+    /// </summary>
+    private void FrameTimerFrame()
+    {
+        long t = PresentCount == 0 ? _realQpc : _realQpc + ((PresentCount + SpinEscapes) * QpcTicksPerPresent);
+        if (_frameTimerLast < 0)
+        {
+            // CFrameTimer::Start(1.0f): mLastTime is the counter when the platform starts.
+            _frameTimerLast = t;
+            return;
+        }
+
+        if (t != _frameTimerLast)
+        {
+            _frameTicks = t - _frameTimerLast;
+            _frameTimerLast = t;
+            float rate = (float)X87.Add(X87.Mul(X87.Div((float)QpcFrequency, (float)_frameTicks), 0.25f), X87.Mul(FramesPerSec, 0.75f));
+            FramesPerSec = rate < 1.0f ? 1.0f : rate;
+        }
     }
 
     /// <summary>Called as each Present returns (for checks that sample state at the Present itself).</summary>

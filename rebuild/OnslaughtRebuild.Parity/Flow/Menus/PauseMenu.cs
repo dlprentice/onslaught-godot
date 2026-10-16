@@ -145,6 +145,12 @@ public sealed class PauseMenu : IButtonReceiver
 
     public bool NoFade { get; private set; }
 
+    /// <summary>GAME.GetLevelBriefingLog(): the log the Briefing item opens.</summary>
+    public BriefingLog? BriefingLog { get; set; }
+
+    /// <summary>GAME.GetMessageLog(): the log the Message Log item opens.</summary>
+    public MessageLog? MessageLog { get; set; }
+
     /// <summary>mConfirm: the retry or quit confirmation while it is up.</summary>
     public ConfirmMenu? Confirm { get; private set; }
 
@@ -279,7 +285,11 @@ public sealed class PauseMenu : IButtonReceiver
         }
         else if (item.Text == _briefing)
         {
-            throw new NotSupportedException("CPauseMenu: the level briefing log is not ported");
+            // The briefing log takes the menu's controllers and opens.
+            BriefingLog log = BriefingLog ?? throw new InvalidOperationException("the pause menu has no briefing log");
+            DeActivate(false);
+            Game.HandControl(this, log);
+            log.Activate();
         }
         else if (item.Text == _continue && !OptionsPage)
         {
@@ -292,7 +302,11 @@ public sealed class PauseMenu : IButtonReceiver
         }
         else if (item.Text == _messageLog)
         {
-            throw new NotSupportedException("CPauseMenu: the message log is not ported");
+            // The log takes the menu's controllers and opens.
+            MessageLog log = MessageLog ?? throw new InvalidOperationException("the pause menu has no message log");
+            DeActivate(false);
+            Game.HandControl(this, log);
+            log.Activate();
         }
 
         _host.PlaySound(backSound ? FrontEndSound.Back : FrontEndSound.Select);
