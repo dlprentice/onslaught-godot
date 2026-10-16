@@ -682,7 +682,7 @@ public sealed class DestructableSegments(Unit owner, float unknown14, bool unkno
             {
                 TotalSize += size;
                 segment = CreateSegment(type, part, parent, size);
-                parent.Children.Add(segment);
+                parent.Children.Insert(0, segment); // RegisterChild: SPtrSet::Add puts it at the head
             }
 
             Segments[part.PartNumber] = segment;

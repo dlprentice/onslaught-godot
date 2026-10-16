@@ -12,9 +12,68 @@ namespace OnslaughtRebuild.Parity.Things;
 /// <summary>CFeature: icebergs, rocks and other scenery that can be destroyed.</summary>
 public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
 {
-    /// <summary>CFeature::Damage (0044cd20): not ported yet.</summary>
-    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1) =>
-        throw new NotSupportedException("CFeature::Damage is not ported");
+    /// <summary>CFeature::Damage (0044cd20): an invincible feature takes none; out of life it starts dying; life at most its data's.</summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
+    {
+        if (Data!.Invincible == 0)
+        {
+            Life -= amount;
+            if (Life < 0 && !IsDying)
+            {
+                StartDieProcess();
+            }
+
+            if (Life > Data.Life)
+            {
+                Life = Data.Life;
+            }
+        }
+    }
+
+    /// <summary>CFeature::StartDieProcess (0044cd80): dying (its shutdown comes when it lands or sinks), the script told.</summary>
+    public override bool StartDieProcess()
+    {
+        if (IsDying)
+        {
+            return false;
+        }
+
+        Flags |= ThingFlags.Dying;
+        Script?.StartedDying();
+        return true;
+    }
+
+    /// <summary>CFeature::AddShutdownEvent (0044cdb0): once, and its explosion at it with its radius.</summary>
+    public override void AddShutdownEvent()
+    {
+        if ((Flags & ThingFlags.DeclaredShutdown) != 0)
+        {
+            return;
+        }
+
+        base.AddShutdownEvent();
+        if (Data!.Explosion != 0 && Explosion.Spawn(Context, Data.Explosion) is { } explosion)
+        {
+            explosion.Init(new InitThing
+            {
+                Behaviour = Context.Physics.Explosions[Data.Explosion],
+                AttachedTo = this,
+                UseAttachedRadius = true,
+                Pos = Pos,
+                Allegiance = Allegiance,
+            });
+        }
+    }
+
+    /// <summary>CFeature::DeclareOnGround (0044d1f0): a dying feature landing shuts down.</summary>
+    public override void DeclareOnGround()
+    {
+        base.DeclareOnGround();
+        if (IsDying)
+        {
+            AddShutdownEvent();
+        }
+    }
 
     public override bool CanBeStaticallyShadowed => true;
 
