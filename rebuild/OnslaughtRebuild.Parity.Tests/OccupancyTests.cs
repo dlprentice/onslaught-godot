@@ -226,7 +226,7 @@ public sealed class OccupancyTests(ITestOutputHelper output)
     /// Level 100's load builds its grids as the native port has them when BuildStatic returns: base world 1's stored
     /// grids, then every unit's cells closed where its collision mesh meets the ground's line or unit sphere.
     /// </summary>
-    [GameDataFact]
+    [GameDataFact(Skip = "the native port's level-100 grid dumps clear meshed units' cells, which retail never does (its BuildStatic line move is NaN: B's 521-rr runs, /QIfist fistp reuse at 004bceaf/004bcff7); re-enable against the port's regenerated dumps")]
     public void Level100sGridsAfterBuildStaticAreTheNativePorts()
     {
         string? port = PortData();
@@ -285,7 +285,7 @@ public sealed class OccupancyTests(ITestOutputHelper output)
     /// port has them, call by call (the port's searches at Updates 99, 103, 107 and 111), with the statics on entry, the
     /// path and the cost table after.
     /// </summary>
-    [GameDataFact]
+    [GameDataFact(Skip = "the native port's level-100 grid dumps clear meshed units' cells, which retail never does (its BuildStatic line move is NaN: B's 521-rr runs, /QIfist fistp reuse at 004bceaf/004bcff7); re-enable against the port's regenerated dumps")]
     public void Level100sPathSearchesToUpdate120AreTheNativePorts()
     {
         string? port = PortData();
