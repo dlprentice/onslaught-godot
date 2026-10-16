@@ -337,16 +337,38 @@ public sealed class MeshPart
     }
 
     /// <summary>
-    /// GetWorldTransforms with no motion controller (the thing has none, or <paramref name="controller"/> is false): the
-    /// part's cached frames when it has them and <paramref name="uncached"/> is false, otherwise its parent's transform
-    /// with this part's keys applied. <paramref name="subject"/> places the result in the world when not local.
-    /// Retail also keeps the last local and world results in statics and returns them for the same part, thing, frame
-    /// and render frame; with no controller those equal a fresh evaluation, so they are not kept here.
+    /// GetWorldTransforms (004b0fb0): the part's cached frames when it has them, <paramref name="uncached"/> is false and
+    /// no part controller applies; otherwise its parent's transform with this part's keys applied (a controller adjusting
+    /// each level). <paramref name="subject"/> places the result in the world when not local. Retail keeps the last world
+    /// and local results in statics (<paramref name="statics"/>) and returns them again for the same thing and part at the
+    /// same frame and render frame number, even when the thing has moved since: the render frame number stays 0 through
+    /// the load and pre-run. The cached path records its part; the recursive path records only the thing.
     /// </summary>
     public void GetWorldTransforms(int frame, int nextFrame, float fraction, IRenderSubject? subject, out FMatrix ori,
-        out FVector pos, bool local, bool uncached)
+        out FVector pos, bool local, bool uncached, MeshTransformStatics statics, bool controller = true)
     {
-        if (!uncached && NumCachedFrames > 0)
+        int render = statics.RenderFrameNumber;
+        IPartController? mc = controller ? subject?.PartController : null;
+        if (subject is not null && ReferenceEquals(subject, statics.Thing) && ReferenceEquals(statics.Part, this) && mc is null)
+        {
+            if (!local)
+            {
+                if (render == statics.WorldRender && frame == statics.WorldFrame)
+                {
+                    ori = statics.WorldOri;
+                    pos = statics.WorldPos;
+                    return;
+                }
+            }
+            else if (render == statics.LocalRender && frame == statics.LocalFrame)
+            {
+                ori = statics.LocalOri;
+                pos = statics.LocalPos;
+                return;
+            }
+        }
+
+        if (mc is null && !uncached && NumCachedFrames > 0)
         {
             MeshPart pp = this;
             MeshPart op = this;
@@ -386,13 +408,24 @@ public sealed class MeshPart
             pos = pp.CachedPosition[p0] + (dp * fraction);
             FMatrix c0 = op.CachedOrientation![o0];
             ori = MatrixOps.Add(c0, MatrixOps.Scale(MatrixOps.Sub(op.CachedOrientation[o1], c0), fraction));
-            if (!local && subject is not null)
+            if (!local)
             {
-                FMatrix m = subject.RenderOrientation;
-                ori = m.Multiply(ori);
-                pos = m.Transform(pos) + subject.RenderPos;
+                if (subject is not null)
+                {
+                    FMatrix m = subject.RenderOrientation;
+                    ori = m.Multiply(ori);
+                    pos = m.Transform(pos) + subject.RenderPos;
+                }
+
+                statics.StoreWorld(ori, pos, frame, render);
+            }
+            else
+            {
+                statics.StoreLocal(ori, pos, frame, render);
             }
 
+            statics.Part = this;
+            statics.Thing = subject;
             return;
         }
 
@@ -405,20 +438,42 @@ public sealed class MeshPart
         }
         else
         {
-            Parent.GetWorldTransforms(frame, nextFrame, fraction, subject, out parentOri, out parentPos, local, uncached);
+            Parent.GetWorldTransforms(frame, nextFrame, fraction, subject, out parentOri, out parentPos, local, uncached, statics, controller);
         }
 
         GetTransforms(frame, nextFrame, fraction, out ori, out pos);
-        if (subject is not null && !local && PartNumber == 0)
+        if (subject is not null)
         {
-            parentPos += subject.RenderPos;
-            parentOri = parentOri.Multiply(subject.RenderOrientation);
+            if (subject.PartController is { } hook && controller)
+            {
+                hook.Unknown3(this, ref parentPos, ref parentOri, local);
+            }
+
+            if (!local && PartNumber == 0)
+            {
+                parentPos += subject.RenderPos;
+                parentOri = parentOri.Multiply(subject.RenderOrientation);
+            }
         }
 
         parentPos += parentOri.Transform(pos);
         parentOri = parentOri.Multiply(ori);
+        if (mc is not null)
+        {
+            mc.GetPartTransform(this, ref parentPos, ref parentOri, local);
+        }
         pos = parentPos;
         ori = parentOri;
+        if (!local)
+        {
+            statics.StoreWorld(parentOri, parentPos, frame, render);
+        }
+        else
+        {
+            statics.StoreLocal(parentOri, parentPos, frame, render);
+        }
+
+        statics.Thing = subject;
     }
 
     private int Int(int at) => BinaryPrimitives.ReadInt32LittleEndian(Record.AsSpan(at));
@@ -463,4 +518,35 @@ public sealed class MeshPart
     }
 
     public override string ToString() => $"part {Index} '{Name}'";
+}
+
+/// <summary>
+/// CMeshPart::GetWorldTransforms's statics: the thing and part last cached, and the last world and local results with
+/// the frame and render frame number each was made at; and GAME.GetRenderFrameNumber() for the comparison.
+/// </summary>
+public sealed class MeshTransformStatics(Func<int> renderFrameNumber)
+{
+    public int RenderFrameNumber => renderFrameNumber();
+    public IRenderSubject? Thing;
+    public MeshPart? Part;
+    public FMatrix WorldOri, LocalOri;
+    public FVector WorldPos, LocalPos;
+    public int WorldFrame, LocalFrame;
+    public int WorldRender, LocalRender;
+
+    public void StoreWorld(FMatrix ori, FVector pos, int frame, int render)
+    {
+        WorldOri = ori;
+        WorldPos = pos;
+        WorldFrame = frame;
+        WorldRender = render;
+    }
+
+    public void StoreLocal(FMatrix ori, FVector pos, int frame, int render)
+    {
+        LocalOri = ori;
+        LocalPos = pos;
+        LocalFrame = frame;
+        LocalRender = render;
+    }
 }

@@ -75,13 +75,13 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     private const int PresentByPresentFloor = 6000;
 
     /// <summary>The last sampled Present (every 50) the run matches the virtual-DS golden to (never lowered).</summary>
-    private const int VirtualDsFloor = 3850;
+    private const int VirtualDsFloor = 10000;
 
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
 
     /// <summary>The Present through which every compared battle-engine field equals retail's (never lowered).</summary>
-    private const int BattleEngineMatchedThrough = 3888;
+    private const int BattleEngineMatchedThrough = 6000;
 
     /// <summary>
     /// Level 100 run Present by Present against B's virtual-DS golden (level100.vds-a.probes: retail with virtual

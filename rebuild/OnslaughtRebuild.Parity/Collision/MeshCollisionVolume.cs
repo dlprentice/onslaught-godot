@@ -28,6 +28,9 @@ public interface IMeshCollisionSource
     /// <summary>The render frame number EvaluatePose is given.</summary>
     int RenderFrameNumber { get; }
 
+    /// <summary>CMeshPart::GetWorldTransforms's statics.</summary>
+    MeshTransformStatics Statics { get; }
+
     /// <summary>The simulation's poly bucket statics.</summary>
     PolyBucketStatics PolyBuckets { get; }
 }
@@ -117,7 +120,7 @@ public sealed class MeshCollisionVolume(IMeshCollisionSource? source, bool useFi
         FMatrix ori;
         if (!IgnoreAnimation)
         {
-            MeshPose.EvaluatePose(mesh, Source!.Pose, Source.Subject, p, Source.RenderFrameNumber, out pos, out ori, false, false);
+            MeshPose.EvaluatePose(mesh, Source!.Pose, Source.Subject, p, Source.Statics, out pos, out ori, false, false);
         }
         else
         {
@@ -126,7 +129,7 @@ public sealed class MeshCollisionVolume(IMeshCollisionSource? source, bool useFi
                 throw new NotSupportedException("motion controllers are not ported yet");
             }
 
-            p.GetWorldTransforms(0, 0, 0, Source.Subject, out ori, out pos, local: false, uncached: false);
+            p.GetWorldTransforms(0, 0, 0, Source.Subject, out ori, out pos, local: false, uncached: false, Source.Statics);
         }
 
         PartTransform t = Transforms[part];
@@ -163,8 +166,22 @@ public sealed class MeshCollisionVolume(IMeshCollisionSource? source, bool useFi
 
         if (Source!.Subject.HasMotionController)
         {
-            // mc->Unknown6 (flags; 1 hides the part) and Unknown7 (the damage level: that many steps along the chain).
             throw new NotSupportedException("motion controllers are not ported yet");
+        }
+
+        // A part controller (a building's segments): flag bit 0 hides the part; the damage level steps along its chain.
+        if (Source.Subject.PartController is { } mc)
+        {
+            int flags = 0;
+            mc.Unknown6(part, ref flags);
+            int level = mc.Unknown7(part);
+            MeshPart? p = part;
+            for (; level > 0; level--)
+            {
+                p = p?.NextMeshPartInChain;
+            }
+
+            return (flags & 1) != 0 ? null : p;
         }
 
         return part;

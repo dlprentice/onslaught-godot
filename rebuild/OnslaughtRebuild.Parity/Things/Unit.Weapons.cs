@@ -168,7 +168,7 @@ public abstract partial class Unit
         }
 
         RenderThing render = RenderThing!;
-        (pos, ori) = MeshPose.GetRTEmitter(render.Mesh, render.Pose, this, name, index, Context.RenderFrameNumber, local, force);
+        (pos, ori) = MeshPose.GetRTEmitter(render.Mesh, render.Pose, this, name, index, Context.TransformStatics, local, force);
     }
 
     /// <summary>GetTargetablePos (slot 90): the segments' centre, else the centre position. Cannons, mechs and boats override it.</summary>

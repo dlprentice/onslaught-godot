@@ -409,7 +409,7 @@ public sealed partial class IScript
         }
 
         (FVector pos, FMatrix ori) = MeshPose.GetRTEmitter(render.MeshOrNull, render.Pose, (IRenderSubject)Thing,
-            System.Text.Encoding.Latin1.GetString(emitter), emitterIndex, context.RenderFrameNumber, local: false, force: false);
+            System.Text.Encoding.Latin1.GetString(emitter), emitterIndex, context.TransformStatics, local: false, force: false);
 
         Unit? thing = UnitFactory.SpawnThing(context, type);
         if (thing is null)

@@ -72,7 +72,12 @@ public sealed class ThingContext(
     public float WaterLevel => Map.WaterLevel;
 
     /// <summary>The render frame number CRTMesh poses compare against (1 or more during the load).</summary>
-    public int RenderFrameNumber { get; set; } = 2;
+    public int RenderFrameNumber { get; set; }
+
+    private Mesh.MeshTransformStatics? _transformStatics;
+
+    /// <summary>CMeshPart::GetWorldTransforms's statics, compared against <see cref="RenderFrameNumber"/>.</summary>
+    public Mesh.MeshTransformStatics TransformStatics => _transformStatics ??= new Mesh.MeshTransformStatics(() => RenderFrameNumber);
 
     /// <summary>GAME: the fear grids, the front-end settings and the rest of CGame a thing reads (set by the world wiring).</summary>
     public ParityGame? Game { get; set; }

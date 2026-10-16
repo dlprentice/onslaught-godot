@@ -33,6 +33,9 @@ public interface IRenderSubject
 
     /// <summary>RenderUseHierarchy(part number).</summary>
     bool RenderUseHierarchy(int partNumber);
+
+    /// <summary>The motion controller's part hooks, for the controllers the core models (a building's segments).</summary>
+    IPartController? PartController => null;
 }
 
 /// <summary>
@@ -114,10 +117,12 @@ public sealed class MeshPose
     }
 
     /// <summary>
-    /// CMeshPart::EvaluateAnimatedTransform with no motion controller: the part's key at the subject's animation frame,
-    /// interpolated towards the next frame (looping), applied to the parent's transform in <paramref name="pos"/> and
-    /// <paramref name="ori"/>. Returns the part to draw (itself: only a controller swaps in a damaged part). Bit 3 of
-    /// <paramref name="frame"/> selects the mesh renderer's global animation, which the simulation never sets.
+    /// CMeshPart::EvaluateAnimatedTransform: the part's key at the subject's animation frame, interpolated towards the
+    /// next frame, applied to the parent's transform in <paramref name="pos"/> and <paramref name="ori"/>. A part
+    /// controller (a building's segments) adjusts the frame, sees the parent's transform first, says whether the
+    /// animation loops, adjusts the result and sets the part's flags; a damaged part would swap in its chain's (not
+    /// ported). Returns the part to draw. Bit 3 of <paramref name="frame"/> selects the mesh renderer's global animation,
+    /// which the simulation never sets.
     /// </summary>
     public static MeshPart EvaluateAnimatedTransform(IRenderSubject? subject, ref FVector pos, ref FMatrix ori, MeshPart part,
         ref int frame)
@@ -127,6 +132,7 @@ public sealed class MeshPose
             RequireNoMotionController(subject);
         }
 
+        IPartController? mc = subject?.PartController;
         if ((frame & 8) == 8)
         {
             throw new NotSupportedException("the mesh renderer's global animation (frame bit 3) is a rendering path");
@@ -134,8 +140,6 @@ public sealed class MeshPose
 
         int anim = subject?.RealAnimIndex ?? -1;
         float time = 0;
-        int f0;
-        float t;
         if (part.NumVFrames > 1 && part.Mesh.NumAnimModes != 0 && anim >= 0)
         {
             AnimMode ma = part.Mesh.AnimModes[anim];
@@ -146,25 +150,23 @@ public sealed class MeshPose
 
             time = ma.FrameScaler * time;
             time = ma.Start + time;
-            f0 = X87.Fist(Math.Floor(time));
-            t = time - MathF.Floor(time);
-        }
-        else
-        {
-            f0 = X87.Fist(Math.Floor(time));
-            t = time - MathF.Floor(time);
         }
 
+        mc?.AdjustFrame(part, ref time);
+        int f0 = X87.Fist(Math.Floor(time));
+        float t = time - MathF.Floor(time);
         if (f0 >= part.NumVFrames)
         {
             f0 = part.NumVFrames - 1;
         }
 
+        mc?.Unknown3(part, ref pos, ref ori, true);
+        bool loop = mc?.Unknown9() ?? true;
         byte k0 = part.VHFrameMap[f0];
         int f1 = f0 + 1;
         if (f1 >= part.NumVFrames)
         {
-            f1 = 0; // the animation loops when there is no controller to say otherwise
+            f1 = loop ? 0 : part.NumVFrames - 1;
         }
 
         byte k1 = part.VHFrameMap[f1];
@@ -183,6 +185,16 @@ public sealed class MeshPose
             ori = o;
         }
 
+        if (mc is not null)
+        {
+            mc.GetPartTransform(part, ref pos, ref ori, true);
+            mc.Unknown6(part, ref frame);
+            if (mc.Unknown7(part) > 0)
+            {
+                throw new NotSupportedException("EvaluateAnimatedTransform: a damaged part's chained stage is not ported");
+            }
+        }
+
         return part;
     }
 
@@ -191,7 +203,7 @@ public sealed class MeshPose
     /// number above 1 it comes from the pose (rebuilt if due), relative to the thing when <paramref name="local"/>,
     /// else placed in the world; otherwise from GetWorldTransforms at the resolved frame.
     /// </summary>
-    public static void EvaluatePose(MeshData? mesh, MeshPose? pose, IRenderSubject subject, MeshPart? part, int renderFrameNumber,
+    public static void EvaluatePose(MeshData? mesh, MeshPose? pose, IRenderSubject subject, MeshPart? part, MeshTransformStatics statics,
         out FVector pos, out FMatrix ori, bool local, bool force)
     {
         pos = new FVector(0, 0, 0);
@@ -201,9 +213,9 @@ public sealed class MeshPose
             return;
         }
 
-        if (pose is not null && renderFrameNumber > 1)
+        if (pose is not null && statics.RenderFrameNumber > 1)
         {
-            pose.Update(mesh, subject, renderFrameNumber, force);
+            pose.Update(mesh, subject, statics.RenderFrameNumber, force);
             pose.CheckPartNumber(part.PartNumber);
             pos = pose.Positions[part.PartNumber];
             ori = pose.Orientations[part.PartNumber];
@@ -221,7 +233,7 @@ public sealed class MeshPose
 
         RequireNoMotionController(subject);
         int frame = subject.RealAnimIndex >= 0 ? part.ResolveFrameNumber(subject.RenderFrame, subject.RealAnimIndex, out _) : 0;
-        part.GetWorldTransforms(frame, frame, 0, subject, out ori, out pos, local, uncached: false);
+        part.GetWorldTransforms(frame, frame, 0, subject, out ori, out pos, local, uncached: false, statics);
     }
 
     /// <summary>
@@ -230,7 +242,7 @@ public sealed class MeshPose
     /// at the first zero position.
     /// </summary>
     public static (FVector Pos, FMatrix Ori) GetRTEmitter(MeshData? mesh, MeshPose? pose, IRenderSubject subject, string name,
-        int index, int renderFrameNumber, bool local = true, bool force = false)
+        int index, MeshTransformStatics statics, bool local = true, bool force = false)
     {
         FVector pos = new(0, 0, 0);
         FMatrix ori = FMatrix.Identity;
@@ -239,7 +251,7 @@ public sealed class MeshPose
             MeshPart? part = mesh.GetEmitterSubpart(name, index);
             if (part is not null)
             {
-                EvaluatePose(mesh, pose, subject, part, renderFrameNumber, out pos, out ori, local, force);
+                EvaluatePose(mesh, pose, subject, part, statics, out pos, out ori, local, force);
             }
         }
 

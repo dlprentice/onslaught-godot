@@ -283,13 +283,13 @@ public sealed class MCBattleEngine : Monitor
             for (int l = 0; l < _numLegs; l++)
             {
                 MeshPart footbase = mesh.GetEmitterSubpart("Footbase", l + 1)!;
-                footbase.GetWorldTransforms(_firstFrame + i, 0, 0, subject, out _, out FVector bpos, true, false);
+                footbase.GetWorldTransforms(_firstFrame + i, 0, 0, subject, out _, out FVector bpos, true, false, _context.TransformStatics, controller: false);
                 float length = 0;
                 foreach (MeshPart p in mesh.Parts)
                 {
                     if (p.Name.StartsWith("Leg", StringComparison.OrdinalIgnoreCase) && Atoi(p.Name, 3) == l + 1)
                     {
-                        p.GetWorldTransforms(_firstFrame + i, 0, 0, subject, out _, out FVector lpos, true, false);
+                        p.GetWorldTransforms(_firstFrame + i, 0, 0, subject, out _, out FVector lpos, true, false, _context.TransformStatics, controller: false);
                         FVector d = lpos - bpos;
                         length = d.Magnitude();
                         _legOris[i][l] = FMatrix.MakeFromDirection(d, new FVector(0, -1, 0));
@@ -311,8 +311,8 @@ public sealed class MCBattleEngine : Monitor
             var offsets = new FVector[_toeLastFrame - _toeFirstFrame + 1];
             for (int fr = _toeFirstFrame; fr <= _toeLastFrame; fr++)
             {
-                stop.GetWorldTransforms(fr, fr, 0, null, out _, out FVector spos, true, false);
-                leg.GetWorldTransforms(fr, fr, 0, null, out FMatrix lori, out FVector lpos, true, false);
+                stop.GetWorldTransforms(fr, fr, 0, null, out _, out FVector spos, true, false, _context.TransformStatics, controller: false);
+                leg.GetWorldTransforms(fr, fr, 0, null, out FMatrix lori, out FVector lpos, true, false, _context.TransformStatics, controller: false);
                 offsets[fr - _toeFirstFrame] = lori.Inverse().Transform(spos - lpos);
             }
 
@@ -385,7 +385,7 @@ public sealed class MCBattleEngine : Monitor
             {
                 if (_legC[i] > 0)
                 {
-                    mesh.GetEmitterSubpart("Footbase", i + 1)!.GetWorldTransforms(0, 0, 0, subject, out _, out FVector p, false, false);
+                    mesh.GetEmitterSubpart("Footbase", i + 1)!.GetWorldTransforms(0, 0, 0, subject, out _, out FVector p, false, false, _context.TransformStatics, controller: false);
                     FVector d = (p - foot) * (float)Math.Sin((_legC[i] * 3.14f) / 180.0f);
                     d = new FVector(Math.Clamp(d.X, -5.0f, 5.0f), Math.Clamp(d.Y, -5.0f, 5.0f), d.Z);
                     pitch += d.Y * 2;
@@ -412,7 +412,7 @@ public sealed class MCBattleEngine : Monitor
             leg = _partLegs[partNumber];
             int l = leg - 1;
             FVector foot = pos + ori.Transform(part.GetKeyPosition(key));
-            mesh.GetEmitterSubpart("Footbase", leg)!.GetWorldTransforms(0, 0, 0, subject, out _, out FVector baseP, false, false);
+            mesh.GetEmitterSubpart("Footbase", leg)!.GetWorldTransforms(0, 0, 0, subject, out _, out FVector baseP, false, false, _context.TransformStatics, controller: false);
             FVector d = foot - _legTarget[l];
             _legTarget[l] = foot;
             FVector p = baseP;

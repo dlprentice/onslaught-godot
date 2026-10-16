@@ -366,8 +366,15 @@ public sealed class Building(ThingContext context) : Unit(context)
         init.InitCst.NotSeekCollisionWith |= ThingType.Stationary | ThingType.Unknown08000000;
         init.InitCst.UseFixedMeshTransforms = init.Stats!.AnimatedCollision == 0;
         Unknown258 = -1.0f;
-        Context.Skip("CDestructableSegmentsController (made, then kept only when the mesh has segments)");
+        // The segments and their motion controller, kept only when the mesh has a core segment.
+        Segments = new DestructableSegments(this, 2.0f, true, 0);
+        SegmentsController = new SegmentsMotionController(Segments);
         base.Init(init);
+        if (Segments.Cores <= 0)
+        {
+            Segments = null;
+            SegmentsController = null;
+        }
 
         int anim = AnimModeByName("closed");
         if (anim != -1)

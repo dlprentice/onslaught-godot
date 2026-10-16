@@ -151,8 +151,13 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     /// <summary>mSquad: the squad the unit belongs to (null during its own Init when a squad spawns it; SetSquad after).</summary>
     public Squad? Squad;
 
-    /// <summary>mSegments: a building's destructable segments controller (not ported; its presence only).</summary>
-    public bool HasSegments;
+    /// <summary>mSegments: a building's destructable segments controller (only a building makes one).</summary>
+    public DestructableSegments? Segments;
+
+    /// <summary>The segments' motion controller (mMotionController for a segmented building).</summary>
+    public SegmentsMotionController? SegmentsController;
+
+    public bool HasSegments => Segments is not null;
 
     public override void SetThingType(uint t)
     {
@@ -332,10 +337,7 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
             Context.Skip("CSquad::Unknown68 (the squad takes its unit)");
         }
 
-        if (HasSegments)
-        {
-            Context.Skip("CDestructableSegmentsController::Init");
-        }
+        Segments?.Init();
 
         if (UnitData is not null)
         {

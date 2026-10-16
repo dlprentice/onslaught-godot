@@ -44,11 +44,13 @@ public sealed class RenderThing : IMeshCollisionSource
 
     int IMeshCollisionSource.RenderFrameNumber => _context.RenderFrameNumber;
 
+    MeshTransformStatics IMeshCollisionSource.Statics => _context.TransformStatics;
+
     PolyBucketStatics IMeshCollisionSource.PolyBuckets => _context.PolyBuckets;
 
     /// <summary>GetRTEmitter(name, n, pos, ori, TRUE, FALSE): the emitter's position in the thing's own space.</summary>
     public FVector EmitterPos(string name, int n) =>
-        MeshPose.GetRTEmitter(Mesh, Pose, _subject, name, n, _context.RenderFrameNumber).Pos;
+        MeshPose.GetRTEmitter(Mesh, Pose, _subject, name, n, _context.TransformStatics).Pos;
 
     /// <summary>The number of emitters of that name the Init loops count: from 1 up to the first at the origin.</summary>
     public int CountEmitters(string name)

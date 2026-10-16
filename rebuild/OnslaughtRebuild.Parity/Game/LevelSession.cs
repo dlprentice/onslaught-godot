@@ -200,6 +200,8 @@ public sealed class LevelSession
         // particles step and draw after the world.
         input.Rendered = numRenders =>
         {
+            // CGame::Render counts each render first (mRenderFrameNumber, 0 until the level's first render).
+            context.RenderFrameNumber++;
             foreach (MCBattleEngine mc in context.MotionControllers)
             {
                 mc.Rendered();

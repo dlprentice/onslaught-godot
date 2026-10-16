@@ -274,5 +274,7 @@ public abstract class Actor(ThingContext context, int classId) : ComplexThing(co
 
     bool IRenderSubject.HasMotionController => false;
 
+    IPartController? IRenderSubject.PartController => (this as Unit)?.SegmentsController;
+
     bool IRenderSubject.RenderUseHierarchy(int partNumber) => true;
 }

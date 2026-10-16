@@ -372,7 +372,7 @@ public sealed class WorldRender(ThingContext context)
                 effects.Active[n] = false;
             }
 
-            MeshPose.EvaluatePose(drawn, rt.Pose, subject, part, context.RenderFrameNumber, out FVector pos, out FMatrix ori,
+            MeshPose.EvaluatePose(drawn, rt.Pose, subject, part, context.TransformStatics, out FVector pos, out FMatrix ori,
                 local: false, force: true);
             ParticleEffectLink effect = effects.Links[n]!;
             int id = effects.Ids[n];

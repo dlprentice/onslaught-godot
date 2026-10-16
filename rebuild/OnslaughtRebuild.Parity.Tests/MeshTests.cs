@@ -123,8 +123,8 @@ public sealed class MeshTests(ITestOutputHelper output)
             var pose = new MeshPose(mesh.NumParts);
             foreach (Emitter e in mesh.Emitters)
             {
-                (FVector viaPose, _) = MeshPose.GetRTEmitter(mesh, pose, Rest, e.Name, e.Number, renderFrameNumber: 5);
-                (FVector viaWorld, _) = MeshPose.GetRTEmitter(mesh, null, Rest, e.Name, e.Number, renderFrameNumber: 5);
+                (FVector viaPose, _) = MeshPose.GetRTEmitter(mesh, pose, Rest, e.Name, e.Number, new MeshTransformStatics(() => 5));
+                (FVector viaWorld, _) = MeshPose.GetRTEmitter(mesh, null, Rest, e.Name, e.Number, new MeshTransformStatics(() => 5));
 
                 // The pose evaluates every part from its keys; GetWorldTransforms uses the part's cached frames when it
                 // has them. In the rest pose they should agree to rounding.

@@ -453,6 +453,8 @@ public sealed class RetailOracleTests(ITestOutputHelper output)
 
         public int RenderFrameNumber => 2;
 
+        public OnslaughtRebuild.Parity.Mesh.MeshTransformStatics Statics { get; } = new(() => 2);
+
         public PolyBucketStatics PolyBuckets { get; } = statics;
     }
 
