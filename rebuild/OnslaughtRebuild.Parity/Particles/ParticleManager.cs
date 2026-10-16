@@ -73,6 +73,14 @@ public sealed class ParticleManager
     private int _numSystems;
     private int _numAllocated;
     private int _allocations;
+
+    /// <summary>sAllocations (0082b3f4): a file static, so it carries on through a level's restart.</summary>
+    public int Allocations
+    {
+        get => _allocations;
+        set => _allocations = value;
+    }
+
     private int _load;
 
     // sFoRs and sLinks, newest first.

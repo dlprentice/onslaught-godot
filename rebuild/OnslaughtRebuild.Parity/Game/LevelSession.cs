@@ -189,6 +189,7 @@ public sealed class LevelSession
             Career = career,
             MenuHost = Input.PauseMenuHost,
             ParticleNoise = Context.Particles?.Noise,
+            ParticleAllocations = Context.Particles?.Manager.Allocations ?? 0,
         };
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Game.Loop.CarryFrameTimes(Game.Loop);
@@ -321,6 +322,7 @@ public sealed class LevelSession
         }
 
         context.Particles = new LevelParticles(context, particleSet) { Noise = host?.ParticleNoise };
+        context.Particles.Manager.Allocations = host?.ParticleAllocations ?? 0;
 
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
         scripts.Spawner = spawner;
@@ -414,4 +416,7 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
 
     /// <summary>CPDSimpleSprite's sNoise once built (sNoiseBuilt is the process's: a restart does not build it again).</summary>
     public float[]? ParticleNoise { get; init; }
+
+    /// <summary>CParticleManager's sAllocations, a process static (its load test's sequence carries on through a restart).</summary>
+    public int ParticleAllocations { get; init; }
 }
