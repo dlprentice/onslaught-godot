@@ -265,6 +265,7 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
             case (MessageBoxOption)4:
                 if (button == FrontEndButtons.MenuSelect)
                 {
+                    frontEnd.PlaySound(FrontEndSound.Select);
                     if (OnDismissPage != FrontEndPage.None) frontEnd.SetPage(OnDismissPage, OnDismissTime);
                     _finalChoice = 1;
                     StartFadeOut();
@@ -273,15 +274,25 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
             case MessageBoxOption.Ok:
                 if (button == FrontEndButtons.MenuSelect)
                 {
+                    frontEnd.PlaySound(FrontEndSound.Select);
                     if (OnDismissPage != FrontEndPage.None) frontEnd.SetPage(OnDismissPage, OnDismissTime);
                     StartFadeOut();
                 }
                 break;
             case MessageBoxOption.YesNo:
-                if (button == FrontEndButtons.MenuUp) Cursor = 1;
-                else if (button == FrontEndButtons.MenuDown) Cursor = 0;
+                if (button == FrontEndButtons.MenuUp)
+                {
+                    frontEnd.PlaySound(FrontEndSound.Move);
+                    Cursor = 1;
+                }
+                else if (button == FrontEndButtons.MenuDown)
+                {
+                    frontEnd.PlaySound(FrontEndSound.Move);
+                    Cursor = 0;
+                }
                 else if (button == FrontEndButtons.MenuSelect)
                 {
+                    frontEnd.PlaySound(FrontEndSound.Select);
                     _finalChoice = Cursor;
                     StartFadeOut();
                 }
