@@ -65,14 +65,15 @@ HOST_PRESENT=150 HOST_CAPTURE=/var/tmp/host-present150.png godot-offscreen --pat
 python3 tools/side_by_side.py /var/tmp/host-present150.png <retail capture> /var/tmp/sbs.png
 ```
 
-It draws the landscape (the lit cache ported from `CHeightField`, built at retail's 512 x 512, and the four texture
-stages with retail's matrices and cloud drift), the sky cube, and meshes with D3D's fixed-function lighting (the
+It draws the landscape (the lit caches ported from `CHeightField`: the whole map at 512 x 512 and retail's four
+wrapping finer levels near the camera, each 8-metre tile's level chosen as CalcLODs does from the lagged view; the four
+texture stages with retail's matrices and cloud drift; geometry at full resolution), the sky cube, and meshes with D3D's fixed-function lighting (the
 ambient render state and the sun and anti-sun, no light ambient for meshes, `MODULATE2X`) and EXP table fog, all
 blended in gamma space as retail does. Water is retail's fixed-function path (the GeForce FX shader path needs a
 cardid.txt tweak retail never applies here): the camera-centred grid and the shores' surf strips from the level's SURF
 chunk, with retail's stages, texture matrices and drift. Retail-derived textures and films are read from the installed game and the
 local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. The battle engine is drawn part by part
-at its motion controller's bones (CMCMech, in the parity core). Not drawn yet: the landscape's per-patch levels of detail, particles and the HUD. Diagnostics:
+at its motion controller's bones (CMCMech, in the parity core). Not drawn yet: the landscape's geometry levels of detail, particles and the HUD. Diagnostics:
 `HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
 
 ## The earlier rebuild (parked state, 2026-09-26)
