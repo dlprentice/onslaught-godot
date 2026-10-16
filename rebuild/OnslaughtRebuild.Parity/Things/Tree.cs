@@ -7,6 +7,7 @@ using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.World;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Particles;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -113,7 +114,20 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
             {
                 if (f.Speed > 0.05f && f.Height > 3.0f)
                 {
-                    Context.Skip("CTree::UpdateFallingTree: the \"Tree Ground Hit Effect\" particle effect");
+                    // The ground hit's effect, through a local link (released at once: the effect plays on), at the tree,
+                    // turned to the fall's azimuth.
+                    if (Context.Particles is { } particles)
+                    {
+                        var link = new ParticleEffectLink(particles.Manager);
+                        particles.Manager.CreateEffect(particles.Manager.Set.GetPD("Tree Ground Hit Effect"), link, new FVector(0, 0, 0), false, false);
+                        link.SetPos(Pos);
+                        link.SetOrientation(FMatrix.FromYawPitchRoll(WeaponMaths.Azimuth(Context, f.Dir), 0, 0));
+                        link.Release();
+                    }
+                    else
+                    {
+                        Context.Skip("CTree::UpdateFallingTree: the \"Tree Ground Hit Effect\" particle effect");
+                    }
                 }
 
                 f.Angle -= f.Speed * 0.5f;
