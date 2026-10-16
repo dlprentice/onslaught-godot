@@ -73,7 +73,7 @@ blended in gamma space as retail does. Water is retail's fixed-function path (th
 cardid.txt tweak retail never applies here): the camera-centred grid and the shores' surf strips from the level's SURF
 chunk, with retail's stages, texture matrices and drift. Retail-derived textures and films are read from the installed game and the
 local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. The battle engine is drawn part by part
-at its motion controller's bones (CMCMech, in the parity core). Not drawn yet: the landscape's geometry levels of detail, particles and the HUD. Diagnostics:
+at its motion controller's bones (CMCMech, in the parity core). Particles are the parity core's (the particle system is deterministic and shares the CRT rand stream with the simulation); the host draws their sprites as retail's RenderSprites builds them (the sun sprite among them). Not drawn yet: the landscape's geometry levels of detail, particle trails and meshes, and the HUD. Diagnostics:
 `HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
 
 ## The earlier rebuild (parked state, 2026-09-26)

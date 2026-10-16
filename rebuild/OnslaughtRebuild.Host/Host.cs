@@ -111,6 +111,12 @@ public partial class Host : Node
             {
                 world.AddChild(WaterView.Build(terrain, session.Context.Map.WaterLevel, textures, pos, ori, _waterAngle));
             }
+            if (session.Context.Particles is { } particles)
+            {
+                world.AddChild(ParticleView.Build(particles.Manager, textures, pos, ori, session.Context.Events.Time));
+                GD.Print($"HOST: {particles.Manager.NumLiveParticles} particles live");
+            }
+
             GD.Print($"HOST: surf {surf.StripCount} strips; water scroll2 {BitConverter.SingleToUInt32Bits(_waterScroll):x8}");
             GD.Print($"HOST: camera {camera.GetType().Name} at {pos}, zoom {zoom}; battle engine at {engine?.Pos}");
         }
