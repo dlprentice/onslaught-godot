@@ -72,6 +72,9 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     public float Zoom;
     public bool PoweredUp;
 
+    /// <summary>mMotionController: the walker's leg motion (made when the mesh has a LegMotion animation).</summary>
+    public MCBattleEngine? MotionController;
+
     /// <summary>The player controlling it (CBattleEngine::mPlayer), set by CGame::PostLoadProcess.</summary>
     public object? Player;
 
@@ -129,7 +132,7 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         EngineFrames = OtherMeshRenderThing!.CountEmitters("Engine");
         if (AnimModeByName("LegMotion") != -1)
         {
-            Context.Skip("CMCBattleEngine (the walker's motion controller)");
+            MotionController = new MCBattleEngine(Context);
         }
 
         Visible = false;
