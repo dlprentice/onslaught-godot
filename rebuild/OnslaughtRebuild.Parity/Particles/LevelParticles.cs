@@ -41,7 +41,7 @@ public sealed class LevelParticles : IParticleWorld
     public Render.WorldRender World { get; private set; } = null!;
 
     /// <summary>The 32 x 32 fractal noise the sprites are drawn with (-1..1), once built.</summary>
-    public float[]? Noise { get; private set; }
+    public float[]? Noise { get; set; }
 
     public float EventTime => _context.Events.Time;
 

@@ -188,8 +188,10 @@ public sealed class LevelSession
         {
             Career = career,
             MenuHost = Input.PauseMenuHost,
+            ParticleNoise = Context.Particles?.Noise,
         };
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
+        next.Game.Loop.CarryFrameTimes(Game.Loop);
         next.Tape = Tape;
         return next;
     }
@@ -318,7 +320,7 @@ public sealed class LevelSession
             throw new InvalidDataException("the particle set did not load");
         }
 
-        context.Particles = new LevelParticles(context, particleSet);
+        context.Particles = new LevelParticles(context, particleSet) { Noise = host?.ParticleNoise };
 
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
         scripts.Spawner = spawner;
@@ -409,4 +411,7 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
 
     /// <summary>The menus' host (the front end's), for the pause menu.</summary>
     public Flow.Menus.IMenuHost? MenuHost { get; init; }
+
+    /// <summary>CPDSimpleSprite's sNoise once built (sNoiseBuilt is the process's: a restart does not build it again).</summary>
+    public float[]? ParticleNoise { get; init; }
 }

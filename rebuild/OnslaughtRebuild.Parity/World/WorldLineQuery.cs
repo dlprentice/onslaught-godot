@@ -25,6 +25,7 @@ public sealed class WorldLineReport
 
 public static class WorldLineQuery
 {
+
     /// <summary>
     /// FindFirstThingToHitLine: the ground along the line (CMap's sampled trace), then each thing in the sectors the line
     /// crosses whose seeker collides with lines (flags 0xc0), not ignored, not invisible, not of an ignored type and not
@@ -79,7 +80,9 @@ public static class WorldLineQuery
                 continue;
             }
 
-            float distance = (position - start).Magnitude() - thing.GetBoundingRadius();
+            // (Y*Y + Z*Z) + X*X, as VC6 compiles the function's other two Magnitudes.
+            FVector toThing = position - start;
+            float distance = MathF.Sqrt(((toThing.Y * toThing.Y) + (toThing.Z * toThing.Z)) + (toThing.X * toThing.X)) - thing.GetBoundingRadius();
             if ((hitGround && !(distance < groundDistance)) || (hit is not null && !(distance < nearest)))
             {
                 continue;

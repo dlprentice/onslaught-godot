@@ -81,6 +81,16 @@ public sealed class GameLoop
     /// <summary>mFrameTime2 (+0x39c).</summary>
     public float FrameTime2 { get; private set; }
 
+    /// <summary>
+    /// A restart keeps CGame: its frame times stand from the last level's loop until the new loop sets them (the port's
+    /// restarts: FT unchanged through the reload's Presents).
+    /// </summary>
+    public void CarryFrameTimes(GameLoop previous)
+    {
+        FrameTime = previous.FrameTime;
+        FrameTime2 = previous.FrameTime2;
+    }
+
     /// <summary>mBaseTime (+0x3a0).</summary>
     public float BaseTime { get; private set; }
 

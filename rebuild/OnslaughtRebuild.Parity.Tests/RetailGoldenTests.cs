@@ -101,6 +101,11 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The Present through which David's recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).</summary>
     private const int DavidTapeMatchedThrough = 4233;
 
+    /// <summary>The Presents through which the pause and restart tapes match the port (never lowered).</summary>
+    private const int PauseQuitMatchedThrough = 3861;
+    private const int PauseRetryMatchedThrough = 5200;
+    private const int LoseRetryMatchedThrough = 9000;
+
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
 
@@ -282,6 +287,42 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         Assert.True(matched >= DavidTapeMatchedThrough, $"matched through Present {matched}, below {DavidTapeMatchedThrough}");
     }
 
+    /// <summary>
+    /// Level 100 paused at P3400, the pause menu's Quit and its confirmation's Yes (tapes/level100-pausequit.tape) against
+    /// the port's every-Present reference (l100-pausequit-port): the level quits to the front end after P3861.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-pausequit.tape", "portrefs/l100-pausequit-port/crt-per-present.txt",
+        "portrefs/l100-pausequit-port/port-probes-every1.txt")]
+    public void Level100PauseQuitMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pausequit.tape", "portrefs/l100-pausequit-port", 4000);
+        Assert.True(matched >= PauseQuitMatchedThrough, $"matched through Present {matched}, below {PauseQuitMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 paused at P3400, the pause menu's Retry and Yes (tapes/level100-pauseretry.tape) against the port
+    /// (l100-pauseretry-port): the level restarts after P3863 and runs on to 5200.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-pauseretry.tape", "portrefs/l100-pauseretry-port/crt-per-present.txt",
+        "portrefs/l100-pauseretry-port/port-probes-every1.txt")]
+    public void Level100PauseRetryMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pauseretry.tape", "portrefs/l100-pauseretry-port", 5200);
+        Assert.True(matched >= PauseRetryMatchedThrough, $"matched through Present {matched}, below {PauseRetryMatchedThrough}");
+    }
+
+    /// <summary>
+    /// The lose tape with its level-end menu's Retry (tapes/level100-lose2-10000f.tape) against the port's every-Present
+    /// replay to 9000 (l100-lose2-restart-port): the loss, the restart after P8674 and the reloaded level.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-lose2-10000f.tape", "portrefs/l100-lose2-restart-port/crt-per-present.txt",
+        "portrefs/l100-lose2-restart-port/port-probes-every1.txt")]
+    public void Level100LoseThenRetryMatchesThePortEveryPresent()
+    {
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-lose2-10000f.tape", "portrefs/l100-lose2-restart-port", 9000);
+        Assert.True(matched >= LoseRetryMatchedThrough, $"matched through Present {matched}, below {LoseRetryMatchedThrough}");
+    }
+
     private long PortTapeMatchedThrough(string tape, string dir, long last)
     {
         var port = new Dictionary<long, (uint Count, uint Hold)>();
@@ -340,7 +381,13 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
                     session = session.Restart();
                 }
 
+                long before = session.PresentCount;
                 session.AdvanceToNextPresent();
+                if (session.PresentCount == before)
+                {
+                    // The level ended without a further Present (its last update set the quit): nothing new to compare.
+                    continue;
+                }
             }
             catch (NotSupportedException e)
             {
