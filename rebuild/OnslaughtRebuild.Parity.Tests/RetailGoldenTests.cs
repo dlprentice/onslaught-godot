@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System.Globalization;
+using OnslaughtRebuild.Parity.Career;
+using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Script;
@@ -210,6 +212,42 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     {
         long matched = PortTapeMatchedThrough("portrefs/tapes/level100-fire3-8000f.tape", "portrefs/l100-fire3-port", 8000);
         Assert.True(matched >= TankKillTapeMatchedThrough, $"matched through Present {matched}, below {TankKillTapeMatchedThrough}");
+    }
+
+    /// <summary>
+    /// Level 100 lost on the port's lose tape (tapes/level100-lose2-10000f.tape, the port's autopilot: the firing range,
+    /// 70 bursts into the big friendly Facilities, so the script's 21st "Hit Friendly Building" loses the level; then
+    /// the level-end menu's Return, which with the tape's non-extended Down still on Restart restarts it). The level
+    /// must end on the restart, and END_LEVEL_DATA as RunLevel's close fills it must equal the port's bytes
+    /// (port-probes-every50-with-ELD.txt: its ELD line after the close) exactly.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/level100-lose2-10000f.tape", "portrefs/l100-lose2-port/port-probes-every50-with-ELD.txt")]
+    public void Level100LoseTapeEndsTheLevelWithThePortsEndLevelData()
+    {
+        byte[]? port = null;
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portrefs/l100-lose2-port/port-probes-every50-with-ELD.txt")!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length == 4 && f[0] == "P" && f[2] == "ELD")
+            {
+                port = Convert.FromHexString(f[3]);
+            }
+        }
+
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        session.Tape = RetailTape.Load(RetailGolden.File("portrefs/tapes/level100-lose2-10000f.tape")!);
+        while (!session.Ended && session.PresentCount < 10000)
+        {
+            session.AdvanceToNextPresent();
+        }
+
+        output.WriteLine($"ended after Present {session.PresentCount}: quit {session.Game.Quit}, lost reason {session.EndLevelData.LevelLostReason:x8}");
+        Assert.True(session.Ended);
+        Assert.Equal(QuitType.RestartLevel, session.Game.Quit);
+        byte[] ours = session.EndLevelData.ToBytes();
+        Assert.Equal(EndLevelData.ByteSize, port!.Length);
+        int first = Enumerable.Range(0, ours.Length).FirstOrDefault(i => ours[i] != port[i], -1);
+        Assert.True(first < 0, $"END_LEVEL_DATA differs first at byte 0x{first:x} (port {port[Math.Max(first, 0)]:x2}, ours {ours[Math.Max(first, 0)]:x2})");
     }
 
     private long PortTapeMatchedThrough(string tape, string dir, long last)

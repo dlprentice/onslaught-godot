@@ -36,6 +36,7 @@ public static class Buttons
     public const int SkipCutscene = 7;
     public const int ConsoleMenuUp = 8;
     public const int ConsoleMenuDown = 9;
+    public const int ConsoleMenuSelect = 10;
     public const int MechChangeZoomIn = 16;
     public const int MechChangeZoomOut = 17;
     public const int MechFireGunPod = 18;

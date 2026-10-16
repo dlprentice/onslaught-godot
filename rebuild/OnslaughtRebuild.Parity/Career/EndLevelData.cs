@@ -50,6 +50,70 @@ public sealed class EndLevelData
 
     public ObjectiveState[] PrimaryObjectives { get; } = new ObjectiveState[SecondaryObjectiveCount];
 
+    /// <summary>Each primary objective's string id (CMissionObjective::mStringId; -1 when not defined).</summary>
+    public int[] PrimaryStringIds { get; } = Enumerable.Repeat(-1, SecondaryObjectiveCount).ToArray();
+
+    /// <summary>Each secondary objective's string id (CMissionObjective::mStringId; -1 when not defined).</summary>
+    public int[] SecondaryStringIds { get; } = Enumerable.Repeat(-1, SecondaryObjectiveCount).ToArray();
+
+    /// <summary>mFinalState as the game stored it (EGameState: GAME_STATE_LEVEL_LOST, 4, until a level fills it).</summary>
+    public int FinalGameState { get; set; } = 4;
+
+    /// <summary>The record's size in retail (0x5cc).</summary>
+    public const int ByteSize = (BaseThingsCount * 4) + (2 * SecondaryObjectiveCount * 8) + (6 * 4) + (CareerRecord.KillTypeCount * 4)
+        + (CareerRecord.SlotWordCount * 4);
+
+    /// <summary>
+    /// END_LEVEL_DATA's bytes as retail lays them out: mBaseThingsLeft[288], mPrimaryObjectives[10] and
+    /// mSecondaryObjectives[10] (state, string id), mWorldFinished, mFinalState, mRanking, mScore, mTimeTaken,
+    /// mLevelLostReason, mThingsKilled[5], mSlots[32]; little-endian.
+    /// </summary>
+    public byte[] ToBytes()
+    {
+        var b = new byte[ByteSize];
+        int o = 0;
+        void I(int v)
+        {
+            System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(b.AsSpan(o), v);
+            o += 4;
+        }
+
+        foreach (int v in BaseThingsLeft)
+        {
+            I(v);
+        }
+
+        for (int i = 0; i < SecondaryObjectiveCount; i++)
+        {
+            I((int)PrimaryObjectives[i]);
+            I(PrimaryStringIds[i]);
+        }
+
+        for (int i = 0; i < SecondaryObjectiveCount; i++)
+        {
+            I((int)SecondaryObjectives[i]);
+            I(SecondaryStringIds[i]);
+        }
+
+        I(WorldFinished);
+        I(FinalGameState);
+        I(BitConverter.SingleToInt32Bits(Ranking));
+        I(Score);
+        I(BitConverter.SingleToInt32Bits(TimeTaken));
+        I(LevelLostReason);
+        foreach (int v in ThingsKilled)
+        {
+            I(v);
+        }
+
+        foreach (int v in Slots)
+        {
+            I(v);
+        }
+
+        return b;
+    }
+
     public int Score { get; set; }
 
     /// <summary>The event time the level ended at.</summary>

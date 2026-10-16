@@ -198,6 +198,7 @@ public sealed partial class Game
         }
 
         end.WorldFinished = CurrentLevel;
+        end.FinalGameState = (int)State;
         end.FinalState = State switch
         {
             GameState.LevelWon => Career.EndLevelState.Won,
@@ -207,7 +208,9 @@ public sealed partial class Game
         for (int i = 0; i < MaxPrimaryObjectives; i++)
         {
             end.PrimaryObjectives[i] = (Career.ObjectiveState)PrimaryObjectives[i].State;
+            end.PrimaryStringIds[i] = PrimaryObjectives[i].StringId;
             end.SecondaryObjectives[i] = (Career.ObjectiveState)SecondaryObjectives[i].State;
+            end.SecondaryStringIds[i] = SecondaryObjectives[i].StringId;
         }
 
         end.Ranking = 1.0f;

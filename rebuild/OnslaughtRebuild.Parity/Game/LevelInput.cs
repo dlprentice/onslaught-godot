@@ -93,11 +93,13 @@ public sealed class LevelInput : IGameServices, IControllerGame
 
     /// <summary>
     /// CGame::ReceiveButtonAction (0046f7e0): the hardwired debug buttons. BUTTON_SKIP_CUTSCENE (Space, Return, Escape)
-    /// stops the current cutscene, and none plays here (the script's PlayCutscene is not ported); the rest are not ported.
+    /// stops the current cutscene, and none plays here (the script's PlayCutscene is not ported); the console menu's
+    /// up, down and select (the numeric keypad) do nothing while its menu is not active (CConsole::MenuUp 0042ba90,
+    /// MenuDown 0042bac0), and the console is never opened here; the rest are not ported.
     /// </summary>
     void IControllerGame.ReceiveButtonAction(Controller from, int button, float value)
     {
-        if (button != Buttons.SkipCutscene)
+        if (button is not (Buttons.SkipCutscene or Buttons.ConsoleMenuUp or Buttons.ConsoleMenuDown or Buttons.ConsoleMenuSelect))
         {
             throw new NotSupportedException($"CGame::ReceiveButtonAction (debug button {button}) is not ported");
         }
