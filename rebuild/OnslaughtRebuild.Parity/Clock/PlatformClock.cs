@@ -63,7 +63,11 @@ public sealed class PlatformClock
     {
         PresentCount++;
         _spin = 0;
+        Presented?.Invoke();
     }
+
+    /// <summary>Called as each Present returns (for checks that sample state at the Present itself).</summary>
+    public Action? Presented { get; set; }
 
     /// <summary>
     /// The virtual time's steps without counting a timer call (the port's PortClockPeekNs and C's virtual DirectSound

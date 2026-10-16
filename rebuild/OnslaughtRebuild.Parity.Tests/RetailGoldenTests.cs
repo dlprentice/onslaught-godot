@@ -42,6 +42,7 @@ internal static class RetailGolden
     {
         (string prefix, string variable) = name.StartsWith("vds/", StringComparison.Ordinal) ? ("vds/", "ONSLAUGHT_GOLDEN_VDS")
             : name.StartsWith("beobjvds/", StringComparison.Ordinal) ? ("beobjvds/", "ONSLAUGHT_BEOBJ_VDS")
+            : name.StartsWith("portcrt/", StringComparison.Ordinal) ? ("portcrt/", "ONSLAUGHT_PORT_CRT")
             : ("", "ONSLAUGHT_RETAIL_GOLDEN");
         string? root = Environment.GetEnvironmentVariable(variable);
         name = name[prefix.Length..];
@@ -77,11 +78,78 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// <summary>The last sampled Present (every 50) the run matches the virtual-DS golden to (never lowered).</summary>
     private const int VirtualDsFloor = 10000;
 
+    /// <summary>The Present through which the main thread's rand() count and state equal the port's at every Present (never lowered).</summary>
+    private const int PortCrtMatchedThrough = 3501;
+
     /// <summary>The Presents over which every compared battle-engine field matches retail's (never lowered).</summary>
     private const int BattleEngineMatchedFloor = 5998;
 
     /// <summary>The Present through which every compared battle-engine field equals retail's (never lowered).</summary>
     private const int BattleEngineMatchedThrough = 6000;
+
+    /// <summary>
+    /// Level 100 run Present by Present against the source port's main-thread rand() (crt-per-present.txt: after each
+    /// Present, the C runtime's call count and holdrand, from bea-decomp's port under the same tape and virtual clock;
+    /// ONSLAUGHT_PORT_CRT names its directory). Particles, snow, sounds, the cockpit shake and the simulation share
+    /// that stream, so its count and state at each Present check every draw's existence and order. Both are compared
+    /// as the Present returns; they must equal the port's at every Present from 3 through
+    /// <see cref="PortCrtMatchedThrough"/>, and the first difference is reported. Presents 1 and 2 are the boot's, before
+    /// the port loads the level; the core's session loads it first (no draw falls between, so the order is the same).
+    /// </summary>
+    [RetailGoldenFact("portcrt/crt-per-present.txt", Level100TapeFile)]
+    public void Level100MainThreadRandMatchesThePortEveryPresent()
+    {
+        var port = new Dictionary<long, (uint Count, uint Hold)>();
+        foreach (string line in System.IO.File.ReadLines(RetailGolden.File("portcrt/crt-per-present.txt")!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length >= 4 && f[0] == "P" && f[2] == "CRT")
+            {
+                byte[] b = Convert.FromHexString(f[3]);
+                port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
+            }
+        }
+
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        session.Tape = Level100Tape();
+        long last = port.Keys.Max();
+        long matched = 0;
+        string? first = null;
+        session.Clock.Presented = () =>
+        {
+            long p = session.Clock.PresentCount;
+            if (p < 3 || first is not null || !port.TryGetValue(p, out var want))
+            {
+                return;
+            }
+
+            var crt = session.Context.Crt;
+            if ((uint)crt.Calls == want.Count && crt.HoldRand == want.Hold)
+            {
+                matched = p;
+            }
+            else
+            {
+                first = $"Present {p}: count {want.Count}/{crt.Calls}, holdrand {want.Hold:x8}/{crt.HoldRand:x8} (port/ours)";
+            }
+        };
+        string stopped = $"ran to Present {last}";
+        while (session.PresentCount < last && first is null)
+        {
+            try
+            {
+                session.AdvanceToNextPresent();
+            }
+            catch (NotSupportedException e)
+            {
+                stopped = $"stopped after Present {session.PresentCount}: {e.Message}";
+                break;
+            }
+        }
+
+        output.WriteLine($"{stopped}; rand() matches the port through Present {matched}; first difference: {first ?? "none"}");
+        Assert.True(matched >= PortCrtMatchedThrough, $"matched through Present {matched}, below {PortCrtMatchedThrough}");
+    }
 
     /// <summary>
     /// Level 100 run Present by Present against B's virtual-DS golden (level100.vds-a.probes: retail with virtual
