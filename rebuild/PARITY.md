@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot timing, keyboard presets and deferred display-reset transaction; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot timing, control/display transactions and cannon motion controller; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -103,6 +103,26 @@ These are static-code and reconstruction-flow checks. **The Godot host still has
 device/resource/input reset handler** and fails explicitly at the correct reset boundary. The live
 ReadOptions path that can queue state 2 is also not implemented; its admission rule is tested through
 the explicit API. This milestone does not establish working display Apply in the running host.
+
+Cannon motion controller (2026-10-17): `CMCCannon::GetPartTransform` (004952a0) now supplies
+case-sensitive turret yaw, barrel pitch and root-height adjustments through the existing pose and
+uncached-emitter paths. Barrel pitch subtracts the cannon's current Euler pitch, unlike the ground
+vehicle's slope query. The controller records its last angles after every part. Retail's pose updater
+calls the angle-comparison slot but ignores its return value, so the implementation preserves the
+same-render-frame refusal and the 30-frame/force gates instead of adding angle-driven invalidation.
+
+Evidence: 1,200 isolated executions of the pristine original function and its dependencies at x87
+control word 007f, each with 25 authored input words. Cases vary nine part names, root/non-root,
+world/local, old/current angles, noncommuting matrices and interpolation timing. Global render
+fraction is zero; varying LastMoveTime covers the tested interpolation/clamp paths. Root independently
+rebuilt the oracle and reproduced all output words, then ran the C# Parity suite: **376 passed,
+9 existing optional-reference skips, 0 failed**, including all nine new controller tests. The consumer
+test uses a real Level-100 cannon to check cached and uncached emitter dispatch and pose refresh.
+No reference expectation was changed. Private inputs, oracle, hashes and root receipt are under
+`bea-decomp/local-data/scratch/codex-onslaught-20261017/cannon-controller/`; the suite receipt is
+`local-data/test-runs/cannon-controller-20261017/root-full.trx` in the internal rebuild clone.
+These are bounded original-code and reconstruction checks, not a live retail playthrough or Godot
+visual acceptance. Dropship, BattleEngine and Buggy controllers remain separate work.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
