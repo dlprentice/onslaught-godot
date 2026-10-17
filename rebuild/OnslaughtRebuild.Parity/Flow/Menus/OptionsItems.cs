@@ -89,16 +89,11 @@ public static class OptionSettings
     }
 
     /// <summary>
-    /// ApplyControlPreset (00453780): gControlPreset; preset 0 changes nothing else. A numbered preset copies its bindings
-    /// from sKeyPresets, which is not ported.
+    /// ApplyControlPreset (00453780): the menu's custom or keyboard/mouse preset, followed by its saved selector.
     /// </summary>
     public static void ApplyControlPreset(IMenuHost host, int preset)
     {
-        if (preset != 0)
-        {
-            throw new NotSupportedException($"ApplyControlPreset({preset}): the key presets (sKeyPresets) are not ported");
-        }
-
+        host.Bindings.ApplyPreset(preset);
         host.Options = host.Options with { ControlPreset = (short)preset };
     }
 

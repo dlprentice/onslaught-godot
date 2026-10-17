@@ -107,6 +107,28 @@ public sealed class ControllerTests
     }
 
     [Fact]
+    public void ApplyingTheKeyboardPresetChangesTheExistingControllersInputs()
+    {
+        Rig rig = new();
+        Receiver mech = new(ControlType.Mech);
+        Controller controller = new(0, 1, mech);
+        rig.Input.PostTapeKey(0x26, Dik.Up, down: true);
+        rig.Frame(controller);
+        Assert.DoesNotContain(mech.Received, r => r.Button == Buttons.MechForward);
+
+        rig.Context.Bindings.ApplyPreset(1);
+        mech.Received.Clear();
+        rig.Frame(controller);
+        Assert.Contains((Buttons.MechForward, -1f), mech.Received);
+
+        rig.Input.PostTapeKey(0x26, Dik.Up, down: false);
+        rig.Input.PostTapeKey(0x57, Dik.W, down: true);
+        mech.Received.Clear();
+        rig.Frame(controller);
+        Assert.Contains((Buttons.MechForward, -1f), mech.Received);
+    }
+
+    [Fact]
     public void MouseAxesClampAndACentredAxisIsNotActivity()
     {
         Rig rig = new();

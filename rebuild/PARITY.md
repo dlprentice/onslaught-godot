@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot clock origin and front-end time parity; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot timing and keyboard preset application; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -65,6 +65,27 @@ complete front-end state (filtered step, page, transition and counter) to agree 
 5700, including the attract films and return. Before the correction this assertion fails at 2289; after it every
 compared time-state and CRT probe agrees through 5700 (1,127 front-end time-state samples and 5,700 CRT samples; both counts are asserted). `GameRunTests.TheDevicePresentEstablishesTheClockBeforeTheBootFilms`
 also checks the logo's entry and the first two post-origin clock values. Level-100 and -skipfmv clock origins are unchanged.
+
+Measured (2026-10-17, controls and saved startup settings): the keyboard/mouse preset now applies
+the retail table rather than throwing or substituting the single-input default bindings. Preset zero
+preserves all bytes. With no enabled joystick, every signed nonzero saved selector copies each entire
+32-byte keyboard record to the first matching control ID; unknown IDs, later duplicates and fixed
+records remain untouched. Retail repeats the same table for positive selectors above one; these
+idempotent passes are collapsed. Startup applies the saved preset after loading raw bindings, then
+blanks campaign progress; ordinary career selection still does not load those settings. Menu selection
+commits only on confirmation. Enabled-joystick preset effects, display Apply/reset and live UI
+acceptance remain open; this implements the current keyboard/mouse host, not joystick parity.
+
+The evidence is isolated execution of pristine retail table initializers 00514210/00453460/00453630,
+their constructors, first-ID lookup 0042db10 and ApplyControlPreset 00453780, without imported-call
+stubs. Ten original cases and 27 additional signed-selector/device cases were independently reproduced
+with native x86; bounded Unicorn agrees on 36 of the 37 cases. The 32767/no-pad repetition case ran
+natively only. Enabled-pad cases demonstrate the omitted device-dependent behavior. Private inputs,
+outputs and root reproduction receipts are in bea-decomp's
+`local-data/scratch/codex-onslaught-20261017/control-preset/`. `KeyboardPresetTests` binds complete
+record outputs to those observations and tests menu confirmation, saved selectors from -32768 to
+32767, campaign reset and original-fixture preservation. `ControllerTests` checks the restored Up/W
+alternate binding. These are code and isolated-execution checks, not a retail UI playthrough.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):

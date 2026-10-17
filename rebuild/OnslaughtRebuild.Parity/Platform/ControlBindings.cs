@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/PCController.cpp (CONTROL_BINDINGS), src/Controller.cpp (SControlBinding's constructors)
-// and src/Controller.h (SControlBinding, SControlInput, EJoyButtonPushType, the button ids).
+// and src/Controller.h (SControlBinding, SControlInput, EJoyButtonPushType, the button ids), plus src/FEPControls.cpp
+// (the keyboard/mouse preset and ApplyControlPreset 00453780).
 
 using System.Buffers.Binary;
 
@@ -204,6 +205,66 @@ public sealed class ControlBindings
     }
 
     public ReadOnlySpan<byte> Record(int binding) => _records[binding];
+
+    /// <summary>
+    /// ApplyControlPreset (00453780), for the current host with no enabled joystick inputs. Zero leaves every byte
+    /// untouched. Any signed nonzero preset copies each whole static keyboard record into the first binding with
+    /// its id, regardless of its configurable flag; missing ids and later duplicate ids keep their bytes.
+    /// Retail's signed loop takes one keyboard pass for negative values. Values greater than one cycle through the
+    /// same table when no joystick is enabled; the repeated copies are idempotent and collapsed here.
+    /// Presets >= 2 with enabled joysticks also change input slots (including fixed records with only one pad).
+    /// Those device-dependent effects are outside this keyboard-only host, not implied by this method.
+    /// </summary>
+    public void ApplyPreset(int preset)
+    {
+        if (preset == 0) return;
+
+        foreach (byte[] entry in KeyboardAndMousePreset)
+        {
+            int id = BinaryPrimitives.ReadInt32LittleEndian(entry.AsSpan(4));
+            for (int binding = 0; Id(binding) != -1; binding++)
+            {
+                if (Id(binding) != id) continue;
+                entry.CopyTo(_records[binding], 0);
+                break;
+            }
+        }
+    }
+
+    // sKeyPresets (initializer 00453460), not CONTROL_BINDINGS' single-input defaults. The initializers and
+    // ApplyControlPreset were executed independently from the pristine retail image, natively and in Unicorn;
+    // KeyboardPresetTests pins the whole-record output, including static zero padding and alternate key codes.
+    private static readonly byte[][] KeyboardAndMousePreset =
+    [
+        Two(true, Buttons.MechYawLeft, PushType.MouseAxisMinusAny, 0, PushType.KeyOn, 0x24, 0, 'J'),
+        Two(true, Buttons.MechYawRight, PushType.MouseAxisPlusAny, 0, PushType.KeyOn, 0x26, 0, 'L'),
+        Two(true, Buttons.MechPitchUp, PushType.MouseAxisPlusAny, 1, PushType.KeyOn, 0x17, 0, 'I'),
+        Two(true, Buttons.MechPitchDown, PushType.MouseAxisMinusAny, 1, PushType.KeyOn, 0x25, 0, 'K'),
+        Two(true, Buttons.MechStrafeLeft, PushType.KeyOn, Dik.Left, PushType.KeyOn, Dik.A, 0, 'A'),
+        Two(true, Buttons.MechStrafeRight, PushType.KeyOn, Dik.Right, PushType.KeyOn, Dik.D, 0, 'D'),
+        Two(true, Buttons.MechForward, PushType.KeyOn, Dik.Up, PushType.KeyOn, Dik.W, 0, 'W'),
+        Two(true, Buttons.MechBackward, PushType.KeyOn, Dik.Down, PushType.KeyOn, Dik.S, 0, 'S'),
+        Two(true, Buttons.MechCloak, PushType.KeyOnce, Dik.RShift, PushType.KeyOnce, Dik.Tab, 0, 0),
+        Two(true, Buttons.MechMorph, PushType.KeyOnce, 0x52, PushType.KeyOnce, Dik.Space, 0, 0),
+        Two(true, Buttons.MechChargeGunPod, PushType.MouseButtonOn, 0, PushType.KeyOn, 0x3a, 0, 0),
+        Two(true, Buttons.MechFireGunPod, PushType.MouseButtonRelease, 0, PushType.KeyRelease, 0x3a, 0, 0),
+        Two(true, Buttons.MechChangeWeapon, PushType.MouseButtonOnce, 2, PushType.KeyOnce, 0x27, 0, 0),
+        Two(true, Buttons.MechChangeZoomIn, PushType.MouseButtonOnce, 4, PushType.KeyOnce, 0x0d, 0, '+'),
+        Two(true, Buttons.MechChangeZoomOut, PushType.MouseButtonOnce, 3, PushType.KeyOnce, 0x0c, 0, '-'),
+        Two(true, Buttons.MechLandingJets, PushType.KeyOn, 0x9d, PushType.KeyOn, Dik.LShift, 0, 0),
+    ];
+
+    /// <summary>SControlBinding's dual-input constructor (0042d2b0): both inputs use pad 0.</summary>
+    private static byte[] Two(bool configurable, int button, PushType type, int key, PushType type2, int key2,
+        int virtualKey, int virtualKey2)
+    {
+        byte[] record = One(configurable, button, type, key, virtualKey);
+        BinaryPrimitives.WriteInt32LittleEndian(record.AsSpan(20), 0);
+        BinaryPrimitives.WriteInt32LittleEndian(record.AsSpan(24), (int)type2);
+        BinaryPrimitives.WriteInt16LittleEndian(record.AsSpan(28), (short)key2);
+        BinaryPrimitives.WriteInt16LittleEndian(record.AsSpan(30), (short)virtualKey2);
+        return record;
+    }
 
     /// <summary><c>SControlBinding(configurable, button, type, key, vkey)</c> (0x0042d260): input 1 is unused (pad -1).</summary>
     private static byte[] One(bool configurable, int button, PushType type, int key, int virtualKey)

@@ -30,6 +30,11 @@ public static class DefaultOptions
             {
                 bindings.LoadConfigurable(result.Bindings!);
                 loaded = result.Options;
+                // CCareer::ReadOptions (00420d70) applies the saved preset after CCareer::Load copied the raw
+                // bindings. With the current host's no-enabled-joystick state, zero preserves those bytes and
+                // every signed nonzero value applies the keyboard table. An ordinary career selection uses
+                // suggestNextLevel and never reads/applies these options.
+                bindings.ApplyPreset(loaded!.ControlPreset);
             }
         }
 
