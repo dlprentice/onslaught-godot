@@ -133,10 +133,6 @@ public sealed class SurfView
             AddStrip(st, face);
         }
 
-        float sn = (float)Math.Sin(angle2);
-        float cs = (float)Math.Cos(angle2);
-        float a = angle2 + Pi;
-        var up = new FVector(camOri.Row0.Y, camOri.Row1.Y, camOri.Row2.Y);
         static Vector3 Bytes(uint col, float scale) => new Vector3((col >> 16) & 255, (col >> 8) & 255, col & 255) * scale;
         string caustic = $@"mixers\caustic{terrain.WaterNumber:00}.tga";
         string reflection = $@"mixers\reflection{terrain.WaterNumber:00}.tga";
@@ -146,19 +142,68 @@ public sealed class SurfView
         material.SetShaderParameter("waves", textures.Get(@"mixers\waves.tga") ?? textures.Find(@"mixers\waves.tga", 5) ?? throw new InvalidOperationException(@"no texture mixers\waves.tga"));
         material.SetShaderParameter("water_colour", Bytes(terrain.WaterColour, 1 / 255f));
         material.SetShaderParameter("m0", new Vector4(0.1f, 0.03f, 0.03f, -0.1f));
-        material.SetShaderParameter("o0", new Vector2(sn * 0.1f, cs * 0.1f));
         material.SetShaderParameter("m1", new Vector4(0.03f, 0.1f, 0.1f, -0.03f));
-        material.SetShaderParameter("o1", new Vector2((float)Math.Sin(a) * 0.1f, (float)Math.Cos(a) * 0.1f));
         material.SetShaderParameter("m2", new Vector4(1.0f / 256, 0, 0, 1.0f / 256));
-        material.SetShaderParameter("o2", new Vector2((up.X * 0.02f) - (camPos.X * 0.0015f), (up.Y * 0.02f) - (camPos.Y * 0.0015f)));
         material.SetShaderParameter("m3", new Vector4(0.5f, 0, 0, 0.5f));
-        material.SetShaderParameter("o3", new Vector2(0, scroll2));
+        UpdateOffsets(material, camPos, camOri, angle2, scroll2);
         material.SetShaderParameter("fog_colour", Bytes(terrain.Fog, 1 / 255f));
         material.SetShaderParameter("fog_density", terrain.FogDensity);
         var mesh = new ArrayMesh();
         mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, st.CommitToArrays());
         mesh.SurfaceSetMaterial(0, material);
         return new MeshInstance3D { Mesh = mesh, Name = "Surf" };
+    }
+
+    /// <summary>The shore geometry is fixed; a live view changes only the four texture offsets.</summary>
+    public LiveView? CreateLive(TerrainTexture terrain, TextureLibrary textures, FVector camPos, FMatrix camOri,
+        float angle2, float scroll2)
+    {
+        MeshInstance3D? node = Build(terrain, textures, camPos, camOri, angle2, scroll2);
+        return node is null ? null : new LiveView(node);
+    }
+
+    public sealed class LiveView : IDisposable
+    {
+        private readonly ShaderMaterial _material;
+        private bool _disposed;
+
+        internal LiveView(MeshInstance3D node)
+        {
+            Node = node;
+            _material = (ShaderMaterial)node.Mesh!.SurfaceGetMaterial(0);
+        }
+
+        public MeshInstance3D Node { get; }
+
+        public void Update(FVector camPos, FMatrix camOri, float angle2, float scroll2)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            UpdateOffsets(_material, camPos, camOri, angle2, scroll2);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            Node.GetParent()?.RemoveChild(Node);
+            Node.QueueFree();
+        }
+    }
+
+    private static void UpdateOffsets(ShaderMaterial material, FVector camPos, FMatrix camOri, float angle2, float scroll2)
+    {
+        float sn = (float)Math.Sin(angle2);
+        float cs = (float)Math.Cos(angle2);
+        float a = angle2 + Pi;
+        var up = new FVector(camOri.Row0.Y, camOri.Row1.Y, camOri.Row2.Y);
+        material.SetShaderParameter("o0", new Vector2(sn * 0.1f, cs * 0.1f));
+        material.SetShaderParameter("o1", new Vector2((float)Math.Sin(a) * 0.1f, (float)Math.Cos(a) * 0.1f));
+        material.SetShaderParameter("o2", new Vector2((up.X * 0.02f) - (camPos.X * 0.0015f), (up.Y * 0.02f) - (camPos.Y * 0.0015f)));
+        material.SetShaderParameter("o3", new Vector2(0, scroll2));
     }
 
     /// <summary>A D3D triangle strip as triangles, D3D's winding (alternate triangles swapped), mirrored into Godot's frame.</summary>

@@ -100,19 +100,7 @@ public static class WaterView
             }
         }
 
-        // The matrices, as CDXWater::Render sets them for the grid (cx, cy the camera's position; up its Y column).
-        float cx = camPos.X;
-        float cy = camPos.Y;
-        var up = new FVector(camOri.Row0.Y, camOri.Row1.Y, camOri.Row2.Y);
-        float s = (float)Math.Sin(angle2);
-        float c = (float)Math.Cos(angle2);
-        float a2 = angle2 + Pi;
-        float s2 = (float)Math.Sin(a2);
-        float c2 = (float)Math.Cos(a2);
-        var o0 = new Vector2(((s + cx) * 0.1f) + (cy * 0.03f), (c * 0.1f) - (cy * 0.1f) + (cx * 0.03f));
-        var o1 = new Vector2(((s2 + cy) * 0.1f) + (cx * 0.03f), ((c2 + cx) * 0.1f) - (cy * 0.03f));
-        var o2 = new Vector2((up.X * 0.02f) - (camPos.X * 0.0015f) + (cx * (1.0f / 256)),
-            (up.Y * 0.02f) - (camPos.Y * 0.0015f) + (cy * (1.0f / 256)));
+        (Vector2 o0, Vector2 o1, Vector2 o2) = Offsets(camPos, camOri, angle2);
         GD.Print($"HOST: water {terrain.WaterNumber:00} colour {terrain.WaterColour:x8} level {level}; angle2 {angle2}; "
             + $"texture0 offset {BitConverter.SingleToUInt32Bits(o0.X):x8} {BitConverter.SingleToUInt32Bits(o0.Y):x8}");
 
@@ -135,6 +123,71 @@ public static class WaterView
         mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, st.CommitToArrays());
         mesh.SurfaceSetMaterial(0, material);
         return new MeshInstance3D { Mesh = mesh, Name = "Water" };
+    }
+
+    /// <summary>One camera-centred grid; only its placement and shader offsets change during live play.</summary>
+    public static LiveView CreateLive(TerrainTexture terrain, float level, TextureLibrary textures, FVector camPos,
+        FMatrix camOri, float angle2)
+    {
+        // Bake the fixed level and local grid once. Snapshot Build continues to bake world positions exactly as before.
+        MeshInstance3D node = Build(terrain, level, textures, new FVector(0, 0, 0), camOri, angle2);
+        var live = new LiveView(node);
+        live.Update(camPos, camOri, angle2);
+        return live;
+    }
+
+    public sealed class LiveView : IDisposable
+    {
+        private readonly ShaderMaterial _material;
+        private bool _disposed;
+
+        internal LiveView(MeshInstance3D node)
+        {
+            Node = node;
+            _material = (ShaderMaterial)node.Mesh!.SurfaceGetMaterial(0);
+        }
+
+        public MeshInstance3D Node { get; }
+
+        public void Update(FVector camPos, FMatrix camOri, float angle2)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            Node.Position = Host.ToGodot(new FVector(camPos.X, camPos.Y, 0));
+            (Vector2 o0, Vector2 o1, Vector2 o2) = Offsets(camPos, camOri, angle2);
+            _material.SetShaderParameter("o0", o0);
+            _material.SetShaderParameter("o1", o1);
+            _material.SetShaderParameter("o2", o2);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            Node.GetParent()?.RemoveChild(Node);
+            Node.QueueFree();
+        }
+    }
+
+    private static (Vector2 O0, Vector2 O1, Vector2 O2) Offsets(FVector camPos, FMatrix camOri, float angle2)
+    {
+        // The matrices, as CDXWater::Render sets them for the grid (cx, cy the camera's position; up its Y column).
+        float cx = camPos.X;
+        float cy = camPos.Y;
+        var up = new FVector(camOri.Row0.Y, camOri.Row1.Y, camOri.Row2.Y);
+        float s = (float)Math.Sin(angle2);
+        float c = (float)Math.Cos(angle2);
+        float a2 = angle2 + Pi;
+        float s2 = (float)Math.Sin(a2);
+        float c2 = (float)Math.Cos(a2);
+        var o0 = new Vector2(((s + cx) * 0.1f) + (cy * 0.03f), (c * 0.1f) - (cy * 0.1f) + (cx * 0.03f));
+        var o1 = new Vector2(((s2 + cy) * 0.1f) + (cx * 0.03f), ((c2 + cx) * 0.1f) - (cy * 0.03f));
+        var o2 = new Vector2((up.X * 0.02f) - (camPos.X * 0.0015f) + (cx * (1.0f / 256)),
+            (up.Y * 0.02f) - (camPos.Y * 0.0015f) + (cy * (1.0f / 256)));
+        return (o0, o1, o2);
     }
 
     /// <summary>WATER_ADVANCE for angle2: += the render frame length × 0.05, wrapped at 2π (viewpoint 0 only).</summary>

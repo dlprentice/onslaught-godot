@@ -4,6 +4,7 @@
 
 using System.Buffers.Binary;
 using Godot;
+using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Things;
@@ -73,6 +74,240 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
     private bool _loggedSun;
 
     private readonly Dictionary<(MeshData, int), ArrayMesh?> _builtParts = [];
+
+    /// <summary>
+    /// A retained view of one level. Update only after the parity core has rendered its Present: the view consumes its
+    /// cached poses and never calls Rendered, EvaluatePose, Update or a motion-controller hook. Those calls can change
+    /// collision caches, controller state and particle/random state and belong to the core's one render pass.
+    /// </summary>
+    public LiveSet CreateLive(Node3D parent) => new(this, parent);
+
+    public sealed class LiveSet : IDisposable
+    {
+        private readonly MeshView _owner;
+        private readonly Node3D _parent;
+        private readonly Dictionary<Thing, LiveEntry> _things = new(ReferenceEqualityComparer.Instance);
+        private readonly Dictionary<IRenderSubject, MeshData> _drawnMeshes = new(ReferenceEqualityComparer.Instance);
+        private readonly HashSet<Thing> _seen = new(ReferenceEqualityComparer.Instance);
+        private LiveEntry? _cockpit;
+        private bool _disposed;
+        private bool _warnedMissingPose;
+
+        internal LiveSet(MeshView owner, Node3D parent)
+        {
+            _owner = owner;
+            _parent = parent;
+        }
+
+        public int ThingCount => _things.Count;
+        public int PartCount => _things.Values.Sum(e => e.Parts.Count) + (_cockpit?.Parts.Count ?? 0);
+
+        public void Update(LevelSession session)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            _drawnMeshes.Clear();
+            if (session.Context.Particles is { } particles)
+            {
+                // The pose arrays belong to the mesh selected by the core's RenderMesh, including its chain LOD.
+                // Do not interpret a low-detail pose using the high-detail mesh's unrelated part numbers.
+                foreach ((IRenderSubject subject, float lod, bool drawn) in particles.World.MeshLog)
+                {
+                    RenderThing? rt = subject switch { Thing t => t.RenderThing, Cockpit c => c.RenderThing, _ => null };
+                    if (drawn && rt?.MeshOrNull is { } mesh)
+                    {
+                        if (mesh.NextInChain is { } medium && lod > 10.0f)
+                        {
+                            mesh = medium;
+                            if (mesh.NextInChain is { } low && lod > 20.0f)
+                            {
+                                mesh = low;
+                            }
+                        }
+
+                        _drawnMeshes[subject] = mesh;
+                    }
+                }
+            }
+
+            _seen.Clear();
+            foreach (Thing thing in session.Context.World.Things.ToList())
+            {
+                if (thing.RenderThing is not { MeshOrNull: { NumParts: > 0 } } rt)
+                {
+                    continue;
+                }
+
+                _seen.Add(thing);
+                if (!_things.TryGetValue(thing, out LiveEntry? entry))
+                {
+                    entry = new LiveEntry();
+                    _things.Add(thing, entry);
+                }
+
+                bool visible = (thing.Flags & (ThingFlags.Invisible | ThingFlags.DontRender)) == 0
+                    && !(thing is Building && thing.IsDying)
+                    && !(thing is BattleEngine be && session.Context.Particles is { } lp && !lp.World.BattleEngineDrawn(be));
+                UpdateEntry(entry, rt, thing, visible, session.Game.Loop.Fraction);
+            }
+
+            foreach (Thing removed in _things.Keys.Where(t => !_seen.Contains(t)).ToArray())
+            {
+                Release(_things[removed]);
+                _things.Remove(removed);
+            }
+
+            RenderThing? cockpit = session.Game.GetPlayer(0) is { CurrentView: PlayerView.FirstPerson,
+                BattleEngine: BattleEngine { IsDying: false, Cockpit: { ShouldRender: true, RenderThing: { MeshOrNull: not null } crt } } }
+                ? crt : null;
+            if (cockpit is not null)
+            {
+                _cockpit ??= new LiveEntry();
+                UpdateEntry(_cockpit, cockpit, null, true, session.Game.Loop.Fraction);
+            }
+            else if (_cockpit?.Root is { } oldCockpit)
+            {
+                oldCockpit.Visible = false;
+            }
+        }
+
+        private void UpdateEntry(LiveEntry entry, RenderThing rt, Thing? thing, bool visible, float fraction)
+        {
+            if (!visible)
+            {
+                if (entry.Root is { } hidden)
+                {
+                    hidden.Visible = false;
+                }
+
+                return;
+            }
+
+            bool drawn = _drawnMeshes.TryGetValue(rt.Subject, out MeshData? selected);
+            MeshData mesh = selected ?? rt.Mesh;
+            var mech = (thing as BattleEngine)?.MotionController;
+            bool cached = drawn && rt.Pose is { LastFrame: >= 0 } pose
+                && mesh.Parts.All(p => p.PartNumber >= 0 && p.PartNumber < pose.NumParts);
+            bool bones = mech is not null && mesh.Parts.All(p => mech.GetPartTransform(p.PartNumber, fraction) is not null);
+            bool parts = thing is not OnslaughtRebuild.Parity.Things.Tree && (bones || cached);
+            bool tree = thing is OnslaughtRebuild.Parity.Things.Tree;
+
+            if (entry.Root is null || !ReferenceEquals(entry.Mesh, mesh) || entry.PartMode != parts || entry.Tree != tree)
+            {
+                Release(entry);
+                entry.Mesh = mesh;
+                entry.PartMode = parts;
+                entry.Tree = tree;
+                entry.Root = new Node3D { Name = mesh.HeaderName };
+                _parent.AddChild(entry.Root);
+                if (parts)
+                {
+                    foreach (MeshPart part in mesh.Parts)
+                    {
+                        if (!_owner._builtParts.TryGetValue((mesh, part.PartNumber), out ArrayMesh? partMesh))
+                        {
+                            partMesh = _owner.BuildMesh(mesh, part.PartNumber);
+                            _owner._builtParts[(mesh, part.PartNumber)] = partMesh;
+                        }
+
+                        if (partMesh is not null)
+                        {
+                            var node = new MeshInstance3D { Mesh = partMesh, Name = part.Name };
+                            entry.Root.AddChild(node);
+                            entry.Parts.Add(part.PartNumber, node);
+                        }
+                    }
+                }
+                else
+                {
+                    if (!_owner._built.TryGetValue((mesh, tree), out ArrayMesh? whole))
+                    {
+                        whole = _owner.BuildMesh(mesh, -1, tree);
+                        _owner._built[(mesh, tree)] = whole;
+                    }
+
+                    if (whole is not null)
+                    {
+                        entry.Root.AddChild(new MeshInstance3D { Mesh = whole });
+                    }
+
+                    if (thing is not OnslaughtRebuild.Parity.Things.Tree && !_warnedMissingPose)
+                    {
+                        _warnedMissingPose = true;
+                        GD.Print("HOST: live mesh without a core-drawn pose uses the snapshot's whole/rest mesh; distant imposters remain unsupported");
+                    }
+                }
+            }
+
+            entry.Root.Visible = true;
+            if (!parts)
+            {
+                entry.Root.Transform = Place(rt.Subject.RenderPos, rt.Subject.RenderOrientation);
+                return;
+            }
+
+            FVector subjectPos = rt.Subject.RenderPos;
+            FMatrix subjectOri = rt.Subject.RenderOrientation;
+            foreach ((int number, MeshInstance3D node) in entry.Parts)
+            {
+                if (bones && mech!.GetPartTransform(number, fraction) is { } bone)
+                {
+                    node.Visible = true;
+                    node.Transform = Place(bone.Pos, bone.Ori);
+                }
+                else
+                {
+                    // Read only: the core has already built this pose and applied all controller hooks.
+                    MeshPose read = rt.Pose!;
+                    node.Visible = (read.Frames[number] & 1) == 0;
+                    node.Transform = Place(subjectPos + subjectOri.Transform(read.Positions[number]),
+                        subjectOri.Multiply(read.Orientations[number]));
+                }
+            }
+        }
+
+        private static void Release(LiveEntry entry)
+        {
+            if (entry.Root is { } root)
+            {
+                root.GetParent()?.RemoveChild(root);
+                root.QueueFree();
+                entry.Root = null;
+            }
+
+            entry.Parts.Clear();
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            foreach (LiveEntry entry in _things.Values)
+            {
+                Release(entry);
+            }
+
+            _things.Clear();
+            _seen.Clear();
+            _drawnMeshes.Clear();
+            if (_cockpit is { } cockpit)
+            {
+                Release(cockpit);
+                _cockpit = null;
+            }
+        }
+
+        private sealed class LiveEntry
+        {
+            public MeshData? Mesh;
+            public Node3D? Root;
+            public bool PartMode, Tree;
+            public readonly Dictionary<int, MeshInstance3D> Parts = [];
+        }
+    }
 
     /// <summary>
     /// The thing's mesh as retail draws it: whole in its rest pose, or, for a thing with a motion controller, part by part
