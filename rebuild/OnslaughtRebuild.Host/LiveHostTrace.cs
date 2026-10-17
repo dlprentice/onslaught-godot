@@ -62,7 +62,7 @@ public sealed class LiveHostTrace : IDisposable
         Probe(ProbeCatalog.Score, Hex32(unchecked((uint)session.Game.Score)));
         Probe(ProbeCatalog.Level, Hex32(unchecked((uint)session.Game.CurrentLevel)));
         Probe(ProbeCatalog.Random, Hex32(unchecked((uint)session.Context.Random.Value)) + Hex32(unchecked((uint)session.Context.Random.Seed)));
-        BattleEngine? be = session.Game.GetPlayer(0)?.BattleEngine;
+        BattleEngine? be = session.Game.GetPlayer(0)?.BattleEngine as BattleEngine;
         Probe(ProbeCatalog.Position, be is null ? "null" : Vector(be.Pos));
         Probe(ProbeCatalog.LifeEnergy, be is null ? "null" : Floats(be.Life, be.Energy));
         var particles = session.Context.Particles?.Manager;

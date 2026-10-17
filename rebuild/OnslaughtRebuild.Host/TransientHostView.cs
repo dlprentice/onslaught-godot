@@ -68,10 +68,9 @@ internal sealed class TransientHostView : IDisposable
             Own(canvas.Material);
         }
 
-        using var children = node.GetChildren();
-        foreach (Node child in children)
+        for (int i = 0; i < node.GetChildCount(); i++)
         {
-            Collect(child);
+            Collect(node.GetChild(i));
         }
     }
 

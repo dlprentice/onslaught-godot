@@ -429,7 +429,7 @@ public partial class Host
         {
             var nodes = influence.Nodes.ToList();
             _battleLine ??= BattleLineData.Build(session.Context.Map, nodes);
-            _liveBattleLine = new TransientHostView(BattleLineView.Build(_battleLine, nodes, engine,
+            _liveBattleLine = new TransientHostView(BattleLineView.Build(_battleLine, nodes, engine as BattleEngine,
                 session.Context.World.ObjectiveThings.ToList(), session.Context.World.SquadNB.ToList(),
                 session.Context.Events.Time, _liveTextures!), ownsShaders: true);
             _view!.AddChild(_liveBattleLine.Node);
