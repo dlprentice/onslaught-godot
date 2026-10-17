@@ -32,12 +32,59 @@ public sealed partial class HudView : Node2D
     private Texture2D? _objective;
     private readonly List<(float A, float Radius, float Turn, uint Colour, Texture2D? Tex)> _sprites = [];
 
+    /// <summary>
+    /// Live-host texture ownership. The dial is immutable for a level; its inner ring's existing pixels are updated
+    /// once per Present. Dispose after freeing the HUD nodes which borrow these textures. Snapshot builds omit it.
+    /// </summary>
+    public sealed class TextureCache : IDisposable
+    {
+        private ImageTexture? _innerTexture;
+        private ImageTexture? _outerTexture;
+        private bool _disposed;
+
+        internal ImageTexture Outer(byte[]? dial)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            return _outerTexture ??= OuterRing(dial);
+        }
+
+        internal ImageTexture Inner(Image image)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_innerTexture is null)
+            {
+                _innerTexture = ImageTexture.CreateFromImage(image);
+            }
+            else
+            {
+                _innerTexture.Update(image);
+            }
+
+            return _innerTexture;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _innerTexture?.Dispose();
+            _outerTexture?.Dispose();
+            _innerTexture = null;
+            _outerTexture = null;
+        }
+    }
+
     /// <summary>The compass for one render, from the battle engine's state.</summary>
     public static HudView Build(BattleEngine be, TextureLibrary textures, IEnumerable<Thing> objectives, ref int lastHealth, ref int lastEnergy,
-        byte[]? dial, float fraction, IEnumerable<Thing>? units = null, AmmoEase? ammo = null, float renderFrameLength = 1.0f)
+        byte[]? dial, float fraction, IEnumerable<Thing>? units = null, AmmoEase? ammo = null, float renderFrameLength = 1.0f,
+        TextureCache? textureCache = null)
     {
         var view = new HudView { Name = "Hud" };
-        view._outer = OuterRing(dial);
+        view._outer = textureCache is null ? OuterRing(dial) : textureCache.Outer(dial);
         // GetInterpolatedEulerOrientation's yaw: the last update's towards this one's.
         view._outerYaw = be.OldEulerAngles.Yaw + ((be.CurrentOrientation.Yaw - be.OldEulerAngles.Yaw) * fraction);
         float initialLife = be.Configuration?.Life ?? 1.0f;
@@ -66,7 +113,7 @@ public sealed partial class HudView : Node2D
         lastEnergy = energy;
 
         // A4R4G4B4 rows: row 0 and the last clear; row 1 (the outer edge) brightest, fading towards the inner edge.
-        var image = Image.CreateEmpty(InnerWidth, InnerHeight, false, Image.Format.Rgba8);
+        using var image = Image.CreateEmpty(InnerWidth, InnerHeight, false, Image.Format.Rgba8);
         int row = 1;
         for (int n = InnerHeight - 2; n > 0; n--, row++)
         {
@@ -85,7 +132,7 @@ public sealed partial class HudView : Node2D
             }
         }
 
-        view._inner = ImageTexture.CreateFromImage(image);
+        view._inner = textureCache is null ? ImageTexture.CreateFromImage(image) : textureCache.Inner(image);
         view._barLine = textures.Get(@"hud\v2\BarLine.tga") ?? textures.Find(@"hud\v2\BarLine.tga", 0);
         view._objective = textures.Get(@"hud\v2\CompassObjectiveMarker.tga") ?? textures.Find(@"hud\v2\CompassObjectiveMarker.tga", 0);
 
@@ -417,7 +464,7 @@ public sealed partial class HudView : Node2D
         }
 
         int[] palette = [0, 0x2222, 0x2444, 0x2666];
-        var image = Image.CreateEmpty(512, 32, false, Image.Format.Rgba8);
+        using var image = Image.CreateEmpty(512, 32, false, Image.Format.Rgba8);
         for (int y = 0; y < 30; y++)
         {
             for (int x = 0; x < 512; x++)

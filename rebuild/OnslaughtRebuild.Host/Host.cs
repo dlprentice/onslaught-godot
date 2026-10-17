@@ -25,6 +25,20 @@ public partial class Host : Node
 
     public override void _Ready()
     {
+        if (System.Environment.GetEnvironmentVariable("HOST_LIVE") == "1")
+        {
+            try
+            {
+                ReadyLive();
+            }
+            catch (Exception e)
+            {
+                FailLive(e);
+                GetTree().Quit(1);
+            }
+            return;
+        }
+
         GameFiles files = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
         int present = int.TryParse(System.Environment.GetEnvironmentVariable("HOST_PRESENT"), out int n) ? n : 30;
         _capture = System.Environment.GetEnvironmentVariable("HOST_CAPTURE");
@@ -183,6 +197,19 @@ public partial class Host : Node
 
     public override void _Process(double delta)
     {
+        if (_liveMode)
+        {
+            try
+            {
+                ProcessLive(delta);
+            }
+            catch (Exception e)
+            {
+                FailLive(e);
+            }
+            return;
+        }
+
         if (_capture is null || _view is null)
         {
             return;
