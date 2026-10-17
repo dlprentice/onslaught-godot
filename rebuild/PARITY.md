@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot timing and keyboard preset application; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot timing, keyboard presets and deferred display-reset transaction; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -73,7 +73,7 @@ preserves all bytes. With no enabled joystick, every signed nonzero saved select
 records remain untouched. Retail repeats the same table for positive selectors above one; these
 idempotent passes are collapsed. Startup applies the saved preset after loading raw bindings, then
 blanks campaign progress; ordinary career selection still does not load those settings. Menu selection
-commits only on confirmation. Enabled-joystick preset effects, display Apply/reset and live UI
+commits only on confirmation. Enabled-joystick preset effects, the real display/resource reset and live UI
 acceptance remain open; this implements the current keyboard/mouse host, not joystick parity.
 
 The evidence is isolated execution of pristine retail table initializers 00514210/00453460/00453630,
@@ -86,6 +86,23 @@ outputs and root reproduction receipts are in bea-decomp's
 record outputs to those observations and tests menu confirmation, saved selectors from -32768 to
 32767, campaign reset and original-fixture preservation. `ControllerTests` checks the restored Up/W
 alternate binding. These are code and isolated-execution checks, not a retail UI playthrough.
+
+Display Apply transaction (2026-10-17): every changed menu setting now commits before the next
+platform Flip consumes a single process-owned reset request. Previously the first display setter
+threw immediately, leaving later settings unapplied. Static inspection of pristine `CVSync::SetValue`
+(004cf500) and `CPlatform::Flip` (004d2580) establishes the queue/return and Present/reset ordering:
+clear the request before resetting, and save current career/options only after a successful state-2
+reset. State 1 does not perform that save. A raw device Present, including the initial boot Present,
+does not consume the platform reset request. Career-load suppression reads the same request owner.
+
+`DisplayResetTests` exercises those paths, multi-setting Apply, reset failure and reentrant loading
+Presents, current bindings and selected-mode persistence, and preservation of all other bytes in the
+real tracked career fixture. The mode-key encoding follows `CDisplayModeKey::Set` (00420d10): low
+16-bit width, 15-bit height, and the format-classification bit; subsequent ordinary saves retain it.
+These are static-code and reconstruction-flow checks. **The Godot host still has no real
+device/resource/input reset handler** and fails explicitly at the correct reset boundary. The live
+ReadOptions path that can queue state 2 is also not implemented; its admission rule is tested through
+the explicit API. This milestone does not establish working display Apply in the running host.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
