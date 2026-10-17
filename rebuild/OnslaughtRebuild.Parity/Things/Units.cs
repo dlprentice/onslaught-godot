@@ -959,6 +959,9 @@ public sealed class Plane(ThingContext context) : AirUnit(context)
 /// <summary>CDropship (a CBigAirUnit): the U-17 transporter.</summary>
 public sealed class Dropship(ThingContext context) : AirUnit(context)
 {
+    /// <summary>CMCDropship, created by CDropship::Init (00446e96) before its guide and AI.</summary>
+    public DropshipMotionController? MotionController;
+
     /// <summary>CBigAirUnit::Hit (00403bf0), then CUnit's: a dying one explodes on a walkable thing (unless mUnknown11C).</summary>
     public override void Hit(Thing other, Collision.CollisionReport? report)
     {
@@ -999,7 +1002,7 @@ public sealed class Dropship(ThingContext context) : AirUnit(context)
             SetAnimMode(AnimModeByName("wingflat"), true, true);
         }
 
-        Context.Skip("CMCDropship (motion controller)");
+        MotionController = new DropshipMotionController(this);
         Guide = new DropshipGuide(this);
         AI = new DropshipAI(this, init);
         if (UnitData.EffectNames[3] is not null)

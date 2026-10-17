@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-17 (cannon part transforms and their pose/emitter consumers; deferred display-reset transaction and selected-mode encoding; real device/resource reset remains unsupported).
+Last updated: 2026-10-17 (cannon part transforms, dropship door frames and their pose/emitter consumers; deferred display-reset transaction and selected-mode encoding; real device/resource reset remains unsupported).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -114,6 +114,7 @@ package licence expression is `GPL-3.0-only`.
 | `Things/Unit.cs` (CUnit) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/CannonMotionController.cs`, the Cannon construction in `Things/Units.cs` and dispatch in `Things/Actor.cs` | `src/MCCannon.cpp` (`CMCCannon::GetPartTransform` 004952a0, saved-angle comparison 00495770), `src/Cannon.cpp` | GPL-3.0-or-later (not in Stuart's release). Turret yaw, barrel pitch and root-height interpolation use the existing part-transform owner; same-frame and forced/throttled pose scheduling are preserved. |
+| `Things/DropshipMotionController.cs`, Dropship construction/dispatch, the controller hook in `Mesh/MeshPart.cs` and uncached caller in `Mesh/MeshPose.cs` | `src/MCDropship.cpp` (`AdjustFrame` 00496100, saved-state comparison 00496200), `src/Dropship.cpp`, `src/MeshPart.cpp` (`ResolveFrameNumber` 004b24d0), `src/MeshPose.cpp` | GPL-3.0-only as combined (MeshPart/MeshPose adapt Stuart's release; MCDropship/Dropship are reconstructed GPL-3.0-or-later). Door animation frames only; landing, AI and thruster lifecycle are not added by this slice. |
 | `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
@@ -169,6 +170,21 @@ construction, cached pose and uncached emitter consumers. The retail pose caller
 discards the comparison's return value; it does not invalidate a same-frame pose or bypass the
 existing 30-frame/force gates. Private inputs, original-code harness and outputs remain under
 bea-decomp's ignored `local-data/scratch/codex-onslaught-20261017/cannon-controller/`.
+
+The dropship slice uses the same pristine specimen. `DropshipMotionControllerTests` compares
+1,800 complete isolated executions of unchanged 00496100 and its actual ASCII comparison
+helpers, with 19 input words per case. The cases cover door/non-door names, case variants,
+first/missing animation modes, states 5/7 versus others, global render fractions 0/0.25/0.5/1,
+old/current door values including subnormals, and large integer animation scalers/start frames.
+Final frame, saved state/open value and the pure 00496200 comparison agree bit for bit under
+x87 control word 007f. `ResolveFrameNumber` now invokes the existing controller hook in both
+branches, matching calls 004b2534 and 004b2591; the uncached caller still discards the fractional
+remainder, as 004b5103..004b511d does. Authored animated-door tests distinguish that path from
+interpolated cached poses and preserve same-frame refusal. The admitted Level 100 U-17 fixture
+confirms construction/dispatch and real emitter queries, but its `f_lifter.msh` has no
+Door-prefixed parts: it does not prove visible door movement. No live landing or graphics
+acceptance was run. Private harness, generator, inputs and results remain under bea-decomp's
+ignored `local-data/scratch/codex-onslaught-20261017/dropship-controller/`.
 
 ## Authority
 

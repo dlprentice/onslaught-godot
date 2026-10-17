@@ -11,8 +11,8 @@ namespace OnslaughtRebuild.Parity.Mesh;
 
 /// <summary>
 /// What the mesh code asks of the thing it draws (IRenderableThing): its animation, frame, placement and per-part
-/// hierarchy flag. Motion controllers are not ported yet: a subject that has one must say so, and the pose code refuses
-/// rather than evaluate without it.
+/// hierarchy flag. Supported motion controllers expose their part hooks; unmodeled controller behavior is explicitly
+/// refused instead of evaluating without it.
 /// </summary>
 public interface IRenderSubject
 {
@@ -28,13 +28,13 @@ public interface IRenderSubject
     /// <summary>GetRenderOrientation.</summary>
     FMatrix RenderOrientation { get; }
 
-    /// <summary>GetMotionController() != NULL.</summary>
+    /// <summary>Unsupported controller behavior remains: the pose code refuses it. Modeled hooks use PartController.</summary>
     bool HasMotionController { get; }
 
     /// <summary>RenderUseHierarchy(part number).</summary>
     bool RenderUseHierarchy(int partNumber);
 
-    /// <summary>The motion controller's part hooks, for the controllers the core models (a building's segments).</summary>
+    /// <summary>The motion controller's part hooks, for the controllers the core models.</summary>
     IPartController? PartController => null;
 }
 
@@ -232,7 +232,9 @@ public sealed class MeshPose
         }
 
         RequireNoMotionController(subject);
-        int frame = subject.RealAnimIndex >= 0 ? part.ResolveFrameNumber(subject.RenderFrame, subject.RealAnimIndex, out _) : 0;
+        int frame = subject.RealAnimIndex >= 0
+            ? part.ResolveFrameNumber(subject.RenderFrame, subject.RealAnimIndex, out _, subject.PartController)
+            : 0;
         part.GetWorldTransforms(frame, frame, 0, subject, out ori, out pos, local, uncached: false, statics);
     }
 

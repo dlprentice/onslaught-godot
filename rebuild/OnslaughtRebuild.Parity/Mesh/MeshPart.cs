@@ -309,10 +309,10 @@ public sealed class MeshPart
     }
 
     /// <summary>
-    /// ResolveFrameNumber with no motion controller: the animation's frame for <paramref name="time"/>, wrapped to the
-    /// part's frames, and the fraction past it.
+    /// ResolveFrameNumber: the animation's frame for <paramref name="time"/>, adjusted by its controller before
+    /// flooring (and wrapping for animated parts), and the fraction past it.
     /// </summary>
-    public int ResolveFrameNumber(float time, int anim, out float fraction)
+    public int ResolveFrameNumber(float time, int anim, out float fraction, IPartController? controller = null)
     {
         int f;
         float part;
@@ -322,12 +322,14 @@ public sealed class MeshPart
             float frame = time;
             frame *= a.FrameScaler;
             frame += a.Start;
+            controller?.AdjustFrame(this, ref frame); // 004b2534, before floor and modulo.
             f = X87.Fist(Math.Floor(frame)) % NumVFrames;
             part = frame - MathF.Floor(frame);
         }
         else
         {
             float frame = 0;
+            controller?.AdjustFrame(this, ref frame); // 004b2591, also when the normal animation is absent.
             f = X87.Fist(Math.Floor(frame));
             part = frame - MathF.Floor(frame);
         }
