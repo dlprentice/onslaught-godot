@@ -19,7 +19,7 @@ namespace OnslaughtRebuild.Host;
 /// </summary>
 public static class TerrainView
 {
-    private const string Shader = """
+    internal const string Shader = """
         shader_type spatial;
         render_mode unshaded, cull_disabled, fog_disabled;
         // Retail blends in gamma space, and this host's output is not converted from linear (the Compatibility
@@ -91,17 +91,17 @@ public static class TerrainView
     /// at full resolution.)
     /// </summary>
     public static int[] ChooseLevels(HeightField map, LandscapeView view, int maxLevels = 5)
+        => ChooseLevels(TileMidHeights(map), view, maxLevels);
+
+    // HeightField is immutable for this host slice. The live owner computes these 4096 bounds once, preserving
+    // the same wrapped Collide samples and floating-point order as the snapshot selector.
+    internal static float[] TileMidHeights(HeightField map)
     {
-        var levels = new int[4096];
-        FVector cam = view.LastPos;
-        FVector look = view.Look;
+        var mid = new float[4096];
         for (int y = 0; y < 64; y++)
         {
-            float camY = cam.Y + (y * 8.0f);
-            float dy2 = camY * camY;
             for (int x = 0; x < 64; x++)
             {
-                float camX = cam.X + (x * 8.0f);
                 float lo = 10000.0f;
                 float hi = -10000.0f;
                 for (int j = 0; j <= 8; j++)
@@ -114,7 +114,26 @@ public static class TerrainView
                     }
                 }
 
-                float dz = cam.Z + ((lo + hi) * 0.5f);
+                mid[(y * 64) + x] = (lo + hi) * 0.5f;
+            }
+        }
+
+        return mid;
+    }
+
+    internal static int[] ChooseLevels(float[] midHeights, LandscapeView view, int maxLevels = 5)
+    {
+        var levels = new int[4096];
+        FVector cam = view.LastPos;
+        FVector look = view.Look;
+        for (int y = 0; y < 64; y++)
+        {
+            float camY = cam.Y + (y * 8.0f);
+            float dy2 = camY * camY;
+            for (int x = 0; x < 64; x++)
+            {
+                float camX = cam.X + (x * 8.0f);
+                float dz = cam.Z + midHeights[(y * 64) + x];
                 float dz2 = dz * dz;
                 float dist2 = (camX * camX) + dz2 + dy2;
                 int tex = 0;
@@ -151,6 +170,12 @@ public static class TerrainView
 
     private static ImageTexture CacheTexture(ushort[] texels, int side)
     {
+        using Image cache = CacheImage(texels, side);
+        return ImageTexture.CreateFromImage(cache);
+    }
+
+    internal static Image CacheImage(ushort[] texels, int side)
+    {
         var bytes = new byte[texels.Length * 3];
         for (int i = 0; i < texels.Length; i++)
         {
@@ -162,8 +187,15 @@ public static class TerrainView
 
         Image cache = Image.CreateFromData(side, side, false, Image.Format.Rgb8, bytes);
         cache.GenerateMipmaps();
-        return ImageTexture.CreateFromImage(cache);
+        return cache;
     }
+
+    /// <summary>
+    /// Retained terrain for the live host. Geometry is sampled once; texture cache membership and dirty chunks
+    /// follow the same per-tile levels as Build. Dispose it before releasing the level's texture library.
+    /// </summary>
+    public static TerrainLiveView BuildLive(HeightField map, TerrainTexture terrain, TextureLibrary textures,
+        int[] tileLevels, Vector2 cloudDrift) => new(map, terrain, textures, tileLevels, cloudDrift);
 
     /// <summary>The landscape: one surface per texture level in use, each with its cache and scale.</summary>
     public static Node3D Build(HeightField map, TerrainTexture terrain, TextureLibrary textures, int[] tileLevels, Vector2 cloudDrift)
