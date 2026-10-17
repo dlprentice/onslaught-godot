@@ -5,8 +5,8 @@ using Godot;
 namespace OnslaughtRebuild.Host;
 
 /// <summary>
-/// Owns one HUD/battle-line/particle render's nodes, meshes and materials. It never owns textures or shaders: those
-/// may be borrowed from the level cache. The live host replaces these bounded subtrees once per parity Present;
+/// Owns one HUD/battle-line/particle render's nodes, meshes and materials. It never owns textures; shaders are
+/// borrowed unless explicitly opted in for the battle line's newly created shader. The live host replaces these bounded subtrees once per parity Present;
 /// terrain, actors, water, surf and HUD/battle-line textures have longer-lived owners.
 /// </summary>
 internal sealed class TransientHostView : IDisposable
@@ -68,7 +68,8 @@ internal sealed class TransientHostView : IDisposable
             Own(canvas.Material);
         }
 
-        foreach (Node child in node.GetChildren())
+        using var children = node.GetChildren();
+        foreach (Node child in children)
         {
             Collect(child);
         }

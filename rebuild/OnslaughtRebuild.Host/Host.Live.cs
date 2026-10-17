@@ -107,12 +107,17 @@ public partial class Host
             BuildLiveScene(surf);
         }
 
-        _liveInput = new HostInputAdapter(_liveSession.Input.Input, _liveSession.Input.Mouse);
         _liveWindow = GetWindow();
         _liveWindow.FocusEntered += LiveFocusEntered;
         _liveWindow.FocusExited += LiveFocusExited;
         _liveFocused = _liveWindow.HasFocus();
-        _liveInput.SetFocused(_liveFocused && !_liveReplay);
+        if (!_liveReplay)
+        {
+            // Even focus-release adapters mutate held/queued platform input. Replay therefore has no adapter,
+            // so losing window focus cannot clear keys or relative motion delivered by the tape.
+            _liveInput = new HostInputAdapter(_liveSession.Input.Input, _liveSession.Input.Mouse);
+            _liveInput.SetFocused(_liveFocused);
+        }
         UpdateLivePresentation();
         _liveTrace?.Write(_liveSession);
         CheckLiveEnd();
