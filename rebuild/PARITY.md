@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot timing, control/display transactions and cannon motion controller; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot timing, control/display transactions and cannon/dropship motion controllers; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -122,7 +122,27 @@ No reference expectation was changed. Private inputs, oracle, hashes and root re
 `bea-decomp/local-data/scratch/codex-onslaught-20261017/cannon-controller/`; the suite receipt is
 `local-data/test-runs/cannon-controller-20261017/root-full.trx` in the internal rebuild clone.
 These are bounded original-code and reconstruction checks, not a live retail playthrough or Godot
-visual acceptance. Dropship, BattleEngine and Buggy controllers remain separate work.
+visual acceptance. BattleEngine and Buggy controllers remain separate work.
+
+Dropship motion controller (2026-10-17): `CMCDropship::AdjustFrame` (00496100) now
+adjusts door animation frames through both cached poses and uncached emitters. It selects the first
+case-insensitive opening/closing mode, uses the global render fraction, and preserves the original
+integer-load and x87 arithmetic order. Non-door parts leave controller state untouched; a missing
+mode leaves the frame untouched but updates the saved door state. `ResolveFrameNumber` now calls
+the adjustment hook in both its animated and fallback branches, as retail does at 004b2534/004b2591.
+Existing same-frame and 30-frame pose-cache gates remain intact.
+
+Root independently rebuilt the original-code oracle and reproduced **1,800 cases**, each comparing
+19 output words, then ran the integrated Parity suite: **388 passed, 9 existing optional-reference
+skips, 0 failed**. All 12 added cases executed. Tests exercise opening/closing, missing modes,
+non-door parts, integer frame parameters, global interpolation, cache behavior and emitter consumers.
+The real Level-100 U-17 uses `f_lifter.msh`, whose 21 parts contain no door-prefix names: that fixture
+proves controller wiring and unchanged non-door behavior, not a visible tutorial door correction.
+Active door animation uses an authored mesh fixture through the existing mesh reader and emitter path.
+Landing behavior remains separate. Private original-code inputs, hashes and root reproduction are in
+`bea-decomp/local-data/scratch/codex-onslaught-20261017/dropship-controller/`; the integrated suite is
+`local-data/test-runs/dropship-controller-20261017/root-full.trx` in the internal rebuild clone.
+These are bounded original-code and reconstruction checks, not live Godot or retail visual acceptance.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
