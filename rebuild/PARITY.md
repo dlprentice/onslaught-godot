@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot timing, control/display transactions cannon/dropship motion controllers and front-end particles; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot timing, control/display transactions, cannon/dropship motion controllers, front-end particles and experimental live host; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -166,6 +166,37 @@ receipts are in `local-data/test-runs/frontend-particles-20261017/` in the inter
 This completes this front-end simulation/lifecycle slice, not its Godot drawing or full particle
 numerical parity. General particle-motion arithmetic and retail heap values for not-yet-shown
 goodies remain explicit limits. No live retail or Godot visual acceptance is claimed here.
+
+Experimental live Level 100 host (2026-10-17, M7 remains incomplete): `HOST_LIVE=1` retains
+one parity session and advances fixed Presents, with retained terrain/object/water/surf views and
+ordinary keyboard/mouse input. The preview uses silent virtual voice timing. A supplied `HOST_TAPE`
+exclusively owns input; untaped focus loss suspends pacing and discards held/pending input. The
+limited pause view permits resume and blocks hidden settings navigation. Default snapshot mode
+remains the default. Front-end navigation, debrief/retry and actual audio are not in this host slice.
+
+The integrated closeout suite passes **397 tests, 9 existing optional-reference skips, 0 failures**.
+Root reproduced 19 adapter checks and the retained-terrain comparison (1,572,864 level selections,
+6,291,456 expanded indices, 1,048,576 cache texels, four reversed-order negative controls). Six GPU
+runs exited zero offscreen. Default snapshots at Presents 30 and 3900 are pixel-identical to the
+prior snapshot implementation. Drawing on/off and a standalone headless session agree on every
+recorded seven-probe and extended-state field through Present 4020 (4,018 records from Present 3;
+four comparison negative controls reject changes). This is selected-state equality, not proof of
+all simulation state or retail visual parity.
+
+The live images differ from snapshot mode in 4,701 pixels at Present 30 and 7,464 at Present 3900.
+Root inspection shows missing trees in the live view. Investigate `MeshView.LiveSet`'s whole-mesh
+placement: the tree render subject has a default placement while the snapshot uses each Thing's
+position/orientation. No correction or pixel parity is claimed at this checkpoint. A 124-frame,
+640x480, 30fps movie of Presents 3900-4020 plus settling frames was recorded; full moving-footage
+review, longer resource-growth/performance checks and actual Godot event delivery remain pending.
+The real-LevelSession adapter checks cover same-batch pause/resume and focus loss after the pan;
+skipping the initial pan remains unsupported on this integrated head (a separate helper commit is
+pending integration). The UI qualifies the early-pan control limitation.
+
+Private runs and comparisons are under
+`bea-decomp/local-data/scratch/codex-onslaught-20261017/live-host/`; headless trace, build and suite
+records are in `local-data/test-runs/live-host-20261017/` of the internal rebuild clone. This is an
+opt-in experimental implementation and safe resume point, not completed M7 or full tutorial acceptance.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
