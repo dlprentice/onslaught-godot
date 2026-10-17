@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-15 (proof of concept: the parity core may adapt bea-decomp source, recorded per unit below; earlier claims keep their dated evidence).
+Last updated: 2026-10-17 (deferred display-reset transaction and selected-mode encoding; real device/resource reset remains unsupported).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -138,6 +138,7 @@ package licence expression is `GPL-3.0-only`.
 | `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
+| `Platform/DisplayReset.cs`, `Clock/PlatformClock.cs` (deferred reset after platform Flip; state 2 saves only after success), `Flow/Menus/MachineDisplay.cs` (Apply queues a reset; current mode key) | `src/Platform.cpp` (`CPlatform::Flip` 004d2580), `src/Career.cpp` (`ReadOptions` 00420d70, `CDisplayModeKey::Set` 00420d10), `src/PauseMenu.cpp` (`DisplaySettingChanged`) | GPL-3.0-only (Platform.cpp/Career.cpp adapt Stuart's release; retail additions reconstructed in bea-decomp). Only the transaction is implemented: host device/resource/input reset and live ReadOptions integration remain unsupported. |
 | `Events/EventManager.cs` (the scheduler: pool, buffers, overflow, AddEvent, AdvanceTime, Flush; CScheduledEvent) | `src/eventmanager.cpp`, `src/eventmanager.h`, `src/scheduledevent.cpp`, `src/scheduledevent.h` | GPL-3.0-only (in Stuart's release) |
 | `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only (in Stuart's release) |
 | `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent; CFearGrid creation in InitRestartLoop, game.cpp:505; SFrontEndSettings fields) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |

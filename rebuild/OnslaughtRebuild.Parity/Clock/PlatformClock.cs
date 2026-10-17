@@ -58,8 +58,21 @@ public sealed class PlatformClock
     /// <summary>CPCPlatform::mClockDivisor (+0x10): 1.0f, set when the platform starts.</summary>
     public float ClockDivisor { get; set; } = 1.0f;
 
-    /// <summary>A Present call returning: the shim's frame counter moves and its spin count restarts.</summary>
+    /// <summary>The process's deferred display-reset request, independent of any one menu or level.</summary>
+    public Platform.DisplayReset DisplayReset { get; } = new();
+
+    /// <summary>CPlatform::Flip: DeviceFlip's Present and callbacks, then the deferred display reset.</summary>
     public void Present()
+    {
+        PresentDevice();
+        DisplayReset.CompletePlatformFlip();
+    }
+
+    /// <summary>
+    /// A raw device Present, including the first one during device creation: advance the replay clock and report its
+    /// return. It does not execute CPlatform::Flip's reset tail. Normal game/loading/front-end flips use Present().
+    /// </summary>
+    public void PresentDevice()
     {
         FrameTimerFrame();
         PresentCount++;

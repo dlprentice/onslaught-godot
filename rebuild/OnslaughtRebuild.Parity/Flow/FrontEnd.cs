@@ -143,6 +143,8 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         Clock = clock;
         Timing = timing;
         Controls = controls;
+        Machine = new Menus.MachineDisplay(clock.DisplayReset);
+        clock.DisplayReset.SaveDefaultOptions = SaveOptionsAfterDisplayReset;
         MessageBox = new FrontEndMessageBox(this);
         for (int page = 0; page < _pages.Length; page++) _pages[page] = new InertPage();
     }
@@ -269,14 +271,15 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// <summary>The load page (<c>mFEPLoadGame</c>), once registered.</summary>
     public Pages.LoadGamePage? LoadGame { get; set; }
 
-    /// <summary><c>gDisplayResetState</c> (0082b5b0): set while the display settings are being reset; then a load does not rewrite the options file.</summary>
-    public bool DisplayResetState { get; set; }
-
     /// <summary>
     /// <c>CFEPOptions::WriteDefaultOptionsFile</c> (0x0051f680): writes <c>defaultoptions.bea</c> with these bytes (a
-    /// failure is only logged); from the host.
+    /// failure is only logged); from the host. This and WriteDefaultOptionsFile name the same output sink.
     /// </summary>
-    public Action<byte[]>? WriteDefaultOptions { get; set; }
+    public Action<byte[]>? WriteDefaultOptions
+    {
+        get => WriteDefaultOptionsFile;
+        set => WriteDefaultOptionsFile = value;
+    }
 
     /// <summary>The storage-device page (<c>mFEPDevSelect</c>), once registered.</summary>
     public Pages.DevSelectPage? DevSelect { get; set; }
@@ -330,7 +333,17 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     bool Menus.IMenuHost.IsCheatActive(int cheat) => Pages.SaveGamePage.CheatActive(SaveGameName, AllCheatsEnabled, cheat);
 
     /// <summary>The display and joysticks the options' display and controls lists read (the port's harness by default).</summary>
-    public Menus.MachineDisplay Machine { get; } = new();
+    public Menus.MachineDisplay Machine { get; }
+
+    private void SaveOptionsAfterDisplayReset()
+    {
+        // WriteOptions refreshes gDisplayModeKey too; subsequent ordinary saves must retain this selected mode.
+        Menus.IMenuHost host = this;
+        host.Options = host.Options with { DisplayModeKey = Machine.CurrentModeKey };
+        byte[] image = OnslaughtRebuild.Parity.Career.CareerSaveGame.Save(Career, Controls.Bindings.SaveConfigurable(), host.Options);
+        (WriteDefaultOptionsFile ?? throw new NotSupportedException(
+            "state-2 reset persistence requires a defaultoptions.bea output owner"))(image);
+    }
 
     void Menus.IMenuHost.SaveFromPause()
     {

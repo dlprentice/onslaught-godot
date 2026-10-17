@@ -11,9 +11,13 @@ namespace OnslaughtRebuild.Parity.Flow.Menus;
 /// one adapter, three 4:3 modes with flags 0x2bf, pixel shader 3.0, no joysticks. The mode list is the harness's: a
 /// real display lists others, so references through these lists hold for that configuration only.
 /// </summary>
-public sealed class MachineDisplay
+public sealed class MachineDisplay(Platform.DisplayReset reset)
 {
-    /// <summary>A display mode: its size and flags (D3DModeInfo +0x10: bit 2 allows 32-bit textures, bits 5-9 the multisample types).</summary>
+    /// <summary>
+    /// A display mode: size and flags (D3DModeInfo +0x10: bit 2 allows 32-bit textures, bits 5-9 multisample types).
+    /// Bits32 is the format classification used by CDisplayModeKey::Set: D3DFMT_R8G8B8/A8R8G8B8/X8R8G8B8
+    /// (20/21/22) are true; other formats are false. It is not inferred from the dimensions or texture flags.
+    /// </summary>
     public sealed record Mode(int Width, int Height, int Flags, bool Bits32);
 
     /// <summary>LT.m_dwNumAdapters.</summary>
@@ -70,25 +74,28 @@ public sealed class MachineDisplay
     /// <summary>LT.mJoypads.</summary>
     public int Joypads { get; init; }
 
-    /// <summary>gDisplayResetState: an applied display setting asks for the display to be reset.</summary>
-    public bool DisplayResetRequested { get; private set; }
+    /// <summary>The process-wide request; this is the clock's owner, not a menu-local copy.</summary>
+    public Platform.DisplayReset Reset { get; } = reset;
 
     /// <summary>sDisplayApplied (00631170): the apply count the display last reset for.</summary>
     private int _displayApplied = -1;
 
     public Mode CurrentModeInfo => Modes[CurrentMode];
 
+    /// <summary>CCareer::WriteOptions obtains the mode key from the currently selected device mode.</summary>
+    public uint CurrentModeKey => ((uint)CurrentModeInfo.Width & 0xffffu) | (((uint)CurrentModeInfo.Height & 0x7fffu) << 16)
+        | (CurrentModeInfo.Bits32 ? 0x80000000u : 0u);
+
     /// <summary>
-    /// DisplaySettingChanged: once per apply, the display is asked to reset. The reset (CD3DApplication's device reset
-    /// and what it reloads) is not ported, so a run that applies a display setting stops here.
+    /// DisplaySettingChanged: once per Apply serial, queue state 1 and return so every setting commits. The next
+    /// platform Flip performs the reset; a host without device/resource reset support fails at that boundary.
     /// </summary>
     public void DisplaySettingChanged()
     {
         if (_displayApplied != ApplyMenuItem.ApplyCount)
         {
-            DisplayResetRequested = true;
+            Reset.RequestApply();
             _displayApplied = ApplyMenuItem.ApplyCount;
-            throw new NotSupportedException("an applied display setting resets the display (gDisplayResetState), which is not ported");
         }
     }
 }

@@ -89,7 +89,7 @@ public sealed class LoadGamePage(FrontEnd frontEnd) : FrontEndPageBase
     /// <summary>
     /// <c>CFEPLoadGame::StartLoad</c> (0x00461e20). The name goes to the save page (the next save's name) and the
     /// keyboard. A whole save loads into the career to play (the volumes kept, the bindings and options not read); on
-    /// success the loaded file is also written as <c>defaultoptions.bea</c> (unless the display is being reset), and on
+    /// success the loaded file is also written as <c>defaultoptions.bea</c> (unless a display reset is pending), and on
     /// a wrong version or a failed read the page returns to the main menu with a message.
     /// </summary>
     public void StartLoad()
@@ -113,7 +113,7 @@ public sealed class LoadGamePage(FrontEnd frontEnd) : FrontEndPageBase
                 Show(60, MessageBoxOption.None, Text.LoadDone);
                 frontEnd.SetPage(frontEnd.SuccessPage, frontEnd.SuccessTransitionTime);
                 frontEnd.AutoSave = AutoSaveMode.Normal;
-                if (!frontEnd.DisplayResetState) frontEnd.WriteDefaultOptions?.Invoke(buffer);
+                if (frontEnd.Clock.DisplayReset.Pending == Platform.DisplayResetRequest.None) frontEnd.WriteDefaultOptions?.Invoke(buffer);
             }
         }
         else

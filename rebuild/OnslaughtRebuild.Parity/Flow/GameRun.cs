@@ -93,7 +93,7 @@ public sealed class GameRun : ISystemParts
         // The device makes Present 1 before CSystem::Init. Its first call with a non-zero QPC frequency then
         // establishes GetSysTimeFloat's origin, before the films (port clock traces, 2026-10-17). Setting the origin
         // before this Present shifts the full-boot clock by 333,333 ticks and changes the front-end filter at P2289.
-        Clock.Present();
+        Clock.PresentDevice();
         Clock.GetSysTimeFloat();
         if (!_skipFmv)
         {

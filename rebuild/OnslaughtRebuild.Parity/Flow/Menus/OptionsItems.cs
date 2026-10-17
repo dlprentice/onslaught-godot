@@ -316,7 +316,7 @@ public static class OptionsLists
         var detail = new VideoDetailLevelMenuItem(host);
         list.AddItem(detail);
         detail.Resolution = Add(list, new OptionMenuItem(host, 0x13, true, () => m.Modes.Count, () => m.CurrentMode,
-            v => { m.CurrentMode = v; m.DisplaySettingChanged(); }));
+            v => { m.CurrentMode = v; host.Options = host.Options with { DisplayModeKey = m.CurrentModeKey }; m.DisplaySettingChanged(); }));
         detail.ShadowDetail = Add(list, new OptionMenuItem(host, 0xe, false, () => 3, () => OptionSettings.GetShadowDetail(host.Options),
             v => host.Options = OptionSettings.SetShadowDetail(host.Options, v)));
         detail.TreeDetail = Add(list, new OptionMenuItem(host, 0xf, false, () => 3, () => OptionSettings.GetQualityLevel(host.Options),

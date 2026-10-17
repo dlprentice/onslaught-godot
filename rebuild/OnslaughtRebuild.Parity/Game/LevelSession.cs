@@ -60,7 +60,7 @@ public sealed class LevelSession
             _started = true;
             if (!FromFrontEnd)
             {
-                Clock.Present();
+                Clock.PresentDevice();
                 Clock.GetSysTimeFloat();
                 Clock.Present();
             }
