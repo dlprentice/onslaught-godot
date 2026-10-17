@@ -386,7 +386,7 @@ public static class BattleLineView
             cols[i] = new Color(u, 0, 0, 1);
         }
 
-        var arrays = new Godot.Collections.Array();
+        using var arrays = new Godot.Collections.Array();
         arrays.Resize((int)Mesh.ArrayType.Max);
         arrays[(int)Mesh.ArrayType.Vertex] = verts;
         arrays[(int)Mesh.ArrayType.TexUV] = uvs;

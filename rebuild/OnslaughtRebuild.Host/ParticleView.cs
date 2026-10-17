@@ -34,58 +34,70 @@ public static class ParticleView
     public static Node3D Build(ParticleManager manager, TextureLibrary textures, FVector campos, FMatrix cori, float eventTime)
     {
         var buffers = new Dictionary<ParticleTexture, SurfaceTool>();
-        // The camera's Y column is its look direction (named up in retail's drawing).
-        FVector up = new(cori.Row0.Y, cori.Row1.Y, cori.Row2.Y);
-        FVector right = new(cori.Row0.X, cori.Row1.X, cori.Row2.X);
-        FVector back = new(-cori.Row0.Z, -cori.Row1.Z, -cori.Row2.Z);
-        for (ParticleDescriptor? pd = manager.Set.FirstNode; pd is not null; pd = pd.NodeNext)
+        try
         {
-            if (pd is PdSimpleSprite { Texture: { } texture } sprite)
+            // The camera's Y column is its look direction (named up in retail's drawing).
+            FVector up = new(cori.Row0.Y, cori.Row1.Y, cori.Row2.Y);
+            FVector right = new(cori.Row0.X, cori.Row1.X, cori.Row2.X);
+            FVector back = new(-cori.Row0.Z, -cori.Row1.Z, -cori.Row2.Z);
+            for (ParticleDescriptor? pd = manager.Set.FirstNode; pd is not null; pd = pd.NodeNext)
+            {
+                if (pd is PdSimpleSprite { Texture: { } texture } sprite)
+                {
+                    if (!buffers.TryGetValue(texture, out SurfaceTool? st))
+                    {
+                        st = new SurfaceTool();
+                        st.Begin(Mesh.PrimitiveType.Triangles);
+                        buffers[texture] = st;
+                    }
+
+                    Sprites(manager, sprite, st, campos, up, right, back, eventTime);
+                }
+            }
+
+            var root = new Node3D { Name = "Particles" };
+            _shader ??= new Shader { Code = Shader };
+            int priority = 0;
+            foreach (ParticleTexture texture in manager.Set.Textures)
             {
                 if (!buffers.TryGetValue(texture, out SurfaceTool? st))
                 {
-                    st = new SurfaceTool();
-                    st.Begin(Mesh.PrimitiveType.Triangles);
-                    buffers[texture] = st;
+                    continue;
                 }
 
-                Sprites(manager, sprite, st, campos, up, right, back, eventTime);
-            }
-        }
+                using Godot.Collections.Array arrays = st.CommitToArrays();
+                if (((Vector3[])arrays[(int)Mesh.ArrayType.Vertex]).Length == 0)
+                {
+                    continue;
+                }
 
-        var root = new Node3D { Name = "Particles" };
-        _shader ??= new Shader { Code = Shader };
-        int priority = 0;
-        foreach (ParticleTexture texture in manager.Set.Textures)
+                int format = texture.Mode is 2 or 3 ? 2 : 5;
+                ImageTexture? image = textures.Find(texture.GamePath, format);
+                if (image is null)
+                {
+                    GD.Print($"HOST: no particle texture {texture.GamePath}");
+                    continue;
+                }
+
+                var mesh = new ArrayMesh();
+                mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+                var material = new ShaderMaterial { Shader = _shader, RenderPriority = Math.Min(priority++, 127) };
+                material.SetShaderParameter("sprite", image);
+                mesh.SurfaceSetMaterial(0, material);
+                root.AddChild(new MeshInstance3D { Mesh = mesh, Name = texture.GamePath });
+            }
+
+            return root;
+        }
+        finally
         {
-            if (!buffers.TryGetValue(texture, out SurfaceTool? st))
+            // These native geometry builders are not attached to the returned subtree. Free even empty/missing
+            // texture builders and failed builds here; TransientHostView can only own the finished resources.
+            foreach (SurfaceTool buffer in buffers.Values)
             {
-                continue;
+                buffer.Dispose();
             }
-
-            Godot.Collections.Array arrays = st.CommitToArrays();
-            if (((Vector3[])arrays[(int)Mesh.ArrayType.Vertex]).Length == 0)
-            {
-                continue;
-            }
-
-            int format = texture.Mode is 2 or 3 ? 2 : 5;
-            ImageTexture? image = textures.Find(texture.GamePath, format);
-            if (image is null)
-            {
-                GD.Print($"HOST: no particle texture {texture.GamePath}");
-                continue;
-            }
-
-            var mesh = new ArrayMesh();
-            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-            var material = new ShaderMaterial { Shader = _shader, RenderPriority = Math.Min(priority++, 127) };
-            material.SetShaderParameter("sprite", image);
-            mesh.SurfaceSetMaterial(0, material);
-            root.AddChild(new MeshInstance3D { Mesh = mesh, Name = texture.GamePath });
         }
-
-        return root;
     }
 
     private static void Sprites(ParticleManager m, PdSimpleSprite pd, SurfaceTool st, FVector campos, FVector up, FVector right,
