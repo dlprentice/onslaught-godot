@@ -212,13 +212,17 @@ public sealed class PageTests
         p.FrontEnd.Career.Record.SetNodeComplete(p.FrontEnd.Career.GetNodeFromWorldNo(800), 1);
         CrtRand crt = new();
         p.FrontEnd.Crt = crt;
+        FrontEndParticleTests.ConfigureMinimal(p.FrontEnd);
         p.FrontEnd.Begin(FrontEndPage.Main);
         // From a seed of 1, rand() gives 41, 18467, 6334, then 26500: the fourth is a multiple of 50 and launches a
-        // firework, whose particle draws are not modelled yet.
+        // firework. Its emitter initialisation then consumes the seventh draw.
         for (int frame = 0; frame < 3; frame++) p.FrontEnd.Step();
         Assert.Equal(3, crt.MainThread.Calls);
-        Assert.Throws<NotSupportedException>(() => p.FrontEnd.Step());
-        Assert.Equal(6, crt.MainThread.Calls);
+        p.FrontEnd.Step();
+        Assert.Equal(7, crt.MainThread.Calls);
+        var firework = p.FrontEnd.Particles!.Manager.Particles!;
+        Assert.Equal("Firework Explosion Blue Effect", firework.PD!.Name);
+        Assert.Equal(new OnslaughtRebuild.Parity.Maths.FVector(-1.5625f, 0, -1.2109375f), firework.Pos);
     }
 
     [Fact]

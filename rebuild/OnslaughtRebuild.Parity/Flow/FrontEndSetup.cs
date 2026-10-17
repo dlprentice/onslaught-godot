@@ -7,6 +7,7 @@ using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Data;
 using OnslaughtRebuild.Parity.Flow.Pages;
 using OnslaughtRebuild.Parity.Physics;
+using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Platform;
 using OnslaughtRebuild.Parity.Text;
 
@@ -48,7 +49,8 @@ public static class FrontEndSetup
         Func<string, (string Name, byte[] Bytes)> read, Func<int, string>? pcText, out CareerOptions? options,
         IFrontEndVideo? video = null)
     {
-        FrontEnd frontEnd = new(clock, new FrontEndTiming(), controls);
+        // A standalone front end owns one CRT; GameRun supplies its shared process owner before Init.
+        FrontEnd frontEnd = new(clock, new FrontEndTiming(), controls) { Crt = new Crt.CrtRand() };
         CareerOptions? loaded = null;
         try
         {
@@ -60,6 +62,7 @@ public static class FrontEndSetup
 
         options = loaded;
         frontEnd.ReadDataFile = path => read(path).Bytes;
+        frontEnd.LoadParticles = fe => FrontEndParticles.Load(fe, read);
         frontEnd.CurrentOptions = () => loaded ?? CareerOptions.Read(new byte[CareerOptions.Size]);
         frontEnd.SetOptions = o => loaded = o;
         frontEnd.Video = video ?? new NoFrontEndVideo();

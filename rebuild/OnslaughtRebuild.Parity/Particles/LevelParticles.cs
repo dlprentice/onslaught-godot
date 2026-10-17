@@ -27,10 +27,10 @@ public sealed class LevelParticles : IParticleWorld
     private float _lastRenderFrameTime = -1.0f;
     private (FVector Pos, FMatrix Orientation)? _camera;
 
-    public LevelParticles(ThingContext context, ParticleSet set)
+    public LevelParticles(ThingContext context, ParticleSet set, ParticleProcessState? state = null)
     {
         _context = context;
-        Manager = new ParticleManager(set, context.Crt, this);
+        Manager = new ParticleManager(set, context.Crt, this, state);
         World = new Render.WorldRender(context);
         _sunPD = set.GetPD(SunSprite);
     }
@@ -41,7 +41,7 @@ public sealed class LevelParticles : IParticleWorld
     public Render.WorldRender World { get; private set; } = null!;
 
     /// <summary>The 32 x 32 fractal noise the sprites are drawn with (-1..1), once built.</summary>
-    public float[]? Noise { get; set; }
+    public float[]? Noise { get => Manager.State.Noise; set => Manager.State.Noise = value; }
 
     public float EventTime => _context.Events.Time;
 
@@ -63,6 +63,7 @@ public sealed class LevelParticles : IParticleWorld
     public void Render(int numRenders)
     {
         Game.Game game = _context.Game ?? throw new InvalidOperationException("particles render without a game");
+        Manager.State.RenderFraction = game.Loop.Fraction;
         // VC6 folds the division by CLOCK_TICK into a multiplication by its reciprocal (20): the port's per-render
         // new_time agrees with the product at the last bit where the quotient does not (fe-lose P4942, P4943).
         float newTime = (_context.Events.Time + (game.Loop.Fraction * ClockTick)) * (1.0f / ClockTick);
@@ -102,25 +103,7 @@ public sealed class LevelParticles : IParticleWorld
             }
         }
 
-        // RenderOther: each live descriptor but the meshes draws; a sprite descriptor builds the noise table first, and
-        // a procedural mesh does for each particle it draws.
-        for (ParticleDescriptor? pd = Manager.Set.FirstNode; pd is not null; pd = pd.NodeNext)
-        {
-            if (pd.Type == PdType.SimpleSprite)
-            {
-                InitNoiseTable();
-            }
-            else if (pd.Type == PdType.PMesh)
-            {
-                for (Particle? p = pd.OldestParticle; p is not null; p = p.PDNext)
-                {
-                    if (!(p.Life < 0.0f) || p.Life == -2.0f)
-                    {
-                        InitNoiseTable();
-                    }
-                }
-            }
-        }
+        Manager.State.RenderOther(Manager);
 
         // draw_fairly_late_stuff: the cockpit, after the particles.
         World.RenderCockpit();
@@ -129,48 +112,5 @@ public sealed class LevelParticles : IParticleWorld
         World.RenderHud();
     }
 
-    /// <summary>InitNoiseTable (004c7db0): diamond-square midpoints with random offsets, then normalised; once.</summary>
-    private void InitNoiseTable()
-    {
-        if (Noise is not null)
-        {
-            return;
-        }
 
-        var noise = new float[32 * 32];
-        ref float N(int x, int y) => ref noise[((y & 31) << 5) + (x & 31)];
-        float Offset(int scale) => (((Manager.Rand.Rand() / 3) - 0x1000) * scale >> 12) / 4096.0f;
-        for (int step = 32; step > 1; step >>= 1)
-        {
-            for (int y = 0; y < 32; y += step)
-            {
-                for (int x = 0; x < 32; x += step)
-                {
-                    int half = step / 2;
-                    int scale = half * 80;
-                    N(x, y + half) = ((N(x, y + step) + N(x, y)) * 0.5f) + Offset(scale);
-                    N(x + half, y + half) = ((N(x + step, y + step) + N(x + step, y) + N(x, y + step) + N(x, y)) * 0.25f)
-                        + Offset(scale);
-                    N(x + half, y) = ((N(x + step, y) + N(x, y)) * 0.5f) + Offset(scale);
-                }
-            }
-        }
-
-        float max = 0;
-        foreach (float v in noise)
-        {
-            max = Math.Max(max, Math.Abs(v));
-        }
-
-        if (max > 0)
-        {
-            float s = 1.0f / max;
-            for (int i = 0; i < noise.Length; i++)
-            {
-                noise[i] *= s;
-            }
-        }
-
-        Noise = noise;
-    }
 }

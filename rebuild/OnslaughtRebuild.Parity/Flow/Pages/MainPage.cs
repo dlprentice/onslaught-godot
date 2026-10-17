@@ -4,6 +4,8 @@
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Crt;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Particles;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
 
@@ -196,14 +198,17 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
             OnslaughtRebuild.Parity.Career.Career career = frontEnd.Career;
             if (career.Record.NodeCompleteFlag(career.GetNodeFromWorldNo(800)) != 0 || career.Record.NodeCompleteFlag(career.GetNodeFromWorldNo(741)) != 0)
             {
-                // The camera and the effect are presentation; the draws on the main thread's rand() are not. Creating the
-                // effect draws more inside the particle system, which is its owner's to model.
-                CrtRandStream rand = (frontEnd.Crt ?? throw new InvalidOperationException("The fireworks need the process's CRT state; the host must set FrontEnd.Crt.")).MainThread;
+                FrontEndParticles particles = frontEnd.Particles ?? throw new InvalidOperationException(
+                    "completed-career fireworks need the front-end particle resources");
+                particles.Camera = (new FVector(0, -20, 0), FMatrix.Identity);
+                CrtRandStream rand = particles.Manager.Rand;
                 if (rand.Rand() % 50 == 0)
                 {
-                    rand.Rand();
-                    rand.Rand();
-                    throw new NotSupportedException("The firework effect's own particle draws are not modelled yet.");
+                    // VC6 evaluates the vector's arguments right to left: Z, then X. Effect initialisation follows.
+                    float z = ((rand.Rand() & 255) - 128) * 0.0390625f - 5f;
+                    float x = ((rand.Rand() & 255) - 128) * 0.078125f;
+                    particles.Manager.CreateEffect(particles.Manager.Set.GetPD("Firework Explosion Blue Effect"), null,
+                        new FVector(x, 0, z), false, false);
                 }
             }
             while (Selected > 0 && !IsActionAvailable(Selected)) Selected--;

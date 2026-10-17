@@ -14,7 +14,6 @@ public sealed class DebriefingTests
     {
         public FrontEnd FrontEnd { get; } = FrontEndTests.NewFrontEnd(FrontEndTests.BootedClock());
         public DebriefingPage Page { get; }
-        public List<string> Effects { get; } = [];
 
         // A start after a level, with a pretend autosave so the debriefing comes straight up.
         public Rig(bool wonLevel100, float unshownX = 0f)
@@ -22,7 +21,7 @@ public sealed class DebriefingTests
             FrontEnd.Career.Blank();
             FrontEnd.FirstRun = false;
             FrontEnd.AutoSave = AutoSaveMode.Pretend;
-            FrontEnd.CreateGoodieEffect = Effects.Add;
+            FrontEndParticleTests.ConfigureMinimal(FrontEnd);
             if (wonLevel100)
             {
                 FrontEnd.EndLevelData.WorldFinished = 100;
@@ -77,13 +76,14 @@ public sealed class DebriefingTests
         Assert.InRange(goodies, 1, 99);
         Assert.Equal(0f, r.Page.Fade);
         r.FrontEnd.Step();
-        Assert.Equal(["Goodie Effect"], r.Effects);
+        Assert.Equal(1, r.Page.NumShown);
+        Assert.Equal("Goodie Effect", r.FrontEnd.Particles!.Manager.Particles!.PD!.Name);
         Assert.Equal(-3f, r.Page.PositionX(0));
         // The next appears on the first frame more than half a second (on the replay clock) after the last.
         for (int i = 0; i < 15; i++) r.FrontEnd.Step();
-        Assert.Single(r.Effects);
+        Assert.Equal(1, r.Page.NumShown);
         r.FrontEnd.Step();
-        Assert.Equal(Math.Min(goodies, 2), r.Effects.Count);
+        Assert.Equal(Math.Min(goodies, 2), r.Page.NumShown);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class DebriefingTests
             bool active = !box.BeingDisplayed;
             low.FrontEnd.Step();
             if (active) frames++;
-            if (low.Effects.Count == 5 && shownAt < 0) shownAt = frames;
+            if (low.Page.NumShown == 5 && shownAt < 0) shownAt = frames;
         }
         Assert.Equal(1, boxes);
         Assert.Equal(shownAt + 31, frames);

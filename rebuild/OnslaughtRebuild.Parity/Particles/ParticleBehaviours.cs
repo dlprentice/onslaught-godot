@@ -288,8 +288,6 @@ public sealed partial class PdFunction
 
 public sealed partial class PdSimpleSprite
 {
-    private static int sSpriteCount;
-
     /// <summary>Unknown9 (004c0ab0): a life of Life_Pct..1 of Life at random, the radius at birth, the start frame.</summary>
     public override void Unknown9(ParticleManager m, Particle p)
     {
@@ -309,8 +307,8 @@ public sealed partial class PdSimpleSprite
         p.U1 = U1;
         p.V0 = V0;
         p.V1 = V1;
-        p.Unknown7E = (short)((sSpriteCount & 0xf) + 0xc0);
-        sSpriteCount++;
+        p.Unknown7E = (short)((m.State.SpriteCount & 0xf) + 0xc0);
+        m.State.SpriteCount++;
     }
 
     /// <summary>Unknown15 (004c0a50): a tiny unlinked sprite far from the camera dies at once.</summary>

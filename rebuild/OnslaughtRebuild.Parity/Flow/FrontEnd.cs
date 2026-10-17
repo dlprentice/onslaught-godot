@@ -4,6 +4,7 @@
 using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Platform;
+using OnslaughtRebuild.Parity.Particles;
 
 namespace OnslaughtRebuild.Parity.Flow;
 
@@ -73,6 +74,9 @@ public abstract class FrontEndPageBase
     /// render's page order; drawing is the host's. <paramref name="transition"/> is 1 when settled.
     /// </summary>
     public virtual void Render(float transition, FrontEndPage dest) { }
+
+    /// <summary>Camera/state changes before the common page and ordinary page rendering.</summary>
+    public virtual void RenderPreCommon(float transition, FrontEndPage dest) { }
 }
 
 /// <summary>A page with no behaviour (<c>CFEPUnknown</c>, and any page not yet ported).</summary>
@@ -224,11 +228,14 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// </summary>
     public Func<string, string?>? CockpitOf { get; set; }
 
-    /// <summary>
-    /// Starts a particle effect by name for a debriefing goodie (<c>PARTICLE_MANAGER.CreateEffect</c>), from the host's
-    /// particle system, whose random draws are its own to model.
-    /// </summary>
-    public Action<string>? CreateGoodieEffect { get; set; }
+    /// <summary>The process's particle globals, preserved across front-end/level entry and exit.</summary>
+    public ParticleProcessState ParticleState { get; } = new();
+
+    /// <summary>FED's particles and resources during an active front-end run.</summary>
+    public FrontEndParticles? Particles { get; private set; }
+
+    /// <summary>Loads the admitted front-end descriptors and meshes before page Init, after the CRT owner is set.</summary>
+    public Func<FrontEnd, FrontEndParticles>? LoadParticles { get; set; }
 
     /// <summary>
     /// The small font (<c>PLATFORM.Font(FONT_SMALL)</c>, Font13PS) and the front-end texts (<c>FET</c>), from the host's
@@ -412,6 +419,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// </summary>
     public bool Begin(FrontEndPage startPage)
     {
+        Particles = LoadParticles?.Invoke(this);
         bool ok = true;
         foreach (FrontEndPageBase page in _pages) ok &= page.Init();
         if (!ok) return false;
@@ -535,8 +543,8 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// a stress test is running, or all cheats are on (the auto-configuration test, which also skips it, is off in
     /// play: <c>CLIPARAMS.mAutoConfigTest</c> is set only by its switch). Race levels (901-905) go to the
     /// goodies instead, and multiplayer levels (850-879) to the multiplayer page.
-    /// Not modelled: loading the front end's data, text, video, sound and music (presentation, the host's), the event
-    /// manager, and the Xbox dashboard return (<c>mGoStraightToDeviceSelectScreen</c>, never set on PC).
+    /// The particle data is loaded before pages initialise. Not modelled: video, sound/music loading and the Xbox
+    /// dashboard return (<c>mGoStraightToDeviceSelectScreen</c>, never set on PC).
     /// </summary>
     public bool Init(FrontEndEntry entry)
     {
@@ -546,6 +554,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         Loading?.SetLoadingRange(50f, 62.5f);
         Events.Init();
         Career.Update(EndLevelData);
+        Particles = LoadParticles?.Invoke(this);
         MessageBox.Init();
         bool ok = true;
         foreach (FrontEndPageBase page in _pages) ok &= page.Init();
@@ -625,6 +634,8 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
             this[ActivePage].DeActiveNotification();
         }
         foreach (FrontEndPageBase page in _pages) page.Shutdown();
+        Particles?.Manager.Shutdown();
+        Particles = null;
         for (int port = 0; port < ControllerPorts; port++) Controllers[port] = null;
         Events.Shutdown();
     }
@@ -692,8 +703,8 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// advances by the previous step, the platform handles the window's messages (a quit request ends the front end),
     /// the controllers flush and deliver their button actions, the frame step is filtered from the clock, a transition
     /// in progress advances (and completes once it reaches its time), every page processes in page order, and the
-    /// message box processes. The event manager ticks (EVENT_MANAGER.Update). Not modelled: particles, sound, music and video updates
-    /// (presentation), the inactivity quit (playable demo only), and the second player's reconnect check on the
+    /// message box processes. Events tick, then particles step by one turn, before controllers. Not modelled: sound,
+    /// music and video updates, the inactivity quit (playable demo only), and the second player's reconnect check on the
     /// multiplayer start page (not ported).
     /// </summary>
     public void Process(bool platformQuit = false)
@@ -707,6 +718,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
 
         // EVENT_MANAGER.Update: a tick on (nothing the front end runs schedules events).
         Events.Update();
+        Particles?.Manager.Process(1f, true);
 
         foreach (Controller? controller in Controllers) controller?.Flush(Controls);
 
@@ -779,6 +791,21 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
                 float back = (float)X87.Sub(1f, trans);
                 if (TransitionTo > TransitionFrom)
                 {
+                    this[TransitionTo].RenderPreCommon(trans, TransitionFrom);
+                    this[TransitionFrom].RenderPreCommon(back, TransitionTo);
+                }
+                else
+                {
+                    this[TransitionFrom].RenderPreCommon(back, TransitionTo);
+                    this[TransitionTo].RenderPreCommon(trans, TransitionFrom);
+                }
+            }
+            else this[ActivePage].RenderPreCommon(1f, FrontEndPage.None);
+            if (ActivePage == FrontEndPage.Transition)
+            {
+                float back = (float)X87.Sub(1f, trans);
+                if (TransitionTo > TransitionFrom)
+                {
                     this[TransitionTo].Render(trans, TransitionFrom);
                     this[TransitionFrom].Render(back, TransitionTo);
                 }
@@ -793,6 +820,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
                 this[ActivePage].Render(1f, FrontEndPage.None);
             }
             if (NormalFont is { } normal && Texts is { } texts) MessageBox.Render(normal, texts);
+            Particles?.Render();
         }
         Clock.Present();
         return started;

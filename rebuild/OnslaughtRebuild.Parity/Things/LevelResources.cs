@@ -40,40 +40,26 @@ public sealed class LevelResources
         Func<string, bool>? doWeWantMesh = null, Func<uint, ChunkReader, bool>? otherChunk = null)
     {
         var c = new ChunkReader(MemBuffer.FromFile(fileName, bytes));
-        var meshes = new Dictionary<string, MeshData>(StringComparer.OrdinalIgnoreCase);
         HeightField? heightField = null;
         (int, int, uint, uint)? worlds = null;
         uint engineResources = 0;
-        uint tag;
-        while ((tag = c.GetNext()) != 0)
+        Dictionary<string, MeshData> meshes = ReadMeshChunks(c, meshFile, doWeWantMesh, (tag, chunk) =>
         {
-            if (tag == ChunkReader.MakeId("MESH"))
+            if (tag == ChunkReader.MakeId("ERES"))
             {
-                MeshData? mesh = MeshData.Deserialize(c, meshFile, doWeWantMesh);
-                // CMesh::GetMesh searches the loaded meshes by their own name (mName), ignoring case; the first wins.
-                if (mesh is not null && mesh.Name.Length > 0)
-                {
-                    meshes.TryAdd(mesh.Name, mesh);
-                }
+                uint end = chunk.WhereAmI + chunk.Size;
+                engineResources = chunk.WhereAmI;
+                heightField = EngineResources.Read(chunk).HeightField;
+                chunk.File.Skip((int)(end - chunk.WhereAmI));
+                return true;
             }
-            else if (tag == ChunkReader.MakeId("ERES"))
+            if (tag == ChunkReader.MakeId("WRES"))
             {
-                // The chunk reader is flat: the engine's sub-chunks follow, so the rest of ERES (the mixer map and
-                // textures) is skipped to the end the ERES header gave.
-                uint end = c.WhereAmI + c.Size;
-                engineResources = c.WhereAmI;
-                heightField = EngineResources.Read(c).HeightField;
-                c.File.Skip((int)(end - c.WhereAmI));
+                worlds = WorldFile.ReadResourcePositions(chunk);
+                return true;
             }
-            else if (tag == ChunkReader.MakeId("WRES"))
-            {
-                worlds = WorldFile.ReadResourcePositions(c);
-            }
-            else if (otherChunk?.Invoke(tag, c) != true)
-            {
-                c.Skip();
-            }
-        }
+            return otherChunk?.Invoke(tag, chunk) == true;
+        });
 
         return new LevelResources
         {
@@ -84,6 +70,30 @@ public sealed class LevelResources
             Worlds = worlds ?? throw new InvalidDataException("no WRES chunk"),
             EngineResourcesPosition = engineResources,
         };
+    }
+
+    /// <summary>ReadResources(-2)'s meshes: front-end resources have no ERES or WRES world chunks.</summary>
+    public static Dictionary<string, MeshData> ReadMeshes(string fileName, byte[] bytes,
+        Func<string, (string Name, byte[] Bytes)> meshFile) =>
+        ReadMeshChunks(new ChunkReader(MemBuffer.FromFile(fileName, bytes)), meshFile, null, null);
+
+    private static Dictionary<string, MeshData> ReadMeshChunks(ChunkReader c,
+        Func<string, (string Name, byte[] Bytes)> meshFile, Func<string, bool>? doWeWantMesh,
+        Func<uint, ChunkReader, bool>? otherChunk)
+    {
+        var meshes = new Dictionary<string, MeshData>(StringComparer.OrdinalIgnoreCase);
+        uint tag;
+        while ((tag = c.GetNext()) != 0)
+        {
+            if (tag == ChunkReader.MakeId("MESH"))
+            {
+                MeshData? mesh = MeshData.Deserialize(c, meshFile, doWeWantMesh);
+                // CMesh::GetMesh searches the loaded meshes by mName, ignoring case; the first wins.
+                if (mesh is not null && mesh.Name.Length > 0) meshes.TryAdd(mesh.Name, mesh);
+            }
+            else if (otherChunk?.Invoke(tag, c) != true) c.Skip();
+        }
+        return meshes;
     }
 
     /// <summary>A reader positioned at a world's data (CWorld::Load reopens the resource file and skips to it).</summary>

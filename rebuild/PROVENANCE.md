@@ -75,6 +75,8 @@ package licence expression is `GPL-3.0-only`.
 | `Flow/FrontEndMessageBox.cs` (the front end's message box: create, fades, timeout, yes/no, dismiss page) | `src/FEMessBox.cpp`, `src/FEMessBox.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/MemoryCard.cs` (the PC's save folder as the memory card: one device, its saves, create, write, read, delete) | `src/PCMemoryCard.cpp` (`CPCMemoryCard`), `src/MemoryCard.h` (return codes) | GPL-3.0-only (in Stuart's release) |
 | `Flow/Pages/IntroPage.cs` (the title page) | `src/FEPIntro.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Particles/FrontEndParticles.cs` (FED resource loading, camera/world adapter, render-side particle work) | `src/FrontEndData.cpp`, `src/DXFrontend.cpp` (`Init`, `Shutdown`, `RenderParticles`, `RenderEnd`); shared resource reader from `src/ResourceAccumulator.cpp` | GPL-3.0-or-later (new adapter; delegates resource parsing to its existing GPL-3.0-only owner) |
+| `Particles/ParticleProcessState.cs` (per-game-process frame/allocation/sprite counters and one-time noise) | `src/ParticleManager.cpp`, `src/ParticleDescriptor.cpp`, `src/PDSimpleSprite.cpp` (`InitNoiseTable` 004c7db0) | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/MainPage.cs` (the main menu) | `src/FEPMain.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/DevSelectPage.cs` (the storage-device page) | `src/FEPDevSelect.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Flow/Pages/VirtualKeyboardPage.cs` (the name keyboard) | `src/FEPVirtualKeyboard.cpp`, `src/FEPVirtualKeyboard.h` | GPL-3.0-or-later (not in Stuart's release) |

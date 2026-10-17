@@ -125,6 +125,7 @@ public sealed class GameRun : ISystemParts
         {
         }
 
+        FrontEnd.Shutdown();
         Input.Window.FrontEndRunning = false;
         return FrontEnd.Quit;
     }
@@ -142,6 +143,7 @@ public sealed class GameRun : ISystemParts
             {
                 Career = FrontEnd.Career,
                 MenuHost = FrontEnd,
+                ParticleState = FrontEnd.ParticleState,
             });
         while (true)
         {
@@ -159,6 +161,7 @@ public sealed class GameRun : ISystemParts
             Level = Level.Restart();
         }
 
+        Level.Context.Particles?.Manager.Shutdown();
         return Level.Game.Quit;
     }
 

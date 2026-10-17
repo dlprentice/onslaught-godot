@@ -2,6 +2,8 @@
 // Adapted from bea-decomp src/FEPDebriefing.cpp (reconstructed from the retail program; not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Particles;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
 
@@ -11,15 +13,15 @@ namespace OnslaughtRebuild.Parity.Flow.Pages;
 /// anywhere returns to the level select. The first goodie ever won also explains goodies in a message box.
 /// </summary>
 /// <remarks>
-/// The goodies' particle effects are the host's (<see cref="FrontEnd.CreateGoodieEffect"/>): creating one draws on the
-/// CRT's random state inside the particle system, which is that system's to model. Not modelled: the auto-configuration
-/// test's presses and box timeout, and the drawing.
+/// The existing shared particle simulation owns effect creation and its CRT draws. Not modelled: the
+/// auto-configuration test's presses and box timeout, and the drawing.
 /// </remarks>
 public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
 {
     public const int MaxGoodies = 100;
 
-    private float[]? _positionsX;
+    private FVector[]? _positions;
+    private ParticleEffectLink[]? _links;
 
     public float FastUntil { get; private set; }
     public int NumShown { get; private set; }
@@ -30,7 +32,10 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
     public float StartTime { get; private set; }
 
     /// <summary>The goodie's position along the screen (<c>mPositions[i].X</c>), which starts at -3 when it is shown.</summary>
-    public float PositionX(int goodie) => _positionsX![goodie];
+    public float PositionX(int goodie) => Position(goodie).X;
+
+    public FVector Position(int goodie) => _positions![goodie];
+    public ParticleEffectLink? Link(int goodie) => _links?[goodie];
 
     /// <summary>
     /// What <c>mPositions</c> holds before a goodie is shown. <c>FVector</c>'s constructor leaves it uninitialised, so
@@ -43,8 +48,11 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
     /// <summary><c>CFEPDebriefing::Init</c> (0x00456780).</summary>
     public override bool Init()
     {
-        _positionsX = new float[MaxGoodies];
-        Array.Fill(_positionsX, UnshownPositionX);
+        _positions = new FVector[MaxGoodies];
+        Array.Fill(_positions, new FVector(UnshownPositionX, 0, 0));
+        _links = frontEnd.Particles is { } particles
+            ? Enumerable.Range(0, MaxGoodies).Select(_ => new ParticleEffectLink(particles.Manager)).ToArray()
+            : null;
         FastUntil = 0f;
         NumShown = 0;
         NextTime = 0f;
@@ -52,7 +60,12 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
     }
 
     /// <summary><c>CFEPDebriefing::Shutdown</c> (0x00456850).</summary>
-    public override void Shutdown() => _positionsX = null;
+    public override void Shutdown()
+    {
+        if (_links is not null) foreach (ParticleEffectLink link in _links) link.Release();
+        _links = null;
+        _positions = null;
+    }
 
     /// <summary><c>CFEPDebriefing::ButtonPressed</c> (0x004568a0): select or back once the prompt is half in; the cheat button hurries the effect.</summary>
     public override void ButtonPressed(int button, float value)
@@ -65,7 +78,7 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
                 {
                     frontEnd.SetPage(FrontEndPage.LevelSelect, 30);
                     frontEnd.PlaySound(FrontEndSound.Select);
-                    // The goodies' effects stop (mLinks[i].Stop), which is the particle system's.
+                    if (_links is not null) foreach (ParticleEffectLink link in _links) link.Stop(false);
                 }
                 break;
             case FrontEndButtons.Cheat:
@@ -81,7 +94,7 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
     /// </summary>
     public override void Process(FrontEndPageState state)
     {
-        float[] x = _positionsX!;
+        FVector[] positions = _positions!;
         FrontEndMessageBox box = frontEnd.MessageBox;
         if (box.BeingDisplayed)
         {
@@ -89,8 +102,12 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
         }
         else if (state == FrontEndPageState.Active)
         {
-            for (int i = 0; i < NumGoodies; i++) x[i] = (float)X87.Add(x[i], 0.1f);
-            if (FirstGoodie && NumShown > 0 && x[0] >= 0.45f)
+            for (int i = 0; i < NumGoodies; i++)
+            {
+                positions[i].X = (float)X87.Add(positions[i].X, 0.1f);
+                _links?[i].SetPos(positions[i]);
+            }
+            if (FirstGoodie && NumShown > 0 && positions[0].X >= 0.45f)
             {
                 FirstGoodie = false;
                 // TEXT id 0x37416e9: the first goodie's explanation.
@@ -100,10 +117,12 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
             bool fast = frontEnd.Clock.GetSysTimeFloat() < FastUntil;
             if (NumShown < NumGoodies && frontEnd.Clock.GetSysTimeFloat() > NextTime)
             {
-                x[NumShown] = -3f;
-                (frontEnd.CreateGoodieEffect ?? throw new InvalidOperationException(
-                    "A new goodie's effect needs the host's particle system (FrontEnd.CreateGoodieEffect).")).Invoke(
-                    fast ? "Goodie Effect 2" : "Goodie Effect");
+                ParticleManager manager = frontEnd.Particles?.Manager ?? throw new InvalidOperationException(
+                    "a new goodie needs the front-end particle resources");
+                positions[NumShown] = new FVector(-3f, 0f, 1f);
+                manager.CreateEffect(manager.Set.GetPD(fast ? "Goodie Effect 2" : "Goodie Effect"),
+                    _links![NumShown], default, false, false);
+                _links[NumShown].SetPos(positions[NumShown]);
                 NumShown++;
                 NextTime = (float)X87.Add(frontEnd.Clock.GetSysTimeFloat(), 0.5f);
             }
@@ -113,12 +132,18 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
         // inactive before its first transition (no goodies, no fade) retail reads mPositions[-1], the memory manager's
         // word before the array: whatever it does to the fade, TransitionNotification sets the fade again before the
         // page shows, so the core reads nothing there.
-        if (Fade == 0f && NumGoodies > 0 && x[NumGoodies - 1] > 0f) Fade = 0.001f;
+        if (Fade == 0f && NumGoodies > 0 && positions[NumGoodies - 1].X > 0f) Fade = 0.001f;
         if (Fade != 0f)
         {
             Fade = (float)X87.Add(Fade, 0.02f);
             if (Fade > 1f) Fade = 1f;
         }
+    }
+
+    /// <summary>RenderPreCommon (00456d40) sets FED's camera before either page's ordinary render.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest)
+    {
+        if (frontEnd.Particles is { } particles) particles.Camera = (new FVector(0, -2, 0), FMatrix.Identity);
     }
 
     /// <summary>

@@ -130,6 +130,7 @@ public sealed class LevelSession
 
                 Context.Skip("CGame::RunLevel's close: the music stopped, the language bank reloaded");
                 Game.FillOutEndLevelData(EndLevelData, Context.World);
+                if (Context.Particles is { } particles) particles.Manager.State.RenderFraction = Game.Loop.Fraction;
                 Ended = true;
                 return;
             }
@@ -188,9 +189,9 @@ public sealed class LevelSession
         {
             Career = career,
             MenuHost = Input.PauseMenuHost,
-            ParticleNoise = Context.Particles?.Noise,
-            ParticleAllocations = Context.Particles?.Manager.Allocations ?? 0,
+            ParticleState = Context.Particles?.Manager.State,
         };
+        Context.Particles?.Manager.Shutdown();
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Game.Loop.CarryFrameTimes(Game.Loop);
         next.Tape = Tape;
@@ -321,8 +322,7 @@ public sealed class LevelSession
             throw new InvalidDataException("the particle set did not load");
         }
 
-        context.Particles = new LevelParticles(context, particleSet) { Noise = host?.ParticleNoise };
-        context.Particles.Manager.Allocations = host?.ParticleAllocations ?? 0;
+        context.Particles = new LevelParticles(context, particleSet, host?.ParticleState);
 
         var spawner = new ParitySpawner(context) { SpawnBattleEngineThing = () => new BattleEngine(context) };
         scripts.Spawner = spawner;
@@ -414,9 +414,6 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
     /// <summary>The menus' host (the front end's), for the pause menu.</summary>
     public Flow.Menus.IMenuHost? MenuHost { get; init; }
 
-    /// <summary>CPDSimpleSprite's sNoise once built (sNoiseBuilt is the process's: a restart does not build it again).</summary>
-    public float[]? ParticleNoise { get; init; }
-
-    /// <summary>CParticleManager's sAllocations, a process static (its load test's sequence carries on through a restart).</summary>
-    public int ParticleAllocations { get; init; }
+    /// <summary>Particle globals shared with the front end and with subsequent levels/restarts.</summary>
+    public ParticleProcessState? ParticleState { get; init; }
 }

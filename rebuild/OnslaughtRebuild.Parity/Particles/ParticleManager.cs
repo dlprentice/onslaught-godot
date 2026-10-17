@@ -36,14 +36,17 @@ public sealed class ParticleManager
     private const int ParticlesPerSystem = 512;
     private const int MaxSystems = 8;
 
-    public ParticleManager(ParticleSet set, CrtRandStream rand, IParticleWorld world)
+    public ParticleManager(ParticleSet set, CrtRandStream rand, IParticleWorld world, ParticleProcessState? state = null)
     {
         Set = set;
         Rand = rand;
         World = world;
+        State = state ?? new ParticleProcessState();
     }
 
     public ParticleSet Set { get; }
+
+    public ParticleProcessState State { get; }
 
     /// <summary>The main thread's rand().</summary>
     public CrtRandStream Rand { get; }
@@ -53,7 +56,7 @@ public sealed class ParticleManager
     /// <summary>mParticles: the live list, newest first.</summary>
     public Particle? Particles;
 
-    public int Frame;
+    public int Frame { get => State.Frame; set => State.Frame = value; }
 
     /// <summary>mFrameLength: this frame's, 0..1.</summary>
     public float FrameLength;
@@ -72,13 +75,12 @@ public sealed class ParticleManager
     private readonly Stack<Particle> _free = new();
     private int _numSystems;
     private int _numAllocated;
-    private int _allocations;
 
     /// <summary>sAllocations (0082b3f4): a file static, so it carries on through a level's restart.</summary>
     public int Allocations
     {
-        get => _allocations;
-        set => _allocations = value;
+        get => State.Allocations;
+        set => State.Allocations = value;
     }
 
     private int _load;
@@ -231,6 +233,20 @@ public sealed class ParticleManager
         }
     }
 
+    /// <summary>CParticleManager::Shutdown, inlined in FED.Shutdown (004691c0): destroy particles before descriptors,
+    /// clear owner links and release pools. Process counters and sprite noise deliberately survive.</summary>
+    public void Shutdown()
+    {
+        while (Particles is { } p) FreeParticle(p);
+        ClearOwnerBacklinks();
+        PruneDeadOwnerLinks();
+        CleanupHandles();
+        _free.Clear();
+        _numSystems = 0;
+        _numAllocated = 0;
+        NumLiveParticles = 0;
+    }
+
     /// <summary>Process (004cb210): one render's step; TRUE while particles live.</summary>
     public bool Process(float time, bool first)
     {
@@ -367,7 +383,7 @@ public sealed class ParticleManager
         if (!rejected)
         {
             _load = (NumLiveParticles + _numAllocated) * 1000 / (MaxSystems * ParticlesPerSystem);
-            _allocations++;
+            State.Allocations++;
             if (!important)
             {
                 switch (pd.Type)
@@ -377,7 +393,7 @@ public sealed class ParticleManager
                         {
                             rejected = true;
                         }
-                        else if (_load > 400 && _allocations % 300 < _load - 400)
+                        else if (_load > 400 && State.Allocations % 300 < _load - 400)
                         {
                             return null;
                         }
@@ -388,14 +404,14 @@ public sealed class ParticleManager
                         {
                             rejected = true;
                         }
-                        else if (_load > 600 && _allocations % 200 < _load - 600)
+                        else if (_load > 600 && State.Allocations % 200 < _load - 600)
                         {
                             return null;
                         }
 
                         break;
                     case PdType.Emitter:
-                        if (_load > 900 || (_load > 800 && _allocations % 100 < _load - 800))
+                        if (_load > 900 || (_load > 800 && State.Allocations % 100 < _load - 800))
                         {
                             rejected = true;
                         }
