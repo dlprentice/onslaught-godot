@@ -258,6 +258,9 @@ public sealed class GroundVehicle(ThingContext context) : GroundUnit(context)
 /// <summary>CCannon: a turret.</summary>
 public sealed class Cannon(ThingContext context) : GroundUnit(context)
 {
+    /// <summary>CMCCannon, created by CCannon::Init (0041b1a0) after its guide and AI.</summary>
+    public CannonMotionController? MotionController;
+
     /// <summary>CCannon::StartDieProcess (0041b590): the ground unit's death, then Remove (its explosion, its script, its shutdown).</summary>
     public override bool StartDieProcess()
     {
@@ -338,7 +341,7 @@ public sealed class Cannon(ThingContext context) : GroundUnit(context)
         Guide = new BasicGuide(this, "CTerrainGuide");
         AI = new UnitAI(this, init);
         Unknown12C = new EulerAngles(0, 0, 0);
-        Context.Skip("CMCCannon (motion controller)");
+        MotionController = new CannonMotionController(this);
         UnknownF4 = 0;
         LastTargetTime = 0;
         Occupancy.AddUnit(Context.Occupancy, Context.Map, this);

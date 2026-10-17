@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-17 (deferred display-reset transaction and selected-mode encoding; real device/resource reset remains unsupported).
+Last updated: 2026-10-17 (cannon part transforms and their pose/emitter consumers; deferred display-reset transaction and selected-mode encoding; real device/resource reset remains unsupported).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -113,6 +113,7 @@ package licence expression is `GPL-3.0-only`.
 | `Things/RenderThing.cs` (CRTMesh's mesh, pose and emitter lookup) | `src/rtmesh.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Unit.cs` (CUnit) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/CannonMotionController.cs`, the Cannon construction in `Things/Units.cs` and dispatch in `Things/Actor.cs` | `src/MCCannon.cpp` (`CMCCannon::GetPartTransform` 004952a0, saved-angle comparison 00495770), `src/Cannon.cpp` | GPL-3.0-or-later (not in Stuart's release). Turret yaw, barrel pitch and root-height interpolation use the existing part-transform owner; same-frame and forced/throttled pose scheduling are preserved. |
 | `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
@@ -154,6 +155,20 @@ package licence expression is `GPL-3.0-only`.
 | `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Physics/BattleEngineData.cs` (CBattleEngineData, UBattleEngineDataManager, UBattleEngineConfigurations::GetConfiguration) | `src/BattleEngineDataManager.h`, `src/BattleEngineDataManager.cpp`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
+
+The cannon slice is grounded in pristine PC specimen SHA-256
+`74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`.
+`CannonMotionControllerTests` compares 1,200 complete isolated executions of the unchanged
+004952a0 function and its actual math/clock helpers against the C# controller: each case supplies
+25 input words, with noncommuting matrices, case-sensitive name negatives, root/non-root parts,
+both world flags and interpolation/clamp cases. The x87 control word is 007f; global render
+fraction is zero and LastMoveTime varies. Position, all nine orientation cells, saved angles and
+the pure 00495770 comparison agree bit for bit. These are bounded original-code controls, not
+a live retail playthrough. The admitted Level 100 fixture separately exercises actual Cannon
+construction, cached pose and uncached emitter consumers. The retail pose caller at 004b4d6f
+discards the comparison's return value; it does not invalidate a same-frame pose or bypass the
+existing 30-frame/force gates. Private inputs, original-code harness and outputs remain under
+bea-decomp's ignored `local-data/scratch/codex-onslaught-20261017/cannon-controller/`.
 
 ## Authority
 
