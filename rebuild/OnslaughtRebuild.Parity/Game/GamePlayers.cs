@@ -189,7 +189,12 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
 
         if (button == Platform.Buttons.SkipPanning && CurrentView == PlayerView.Pan && game.State == GameState.Panning)
         {
-            throw new NotSupportedException("CPlayer::ReceiveButtonAction: skipping the pan is not ported");
+            // Pristine PC 74154bfa, 004d3160..004d3199; bea-decomp src/Player.cpp:311..315.
+            // Restore the preferred camera before posting "game playing". Fall through: later mappings in this
+            // controller flush can still pause (Escape maps to SkipPanning before Pause). The scheduled pan-end
+            // and player-view events remain queued; their existing guards make them harmless after this transition.
+            GotoControlView(game);
+            game.StartPlayingState();
         }
 
         if (game.State < GameState.Playing)
