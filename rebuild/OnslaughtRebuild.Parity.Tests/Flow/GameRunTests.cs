@@ -15,6 +15,46 @@ public sealed class GameRunTests(ITestOutputHelper output)
 {
     private sealed class StopRun : Exception;
 
+    private sealed class ObservedFilms(Func<long> present) : IFilmFiles
+    {
+        private readonly RetailChainTests.InstalledFilms _files = new();
+        public List<(string Name, long Present)> Opens { get; } = [];
+
+        public FilmHeader? Probe(string name)
+        {
+            Opens.Add((name, present()));
+            return _files.Probe(name);
+        }
+    }
+
+    [GameDataFact]
+    public void TheDevicePresentEstablishesTheClockBeforeTheBootFilms()
+    {
+        GameRun? run = null;
+        var films = new ObservedFilms(() => run!.Clock.PresentCount);
+        run = new GameRun(GameData.Read, id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id],
+            films, skipFmv: false);
+        var clockSamples = new List<uint>();
+        run.OnPresented = () =>
+        {
+            if (run.Clock.PresentCount >= 2)
+            {
+                clockSamples.Add(BitConverter.SingleToUInt32Bits(run.Clock.GetSysTimeFloat()));
+            }
+
+            if (run.Clock.PresentCount == 3)
+            {
+                throw new StopRun();
+            }
+        };
+
+        Assert.Throws<StopRun>(() => run.Run());
+        Assert.Equal([("ltlogo", 1L)], films.Opens);
+        // Observed on two fresh port boots: first_seen = the device's Present-1 QPC. The next Presents are
+        // 333,333 and 666,666 ticks later at 10 MHz, rounded once to 24 bits by GetSysTimeFloat.
+        Assert.Equal([0x3d088880u, 0x3d888880u], clockSamples);
+    }
+
     /// <summary>
     /// fe-explore4's clicks from the title to level 100 (the front end at retail's Presents, as
     /// RetailChainTests.TheTitleToLevel100ClickChainSetsEachPageAtRetailsPresent), then the level from the front end on

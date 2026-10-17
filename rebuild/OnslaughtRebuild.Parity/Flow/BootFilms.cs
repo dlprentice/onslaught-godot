@@ -205,11 +205,11 @@ public sealed class FilmPlayer : IButtonReceiver
 public static class BootFilms
 {
     /// <summary>
-    /// The Presents between the films and <c>CFrontEnd::Init</c>: the loading screen and the title page's background.
-    /// Observed (PARITY.md's rule for the boot): 2 with -skipfmv, and the same 2 after the films (Presents 2286 and
-    /// 2287 of a full boot).
+    /// The loading-screen Presents between the films and <c>CFrontEnd::Init</c>.
+    /// Observed in the port's full-boot trace: one loading Present after the films (Present 2287). The other
+    /// non-film Present is the device's first Present, before CSystem::Init; with -skipfmv these are Presents 1 and 2.
     /// </summary>
-    public const int PresentsAfterFilms = 2;
+    public const int PresentsAfterFilms = 1;
 
     public sealed record Settings(bool LevelGiven, bool StraightToDeviceSelect, bool SkipFmv, bool Attract, bool Pal = true,
         bool AutoConfigTest = false, bool VendorFilm = false);

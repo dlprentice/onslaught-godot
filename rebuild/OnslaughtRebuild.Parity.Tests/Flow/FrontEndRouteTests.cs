@@ -25,6 +25,10 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         public long TimeCompared { get; set; }
 
         public string? FirstTimeDifference { get; set; }
+
+        public int CrtSamplesCompared { get; set; }
+
+        public int TimeSamplesCompared { get; set; }
     }
 
     /// <summary>
@@ -97,6 +101,8 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         }
 
         long timeCompared = 0;
+        int timeSamplesCompared = 0;
+        int crtSamplesCompared = 0;
         string? firstTime = null;
         var pages = new List<string>();
         run.FrontEnd.SetPageTrace = (page, time) => pages.Add($"P{run.Clock.PresentCount + 1} page={PageName(page)}");
@@ -115,6 +121,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
                 else
                 {
                     matched = p;
+                    crtSamplesCompared++;
                 }
             }
 
@@ -138,6 +145,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
                 else
                 {
                     timeCompared = p;
+                    timeSamplesCompared++;
                 }
             }
 
@@ -156,7 +164,13 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         {
         }
 
-        return new RouteResult(run, portPages, pages, matched, first, returned) { TimeCompared = timeCompared, FirstTimeDifference = firstTime };
+        return new RouteResult(run, portPages, pages, matched, first, returned)
+        {
+            TimeCompared = timeCompared,
+            FirstTimeDifference = firstTime,
+            CrtSamplesCompared = crtSamplesCompared,
+            TimeSamplesCompared = timeSamplesCompared,
+        };
     }
 
     private static string PageName(FrontEndPage page) => page switch
@@ -265,7 +279,7 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
     /// Presents and rand() every Present to 5700.
     /// </summary>
     [RetailGoldenFact("portrefs/fe-r5-fullboot-idle-port/empty.tape", "portrefs/fe-r5-fullboot-idle-port/crt-per-present.txt",
-        "portrefs/fe-r5-fullboot-idle-port/frontend-trace.txt")]
+        "portrefs/fe-r5-fullboot-idle-port/frontend-trace.txt", "portrefs/fe-r5-fullboot-idle-port/port-probes-every1-with-FE.txt")]
     public void TheFullBootIdleMatchesThePort()
     {
         RouteResult r = Run("portrefs/fe-r5-fullboot-idle-port/empty.tape", "portrefs/fe-r5-fullboot-idle-port", 5700, skipFmv: false);
@@ -273,6 +287,12 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
         Assert.Equal(r.PortPages, r.Pages);
         Assert.Null(r.FirstCrtDifference);
         Assert.Equal(5700, r.CrtMatchedThrough);
+        Assert.Equal(5700, r.CrtSamplesCompared);
+        Assert.Null(r.FirstTimeDifference);
+        Assert.Equal(5700, r.TimeCompared);
+        // FE is recorded only while the front end runs, not during boot/attract films. Reaching the last
+        // Present alone must not pass if a reference sample in the middle was dropped.
+        Assert.Equal(1127, r.TimeSamplesCompared);
         Assert.Equal(["front end Start", "attract", "front end FromAttract"], r.Run.Flow.Trace);
     }
 }

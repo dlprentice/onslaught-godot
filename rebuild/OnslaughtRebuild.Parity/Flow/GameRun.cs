@@ -90,22 +90,19 @@ public sealed class GameRun : ISystemParts
     public int Run()
     {
         Input.FlushInputBuffers();
-        if (_skipFmv)
+        // The device makes Present 1 before CSystem::Init. Its first call with a non-zero QPC frequency then
+        // establishes GetSysTimeFloat's origin, before the films (port clock traces, 2026-10-17). Setting the origin
+        // before this Present shifts the full-boot clock by 333,333 ticks and changes the front-end filter at P2289.
+        Clock.Present();
+        Clock.GetSysTimeFloat();
+        if (!_skipFmv)
         {
-            // No films: the boot's two Presents, with the game's first clock read (GetSysTimeFloat's origin) after the
-            // first, as a -level start has them (the level-100 golden; the port's front-end run's frame times agree).
-            Clock.Present();
-            Clock.GetSysTimeFloat();
-            Clock.Present();
-        }
-        else
-        {
-            Clock.GetSysTimeFloat();
             BootFilms.Play(_films, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: false, Attract: false));
-            for (int i = 0; i < BootFilms.PresentsAfterFilms; i++)
-            {
-                Clock.Present();
-            }
+        }
+
+        for (int i = 0; i < BootFilms.PresentsAfterFilms; i++)
+        {
+            Clock.Present();
         }
 
         // The boot's last Present is the loading screen's: the front end's first Init comes within its 0.05 s throttle

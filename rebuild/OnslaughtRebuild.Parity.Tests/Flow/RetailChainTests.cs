@@ -71,6 +71,7 @@ public sealed class RetailChainTests
     internal static PlatformClock Boot(bool skipFmv)
     {
         PlatformClock clock = new();
+        clock.Present(); // Device flip, before CSystem::Init establishes the clock origin.
         clock.GetSysTimeFloat();
         PlatformInput input = new(new PlatformWindow());
         ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
@@ -239,9 +240,9 @@ public sealed class RetailChainTests
     }
 
     /// <summary>
-    /// The boot films against C's retail boot capture (pres1, two retail processes): the logo's Presents are 1..230 and the
-    /// opening film's 231..2285 (each film one Present before it, its frames but the last, and one after); the two
-    /// observed Presents follow, and the front end starts at 2287.
+    /// The two films cost 2,285 Presents (each film one before it, its frames but the last, and one after). In the
+    /// complete boot the device presents first, so the logo occupies 2..231 and the opening 232..2286; one loading
+    /// Present follows and the front end starts after 2287, as the port's full-boot call and clock traces show.
     /// </summary>
     [GameDataFact]
     public void TheBootFilmsTakeRetailsPresents()

@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-15 (proof-of-concept milestones, the retail tape harness and porting notes; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot clock origin and front-end time parity; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -33,33 +33,45 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
 
-Observed and modelled Present schedules (rule for M6 and M7, 2026-10-15). The boot films are modelled
-(`Flow/BootFilms.cs`, from CSystem::Init and CDXFMV::Play): retail's default PAL path plays the logo and the opening film
-(the vendor film's tweak is off; the NTSC films are not in the PC release). Each film presents once before its loop,
-once for each frame but the last (Play opens the film synchronously, which decodes frame 1, and ends when Bink's frame
-number reaches the frame count, after drawing the frame decoded then), and once after: the logo's 229 frames take
-Presents 1-230 and the opening film's 2,054 take 231-2285. The counts follow the files' Bink headers, not the clock:
-while a frame is not due Play sleeps, and a sleep never presents. Under C's harness the films are paced by their sound
-tracks on Wine's real-time mixer (C logged every Present from 2190 to 2300: one flip site, 0x00512644, and no spin
-escape), so the waits are not modelled (`HarnessFilmPacing`); B's virtual-clock rule (`BEA_SLEEP_VIRTUAL`, sleeps
-moving the clock) plugs in as another `IFilmPacing`. The splash over the opening film's last frames (from frame 1,934,
-fading in 7 steps a frame) is what C's capture at 2204 shows: the Lost Toys copyright screen at full opacity (Present
-2220, looked at), not a loading screen.
+Observed and modelled Present schedules (M6 and M7). The boot films (`Flow/BootFilms.cs`, from CSystem::Init and
+CDXFMV::Play) follow retail's default PAL path: logo then opening film; the vendor tweak is off and the PC release
+has no NTSC films. A film makes one Present before its loop, one for each frame but the last, and one after. The
+logo's 229 frames cost 230 Presents; the opening's 2,054 cost 2,055. Waiting for the next video frame never presents.
+Under C's retail harness the films are paced by their sound tracks on Wine's real-time mixer (C logged every Present
+from 2190 to 2300: one flip site, 0x00512644, and no spin escape). `HarnessFilmPacing` models each frame as due,
+without those real-time waits; the port's virtual-clock rule (`BEA_SLEEP_VIRTUAL`, sleeps moving the clock) plugs in
+as another `IFilmPacing`. The opening film's copyright splash starts at film frame 1,934, fading in 7 steps per frame.
+C's earlier capture at 2204 showed that splash, and Present 2220 was inspected at full opacity: the Lost Toys
+copyright screen, not a loading screen. Those visual observations are retained independently of the corrected boot
+boundary interpretation below.
 
-Still observed: the two Presents between the films and `CFrontEnd::Init` (Presents 2286 and 2287 of a full boot, the
-only two of a -skipfmv boot), `BootFilms.PresentsAfterFilms`. Their timer reads differ from the films' (1 and 3 against
-140-150), and the loading screens' Present counts are reproducible between retail runs but not explained:
-`CConsole::RenderLoadingScreen`'s 0.05 s throttle should allow a loading Present only every second frame on the replay
-clock, and what paces them is an open question. From the front end's first `Process` on, every Present is modelled,
-and a mismatch there is a defect. The same rule applies to level loading (J and B to check; with `-skipfmv` the
-level-100 golden's main loop starts at Present 3).
+Clock-origin correction (2026-10-17): the device makes Present 1 before CSystem::Init establishes GetSysTimeFloat's
+origin. The logo then occupies Presents 2–231, the opening 232–2286, and the loading screen presents at 2287. The
+previous model placed the device Present after the films and initialized the clock at Present 0; although the total
+Present count was right, it gave the wrong filtered front-end step from Present 2289. `GameRun` now establishes the
+origin after the device Present, before either film; no clock offset or numerical formula was changed.
+
+Evidence: two offscreen processes of port commit `89a8b037` (binary SHA-256
+`e42adf1f30770d9254bdc52a2605c7a7333646e6acfee71615c25e89690f27a8`), private runs
+`bea-decomp/local-data/port/runs/codex-r5-clock-{a,b}-20261017`, showed `first_seen = gQpcBase + 333333` and identical
+clock/step values at every front-end Process observed from completed Present 2287 to 2300, with no spin escapes or
+virtual sleeps. Their first breakpoint was after the first Present sampled its QPC base. The existing R5 call trace
+independently places the logo and opening entries at completed Presents 1 and 231. This is new port evidence; the
+older retail film-boundary interpretation was not re-recorded in this check. The loading screen's 0.05-second throttle
+and the number of its clock reads remain open; the reproduced boundary counts are still observed inputs.
+
+`FrontEndRouteTests.TheFullBootIdleMatchesThePort` now requires the existing reference's EVENT_MANAGER time and
+complete front-end state (filtered step, page, transition and counter) to agree at every reference Present through
+5700, including the attract films and return. Before the correction this assertion fails at 2289; after it every
+compared time-state and CRT probe agrees through 5700 (1,127 front-end time-state samples and 5,700 CRT samples; both counts are asserted). `GameRunTests.TheDevicePresentEstablishesTheClockBeforeTheBootFilms`
+also checks the logo's entry and the first two post-origin clock values. Level-100 and -skipfmv clock origins are unchanged.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
 
 | Constant | Present | What retail shows |
 | --- | --- | --- |
-| `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts (now the films' 2285, modelled, plus the 2 observed); Presents 2286 and 2287 show the title page's background before it |
+| `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts; this total is unchanged. The earlier assignment of both preceding Presents to loading is superseded by the clock/call evidence above. |
 | `TitleLastPresent` | 3188 | the title page's last frame with no input; the attract videos follow at 3189 |
 
 Measured (M6 boot, 2026-10-15; C's code breakpoints logging completed Presents, two retail processes identical):
