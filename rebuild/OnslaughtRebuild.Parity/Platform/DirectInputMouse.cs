@@ -19,6 +19,16 @@ public sealed class DirectInputMouse(Mouse mouse, PlatformWindow window)
     /// <summary>Whether <c>InitMouse</c> has created the device (<c>sMouse</c>).</summary>
     public bool Created { get; private set; }
 
+    /// <summary>
+    /// The live host's suspension boundary: discard queued movement/wheel and device buttons without creating,
+    /// polling or releasing the device. This is host policy, not a change to retail Init/Shutdown/Poll semantics.
+    /// </summary>
+    public void DiscardPendingState()
+    {
+        _pendingX = _pendingY = _pendingWheel = 0;
+        _buttons = 0;
+    }
+
     /// <summary>A tape's M event: movement and wheel since the last read, and the current button bits (0x01 left, 0x02 right, 0x04 middle).</summary>
     public void AddMouseDelta(int dx, int dy, int wheel, byte buttons)
     {

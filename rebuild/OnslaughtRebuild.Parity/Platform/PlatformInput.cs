@@ -62,6 +62,16 @@ public sealed class PlatformInput
     /// <summary>Messages posted and not yet handled.</summary>
     public int Pending => _queue.Count;
 
+    /// <summary>
+    /// The live host's suspension boundary: drop undelivered window messages and the frame-local once-read cache
+    /// without invoking key traps. This is not retail FlushInputBuffers; its existing semantics stay unchanged.
+    /// </summary>
+    public void DiscardPendingMessages()
+    {
+        _queue.Clear();
+        _keysRead.Clear();
+    }
+
     /// <summary>Posts a key message as a tape's K event delivers it: wParam the virtual key, lParam carrying the scan code.</summary>
     public void PostKeyMessage(int virtualKey, int lParam, bool down) =>
         _queue.Enqueue(new WindowMessage(down ? WindowMessage.KeyDownMessage : WindowMessage.KeyUpMessage, virtualKey, lParam));
