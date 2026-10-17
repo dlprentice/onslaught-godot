@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot timing, control/display transactions and cannon/dropship motion controllers; earlier rows keep their dates)
+Last updated: 2026-10-17 (full-boot timing, control/display transactions cannon/dropship motion controllers and front-end particles; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -143,6 +143,29 @@ Landing behavior remains separate. Private original-code inputs, hashes and root
 `bea-decomp/local-data/scratch/codex-onslaught-20261017/dropship-controller/`; the integrated suite is
 `local-data/test-runs/dropship-controller-20261017/root-full.trx` in the internal rebuild clone.
 These are bounded original-code and reconstruction checks, not live Godot or retail visual acceptance.
+
+Front-end particles (2026-10-17): the front end now loads its shipped particle descriptors and
+mesh resources into the same particle implementation used by levels. Events advance before the
+one-turn particle step, which precedes controller/page work, including reconnect holds (00466ba0).
+Debriefing goodies carry full positions and linked frames of reference, stop when leaving the page
+and release their links at shutdown (00456930). Completed-career fireworks use the shipped effect
+name and the original Z-then-X random draw order (00462640). Noise, frame/allocation counters and
+sprite numbering belong to one simulated process and survive front-end/level/restart transitions;
+separate simulated runs no longer share the CLR-static sprite counter.
+
+Root rebuilt the pristine InitNoiseTable oracle (004c7db0, unchanged rand), reproducing eight seeds
+and all 1,024 float words per seed, with 1,023 draws on first initialization and none on the second.
+Only Win32 TLS/last-error imports are adapted. The integrated Parity suite passes **394 tests,
+9 existing optional-reference skips, 0 failures**, including all six new front-end particle cases
+and all twelve dropship cases. Shipped goodie/firework closures load real resource meshes, create
+particles and expire; tests also cover link positions, shutdown, reconnect timing, failed BeginScene
+and process-state isolation. No golden expectations changed. Private original-code evidence is in
+`bea-decomp/local-data/scratch/codex-onslaught-20261017/frontend-particles/`; root suite/command
+receipts are in `local-data/test-runs/frontend-particles-20261017/` in the internal rebuild clone.
+
+This completes this front-end simulation/lifecycle slice, not its Godot drawing or full particle
+numerical parity. General particle-motion arithmetic and retail heap values for not-yet-shown
+goodies remain explicit limits. No live retail or Godot visual acceptance is claimed here.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
