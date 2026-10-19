@@ -29,8 +29,8 @@ public enum BattleEngineState
 }
 
 /// <summary>
-/// CBattleEngine: the player's machine. Init and the two targeting events are ported as far as they draw and schedule;
-/// the walker and jet parts, weapons, cockpit, sounds and targeting maths are counted as not ported.
+/// CBattleEngine: the player's machine. The walker path, morph transitions, jet controls and weapons have production owners. Full jet movement,
+/// skimming, special-move physics and device audio remain explicit unported boundaries.
 /// </summary>
 public sealed partial class BattleEngine(ThingContext context) : Unit(context, Oid.BattleEngine)
 {
@@ -152,7 +152,7 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         PoweredUp = true;
         ShieldRegeneration = 0;
         InitMovementAfterUnit();
-        Context.Skip("CBattleEngine::MassiveHackPutUsInRightMesh");
+        PutUsInRightMesh();
         Context.Events.AddEvent(BattleEngineEvent.CalcUnitOverCrosshair, this,
             Context.Events.Time + (Context.Random.FloatRandom() * 0.2f) + 0.1f);
         HandleAutoAim(null);
@@ -173,9 +173,9 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     /// <summary>mAutoAimYawOffset / mAutoAimPitchOffset: the aim's turn from the view.</summary>
     public float AutoAimYawOffset, AutoAimPitchOffset;
 
-    /// <summary>GetCurrentWeapon (0040c4d0..): the walker part's, or the jet part's (not ported).</summary>
+    /// <summary>GetCurrentWeapon (0040c4d0..): the selected walker or jet part's weapon.</summary>
     public Weapon? GetCurrentWeapon() => State == BattleEngineState.Jet
-        ? throw new NotSupportedException("CBattleEngineJetPart::GetCurrentWeapon (the jet part is not ported)")
+        ? JetPart?.GetCurrentWeapon()
         : WalkerPart?.GetCurrentWeapon();
 
     /// <summary>
@@ -393,6 +393,18 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     {
         switch (e.EventNum)
         {
+            case BattleEngineEvent.BecomeJet:
+                if (State == BattleEngineState.MorphingIntoJet)
+                {
+                    TransformStartTime = Context.Events.Time;
+                    State = BattleEngineState.Jet;
+                    SetCollisionShape();
+                }
+                break;
+            case BattleEngineEvent.BecomeWalker:
+                State = BattleEngineState.Walker;
+                SetCollisionShape();
+                break;
             case BattleEngineEvent.CalcUnitOverCrosshair:
                 CurrentUnitOverCrosshair.SetReader(CalcUnitOverCrossHair(e as ScheduledEvent, true, true));
                 break;

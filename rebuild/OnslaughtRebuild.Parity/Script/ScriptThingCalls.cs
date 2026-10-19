@@ -39,26 +39,26 @@ internal static class ScriptThingCalls
         return unit.Life;
     }
 
-    /// <summary>CBattleEngine::EnableWeapon (0040dc30): the walker part's; the jet part's weapons are not ported.</summary>
+    /// <summary>CBattleEngine::EnableWeapon (0040dc30): both forms' separately owned weapons.</summary>
     public static void EnableWeapon(ScriptRuntime runtime, Unit unit, byte[] name)
     {
         if (unit is BattleEngine be)
         {
             be.WalkerPart!.EnableWeapon(name);
-            runtime.Context.Skip("CBattleEngineJetPart::EnableWeapon (the jet part is not ported)");
+            be.JetPart!.EnableWeapon(name);
             return;
         }
 
         runtime.Context.Skip("CUnit::EnableWeapon");
     }
 
-    /// <summary>CBattleEngine::DisableWeapon (0040dc60): the walker part's; the jet part's weapons are not ported.</summary>
+    /// <summary>CBattleEngine::DisableWeapon (0040dc60): both forms' separately owned weapons.</summary>
     public static void DisableWeapon(ScriptRuntime runtime, Unit unit, byte[] name)
     {
         if (unit is BattleEngine be)
         {
             be.WalkerPart!.DisableWeapon(name);
-            runtime.Context.Skip("CBattleEngineJetPart::DisableWeapon (the jet part is not ported)");
+            be.JetPart!.DisableWeapon(name);
             return;
         }
 
@@ -67,16 +67,16 @@ internal static class ScriptThingCalls
 
     /// <summary>CBattleEngine::EnableFlightMode: mFlightModeActive = TRUE.</summary>
     public static void EnableFlightMode(ScriptRuntime runtime, BattleEngine be) =>
-        runtime.Context.Skip("CBattleEngine::EnableFlightMode");
+        be.EnableFlightMode();
 
     /// <summary>CBattleEngine::DisableFlightMode: mFlightModeActive = FALSE, and a jet morphs back.</summary>
     public static void DisableFlightMode(ScriptRuntime runtime, BattleEngine be) =>
-        runtime.Context.Skip("CBattleEngine::DisableFlightMode");
+        be.DisableFlightMode();
 
     /// <summary>CUnit::Unknown100 (the Retreat native).</summary>
     public static void Retreat(ScriptRuntime runtime, Unit unit) => unit.Unknown100();
 
     /// <summary>CBattleEngine::IsWalking: walker state and on the ground within the last 0.5 s.</summary>
     public static bool IsWalking(ScriptRuntime runtime, BattleEngine be) =>
-        throw new NotSupportedException("CBattleEngine::IsWalking is not ported");
+        be.IsWalking();
 }

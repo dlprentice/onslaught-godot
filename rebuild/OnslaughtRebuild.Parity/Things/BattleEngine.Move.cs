@@ -30,6 +30,8 @@ public sealed partial class BattleEngine
     public const int WeaponCoolRate = 1;
 
     public BattleEngineWalkerPart? WalkerPart;
+    public BattleEngineJetPart? JetPart;
+    public float TransformStartTime = -20.0f;
     public float Yawvel;
     public float Rollvel;
     public float Pitchvel;
@@ -83,7 +85,7 @@ public sealed partial class BattleEngine
     /// <summary>mRecentLocks: the locks (or fired locks) when the weapon last fired.</summary>
     public int RecentLocks;
 
-    /// <summary>ChargeWeapon (00409ef0): the walker's (the jet is not ported).</summary>
+    /// <summary>ChargeWeapon (00409ef0): the selected stable form's weapon.</summary>
     public void ChargeWeapon()
     {
         if (State == BattleEngineState.Walker)
@@ -92,7 +94,7 @@ public sealed partial class BattleEngine
         }
         else if (State == BattleEngineState.Jet)
         {
-            throw new NotSupportedException("CBattleEngineJetPart::ChargeWeapon is not ported");
+            JetPart!.ChargeWeapon();
         }
     }
 
@@ -108,7 +110,7 @@ public sealed partial class BattleEngine
         }
         else if (State == BattleEngineState.Jet)
         {
-            throw new NotSupportedException("CBattleEngineJetPart::FireWeapon is not ported");
+            JetPart!.FireWeapon();
         }
     }
 
@@ -118,7 +120,7 @@ public sealed partial class BattleEngine
     /// </summary>
     public bool WeaponFired(Weapon weapon)
     {
-        if (WalkerPart!.WeaponFired(weapon))
+        if ((JetPart?.WeaponFired(weapon) ?? false) || WalkerPart!.WeaponFired(weapon))
         {
             Stealth = 0.0f;
             return true;
@@ -156,7 +158,7 @@ public sealed partial class BattleEngine
     {
         FVector pos = base.GetRenderPos();
         // mHackRenderThingIsWalker: MassiveHackPutUsInRightMesh shows the jet mesh while jetting or morphing into a jet.
-        if (State is not (BattleEngineState.Jet or BattleEngineState.MorphingIntoJet))
+        if (RenderThingIsWalker)
         {
             pos.Z += COfGHeight();
         }
@@ -193,7 +195,7 @@ public sealed partial class BattleEngine
             case BattleEngineState.MorphingIntoWalker:
                 return IsDying ? base.Gravity() : base.Gravity() * 0.2f;
             default:
-                throw new NotSupportedException("CBattleEngineJetPart::Gravity (the jet part is not ported yet)");
+                return JetPart!.Gravity();
         }
     }
 
@@ -212,7 +214,7 @@ public sealed partial class BattleEngine
     /// <summary>DeclareInWater (00408150): a battle engine in deep enough water dies.</summary>
     public override void DeclareInWater()
     {
-        Context.Skip("CBattleEngine::MassiveHackPutUsInRightMesh");
+        PutUsInRightMesh();
         if (IsDying)
         {
             throw new NotSupportedException("CBattleEngine::Explode (not ported yet)");
@@ -230,7 +232,7 @@ public sealed partial class BattleEngine
     /// <summary>DeclareOnObject (0040c720).</summary>
     public override void DeclareOnObject(Thing? obj)
     {
-        Context.Skip("CBattleEngine::MassiveHackPutUsInRightMesh");
+        PutUsInRightMesh();
         StandingOnThing.SetReader(obj);
         base.DeclareOnObject(obj);
     }
@@ -241,7 +243,7 @@ public sealed partial class BattleEngine
     /// <summary>DeclareOnGround (0040c750): a hard landing damages it (not on an object, not dashing).</summary>
     public override void DeclareOnGround()
     {
-        Context.Skip("CBattleEngine::MassiveHackPutUsInRightMesh");
+        PutUsInRightMesh();
         base.DeclareOnGround();
         if (IsDying)
         {
@@ -281,7 +283,7 @@ public sealed partial class BattleEngine
     {
         CurrentSafeTry = 0;
         WalkerPart = new BattleEngineWalkerPart(this);
-        Context.Skip("CBattleEngineJetPart");
+        JetPart = new BattleEngineJetPart(this);
         StandingOnObjectMovement = new FVector(0, 0, 0);
         NotMovingCount = 0;
         TakeOffTime = 0.0f;
@@ -497,7 +499,7 @@ public sealed partial class BattleEngine
 
             if (State == BattleEngineState.MorphingIntoJet)
             {
-                throw new NotSupportedException("CBattleEngine::Move: morphing into a jet (not ported yet)");
+                AdvanceTakeoff();
             }
 
             WalkerPart!.Move();
@@ -646,7 +648,7 @@ public sealed partial class BattleEngine
     /// <summary>DeactivateThrusters (0040eb50): the in-flight sound fades (in the walker).</summary>
     private void DeactivateThrusters() => ThrustersActive = false;
 
-    private Weapon? CurrentWeaponForZoom() => State == BattleEngineState.Jet ? null : WalkerPart?.GetCurrentWeapon();
+    private Weapon? CurrentWeaponForZoom() => GetCurrentWeapon();
 
     /// <summary>IsStandingOnAMoveingObject: on an object that is moving.</summary>
     private bool IsStandingOnAMovingObject()

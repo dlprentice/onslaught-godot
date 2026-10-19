@@ -9,9 +9,11 @@ using OnslaughtRebuild.Parity.Crt;
 namespace OnslaughtRebuild.Parity.Sound;
 
 /// <summary>CEffect: a named effect, its pitch variance and the effects chained after it (one is picked at random).</summary>
-public sealed class SoundEffect(string name, int pitchVariance)
+public sealed class SoundEffect(string name, int pitchVariance, string? sampleName = null)
 {
     public string Name { get; } = name;
+
+    public string SampleName { get; } = sampleName ?? name;
 
     public int PitchVariance { get; } = pitchVariance;
 
@@ -52,7 +54,7 @@ public sealed class SoundEffects
         for (int i = 0; i < count; i++)
         {
             string name = ReadLine();
-            ReadLine();
+            string sample = ReadLine();
             ReadLine();
             ReadLine();
             ReadLine();
@@ -68,7 +70,7 @@ public sealed class SoundEffects
             }
 
             ReadLine();
-            var e = new SoundEffect(name, pitch);
+            var e = new SoundEffect(name, pitch, sample);
             SoundEffect? found = effects._effects.FirstOrDefault(c => Particles.ParticleSet.Stricmp(c.Name, name) == 0);
             if (found is null)
             {
@@ -134,6 +136,90 @@ public sealed class SoundEffects
 
         string s = sb.ToString();
         return _effects.FirstOrDefault(e => Particles.ParticleSet.Stricmp(e.Name, s) == 0);
+    }
+
+    /// <summary>
+    /// Silent logical state for explicitly repeating effects only. This does not model channel allocation, device
+    /// audibility, nonloop sample durations or callbacks. Its owner must call AdvanceLoopStatus once per MainLoop's
+    /// SOUND.UpdateStatus boundary, including the original pause state; never once per simulated movement.
+    /// </summary>
+    public sealed class RepeatingEffect(SoundEffect effect, object owner, float fade)
+    {
+        public SoundEffect Effect { get; } = effect;
+        public object Owner { get; } = owner;
+        public float SubVolume { get; internal set; } = fade > 0 ? 0 : 1;
+        public float Fade { get; internal set; } = fade;
+        public float FadeDestination { get; internal set; } = fade < 0 ? 0 : 1;
+    }
+
+    private readonly List<RepeatingEffect> _repeating = [];
+    public IReadOnlyList<RepeatingEffect> RepeatingEffects => _repeating;
+
+    /// <summary>IsEffectPlaying004e1ab0: test every chained sample with the same owner.</summary>
+    public bool IsRepeatingEffectPlaying(SoundEffect? effect, object owner)
+    {
+        for (SoundEffect? current = effect; current is not null; current = current.Chained)
+            if (FindRepeatingSample(current.SampleName, owner) is not null) return true;
+        return false;
+    }
+
+    public RepeatingEffect? FindRepeatingSample(string sample, object owner) => _repeating.FirstOrDefault(e =>
+        ReferenceEquals(e.Owner, owner) && StringComparer.OrdinalIgnoreCase.Equals(e.Effect.SampleName, sample));
+
+    /// <summary>
+    /// PlayEffect004e1940 chooses the effect and draws pitch through the existing owner. The caller guarantees
+    /// an admitted repeating sample and performs its IsEffectPlaying guard before this call; the channel/once
+    /// admission layer and nonloop playback remain outside this loop-only model.
+    /// </summary>
+    public RepeatingEffect? PlayRepeatingEffect(SoundEffect? effect, object owner, CrtRandStream rand, float fade = 0)
+    {
+        SoundEffect? chosen = PlayEffect(effect, rand);
+        if (chosen is null) return null;
+        var playing = new RepeatingEffect(chosen, owner, fade);
+        _repeating.Add(playing);
+        return playing;
+    }
+
+    /// <summary>StopSample004e1800: every matching sample of this owner, no random draw.</summary>
+    public void StopRepeatingSample(SoundEffect? effect, object owner)
+    {
+        if (effect is null) return;
+        _repeating.RemoveAll(e => ReferenceEquals(e.Owner, owner)
+            && StringComparer.OrdinalIgnoreCase.Equals(e.Effect.SampleName, effect.SampleName));
+    }
+
+    /// <summary>FadeTo004e1260: the first matching sample, signed speed from its current volume.</summary>
+    public void FadeRepeatingSample(SoundEffect? effect, object owner, float destination, float speed)
+    {
+        if (effect is null || FindRepeatingSample(effect.SampleName, owner) is not { } playing) return;
+        playing.FadeDestination = destination;
+        playing.Fade = destination < playing.SubVolume ? -speed : speed;
+    }
+
+    /// <summary>
+    /// UpdateStatus004e1b20: one addition per unpaused status update, then STRICT overshoot comparisons. Reaching zero
+    /// exactly does not stop the sample until the next update; replacing this with a <= comparison changes RNG later.
+    /// </summary>
+    public void AdvanceLoopStatus(bool paused)
+    {
+        if (paused) return;
+        for (int i = 0; i < _repeating.Count;)
+        {
+            RepeatingEffect effect = _repeating[i];
+            if (effect.Fade != 0)
+            {
+                effect.SubVolume += effect.Fade;
+                if ((effect.Fade > 0 && effect.SubVolume > effect.FadeDestination)
+                    || (effect.Fade < 0 && effect.SubVolume < effect.FadeDestination))
+                {
+                    bool stop = effect.Fade < 0 && effect.FadeDestination == 0;
+                    effect.SubVolume = effect.FadeDestination;
+                    effect.Fade = 0;
+                    if (stop) { _repeating.RemoveAt(i); continue; }
+                }
+            }
+            i++;
+        }
     }
 
     /// <summary>PlayEffect's draws: one of the chain at random, then (with pitch variance on) its pitch.</summary>

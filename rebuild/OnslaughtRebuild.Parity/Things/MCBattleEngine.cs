@@ -28,6 +28,11 @@ public sealed class MCBattleEngine : Monitor
 
     private readonly ThingContext _context;
     private readonly BattleEngine _thing;
+    private bool _attached = true;
+
+    /// <summary>CMotionController::SetThing: this controller is detached for jet mode and restored unchanged on landing.</summary>
+    public void SetAttached(bool attached) => _attached = attached;
+    public bool IsAttached => _attached;
 
     // SetMechParameters(0, 400, 1, 0.4, 0.9, 0.05, 2), as CBattleEngine::Init sets them.
     private float _paramA;
@@ -103,6 +108,7 @@ public sealed class MCBattleEngine : Monitor
     /// </summary>
     public void Rendered()
     {
+        if (!_attached) return;
         if (!_wasUsed)
         {
             ProcessMovement(true);
@@ -119,6 +125,8 @@ public sealed class MCBattleEngine : Monitor
         {
             return;
         }
+
+        if (!_attached) return;
 
         if (_thing.RenderThing?.MeshOrNull is not { } mesh || mesh.Parts.Count == 0 || mesh.Parts[0] is not { } root)
         {
