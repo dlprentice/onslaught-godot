@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (trainer reach/launch integration and sound-event kernel; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-19 (trainer sound integration and incoming warning verified; first native airborne target; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -46,6 +46,15 @@ it is not a perfect-score or no-hit run. Root receipts: internal clone
 `local-data/test-runs/death-integration-20261019/` (focused tests, independently executed original
 code, full ground probe comparison and 18-post admission).
 
+The frozen native route subsequently reaches the first flight zone and genuinely destroys its first
+airborne target at Present 19,821. At 20,800 it has landed on the island and is recharging, with health
+19.8097916 and energy 4.4644375. Its required target groups stand at **4/4, 3/3, 6/6, 1/3 and 0/6**;
+all 26 recorded script posts and the ordinary-input prefix are preserved. Root inspected the fresh
+landing image and admission receipt. This is native-port progress, not a managed-rebuild run or full
+retail acceptance. The first airborne group, final combat group, completion and save remain open.
+The private tape is `fire3-airborne-recharge-land-20261019.tape`, SHA-256
+`09bc6c00b742401c997bf6c175b7bae608f1c04d6ef62a1417218c04121d7400`.
+
 Stopped-round and plane follow-up (2026-10-19): retail's final straight-projectile query comparison
 rejects unordered results. The previous greater-than check admitted the NaN produced by zero velocity,
 scheduling three extra tree collisions at Present 9,365 that survived as null events at 9,372.
@@ -65,13 +74,24 @@ emitter child, not effect allocation; no compensating random call was added. Roo
 now agrees on **all nine fields at every Present 3..16,066: 144,576 comparisons, zero differences**.
 The nonballistic weapon reach/firing queries now execute through the trainer's first missile launch;
 root reproduced 2,073 original cases (20,730 output words), with 600 cases distinguished by the
-PC53 negative control, and all 13 focused cases pass. The replay then explicitly stops at unsupported
-missile homing against the battle engine before Present 16,067. This is partial trainer replay,
-not completion. The complete integrated suite passes **623 tests, 9 unchanged optional-reference
-skips, 0 failures**; all 619 prior test outcomes remain and 13 new cases execute.
+PC53 negative control, and all 13 focused cases pass. Subsequent missile seeking and BattleEngine
+lock-loss integration reproduces 2,320 original cases (39,440 words); PC53 changes 1,056 cases.
+The configured replay now completes the trainer's attack-and-cease sequence through Present 17,300.
+Its previously missing event 4002 plays the spoken missile warning, independently of the radar beep,
+with the original strict two-second deadline. Root reproduced 14 original-handler boundary cases and
+19 focused tests; restoring this actual call removes every CRT difference from Present 16,067 onward.
+Across **155,682 comparisons**, eight of nine fields agree at every Present 3..17,300. LIFE differs at
+283 Presents, first at 16,206: health agrees at that hit, while energy differs by 11 float ULPs.
+A noninterfering private collector and eight original Damage executions reproduce the managed results
+exactly on the captured inputs; the explosion's incoming damage/trajectory needs investigation rather
+than an adjustment to Damage. This does not yet establish full trainer parity or tutorial completion.
+The complete integrated suite passes **740 tests, 9 unchanged optional-reference skips, 0 failures**;
+all 710 outcomes from the preceding sound integration are unchanged and 39 new cases execute.
 Private evidence remains in the existing death-integration owner, including
 `trainer-reach-fixed-admission.json`, `weapon-reach-root/`, `weapon-reach-full.trx` and
-`weapon-reach-suite-admission.json`.
+`weapon-reach-suite-admission.json`, `round-seeking-root/`, `trainer-seeking-fixed-admission.json`,
+`sound-integrated-full.trx`, `trainer-incoming-fixed-admission.json`, `incoming-voice-root/`,
+`trainer-damage-root/` and `trainer-integrated-suite-admission.json`.
 
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte
@@ -80,11 +100,19 @@ owners. A shared sound-event kernel now implements pool admission, channel reten
 pause/stop, deferred deletion and owner callbacks. Root independently rebuilt and reran 328 original
 kernel cases, 640 effect-admission cases and 64 platform PlaySound controls, including controls that
 distinguish clock reads, retained channels and stopped-event revival; all 26 focused tests execute.
-The concrete spatial/buffer adapter, process-wide caller migration and measured initial pool profile
-remain pending, so the kernel is not enabled in gameplay yet. Incoming-missile nonloop lifetime still
-refuses explicitly; no duration timer substitutes for channel admission. These are silent event/cursor
-checks, not audible playback acceptance. Original-code outputs remain private under the existing
-death-integration owner's `sound-events/` directory.
+The concrete spatial/buffer adapter and explicit process binding are now integrated. Root reproduced
+184,576 original gain outputs and 512 actual-port buffer sequences, plus bounded spatial checks.
+Voices, cockpit warnings, engine loops, dashes, weapon/impact/explosion and initial unit sounds use
+the same event owner. Once/repeat, fade identity, pause, menu gain and restart callbacks have focused
+coverage; 99 joint checks pass without skips. No independent warning/voice duration timer replaces
+channel admission. A private harness can select the measured 256-node e55 startup pool and an
+explicit native-device profile; these are not universal retail defaults. The normal host does not
+silently select that private profile. Feature loops and unit post-fire sound now retain their original
+owner/cleanup ordering; root reproduced 23 original feature/post-fire cases and 100 related tests.
+Complete world/device teardown, unimplemented component effects/shadows, full-route comparison beyond
+the trainer and audible acceptance remain open. Original-code outputs stay
+private under the existing death-integration owner's `sound-events/`, `sound-adapter-root/` and
+`sound-numerics-root/` directories.
 
 Flight and damage integration (2026-10-19): ordinary jet controls now reach the measured jet
 movement, ground-effect, friction and maneuver paths. BattleEngine damage uses its own shield,
@@ -106,9 +134,9 @@ Receipts: internal clone `local-data/test-runs/flight-damage-integrated-20261019
 
 The Space-input flight fixture explicitly enables flight permission before exercising real input
 and scheduled takeoff/landing/refill; it does not establish the tutorial's permission route.
-Hard landing and lethal death/teardown are implemented in the later integration above; damage-flash
-drawing and nonloop incoming-missile sound lifetime remain open. An incoming warning now explicitly refuses that unsupported sound
-path rather than silently dropping its RNG/timing effect. Device audio and player acceptance remain open.
+Hard landing and lethal death/teardown are implemented in the later integration above. Configured
+incoming warnings now use the shared event lifetime; the legacy unconfigured path still refuses them.
+Damage-flash drawing, device audio and player acceptance remain open.
 
 Water skimming follow-up: `HandleSkimming00411500` now retains the original x87 speed/product
 precision and calls the BattleEngine damage owner with a null attacker and shields disabled,
