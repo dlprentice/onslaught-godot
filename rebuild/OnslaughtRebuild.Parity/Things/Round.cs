@@ -42,9 +42,9 @@ public static class RoundEvent
 /// <remarks>
 /// Not ported yet, each throwing where it is reached: the damage a hit does (CThing::Damage and the kill it confirms),
 /// explosions (UPhysicsManager::SpawnExplosion), beams (CCSRay), jumping rounds, missiles (CMissile), the battle engine's
-/// lock hits, and the CanBeLocked query for rounds homing on a battle engine. Radar set membership is implemented.
+/// lock hits. Target lock eligibility, radar membership and the seeking turn have production owners.
 /// </remarks>
-public class Round : Actor
+public partial class Round : Actor
 {
     /// <summary>GAME_FR: the game's frames per second.</summary>
     private const float GameFr = 20.0f;
@@ -399,27 +399,7 @@ public class Round : Actor
             Velocity = unwiggle.Transform(Velocity);
         }
 
-        if (Target.ToRead is { } target && !(Data.Damage < 0))
-        {
-            if (target.IsA(ThingType.BattleEngine))
-            {
-                throw new NotSupportedException("CRound::Move: a round homing on a battle engine (CanBeLocked, the radar warning receiver) is not ported");
-            }
-
-            if (target.IsDying || target is Unit { UnitData.CanBeLocked: 0 })
-            {
-                ReleaseTarget();
-            }
-        }
-
-        if (!(Data.Damage < 0) && Data.TurnRate > 0 && Target.ToRead is { } seeking)
-        {
-            float age = Context.Events.Time - StartTime;
-            if (Data.SeekDelay < age && Data.SeekTerminationTime > age && (Data.Torpedo == 0 || IsInWater()))
-            {
-                throw new NotSupportedException("CRound::Move's seeking turn is not ported (no level-100 round seeks)");
-            }
-        }
+        UpdateSeeking();
 
         if (Gravity() != 0 || Unknown128 != 0)
         {
