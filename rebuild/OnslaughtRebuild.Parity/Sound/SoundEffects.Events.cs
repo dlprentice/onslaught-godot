@@ -359,9 +359,16 @@ public sealed partial class SoundEffects
     public void SetMasterVolume(float value)
     {
         _ = Backend; MasterVolume = value;
+        UpdateVolumeForAllSoundEvents();
+        // CAREER persistence and LOG reporting belong to the caller, not this event-state kernel.
+    }
+
+    /// <summary>004e0300; separate from the inline game/menu gain setters, as in native shutdown and fade callers.</summary>
+    public void UpdateVolumeForAllSoundEvents()
+    {
+        _ = Backend;
         for (SoundEvent? e = _first; e is not null; e = e.Next)
         { RefreshVolumes(e, SoundVolumeSite.MasterVolume); if (e.Playing && e.Channel >= 0 && Backend.Update(e)) StopSoundEvent(e); }
-        // CAREER persistence and LOG reporting belong to the caller, not this event-state kernel.
     }
 
     private void AdvanceFade(SoundEvent e)

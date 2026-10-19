@@ -5,6 +5,7 @@
 
 using System.Text;
 using OnslaughtRebuild.Parity.Crt;
+using SoundOwner = OnslaughtRebuild.Parity.Events.Monitor;
 
 namespace OnslaughtRebuild.Parity.Sound;
 
@@ -40,11 +41,19 @@ public sealed partial class SoundEffects
 
     /// <summary>
     /// CSoundManager::mGameSoundsMasterVolume: the level-loss fade's separate gain, initially one. This retains
-    /// manager state only; channel attenuation and device UpdateVolumeForAllSoundEvents remain unimplemented.
+    /// manager state only; native callers separately request UpdateVolumeForAllSoundEvents when required.
     /// </summary>
     public float GameSoundsMasterVolume { get; private set; } = 1.0f;
 
     public void SetGameSoundsMasterVolume(float value) => GameSoundsMasterVolume = value;
+
+    /// <summary>The process's loaded sample banks, retaining sample object identity and language selection.</summary>
+    public Func<string, bool, SampleMetadata?>? SampleLookup { get; set; }
+
+    /// <summary>Configured gameplay caller. Volume is explicit: PlayEffect defaults to 1, PlaySample to .7.</summary>
+    public SoundEvent? PlayEffect(SoundEffect? effect, SoundOwner? owner, CrtRandStream rand, SoundPlayback playback) =>
+        PlayEffect(effect, owner, rand,
+            SampleLookup ?? throw new InvalidOperationException("Bind the process's sample banks before playing effects."), playback);
 
     /// <summary>LoadSFXFile: lines, skipping '#' comment lines, each with its last character (the line end) dropped.</summary>
     public static SoundEffects Load(byte[] file)
@@ -184,10 +193,16 @@ public sealed partial class SoundEffects
 
     /// <summary>
     /// Existing loop-only projection, on the same event nodes. It deliberately has no device/channel/sample-duration
-    /// claim. ConfigureEventKernel refuses while these entries exist; after migration this entry point refuses.
+    /// claim. A configured manager instead delegates to the actual event kernel with explicit native arguments.
     /// </summary>
     public RepeatingEffect? PlayRepeatingEffect(SoundEffect? effect, object owner, CrtRandStream rand, float fade = 0, bool once = false)
     {
+        if (EventKernelConfigured)
+        {
+            if (owner is not SoundOwner audible) throw new ArgumentException("A sound owner must support monitored lifetime.", nameof(owner));
+            SoundEvent? active = PlayEffect(effect, audible, rand, new SoundPlayback(Volume: 1, Fade: fade, Once: once, Repeat: true));
+            return active is null ? null : active.LoopHandle ??= new RepeatingEffect(active);
+        }
         RequireLegacyProjection();
         SoundEffect? chosen = PlayEffect(effect, rand);
         if (chosen is null) return null;
@@ -214,6 +229,12 @@ public sealed partial class SoundEffects
 
     public void FadeRepeatingSample(SoundEffect? effect, object owner, float destination, float speed)
     {
+        if (EventKernelConfigured)
+        {
+            if (effect is not null && SampleLookup?.Invoke(effect.SampleName, effect.LanguageDependent) is { } sample)
+                FadeTo(sample, destination, speed, owner);
+            return;
+        }
         if (effect is null || FindRepeatingSample(effect.SampleName, owner) is not { } handle) return;
         handle.Event.FadeDestination = destination;
         handle.Event.Fade = destination < handle.Event.SubVolume ? -speed : speed;

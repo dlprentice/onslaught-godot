@@ -52,6 +52,54 @@ public sealed class SoundEventKernelTests
     private static readonly SampleMetadata Sample = new("sample", 44100);
 
     [Fact]
+    public void ConfiguredEffectCallerUsesBoundSampleIdentityAndExplicitPlaybackArguments()
+    {
+        var (sounds, _) = Config(); var owner = new SoundOwner();
+        var effect = new SoundEffect("effect", 0, "sample", volume: 50, languageDependent: true);
+        int lookups = 0;
+        sounds.SampleLookup = (name, language) =>
+        { Assert.Equal("sample", name); Assert.True(language); lookups++; return Sample; };
+        var random = new CrtRandStream();
+        var e = sounds.PlayEffect(effect, owner, random,
+            new SoundPlayback(Volume: 1, Tracking: SoundTracking.InitialPosition, Once: true))!;
+        Assert.Same(Sample, e.Sample); Assert.Same(owner, e.Owner);
+        Assert.Equal(.5f, e.MasterVolume); Assert.Equal(SoundTracking.InitialPosition, e.Tracking);
+        Assert.Null(sounds.PlayEffect(effect, owner, random, new SoundPlayback(Volume: 1, Once: true)));
+        Assert.Equal(2, lookups); Assert.Single(sounds.Events);
+    }
+
+    [Fact]
+    public void ConfiguredLoopAndFadeWrappersShareRealEventsAndSampleIdentity()
+    {
+        var (sounds, _) = Config(); var owner = new SoundOwner();
+        var effect = new SoundEffect("effect", 0, "sample"); sounds.SampleLookup = (_, _) => Sample;
+        var random = new CrtRandStream();
+        var loop = sounds.PlayRepeatingEffect(effect, owner, random, fade: .2f, once: true)!;
+        Assert.Same(loop.Event, Assert.Single(sounds.Events)); Assert.True(loop.Event.Looping);
+        Assert.Equal(0, loop.SubVolume); Assert.Equal(.2f, loop.Fade);
+        Assert.Null(sounds.PlayRepeatingEffect(effect, owner, random, once: true));
+        // Native FadeTo uses sample identity and owner, not a separate loop list or a name-only search.
+        sounds.SampleLookup = (_, _) => new SampleMetadata("sample", 44100);
+        sounds.FadeRepeatingSample(effect, owner, .75f, .1f);
+        Assert.Equal(1, loop.FadeDestination);
+        sounds.SampleLookup = (_, _) => Sample;
+        sounds.FadeRepeatingSample(effect, owner, .75f, .1f);
+        Assert.Equal(.75f, loop.FadeDestination); Assert.Equal(.1f, loop.Fade);
+    }
+
+    [Fact]
+    public void GameGainSetterDoesNotPollCompletionUntilExplicitVolumeRefresh()
+    {
+        var (sounds, backend) = Config();
+        var e = sounds.PlaySample(Sample, null, new SoundPlayback())!;
+        backend.FinishedSlot = e.Slot; backend.Calls.Clear();
+        sounds.SetGameSoundsMasterVolume(.25f);
+        Assert.Empty(backend.Calls); Assert.True(e.Playing);
+        sounds.UpdateVolumeForAllSoundEvents();
+        Assert.False(e.Playing); Assert.Equal(new[] { "U0:0,", "S0:0," }, backend.Calls);
+    }
+
+    [Fact]
     public void PoolRetainsChannelAcrossDeferredDeletionAndAffectsItsOwnNextAllocation()
     {
         var (sounds, backend) = Config(4);
@@ -236,7 +284,8 @@ public sealed class SoundEventKernelTests
         var (configured, _) = Config();
         Assert.Throws<InvalidOperationException>(() => configured.AdvanceLoopStatus(false));
         Assert.Throws<InvalidOperationException>(() => configured.PlayEffect(effect, rng));
-        Assert.Throws<InvalidOperationException>(() => configured.PlayRepeatingEffect(effect, new object(), rng));
+        Assert.Throws<ArgumentException>(() => configured.PlayRepeatingEffect(effect, new object(), rng));
+        Assert.Throws<InvalidOperationException>(() => configured.PlayRepeatingEffect(effect, new SoundOwner(), rng));
     }
 
     [RetailOracleFact("sound-events")]
