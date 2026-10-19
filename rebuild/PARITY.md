@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (hard landing, death lifecycle and ground-route replay; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-19 (ground-route scheduler closure and plane attack/escort; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -35,9 +35,9 @@ of universal retail heap equality. Device rumble, visible damage-flash pixels an
 The frozen native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
 targets**. Root replayed it in Parity through Present 15,130 and observed all 18 real script posts
 at the same completed Present; the observer forwards each original call once and leaves the whole
-trace unchanged. All seven primary probes plus CRT agree at every Present 3..15,130. EVN agrees
-through 9,371, then differs on 5,759 records, first by three at 9,372. All 136,152 nine-probe
-comparisons were performed; this is selected-state agreement with frozen native port `e55cb2d8`,
+trace unchanged. After the stopped-round query correction below, **all nine probes agree at
+every Present 3..15,130**, across all 136,152 comparisons. This is selected-state agreement with
+frozen native port `e55cb2d8`,
 not a fresh retail whole-route comparison. The tape SHA-256 is
 `b083d308cc29bb108d2d4a15bc8ee7a1c17d7086ae386682fb2f9425b9d69919`.
 The native route starts with `-level100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
@@ -45,6 +45,25 @@ flight/refuelling/later combat/win/save remain separate. Its later evasion attem
 it is not a perfect-score or no-hit run. Root receipts: internal clone
 `local-data/test-runs/death-integration-20261019/` (focused tests, independently executed original
 code, full ground probe comparison and 18-post admission).
+
+Stopped-round and plane follow-up (2026-10-19): retail's final straight-projectile query comparison
+rejects unordered results. The previous greater-than check admitted the NaN produced by zero velocity,
+scheduling three extra tree collisions at Present 9,365 that survived as null events at 9,372.
+The fix changes that comparison alone. Root executed 12 original query cases and all 12 focused tests;
+the full ground replay above now has no EVN differences. The bounded native dispatch observer retained
+all 84,600 ordinary probe values through Present 9,400 while recording 1,708 contiguous dispatches.
+
+The Plane attack/escort handler, distinct waypoint handler and wing animation transitions now preserve
+target-reader order, 25/70 approach/retreat hysteresis, 30/120 escort thresholds and conditional random
+draws. Root reproduced 1,024 cases executing five unchanged retail arithmetic blocks; the PC53 negative
+control differs in 765 cases. All 21 focused tests pass without skips. Radius callbacks and RNG returns
+are authored oracle boundaries; that oracle does not execute targeting, animation or the scheduler.
+The integrated trainer replay advances to completed Present 15,877, then explicitly stops at the
+unimplemented script Attack/squad-target path. Eight of nine fields remain equal throughout this prefix;
+CRT first differs at 15,669 and remains under investigation. The complete integrated suite passes
+**570 tests, 9 unchanged optional-reference skips, 0 failures**. This is a partial failed trainer
+replay, not completion. Private evidence remains in the existing death-integration owner, including
+`six-ground-round-fixed-admission.json` and `trainer-plane-fixed-admission.json`.
 
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte
