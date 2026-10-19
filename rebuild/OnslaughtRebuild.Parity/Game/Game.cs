@@ -163,6 +163,7 @@ public sealed partial class Game : Monitor, IMainLoopHost
         PreRunTime = 3.0f;
         PanTime = 3.0f;
         EndLevelCount = -1.0f;
+        GameSoundsMasterVolume = 1.0f;
         Array.Clear(Slots);
         CareerSlots?.CopyTo(Slots, 0);
         LevelLostReason = 0;
@@ -240,6 +241,12 @@ public sealed partial class Game : Monitor, IMainLoopHost
                 break;
             case GameEvent.FinishedPanning:
                 StartPlayingState();
+                break;
+            case GameEvent.PauseGame:
+                Pause();
+                break;
+            case GameEvent.ContinueFadeOutGameSounds:
+                ContinueFadeOutGameSounds();
                 break;
             default:
                 _services.HandleGameEvent((GameEvent)e.EventNum, e);

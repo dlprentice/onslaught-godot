@@ -23,6 +23,12 @@ public interface IGameServices
     /// <summary>mMessageBox->PlayPendingSamples.</summary>
     void MessageBoxPlayPendingSamples();
 
+    /// <summary>mMessageBox->StopCurrentPlayingSound on single-player death.</summary>
+    void StopCurrentMessageSound() { }
+
+    /// <summary>SOUND.SetGameSoundsMasterVolume followed by UpdateVolumeForAllSoundEvents.</summary>
+    void SetGameSoundsMasterVolume(float volume) { }
+
     /// <summary>mMessageBox, the target of ALLOWED_TO_PLAY_MESSAGES (null drops the event, as a null target does).</summary>
     Monitor? MessageBox { get; }
 
@@ -84,7 +90,7 @@ public interface IGameServices
     /// <summary>SCRIPT_EVENT_NB.PostEvent(name).</summary>
     void PostScriptEvent(string name);
 
-    /// <summary>CGame::HandleEvent's other cases (respawns, pause, the sound fade).</summary>
+    /// <summary>CGame::HandleEvent's remaining cases (multiplayer respawns).</summary>
     void HandleGameEvent(GameEvent gameEvent, Event e);
 
     // CGame::MainLoop's platform and renderer calls (IMainLoopHost).

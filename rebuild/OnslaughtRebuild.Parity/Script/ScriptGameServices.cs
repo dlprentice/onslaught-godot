@@ -46,6 +46,15 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
 
     public void AutoConfigTestFrame(int updateFrameNumber) => inner.AutoConfigTestFrame(updateFrameNumber);
 
+    public void StopCurrentMessageSound()
+    {
+        if (Runtime is null) inner.StopCurrentMessageSound();
+        else Runtime.MessageBox?.StopCurrentPlayingSound();
+    }
+
+    // The sound owner supplies the backend master-volume update; the game owns the fade clock/state.
+    public void SetGameSoundsMasterVolume(float volume) => inner.SetGameSoundsMasterVolume(volume);
+
     public void ControllableCameraUpdateFrameCount() => inner.ControllableCameraUpdateFrameCount();
 
     public bool HasController(int player) => inner.HasController(player);

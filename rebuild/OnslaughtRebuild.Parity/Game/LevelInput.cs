@@ -265,6 +265,10 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
 
     public void HandleGameEvent(GameEvent gameEvent, Event e) => _rest.HandleGameEvent(gameEvent, e);
 
+    public void StopCurrentMessageSound() => ((IGameServices)_rest).StopCurrentMessageSound();
+
+    public void SetGameSoundsMasterVolume(float volume) => ((IGameServices)_rest).SetGameSoundsMasterVolume(volume);
+
     public bool InactivityMeansQuitGame() => false;
 
     public void EnterAttractMode() => _rest.EnterAttractMode();
