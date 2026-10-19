@@ -617,7 +617,7 @@ public class UnitAI : Monitor
 }
 
 /// <summary>CPlaneAI: escorts the player when its unit data asks, otherwise attacks with its wings open.</summary>
-public sealed class PlaneAI : UnitAI
+public sealed partial class PlaneAI : UnitAI
 {
     public int Unknown60;
 
@@ -628,8 +628,6 @@ public sealed class PlaneAI : UnitAI
         Unknown14 = 0;
     }
 
-    public override void Unknown9(Event e) =>
-        throw new NotSupportedException("CPlaneAI::Unknown9 (the plane's attack and escort are not ported yet)");
 }
 
 /// <summary>CDropshipAI: the transporter's AI (doors, anchor, spawners).</summary>

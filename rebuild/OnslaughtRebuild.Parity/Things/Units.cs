@@ -861,7 +861,7 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
 }
 
 /// <summary>CPlane (a CSmallAirUnit): fighters and trainers.</summary>
-public sealed class Plane(ThingContext context) : AirUnit(context)
+public sealed partial class Plane(ThingContext context) : AirUnit(context)
 {
     /// <summary>
     /// CPlane::Hit (004d1f10), then CSmallAirUnit::Hit (00403ba0), then CUnit's: unless its unit data's mUnknown11C is

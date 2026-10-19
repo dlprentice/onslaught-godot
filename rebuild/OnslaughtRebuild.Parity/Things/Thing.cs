@@ -744,7 +744,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
     }
 
     /// <summary>CComplexThing::FinishedPlayingCurrentAnimation (004f45a0): PlayAnimationWait's script carries on.</summary>
-    public bool FinishedPlayingCurrentAnimation()
+    public virtual bool FinishedPlayingCurrentAnimation()
     {
         Script?.FinishedPlayingAnim();
         return true;
