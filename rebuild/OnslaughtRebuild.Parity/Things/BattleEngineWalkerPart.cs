@@ -5,6 +5,7 @@
 
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Sound;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -67,15 +68,18 @@ public sealed class BattleEngineWalkerPart
     /// <summary>GetCurrentAccleration: the configuration's ground velocity / 50 (a multiply by 0.02f, 00412d94).</summary>
     private float CurrentAcceleration() => _main.Configuration!.GroundVelocity * 0.02f;
 
-    /// <summary>A dash: the strafe sound (presentation), the weapon's charge lost and the zoom-out reset; the caller boosts.</summary>
+    /// <summary>A dash: start its owned strafe effect, lose weapon charge and reset zoom; the caller then boosts.</summary>
     private void StartDash()
     {
         // Pristine PC 74154bfa, Forward 00412e5a..00412ed3 and the other three directional arms. Playing the
-        // effect consumes the shared CRT stream even though the host does not yet play its sample. The caller
-        // applies its own boost/roll/count after these effects; the native left and right roll operations differ.
+        // effect consumes the shared CRT stream before charge loss. All four calls use the main BE owner,
+        // volume1 and FollowAndDie (2), with once/fade/repeat/ignore=false, pitch1 and Game sound kind.
         if (Context.SoundEffects is { } sounds)
         {
-            sounds.PlayEffect(sounds.Find("BE Strafe L/R"), Context.Crt);
+            if (sounds.EventKernelConfigured)
+                sounds.PlayEffect(sounds.Find("BE Strafe L/R"), _main, Context.Crt,
+                    new SoundPlayback(Volume: 1, Tracking: SoundTracking.FollowAndDie));
+            else sounds.PlayEffect(sounds.Find("BE Strafe L/R"), Context.Crt);
         }
         else
         {

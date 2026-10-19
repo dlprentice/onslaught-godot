@@ -2,6 +2,7 @@
 // Adapted from bea-decomp src/BattleEngine.cpp: Morph0040a580, HandleEvent0040c180, mesh switch00406460,
 // EnableFlightMode0040dcb0, DisableFlightMode0040dcc0 and ZoomIn/Out00409e90..00409ec0.
 using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Sound;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -52,8 +53,14 @@ public sealed partial class BattleEngine
             Cockpit?.MorphIntoWalkerCockpit();
             State = BattleEngineState.MorphingIntoWalker;
             SetAnimMode(AnimModeByName("flytowalk"), true, false);
-            sounds?.FadeRepeatingSample(sounds.Find("BE Engines(in-flight)"), this, 0, 0.02f);
-            sounds?.PlayEffect(sounds.Find("BE Engines(land)"), Context.Crt);
+            if (sounds is not null)
+            {
+                sounds.FadeRepeatingSample(sounds.Find("BE Engines(in-flight)"), this, 0, 0.02f);
+                if (sounds.EventKernelConfigured)
+                    sounds.PlayEffect(sounds.Find("BE Engines(land)"), this, Context.Crt,
+                        new SoundPlayback(Volume: 1, Tracking: SoundTracking.FollowDontDie));
+                else sounds.PlayEffect(sounds.Find("BE Engines(land)"), Context.Crt);
+            }
             Stalling = false;
         }
         else if (Energy >= Configuration!.MinTransformEnergy)
@@ -71,10 +78,21 @@ public sealed partial class BattleEngine
                 Context.Events.AddEvent(BattleEngineEvent.BecomeJet, this, Context.Events.Time + 0.1f, EventPriority.StartOfFrame);
             }
             TakeOffTime = Context.Events.Time;
-            sounds?.PlayEffect(sounds.Find("BE Engines(takeoff)"), Context.Crt);
+            if (sounds is { EventKernelConfigured: true })
+                sounds.PlayEffect(sounds.Find("BE Engines(takeoff)"), this, Context.Crt,
+                    new SoundPlayback(Volume: 1, Tracking: SoundTracking.FollowDontDie));
+            else sounds?.PlayEffect(sounds.Find("BE Engines(takeoff)"), Context.Crt);
             if (sounds?.Find("BE Engines(in-flight)") is { } inflight)
             {
-                if (!sounds.IsRepeatingEffectPlaying(inflight, this)) sounds.PlayRepeatingEffect(inflight, this, Context.Crt, 0.02f);
+                if (!sounds.IsEffectPlaying(inflight, this))
+                {
+                    // 0040a817..0040a842: once=true AND repeat=true; authored effect.Looping may clear once
+                    // inside PlayEffect, but the caller must not silently replace either original argument.
+                    if (sounds.EventKernelConfigured)
+                        sounds.PlayEffect(inflight, this, Context.Crt,
+                            new SoundPlayback(Volume: 1, Tracking: SoundTracking.FollowDontDie, Once: true, Fade: 0.02f, Repeat: true));
+                    else sounds.PlayRepeatingEffect(inflight, this, Context.Crt, 0.02f, once: true);
+                }
                 else sounds.FadeRepeatingSample(inflight, this, 1.0f, 0.02f);
             }
         }
