@@ -85,13 +85,25 @@ Across **155,682 comparisons**, eight of nine fields agree at every Present 3..1
 A noninterfering private collector and eight original Damage executions reproduce the managed results
 exactly on the captured inputs; the explosion's incoming damage/trajectory needs investigation rather
 than an adjustment to Damage. This does not yet establish full trainer parity or tutorial completion.
-The complete integrated suite passes **740 tests, 9 unchanged optional-reference skips, 0 failures**;
-all 710 outcomes from the preceding sound integration are unchanged and 39 new cases execute.
+The complete integrated suite passes **748 tests, 9 unchanged optional-reference skips, 0 failures**;
+all 749 outcomes from the spoken-warning integration are unchanged and eight new cases execute.
 Private evidence remains in the existing death-integration owner, including
 `trainer-reach-fixed-admission.json`, `weapon-reach-root/`, `weapon-reach-full.trx` and
 `weapon-reach-suite-admission.json`, `round-seeking-root/`, `trainer-seeking-fixed-admission.json`,
 `sound-integrated-full.trx`, `trainer-incoming-fixed-admission.json`, `incoming-voice-root/`,
 `trainer-damage-root/` and `trainer-integrated-suite-admission.json`.
+
+Explosion falloff correction (2026-10-19): pristine `CExplosion::Hit` at `0044bf65..0044bf9b`
+sums squared displacement as `(Z² + Y²) + X²`, retaining the x87 exponent range until the
+magnitude store. The previous generic vector norm used a different order and float intermediates.
+Root reproduced 5,347 isolated original Hit cases; 521 distinguish the former order. Eight managed
+counterexamples cover summation order and intermediate overflow/underflow, and all eight fail with
+the former implementation. The configured trainer trace remains byte-identical after this correction.
+Its first explosion still gives `3ecf1334` in both Core and original code on the captured Core inputs,
+so this correction does not explain the first LIFE divergence. Original-code execution uses an authored
+radius callback and Damage sink; it establishes bounded arithmetic, not the collision trajectory.
+Receipts: `explosion-hit-root/`, `explosion-order-full.trx` and
+`explosion-order-regression-admission.json` in the same private death-integration owner.
 
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte

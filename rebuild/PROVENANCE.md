@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-19 (shared sound process, caller lifetimes and spoken missile warning; complete tutorial and device/resource reset remain incomplete).
+Last updated: 2026-10-19 (shared sound process, spoken missile warning and original explosion falloff order; complete tutorial and device/resource reset remain incomplete).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -137,6 +137,7 @@ package licence expression is `GPL-3.0-only`.
 | `Script/VirtualVoice.cs`, sound-side `Script/MessageBox.cs` destruction | `src/MessageBox.cpp`, `src/pcsoundmanager.cpp`, `src/SoundManager.cpp`, port virtual mixer | GPL-3.0-only as combined. Configured voice uses shared events and monitored completion callbacks; it has no separate completion timer. Header-derived decoded length and the silent virtual device are explicit boundaries, not listening or arbitrary-device acceptance. |
 | Configured playback calls in BattleEngine movement/morph, walker dash, weapons, impacts, explosions, features and unit initialization/pre-/post-fire | Corresponding `src/BattleEngine.cpp`, `src/BattleEngineWalkerPart.cpp`, `src/weapon.cpp`, `src/thing.cpp`, `src/explosion.cpp`, `src/feature.cpp`, `src/Unit.cpp` call sites | GPL-3.0-only as combined. Native owner, gain, tracking, once/repeat, fade and RNG order are preserved; root reproduced integrated caller tests and original PlayEffect gain outputs. Root additionally reproduced 23 original feature/post-fire cases; component effects and static shadows remain explicit omissions. |
 | `Things/BattleEngine.cs` incoming spoken warning | `src/BattleEngine.cpp` HandleEvent 0040c180 / event 4002 and Init; pristine original handler | GPL-3.0-only as combined. Root reproduced 14 strict/unordered deadline and argument cases plus 19 managed checks. The actual HUD effect call closes the configured trainer CRT divergence; the isolated oracle intercepts three string/sound services and does not establish audible playback. |
+| `Things/Explosion.cs` inlined distance for falloff | `src/explosion.cpp`, pristine `CExplosion::Hit` 0044bf10 and its distance block 0044bf65..0044bf9b | GPL-3.0-only as combined. Root reproduced 5,347 isolated original Hit cases; 521 distinguish the old sum order. Eight managed counterexamples also cover retained exponent range. Radius and Damage are authored service boundaries; the current trainer's first-hit difference is upstream or in the native port, not resolved by this correction. |
 | `Things/Round.Seeking.cs`, `Things/BattleEngine.Locking.cs` | `src/round.cpp`, `src/BattleEngine.cpp`; pristine lock-loss and turn blocks | GPL-3.0-only as combined. Root reproduced 2,320 original cases (39,440 words); PC53 changes 1,056 cases. Target reacquisition, other missile classes and launcher lock behavior remain separate. |
 | `Things/LevelResources.cs` (the resource file's MESH, ERES and WRES chunks) | `src/ResourceAccumulator.cpp` (`ReadResources`) | GPL-3.0-only (in Stuart's release) |
 | `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-or-later (not in Stuart's release) |

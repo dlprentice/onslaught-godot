@@ -6,6 +6,7 @@
 using OnslaughtRebuild.Parity.Collision;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.World;
@@ -172,7 +173,13 @@ public sealed class Explosion(ThingContext context) : ComplexThing(context, Oid.
 
         base.Hit(other, report);
         int n = 0;
-        float dist = (Pos - other.Pos).Magnitude() - other.GetRadius();
+        // 0044bf65..0044bf9b: this inlined norm adds (Z²+Y²)+X² and retains the x87
+        // exponent through the differences, products and root; only the magnitude is stored.
+        double dx = X87.Sub(Pos.X, other.Pos.X);
+        double dy = X87.Sub(Pos.Y, other.Pos.Y);
+        double dz = X87.Sub(Pos.Z, other.Pos.Z);
+        float magnitude = (float)X87.Sqrt(X87.Add(X87.Add(X87.Mul(dz, dz), X87.Mul(dy, dy)), X87.Mul(dx, dx)));
+        float dist = (float)X87.Sub(magnitude, other.GetRadius());
         bool parts = other.IsA(ThingType.Unit) && other is Unit { HasSegments: true } && report is { Unknown00: not 0, NumContacts: > 0 };
         do
         {
