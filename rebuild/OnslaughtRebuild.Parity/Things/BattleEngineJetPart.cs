@@ -297,12 +297,16 @@ public sealed class BattleEngineJetPart
         if (!(water < Context.Map.Collide(_main.Pos))) return;
         float altitude = water - _main.Pos.Z;
         if (!(altitude < 0.5f)) return;
-        float speed = _main.Velocity.MagnitudeXY();
+        FVector velocity = _main.Velocity;
+        // 0041156e..004115c1: FSQRT stays in x87 through both products. Preserve its exponent range,
+        // including the squared operands, rather than forcing an intermediate float store.
+        double speed = X87.Sqrt(X87.Add(X87.Mul(velocity.X, velocity.X), X87.Mul(velocity.Y, velocity.Y)));
         if (!(speed > 0.3f)) return;
-        _main.Velocity.Z -= speed * 0.3f;
-        _main.Pitchvel -= 0.01f * speed;
+        _main.Velocity.Z = (float)X87.Sub(_main.Velocity.Z, X87.Mul(speed, 0.3f));
+        _main.Pitchvel = (float)X87.Sub(_main.Pitchvel, X87.Mul(speed, 0.01f));
         _main.Velocity *= 0.8f;
-        throw new NotSupportedException("CBattleEngineJetPart::HandleSkimming damage requires CBattleEngine::Damage, not inherited CUnit::Damage");
+        _main.Damage((0.5f - altitude) * 20.0f, null, false, -1);
+        _main.HostileEnvironment();
     }
 
     // Inline matrix constructor at 00411307..00411415: sin(yaw) and sin(pitch) stay in x87 registers; cos(yaw),
