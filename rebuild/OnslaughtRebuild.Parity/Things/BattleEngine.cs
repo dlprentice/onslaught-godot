@@ -75,6 +75,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     public RadarWarningReceiver? RadarWarningReceiver { get; private set; }
     /// <summary>mPlayIncomingMissileSound: the receiver sets it; HandleSounds consumes it.</summary>
     public bool PlayIncomingMissileSound;
+    /// <summary>mLastIncomingMissileVoice (+0x610): the next allowed spoken warning time, distinct from the radar beep.</summary>
+    public float LastIncomingMissileVoice;
     public int ThrusterFrames;
     public int EngineFrames;
     public float Zoom;
@@ -153,6 +155,7 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         SetCollisionShape();
         Context.Skip("CBattleEngine::Init: the stores");
         Cockpit = new Cockpit(Context, this, Configuration?.Cockpit is { } cockpit && Context.Meshes.TryGetValue(System.Text.Encoding.ASCII.GetString(cockpit), out Mesh.MeshData? cm) ? cm : null);
+        LastIncomingMissileVoice = -20.0f; // Init00405635, before radar initialization.
         // 004055dc constructs Cockpit before 00405710 initializes the radar. Both queue end-of-frame events.
         RadarWarningReceiver = new RadarWarningReceiver(Context, Context.World.Set110, () => PlayIncomingMissileSound = true);
         RadarWarningReceiver.Init(new InitEquipment { AttachedTo = this }, 80.0f, 0.03f);
@@ -421,6 +424,15 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
             case BattleEngineEvent.BecomeWalker:
                 State = BattleEngineState.Walker;
                 SetCollisionShape();
+                break;
+            case UnitEvent.IncomingMissileWarning:
+                // 0040c1ea..0040c263: strict last<time, but FCOMP's C0 also admits unordered. Equal times
+                // suppress the warning. This event is independent of HandleSounds' incoming-missile beep.
+                if (!(LastIncomingMissileVoice >= Context.Events.Time))
+                {
+                    PlayHudSample("hud_incoming_missile");
+                    LastIncomingMissileVoice = (float)Numerics.X87.Add(Context.Events.Time, 2.0f);
+                }
                 break;
             case BattleEngineEvent.CalcUnitOverCrosshair:
                 CurrentUnitOverCrosshair.SetReader(CalcUnitOverCrossHair(e as ScheduledEvent, true, true));
