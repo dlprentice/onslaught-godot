@@ -70,7 +70,20 @@ public sealed class BattleEngineWalkerPart
     /// <summary>A dash: the strafe sound (presentation), the weapon's charge lost and the zoom-out reset; the caller boosts.</summary>
     private void StartDash()
     {
-        throw new NotSupportedException("CBattleEngineWalkerPart's dash (the velocity boost and dash count) is not ported");
+        // Pristine PC 74154bfa, Forward 00412e5a..00412ed3 and the other three directional arms. Playing the
+        // effect consumes the shared CRT stream even though the host does not yet play its sample. The caller
+        // applies its own boost/roll/count after these effects; the native left and right roll operations differ.
+        if (Context.SoundEffects is { } sounds)
+        {
+            sounds.PlayEffect(sounds.Find("BE Strafe L/R"), Context.Crt);
+        }
+        else
+        {
+            Context.Skip("CBattleEngineWalkerPart's dash sound (no sound-effects owner)");
+        }
+
+        LoseWeaponCharge();
+        _main.ZoomOutTime = 0.0f;
     }
 
     private static bool SameName(byte[] a, byte[] b) => a.AsSpan().SequenceEqual(b);
@@ -338,6 +351,8 @@ public sealed class BattleEngineWalkerPart
         if (LastMoveYVal > -DashEnd && vy < -DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardBackwardTime))
         {
             StartDash();
+            val *= DashVelocity;
+            DoingDashCount = DashLength;
         }
 
         LastMoveYVal = vy;
@@ -361,6 +376,8 @@ public sealed class BattleEngineWalkerPart
         if (LastMoveYVal < DashEnd && vy > DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardForwardTime))
         {
             StartDash();
+            val *= DashVelocity;
+            DoingDashCount = DashLength;
         }
 
         LastMoveYVal = vy;
@@ -400,10 +417,16 @@ public sealed class BattleEngineWalkerPart
         if (LastMoveXVal > -DashEnd && vx < -DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardRightTime))
         {
             StartDash();
+            val *= DashVelocity;
+            _main.Rollvel = 0.08f;
+            DoingDashCount = DashLength;
         }
 
         LastMoveXVal = vx;
-        FVector move = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f).Transform(new FVector(-val, 0.0f, 0.0f));
+        // 004132e4..00413317: negate/store the scalar, call the out-of-line matrix constructor, then multiply
+        // only column X. The general Transform's zero products are not executed at this native call site.
+        FMatrix ori = FMatrix.MakeRotationOutOfLine(_main.CurrentOrientation.Yaw, 0.0f, 0.0f);
+        FVector move = new(ori.Row0.X * -val, ori.Row1.X * -val, ori.Row2.X * -val);
         if (_main.SlowMovement)
         {
             move = new FVector(move.X * 0.25f, move.Y * 0.25f, move.Z * 0.25f);
@@ -412,7 +435,10 @@ public sealed class BattleEngineWalkerPart
         _main.AddVelocity(move);
     }
 
-    /// <summary>StrafeRight (00413360): acceleration * vx across the heading (retail quarters val, not the move, when slow).</summary>
+    /// <summary>
+    /// StrafeRight (00413360): acceleration * vx across the heading. The source quarters val after computing move;
+    /// that unused adjustment emits no instructions, so this direction is not reduced by slow movement in retail.
+    /// </summary>
     public void StrafeRight(float vx)
     {
         if (!_main.IsOnGround() || DoingDashCount > 0)
@@ -429,11 +455,15 @@ public sealed class BattleEngineWalkerPart
         if (LastMoveXVal < DashEnd && vx > DashEnd && DoingDashCount == 0 && DashWindow(LastStartHardLeftTime))
         {
             StartDash();
+            val *= DashVelocity;
+            _main.Rollvel -= 0.08f;
+            DoingDashCount = DashLength;
         }
 
         LastMoveXVal = vx;
-        Context.Skip("CBattleEngineWalkerPart::StrafeRight's inline FMatrix * FVector (its order is unchecked)");
-        FVector move = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f).Transform(new FVector(val, 0.0f, 0.0f));
+        // 004134d7..004135b8: the inlined yaw-only constructor, then column X times val (no zero-term sums).
+        FMatrix ori = FMatrix.FromYawPitchRoll(_main.CurrentOrientation.Yaw, 0.0f, 0.0f);
+        FVector move = new(ori.Row0.X * val, ori.Row1.X * val, ori.Row2.X * val);
         _main.AddVelocity(move);
     }
 
