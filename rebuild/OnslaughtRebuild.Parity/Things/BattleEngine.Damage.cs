@@ -23,7 +23,7 @@ public sealed partial class BattleEngine
     /// <summary>
     /// Damage0040a890: no CUnit damage dispatch. Invulnerability restores only life/shields/energy, AFTER statistics,
     /// augmentation, flashes, shake and vibration. Zero still runs the common tail; negative damage repairs life then
-    /// energy. The existing StartDieProcess boundary still refuses an unsupported lethal transition.
+    /// energy. StartDieProcess owns the BE-specific lethal transition; it requires the controlling player and game.
     /// </summary>
     public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
     {

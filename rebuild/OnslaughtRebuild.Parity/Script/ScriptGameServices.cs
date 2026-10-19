@@ -52,8 +52,12 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
         else Runtime.MessageBox?.StopCurrentPlayingSound();
     }
 
-    // The sound owner supplies the backend master-volume update; the game owns the fade clock/state.
-    public void SetGameSoundsMasterVolume(float volume) => inner.SetGameSoundsMasterVolume(volume);
+    // Retain the common sound owner's state. Per-channel/device gain remains the inner backend's responsibility.
+    public void SetGameSoundsMasterVolume(float volume)
+    {
+        Runtime?.Context.SoundEffects?.SetGameSoundsMasterVolume(volume);
+        inner.SetGameSoundsMasterVolume(volume);
+    }
 
     public void ControllableCameraUpdateFrameCount() => inner.ControllableCameraUpdateFrameCount();
 

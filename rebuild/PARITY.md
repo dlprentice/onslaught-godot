@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (walker/flight prerequisites and event lifetimes; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-19 (hard landing, death lifecycle and ground-route replay; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -14,6 +14,43 @@ pristine specimen; do not infer another executable's identity from its folder na
 Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
+
+Death, landing and render-lifetime integration (2026-10-19): hard ground contact now executes
+BattleEngine damage with the retail cap, component spills and shield-bypass rules. The BE has its
+own lethal transition, loss camera, script ordering, wreck motion, contact explosion, delayed pause
+and fade state. Destruction releases modeled parts, controllers, weapon targets/effect links and
+owned repeating sounds. Generic render teardown unlinks the mesh and emitter links; actual mesh
+render queries refresh the unit hit countdown even when host drawing is disabled.
+
+The integrating lead rebuilt and reran 1,024 original dying-movement cases, 1,036 camera cases,
+569 hit-countdown cases and 1,028 original hard-landing cases under two precision modes and two
+negative variants (6,168 calls). The managed cosine check uses only the 1,015 original rows that
+actually evaluated it; 13 branch-skipped scratch values are not treated as evidence. All 85 joint
+focused tests pass without skips, including actual shutdown and landing paths. The complete integrated
+Parity suite passes **537 tests, 9 unchanged optional-reference skips, 0 failures**. The retail camera
+constructor leaves two timestamp words uninitialized: four heap-seed controls show its ambiguous
+first-use cache. The reconstruction explicitly starts with an invalid cache, not an invented claim
+of universal retail heap equality. Device rumble, visible damage-flash pixels and audible fade remain open.
+
+The frozen native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
+targets**. Root replayed it in Parity through Present 15,130 and observed all 18 real script posts
+at the same completed Present; the observer forwards each original call once and leaves the whole
+trace unchanged. All seven primary probes plus CRT agree at every Present 3..15,130. EVN agrees
+through 9,371, then differs on 5,759 records, first by three at 9,372. All 136,152 nine-probe
+comparisons were performed; this is selected-state agreement with frozen native port `e55cb2d8`,
+not a fresh retail whole-route comparison. The tape SHA-256 is
+`b083d308cc29bb108d2d4a15bc8ee7a1c17d7086ae386682fb2f9425b9d69919`.
+The native route starts with `-level100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
+flight/refuelling/later combat/win/save remain separate. Its later evasion attempt takes hits;
+it is not a perfect-score or no-hit run. Root receipts: internal clone
+`local-data/test-runs/death-integration-20261019/` (focused tests, independently executed original
+code, full ground probe comparison and 18-post admission).
+
+Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
+against the actual native port's virtual mixer were independently reproduced. Converted byte
+length, block-clock progress, cursor, pause/resume and completion boundaries now have tested
+owners. They are not yet connected to a complete ranked sound-event manager. Incoming-missile
+nonloop lifetime still refuses explicitly; no duration timer substitutes for channel admission.
 
 Flight and damage integration (2026-10-19): ordinary jet controls now reach the measured jet
 movement, ground-effect, friction and maneuver paths. BattleEngine damage uses its own shield,
@@ -35,8 +72,8 @@ Receipts: internal clone `local-data/test-runs/flight-damage-integrated-20261019
 
 The Space-input flight fixture explicitly enables flight permission before exercising real input
 and scheduled takeoff/landing/refill; it does not establish the tutorial's permission route.
-Hard landing, lethal death/teardown, damage-flash drawing and nonloop incoming-missile
-sound lifetime remain open. An incoming warning now explicitly refuses that unsupported sound
+Hard landing and lethal death/teardown are implemented in the later integration above; damage-flash
+drawing and nonloop incoming-missile sound lifetime remain open. An incoming warning now explicitly refuses that unsupported sound
 path rather than silently dropping its RNG/timing effect. Device audio and player acceptance remain open.
 
 Water skimming follow-up: `HandleSkimming00411500` now retains the original x87 speed/product

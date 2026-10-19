@@ -161,10 +161,10 @@ public sealed class BattleEngineDamageTests
     }
 
     [Fact]
-    public void LethalDamageStopsAtExistingDeathBoundaryBeforeTimestampOrCommonTail()
+    public void LethalDamageWithoutGameRefusesBeforeTimestampOrCommonTail()
     {
         BattleEngine be = Engine(); be.State = BattleEngineState.Walker; be.AugValue = 9;
-        Assert.Contains("StartDieProcess", Assert.Throws<NotSupportedException>(() => be.Damage(30, null)).Message);
+        Assert.Contains("requires its controlling player and game", Assert.Throws<NotSupportedException>(() => be.Damage(30, null)).Message);
         Assert.Equal(-16, be.Life); Assert.Equal(0, be.Shields); Assert.Equal(5, be.Energy);
         Assert.Equal(13, be.AugValue); Assert.Equal(3, be.LastDamageTime); Assert.Equal(1, be.Vibration);
         Assert.Equal(0, be.Context.Random.Draws);

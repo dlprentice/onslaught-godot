@@ -34,6 +34,14 @@ public sealed class SoundEffects
 
     public int Count => _effects.Count;
 
+    /// <summary>
+    /// CSoundManager::mGameSoundsMasterVolume: the level-loss fade's separate gain, initially one. This retains
+    /// manager state only; channel attenuation and device UpdateVolumeForAllSoundEvents remain unimplemented.
+    /// </summary>
+    public float GameSoundsMasterVolume { get; private set; } = 1.0f;
+
+    public void SetGameSoundsMasterVolume(float value) => GameSoundsMasterVolume = value;
+
     /// <summary>LoadSFXFile: lines, skipping '#' comment lines, each with its last character (the line end) dropped.</summary>
     public static SoundEffects Load(byte[] file)
     {
@@ -145,7 +153,7 @@ public sealed class SoundEffects
     public sealed class RepeatingEffect(SoundEffect effect, object owner, float fade)
     {
         public SoundEffect Effect { get; } = effect;
-        public object Owner { get; } = owner;
+        public object? Owner { get; internal set; } = owner;
         public float SubVolume { get; internal set; } = fade > 0 ? 0 : 1;
         public float Fade { get; internal set; } = fade;
         public float FadeDestination { get; internal set; } = fade < 0 ? 0 : 1;
@@ -153,6 +161,25 @@ public sealed class SoundEffects
 
     private readonly List<RepeatingEffect> _repeating = [];
     public IReadOnlyList<RepeatingEffect> RepeatingEffects => _repeating;
+
+    private void RemoveRepeatingAt(int index)
+    {
+        _repeating[index].Owner = null; // StopSoundEvent's SetReader(NULL), including a retained inspection handle.
+        _repeating.RemoveAt(index);
+    }
+
+    /// <summary>
+    /// KillSamplesForThing004e1130: stop every PLAYING event with this exact owner, even when paused or silent.
+    /// The admitted repeating list contains only playing entries; removal is its stopped-state projection, not
+    /// native event-pool deletion timing. No initialization, unit Active, fade or sample-name filter, and no RNG.
+    /// Nonloop events, completion callbacks and channel release remain outside this loop-only owner.
+    /// </summary>
+    public void KillSamplesForThing(object owner)
+    {
+        for (int i = 0; i < _repeating.Count;)
+            if (ReferenceEquals(_repeating[i].Owner, owner)) RemoveRepeatingAt(i);
+            else i++;
+    }
 
     /// <summary>IsEffectPlaying004e1ab0: test every chained sample with the same owner.</summary>
     public bool IsRepeatingEffectPlaying(SoundEffect? effect, object owner)
@@ -185,8 +212,10 @@ public sealed class SoundEffects
     public void StopRepeatingSample(SoundEffect? effect, object owner)
     {
         if (effect is null) return;
-        _repeating.RemoveAll(e => ReferenceEquals(e.Owner, owner)
-            && StringComparer.OrdinalIgnoreCase.Equals(e.Effect.SampleName, effect.SampleName));
+        for (int i = 0; i < _repeating.Count;)
+            if (ReferenceEquals(_repeating[i].Owner, owner)
+                && StringComparer.OrdinalIgnoreCase.Equals(_repeating[i].Effect.SampleName, effect.SampleName)) RemoveRepeatingAt(i);
+            else i++;
     }
 
     /// <summary>FadeTo004e1260: the first matching sample, signed speed from its current volume.</summary>
@@ -216,7 +245,7 @@ public sealed class SoundEffects
                     bool stop = effect.Fade < 0 && effect.FadeDestination == 0;
                     effect.SubVolume = effect.FadeDestination;
                     effect.Fade = 0;
-                    if (stop) { _repeating.RemoveAt(i); continue; }
+                    if (stop) { RemoveRepeatingAt(i); continue; }
                 }
             }
             i++;

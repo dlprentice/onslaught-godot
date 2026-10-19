@@ -449,18 +449,19 @@ public abstract partial class Unit
     }
 
     /// <summary>
-    /// CUnit::Shutdown (004f95d0): the sounds (presentation), the weapons and spawners deleted, the children shut down
+    /// CUnit::Shutdown (004f95d0): the sounds stopped, the weapons and spawners deleted, the children shut down
     /// (or killed when dying), the effects stopped, off the unit list, the guide deleted, the unit-type count taken off
     /// once, off two more world lists, then CComplexThing's.
     /// </summary>
     public override void Shutdown()
     {
-        Context.Skip("SOUND.KillSamplesForThing (presentation)");
+        // Native 004f95db calls this before weapons, children or the base shutdown: playing-state queries can affect RNG.
+        Context.SoundEffects?.KillSamplesForThing(this);
         CurrentWeapon = null;
         foreach (Weapon w in WeaponList.ToList())
         {
             WeaponList.Remove(w);
-            w.Destroy();
+            w.Release();
         }
 
         if (UnitData?.Spawners.Count > 0)

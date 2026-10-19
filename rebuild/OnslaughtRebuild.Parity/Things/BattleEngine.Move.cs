@@ -217,11 +217,10 @@ public sealed partial class BattleEngine
         PutUsInRightMesh();
         if (IsDying)
         {
-            throw new NotSupportedException("CBattleEngine::Explode (not ported yet)");
+            Explode();
+            AddShutdownEvent();
         }
-
-        float altitude = Pos.Z - Context.Map.WaterLevel;
-        if (altitude > -0.2f && Vulnerable)
+        else if (Pos.Z - Context.Map.WaterLevel > -0.2f && Vulnerable)
         {
             StartDieProcess();
         }
@@ -247,7 +246,9 @@ public sealed partial class BattleEngine
         base.DeclareOnGround();
         if (IsDying)
         {
-            throw new NotSupportedException("CBattleEngine::Explode (not ported yet)");
+            Explode();
+            AddShutdownEvent();
+            return;
         }
 
         if (IsOnObject())
@@ -266,16 +267,55 @@ public sealed partial class BattleEngine
             cap = 0.4f;
         }
 
-        float velocitySq = (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z);
-        if (velocitySq > cap * cap)
+        double velocitySq = X87.Add(X87.Add(X87.Mul(Velocity.X, Velocity.X), X87.Mul(Velocity.Y, Velocity.Y)),
+            X87.Mul(Velocity.Z, Velocity.Z));
+        if (velocitySq > X87.Mul(cap, cap))
         {
-            throw new NotSupportedException("CBattleEngine::DeclareOnGround: a hard landing's damage (not ported yet)");
+            float cosSquared = HardLandingSquaredCosine(Velocity, Context.Map.Normal(Pos));
+            // 0040c8fa reloads the speed-squared spill; sqrt remains in the x87 register through both products.
+            float damage = (float)X87.Mul(X87.Mul(X87.Sqrt((float)velocitySq), cosSquared), 16.0f);
+            Damage(damage, null, false);
+            // Reload velocity after Damage, which can itself start the death sequence.
+            double scale = X87.Sub(1.0f, cosSquared);
+            Velocity = new FVector((float)X87.Mul(Velocity.X, scale), (float)X87.Mul(Velocity.Y, scale),
+                (float)X87.Mul(Velocity.Z, scale));
         }
-
-        if (State == BattleEngineState.Jet)
+        else if (State == BattleEngineState.Jet)
         {
             Velocity = new FVector(Velocity.X * 0.9f, Velocity.Y * 0.9f, Velocity.Z * 0.9f);
         }
+    }
+
+    /// <summary>
+    /// DeclareOnGround0040c808..0040c8f4: normalize the terrain normal and velocity, then square their dot product.
+    /// All normal components and velocity X/Y spill to float; velocity Z stays on x87. Equality OR unordered skips
+    /// normalization. This local instruction sequence deliberately does not change shared vector normalization.
+    /// </summary>
+    internal static float HardLandingSquaredCosine(FVector velocity, FVector normal)
+    {
+        double length = X87.Sqrt(X87.Add(X87.Add(X87.Mul(normal.Z, normal.Z), X87.Mul(normal.Y, normal.Y)),
+            X87.Mul(normal.X, normal.X)));
+        if (length != 0 && !double.IsNaN(length))
+        {
+            double reciprocal = X87.Div(1.0f, length);
+            normal = new FVector((float)X87.Mul(normal.X, reciprocal), (float)X87.Mul(normal.Y, reciprocal),
+                (float)X87.Mul(normal.Z, reciprocal));
+        }
+
+        length = X87.Sqrt(X87.Add(X87.Add(X87.Mul(velocity.Y, velocity.Y), X87.Mul(velocity.Z, velocity.Z)),
+            X87.Mul(velocity.X, velocity.X)));
+        float x = velocity.X, y = velocity.Y;
+        double z = velocity.Z;
+        if (length != 0 && !double.IsNaN(length))
+        {
+            double reciprocal = X87.Div(1.0f, length);
+            x = (float)X87.Mul(x, reciprocal);
+            y = (float)X87.Mul(y, reciprocal);
+            z = X87.Mul(z, reciprocal);
+        }
+
+        double dot = X87.Add(X87.Add(X87.Mul(z, normal.Z), X87.Mul(normal.Y, y)), X87.Mul(x, normal.X));
+        return (float)X87.Mul(dot, dot);
     }
 
     /// <summary>The CBattleEngine part of Init that the movement needs: the parts and the starting values (00404dd0).</summary>
@@ -390,123 +430,125 @@ public sealed partial class BattleEngine
 
         if (IsDying)
         {
-            throw new NotSupportedException("CBattleEngine::Move while dying (not ported yet)");
-        }
-
-        if (Context.Game?.State > GameState.Panning)
-        {
-            if (MotionController is not null)
-            {
-                MotionController.AnimationBlend = 0.0f;
-            }
-        }
-
-        if (AugActive)
-        {
-            throw new NotSupportedException("CBattleEngine::Move: the aug weapon (not ported yet)");
-        }
-
-        if (Cloaked)
-        {
-            throw new NotSupportedException("CBattleEngine::Move: the cloak (not ported yet)");
-        }
-
-        float lowLife = Configuration!.Life / 4.0f;
-        float lowEnergy = Configuration.Energy / 4.0f;
-        float now = Context.Events.Time;
-        if (OldLife > lowLife && Life <= lowLife)
-        {
-            LowArmourStartTime = now;
-            PlayHudSample("hud_armour_low");
-        }
-
-        if (OldEnergy > lowEnergy && Energy <= lowEnergy)
-        {
-            LowEnergyStartTime = now;
-            PlayHudSample("hud_energy_low");
-        }
-
-        if (Life <= lowLife && Life <= OldLife && now - LowArmourStartTime > 15.0f)
-        {
-            LowArmourStartTime = now;
-            PlayHudSample("hud_armour_low");
-        }
-
-        if (Energy <= lowEnergy && Energy <= OldEnergy && now - LowEnergyStartTime > 15.0f)
-        {
-            LowEnergyStartTime = now;
-            PlayHudSample("hud_energy_low");
-        }
-
-        if (DangerStartTime + 8.0f > now && PlayedIncomingWarheadSound + 8.0f < now)
-        {
-            PlayHudSample("hud_incoming_warhead");
-            PlayedIncomingWarheadSound = now;
-        }
-
-        if (AmmoDepletedTime + 8.0f > now && PlayedAmmunitionDepletedSound + 8.0f < now)
-        {
-            PlayHudSample("hud_ammunition_depleted");
-            PlayedAmmunitionDepletedSound = now;
-        }
-
-        if (WeaponOverheatedTime + 8.0f > now && PlayedWeaponOverheatedSound + 8.0f < now)
-        {
-            PlayHudSample("HUD_Weapon_Overheating");
-            PlayedWeaponOverheatedSound = now;
-        }
-
-        OldLife = Life;
-        OldEnergy = Energy;
-        OldZoom = Zoom;
-        if (CurrentWeaponForZoom() is not null)
-        {
-            Context.Skip("CBattleEngine::Move: the weapon's zoom mode (not ported yet)");
-        }
-
-        const float ZoomSpeed = 0.05f;
-        if (MathF.Abs(DesiredZoom - Zoom) < ZoomSpeed)
-        {
-            Zoom = DesiredZoom;
-        }
-        else if (DesiredZoom > Zoom)
-        {
-            Zoom += ZoomSpeed;
-        }
-        else if (DesiredZoom < Zoom)
-        {
-            Zoom -= ZoomSpeed;
-        }
-
-        Context.Skip("CBattleEngine::HandleLocks (not ported yet)");
-        if (State != BattleEngineState.Jet)
-        {
-            ThingTypeBits |= ThingType.GroundUnit | ThingType.Vehicle;
-            ThingTypeBits &= ~ThingType.AirUnit;
+            MoveDyingBattleEngine();
         }
         else
         {
-            ThingTypeBits |= ThingType.AirUnit;
-            ThingTypeBits &= ~(ThingType.GroundUnit | ThingType.Vehicle);
-        }
-
-        if (State != BattleEngineState.Jet)
-        {
-            if (PlayerReader is not null)
+            if (Context.Game?.State > GameState.Panning)
             {
-                Context.Skip("CPlayer::GetPreferredCurrentViewMode (third person goes to the control view)");
+                if (MotionController is not null)
+                {
+                    MotionController.AnimationBlend = 0.0f;
+                }
             }
 
-            if (State == BattleEngineState.MorphingIntoJet)
+            if (AugActive)
             {
-                AdvanceTakeoff();
+                throw new NotSupportedException("CBattleEngine::Move: the aug weapon (not ported yet)");
             }
 
-            WalkerPart!.Move();
-        }
-        else
-        {
-            JetPart!.Move();
+            if (Cloaked)
+            {
+                throw new NotSupportedException("CBattleEngine::Move: the cloak (not ported yet)");
+            }
+
+            float lowLife = Configuration!.Life / 4.0f;
+            float lowEnergy = Configuration.Energy / 4.0f;
+            float now = Context.Events.Time;
+            if (OldLife > lowLife && Life <= lowLife)
+            {
+                LowArmourStartTime = now;
+                PlayHudSample("hud_armour_low");
+            }
+
+            if (OldEnergy > lowEnergy && Energy <= lowEnergy)
+            {
+                LowEnergyStartTime = now;
+                PlayHudSample("hud_energy_low");
+            }
+
+            if (Life <= lowLife && Life <= OldLife && now - LowArmourStartTime > 15.0f)
+            {
+                LowArmourStartTime = now;
+                PlayHudSample("hud_armour_low");
+            }
+
+            if (Energy <= lowEnergy && Energy <= OldEnergy && now - LowEnergyStartTime > 15.0f)
+            {
+                LowEnergyStartTime = now;
+                PlayHudSample("hud_energy_low");
+            }
+
+            if (DangerStartTime + 8.0f > now && PlayedIncomingWarheadSound + 8.0f < now)
+            {
+                PlayHudSample("hud_incoming_warhead");
+                PlayedIncomingWarheadSound = now;
+            }
+
+            if (AmmoDepletedTime + 8.0f > now && PlayedAmmunitionDepletedSound + 8.0f < now)
+            {
+                PlayHudSample("hud_ammunition_depleted");
+                PlayedAmmunitionDepletedSound = now;
+            }
+
+            if (WeaponOverheatedTime + 8.0f > now && PlayedWeaponOverheatedSound + 8.0f < now)
+            {
+                PlayHudSample("HUD_Weapon_Overheating");
+                PlayedWeaponOverheatedSound = now;
+            }
+
+            OldLife = Life;
+            OldEnergy = Energy;
+            OldZoom = Zoom;
+            if (CurrentWeaponForZoom() is not null)
+            {
+                Context.Skip("CBattleEngine::Move: the weapon's zoom mode (not ported yet)");
+            }
+
+            const float ZoomSpeed = 0.05f;
+            if (MathF.Abs(DesiredZoom - Zoom) < ZoomSpeed)
+            {
+                Zoom = DesiredZoom;
+            }
+            else if (DesiredZoom > Zoom)
+            {
+                Zoom += ZoomSpeed;
+            }
+            else if (DesiredZoom < Zoom)
+            {
+                Zoom -= ZoomSpeed;
+            }
+
+            Context.Skip("CBattleEngine::HandleLocks (not ported yet)");
+            if (State != BattleEngineState.Jet)
+            {
+                ThingTypeBits |= ThingType.GroundUnit | ThingType.Vehicle;
+                ThingTypeBits &= ~ThingType.AirUnit;
+            }
+            else
+            {
+                ThingTypeBits |= ThingType.AirUnit;
+                ThingTypeBits &= ~(ThingType.GroundUnit | ThingType.Vehicle);
+            }
+
+            if (State != BattleEngineState.Jet)
+            {
+                if (PlayerReader is not null)
+                {
+                    Context.Skip("CPlayer::GetPreferredCurrentViewMode (third person goes to the control view)");
+                }
+
+                if (State == BattleEngineState.MorphingIntoJet)
+                {
+                    AdvanceTakeoff();
+                }
+
+                WalkerPart!.Move();
+            }
+            else
+            {
+                JetPart!.Move();
+            }
         }
 
         float speed = (float)X87.Sqrt((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z));
@@ -562,7 +604,7 @@ public sealed partial class BattleEngine
                 {
                     StoreValue[n] = 0;
                 }
-                else if (StoreValue[n] < Configuration.StoreValue[n] * 0.75f)
+                else if (StoreValue[n] < Configuration!.StoreValue[n] * 0.75f)
                 {
                     StoreOverheat[n] = false;
                 }
@@ -1272,9 +1314,8 @@ public sealed partial class BattleEngine
         (Player as Game.Player)?.KilledEnemyThing(killed);
     }
 
-    /// <summary>CBattleEngine::StartDieProcess: the battle engine's death; not ported yet.</summary>
-    public override bool StartDieProcess() =>
-        IsDying ? false : throw new NotSupportedException("CBattleEngine::StartDieProcess is not ported");
+    /// <summary>CBattleEngine::StartDieProcess0040bfd0; BE-specific loss/script/explosion/smoke ordering.</summary>
+    public override bool StartDieProcess() => StartBattleEngineDeath();
 
     /// <summary>GetSoundMaterial (00405f40): SM_BATTLE_ENGINE.</summary>
     public override int GetSoundMaterial() => 0x68;

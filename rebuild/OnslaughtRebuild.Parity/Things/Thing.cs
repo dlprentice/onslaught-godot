@@ -702,9 +702,12 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
         // Flush still counts that one null-target event, but it cannot reschedule the dead owner's animation.
         Animation?.Destroy();
         Animation = null;
-
+        DeleteAttachedController();
         base.Deleted();
     }
+
+    /// <summary>~CComplexThing: its attached controller follows the script and animation, before CThing's mesh.</summary>
+    protected virtual void DeleteAttachedController() { }
 
     /// <summary>CComplexThing::AddShutdownEvent: the script's Died, and the script goes; then CThing's.</summary>
     public override void AddShutdownEvent()

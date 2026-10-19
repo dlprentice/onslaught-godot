@@ -29,8 +29,8 @@ public enum BattleEngineState
 }
 
 /// <summary>
-/// CBattleEngine: the player's machine. The walker path, morph transitions, jet controls and weapons have production owners. Full jet movement,
-/// skimming, special-move physics and device audio remain explicit unported boundaries.
+/// CBattleEngine: the player's machine. Walker/jet movement, morph transitions, weapons, skimming and death have
+/// production owners; special moves and device audio retain explicit boundaries.
 /// </summary>
 public sealed partial class BattleEngine(ThingContext context) : Unit(context, Oid.BattleEngine)
 {
@@ -48,7 +48,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
         if (IsDying && other.IsA(ThingType.Unit | ThingType.Tree | ThingType.CanBeWalkedOn))
         {
-            throw new NotSupportedException("CBattleEngine::Hit: Explode (a dying battle engine's crash) is not ported");
+            Explode();
+            AddShutdownEvent();
         }
 
         base.Hit(other, report);
@@ -170,10 +171,10 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
     protected override void Deleted()
     {
-        // ~CBattleEngine deletes equipment before the base Unit/ComplexThing destruction. Other part teardown
-        // remains separate; this releases the receiver's threat readers and scheduled event recipients.
+        // Equipment precedes BE parts; the attached controller/current mesh follow ComplexThing's script/animation.
         RadarWarningReceiver?.Delete();
         RadarWarningReceiver = null;
+        DeleteBattleEngineParts();
         base.Deleted();
     }
 

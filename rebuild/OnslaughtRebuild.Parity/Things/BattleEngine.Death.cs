@@ -24,6 +24,8 @@ public sealed partial class BattleEngine
         if (IsDying) return false;
         if (Player is not Game.Player player || Context.Game is not { } game)
             throw new NotSupportedException("CBattleEngine::StartDieProcess requires its controlling player and game");
+        if (!ReferenceEquals(game.RequirePlayerDeathSupported(player.Number), this))
+            throw new InvalidOperationException("CBattleEngine::StartDieProcess requires the player's current battle engine");
         Context.Skip("CBattleEngine::StartDieProcess: controller SetVibration(0), no physical rumble device");
         Flags |= ThingFlags.Dying;
         game.DeclarePlayerDead(player.Number);
@@ -132,13 +134,11 @@ public sealed partial class BattleEngine
         StandingOnThing.Release();
     }
 
-    /// <summary>CComplexThing's attached controller follows its script/animation; CThing's current mesh follows it.</summary>
-    internal void DeleteBattleEngineBaseState()
+    /// <summary>CComplexThing's attached controller follows its script/animation; CThing owns current-mesh cleanup.</summary>
+    protected override void DeleteAttachedController()
     {
         DeleteMotionController(MotionController);
         MotionController = null;
-        if (RenderThing is { } currentRender) Context.Particles?.World.ReleaseRenderThing(currentRender);
-        RenderThing = null;
     }
 
     private void DeleteMotionController(MCBattleEngine? controller)

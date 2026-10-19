@@ -145,6 +145,19 @@ public sealed class GameDeathTests
     }
 
     [Fact]
+    public void UnsupportedBattleEngineDeathDoesNotSetDyingBeforeTheGameRefuses()
+    {
+        var (game, engine, services) = Started();
+        engine.Player = game.GetPlayer(0);
+        game.FreeCameraOn = true;
+        Assert.Throws<NotSupportedException>(() => engine.StartDieProcess());
+        Assert.False(engine.IsDying);
+        Assert.Equal(GameState.Playing, game.State);
+        Assert.Null(engine.DeathSmoke);
+        Assert.Empty(services.Calls);
+    }
+
+    [Fact]
     public void CameraFirstUseIsExplicitlyDefinedAndSameTickRetainsPreviousPose()
     {
         var events = new EventManager();

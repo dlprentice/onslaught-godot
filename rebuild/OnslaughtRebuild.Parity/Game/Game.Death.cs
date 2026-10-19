@@ -21,16 +21,21 @@ public sealed partial class Game
     /// </summary>
     public void DeclarePlayerDead(int number)
     {
+        BattleEngine engine = RequirePlayerDeathSupported(number);
+        SetCurrentCamera(number - 1, new ViewPointCamera(Events, engine.Pos, .5f, 0, 6, 3));
+        if (_services.MessageBox is not null) _services.StopCurrentMessageSound();
+        DeclareLevelLost(engine.IsInWater() ? GameOverWater : GameOverDeath, playerDied: true);
+    }
+
+    // BE calls this before setting its Dying flag, so unsupported routes do not leave a partial transition.
+    internal BattleEngine RequirePlayerDeathSupported(int number)
+    {
         if (number != 1 || Players != 1 || _services.IsMultiplayer || CurrentLevel is >= 850 and < 900)
             throw new NotSupportedException("DeclarePlayerDead currently supports the single-player route only");
         if (FreeCameraOn)
             throw new NotSupportedException("DeclarePlayerDead free-camera switching is not ported");
-        BattleEngine engine = GetPlayer(number - 1)?.BattleEngine as BattleEngine
+        return GetPlayer(number - 1)?.BattleEngine as BattleEngine
             ?? throw new InvalidOperationException("DeclarePlayerDead requires the player's live battle engine");
-
-        SetCurrentCamera(number - 1, new ViewPointCamera(Events, engine.Pos, .5f, 0, 6, 3));
-        if (_services.MessageBox is not null) _services.StopCurrentMessageSound();
-        DeclareLevelLost(engine.IsInWater() ? GameOverWater : GameOverDeath, playerDied: true);
     }
 
     private void ContinueFadeOutGameSounds()

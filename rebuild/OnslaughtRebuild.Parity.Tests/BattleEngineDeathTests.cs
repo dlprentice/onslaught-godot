@@ -113,10 +113,10 @@ public sealed class BattleEngineDeathTests
         int print = Array.FindIndex(ScriptNatives.Table, n => n.Name == "Print");
         var code = new ScriptObjectCode
         {
-            Instructions = [new(Opcode.Push, 0), new(Opcode.Call, print | (1 << 8)), new(Opcode.RemoveTop), new(Opcode.Return)],
+            Instructions = [new(Opcode.Push, 0), new(Opcode.Call, print | (1 << 8)), new(Opcode.RemoveTop, 0), new(Opcode.Return, 0)],
             EventPcs = [-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1],
             Symbols = [new Symbol("death-marker"u8.ToArray(), new ScriptValue(DataType.String, 0, 0, "DEATH_MARKER"u8.ToArray(), default), 0, 0, 1)],
-            NextSymbolIndex = 1, EventFunctions = [],
+            NextSymbolIndex = 1, EventFunctions = [], Unknown60 = 0, Unknown5c = 0,
         };
         var script = IScript.Create(be, code, session.Context); be.Script = script;
         var runtime = ScriptRuntime.Of(session.Context);
@@ -162,7 +162,7 @@ public sealed class BattleEngineDeathTests
         var cockpitReader = new ActiveReader<Cockpit>(); cockpitReader.SetReader(be.Cockpit);
         be.MotionController = new MCBattleEngine(be.Context, be);
         var motionReader = new ActiveReader<MCBattleEngine>(); motionReader.SetReader(be.MotionController);
-        be.DeleteBattleEngineParts(); be.DeleteBattleEngineBaseState();
+        be.Shutdown();
         Assert.All(readers, reader => Assert.Null(reader.ToRead)); Assert.Null(cockpitReader.ToRead); Assert.Null(motionReader.ToRead);
         Assert.Empty(be.Context.MotionControllers); Assert.Null(be.CurrentWeapon);
         Assert.Null(be.Cockpit); Assert.Null(be.WalkerPart); Assert.Null(be.JetPart);
