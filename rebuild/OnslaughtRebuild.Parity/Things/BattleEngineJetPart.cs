@@ -100,8 +100,234 @@ public sealed class BattleEngineJetPart
         _main.Pitchvel -= rate;
     }
 
+    /// <summary>YawLeft00410740 / YawRight004109d0: sideways thrust and the opposing-tap barrel/loop controls.</summary>
+    public void YawLeft(float value) => Yaw(value, left: true);
+    public void YawRight(float value) => Yaw(value, left: false);
+
+    private void Yaw(float value, bool left)
+    {
+        if (DoingBarrelCount != 0) return;
+        bool hard = left ? LastMoveXVal > -0.9f && value < -0.9f : LastMoveXVal < 0.9f && value > 0.9f;
+        if (DoingLoop)
+        {
+            if (LoopBroken) return;
+            if (hard)
+            {
+                if (left) LastStartHardLeftTime = Context.Events.Time;
+                else LastStartHardRightTime = Context.Events.Time;
+            }
+            // Both retail functions use a POSITIVE value here, including YawLeft.
+            if (value > 0.8f && InDoubleTapWindow(left ? LastStartHardRightTime : LastStartHardLeftTime)) LoopBroken = true;
+            return;
+        }
+        if (hard)
+        {
+            if (left) LastStartHardLeftTime = Context.Events.Time;
+            else LastStartHardRightTime = Context.Events.Time;
+        }
+        bool crossed = left ? LastMoveXVal > -0.8f && value < -0.8f : LastMoveXVal < 0.8f && value > 0.8f;
+        if (crossed && InDoubleTapWindow(left ? LastStartHardRightTime : LastStartHardLeftTime))
+        {
+            if (_main.Energy > 0)
+            {
+                if (_main.Velocity.MagnitudeSq() > 0.09f)
+                {
+                    DoingBarrelCount = 26;
+                    FMatrix yaw = FMatrix.MakeRotationOutOfLine(_main.CurrentOrientation.Yaw, 0, 0);
+                    float side = left ? -0.2f : 0.2f;
+                    _main.AddVelocity(new FVector(yaw.Row0.X * side, yaw.Row1.X * side, yaw.Row2.X * side));
+                    if (left) DoingBarrelLeft = true; // right does not write this flag
+                }
+            }
+            else _main.LowEnergyStartTime = Context.Events.Time;
+        }
+        LastMoveXVal = value;
+        if (_main.Energy != 0 && MathF.Abs(value) > 0.5f)
+        {
+            float side = value * 0.0033333334f;
+            FMatrix ori = _main.Orientation;
+            _main.AddVelocity(new FVector(ori.Row0.X * side, ori.Row1.X * side, ori.Row2.X * side));
+            StrafingStartTime = Context.Events.Time;
+        }
+    }
+
+    /// <summary>Move00410c50: the jet's energy, thrust, alignment, landing and special-manoeuvre state machine.</summary>
+    public void Move()
+    {
+        (_main.Player as Game.Player)?.IncStat(Game.PlayerStat.TimeAsJet);
+        foreach (Weapon weapon in Weapons) weapon.MoveEmitter(true);
+        float now = Context.Events.Time;
+        var config = _main.Configuration!;
+        if (!_main.InfinateEnergy && _main.Energy != 0)
+        {
+            float cost = (config.MaxAirEnergyCost - config.MinAirEnergyCost) * ThrusterValue + config.MinAirEnergyCost;
+            _main.Energy -= cost;
+            if (_main.Energy < 0) _main.Energy = 0;
+        }
+        _main.EngineState = _main.Energy != 0 ? (ThrusterValue > 0.75f ? 0 : 1) : BattleEngine.EnginesOff;
+        if (_main.Energy != 0 && !_main.IsOnGround())
+        {
+            if (_main.TransformStartTime + 2.5f < now)
+            {
+                if (!_main.Stalling)
+                {
+                    if (_main.Velocity.MagnitudeSq() < 0.022500001f) { _main.Stalling = true; _main.StallTime = now; }
+                }
+                else if (_main.Velocity.MagnitudeSq() >= 0.022500001f) _main.Stalling = false;
+                else if (_main.StallTime + 2.5f < now) _main.Morph();
+            }
+            else _main.Stalling = false;
+            HandleGroundEffect();
+            if (!IsDoingSpecialAirMove())
+            {
+                float target = (config.MaxAirVelocity - config.MinAirVelocity) * ThrusterValue + config.MinAirVelocity;
+                float forward = (target - _main.Velocity.Magnitude()) * 0.04f;
+                _main.AddVelocity(ForwardColumn(forward));
+            }
+            ThrusterValue = 0.5f;
+            if (DoingBarrelCount == 0)
+            {
+                FVector velocity = _main.Velocity;
+                FVector next = ForwardColumn(velocity.Magnitude());
+                if (_main.TransformStartTime + 2.5f > now)
+                {
+                    float mix = (now - _main.TransformStartTime) * 0.4f;
+                    next = velocity * (1.0f - mix) + next * mix;
+                }
+                else if (StrafingStartTime + 4.0f > now)
+                {
+                    float mix = (now - StrafingStartTime) * 0.25f;
+                    next = velocity * (1.0f - mix) + next * mix;
+                }
+                _main.Velocity = next * GetFriction();
+            }
+            OnGround = 0;
+        }
+        else
+        {
+            FVector velocity = _main.Velocity * 0.95f;
+            _main.Velocity = velocity;
+            // 004110e2..00411108: this site's sum is (Z² + X²) + Y².
+            float speed = (float)X87.Sqrt((velocity.Z * velocity.Z + velocity.X * velocity.X) + velocity.Y * velocity.Y);
+            _main.AddVelocity(ForwardColumn(speed) * 0.05f);
+        }
+        if (_main.IsOnGround() && _main.Velocity.MagnitudeSq() < 0.010000001f && OnGround == 0)
+            OnGround = now + 2.5f;
+        if (_main.TransformStartTime + 1.0f <= now
+            && ((now > OnGround && OnGround != 0) || _main.Velocity.MagnitudeSq() < 0.00062500004f))
+            _main.Morph();
+        if (DoingBarrelCount > 0)
+        {
+            if (DoingBarrelCount < 10) _main.Velocity *= 0.9f;
+            _main.Rollvel += DoingBarrelLeft ? 0.05f : -0.05f;
+            DoingBarrelCount -= 1.0f;
+            if (DoingBarrelCount == 0)
+            {
+                if (LoopBroken)
+                {
+                    _main.CurrentOrientation = EulerAngles.FromMatrix(_main.Orientation);
+                    _main.Orientation = OrientationAfterBrokenLoop();
+                    LoopBroken = false;
+                    DoingLoop = false;
+                }
+                DoingBarrelLeft = false;
+            }
+        }
+        if (DoingLoop && DoingBarrelCount == 0)
+        {
+            _main.Pitchvel -= 0.015f;
+            if (LoopHalfway)
+            {
+                if (_main.CurrentOrientation.Pitch < 0.4f && _main.CurrentOrientation.Pitch > -1.5707964f) DoingLoop = false;
+            }
+            else if (_main.CurrentOrientation.Pitch < -2.7415926f)
+            {
+                LoopHalfway = true;
+                if (LoopBroken) DoingBarrelCount = 13;
+            }
+        }
+        _main.Shields = 0;
+        _main.GroundParticleEffect();
+        HandleSkimming();
+    }
+
+    private FVector ForwardColumn(float value) => new(_main.Orientation.Row0.Y * value,
+        _main.Orientation.Row1.Y * value, _main.Orientation.Row2.Y * value);
+
+    /// <summary>HandleGroundEffect00411630: predicted position, acceleration, downward damping and terrain alignment.</summary>
+    public void HandleGroundEffect()
+    {
+        FVector pos = _main.Pos + (_main.Velocity * 20.0f) * 0.5f;
+        float water = Context.Map.WaterLevel;
+        float ground = Context.Map.Collide(pos);
+        float altitude = (water < ground ? water : ground) - pos.Z;
+        if (_main.Energy == 0 || !(altitude < 5)) return;
+        if (altitude < 0) altitude = 0;
+        _main.AddVelocity(ForwardColumn((5.0f - altitude) * 0.0025f));
+        if (DoingLoop || DoingBarrelCount != 0) return;
+        if (_main.Velocity.Z > 0) _main.Velocity.Z *= 0.9f;
+        float yaw = _main.CurrentOrientation.Yaw;
+        var heading = new FVector(-(float)X87.Sin(yaw), (float)X87.Cos(yaw), 0);
+        FVector normal = ground < water ? Context.Map.Normal(pos) : new FVector(0, 0, -1);
+        FVector across = FVector.Cross(heading, normal);
+        FVector along = FVector.Cross(across, normal);
+        along.Normalise();
+        float mix = 1.0f - altitude * 0.2f;
+        // Retail applies mix BEFORE 0.02, unlike the unoptimized source expression.
+        _main.Pitchvel += ((-along.Z - _main.CurrentOrientation.Pitch) * mix) * 0.02f;
+        across.Normalise();
+        _main.Rollvel += ((across.Z * 0.5f - _main.CurrentOrientation.Roll) * mix) * 0.02f;
+    }
+
+    /// <summary>GetFriction00411aa0: less than one unit, one-to-three, then the high-altitude coefficient.</summary>
+    public float GetFriction()
+    {
+        float water = Context.Map.WaterLevel;
+        float ground = Context.Map.Collide(_main.Pos);
+        float altitude = (water < ground ? water : ground) - _main.Pos.Z;
+        if (altitude < 1.0f) return 0.99f;
+        if (altitude < 3.0f) return _main.Velocity.Magnitude() < 1.5f ? 1.0f - altitude * 0.01f : 0.99f;
+        return 0.98f;
+    }
+
+    /// <summary>HandleSkimming00411500: only water above terrain, below half a unit, with sufficient horizontal speed.</summary>
+    public void HandleSkimming()
+    {
+        float water = Context.Map.WaterLevel;
+        if (!(water < Context.Map.Collide(_main.Pos))) return;
+        float altitude = water - _main.Pos.Z;
+        if (!(altitude < 0.5f)) return;
+        float speed = _main.Velocity.MagnitudeXY();
+        if (!(speed > 0.3f)) return;
+        _main.Velocity.Z -= speed * 0.3f;
+        _main.Pitchvel -= 0.01f * speed;
+        _main.Velocity *= 0.8f;
+        throw new NotSupportedException("CBattleEngineJetPart::HandleSkimming damage requires CBattleEngine::Damage, not inherited CUnit::Damage");
+    }
+
+    // Inline matrix constructor at 00411307..00411415: sin(yaw) and sin(pitch) stay in x87 registers; cos(yaw),
+    // roll trig and cos(pitch) are stored. This differs from both shared constructor sequences.
+    private FMatrix OrientationAfterBrokenLoop()
+    {
+        double c = X87.Cos(_main.ShakeR);
+        float yaw = (float)X87.Add(X87.Mul(c, _main.YawShake), _main.CurrentOrientation.Yaw);
+        float pitch = (float)X87.Add(X87.Mul(c, _main.PitchShake), _main.CurrentOrientation.Pitch);
+        float roll = (float)X87.Add(X87.Mul(c, _main.RollShake), _main.CurrentOrientation.Roll);
+        float cy = (float)X87.Cos(yaw), cr = (float)X87.Cos(roll), sr = (float)X87.Sin(roll), cp = (float)X87.Cos(pitch);
+        double sy = X87.Sin(yaw), sp = X87.Sin(pitch);
+        double spsr = X87.Mul(sp, sr);
+        float spcr = (float)X87.Mul(sp, cr);
+        return new FMatrix(
+            new FVector((float)X87.Sub(cr * cy, X87.Mul(spsr, sy)), -(float)X87.Mul(cp, sy),
+                (float)X87.Add(X87.Mul(spcr, sy), sr * cy)),
+            new FVector((float)X87.Add(X87.Mul(spsr, cy), X87.Mul(cr, sy)), cp * cy,
+                (float)X87.Sub(X87.Mul(sr, sy), spcr * cy)),
+            new FVector(-(cp * sr), (float)sp, cp * cr));
+    }
+
     public void ResetConfiguration()
     {
+        foreach (Weapon old in Weapons) old.Release();
         Weapons.Clear();
         foreach (byte[] name in _main.Configuration!.JetWeapons)
         {

@@ -15,7 +15,7 @@ public sealed partial class BattleEngine
     public int CountActiveWeapons()
     {
         if (State == BattleEngineState.Jet)
-            throw new NotSupportedException("CBattleEngineJetPart::CountActiveWeapons is not ported");
+            return JetPart!.Weapons.Count(weapon => weapon.WeaponActive);
         BattleEngineWalkerPart walker = WalkerPart!;
         int count = walker.Weapons.Count(weapon => weapon.WeaponActive);
         if (walker.PrimaryWeapon is { WeaponActive: true }) count++;
@@ -33,7 +33,7 @@ public sealed partial class BattleEngine
         SlowMovement = false;
         if (State == BattleEngineState.Walker) WalkerPart!.ChangeWeapon();
         else if (State == BattleEngineState.Jet)
-            throw new NotSupportedException("CBattleEngineJetPart::ChangeWeapon is not ported");
+            JetPart!.ChangeWeapon();
 
         ChangedWeaponTime = Context.Events.Time;
         byte[]? icon = GetCurrentWeapon()?.Data.IconName;

@@ -9,13 +9,15 @@ using OnslaughtRebuild.Parity.Crt;
 namespace OnslaughtRebuild.Parity.Sound;
 
 /// <summary>CEffect: a named effect, its pitch variance and the effects chained after it (one is picked at random).</summary>
-public sealed class SoundEffect(string name, int pitchVariance, string? sampleName = null)
+public sealed class SoundEffect(string name, int pitchVariance, string? sampleName = null, bool looping = false)
 {
     public string Name { get; } = name;
 
     public string SampleName { get; } = sampleName ?? name;
 
     public int PitchVariance { get; } = pitchVariance;
+
+    public bool Looping { get; } = looping;
 
     public SoundEffect? Chained;
 }
@@ -59,10 +61,7 @@ public sealed class SoundEffects
             ReadLine();
             ReadLine();
             int pitch = Atoi(ReadLine());
-            if (version >= 101)
-            {
-                ReadLine();
-            }
+            bool looping = version >= 101 && ReadLine().StartsWith('1');
 
             if (version >= 103)
             {
@@ -70,7 +69,7 @@ public sealed class SoundEffects
             }
 
             ReadLine();
-            var e = new SoundEffect(name, pitch, sample);
+            var e = new SoundEffect(name, pitch, sample, looping);
             SoundEffect? found = effects._effects.FirstOrDefault(c => Particles.ParticleSet.Stricmp(c.Name, name) == 0);
             if (found is null)
             {
@@ -168,13 +167,15 @@ public sealed class SoundEffects
 
     /// <summary>
     /// PlayEffect004e1940 chooses the effect and draws pitch through the existing owner. The caller guarantees
-    /// an admitted repeating sample and performs its IsEffectPlaying guard before this call; the channel/once
-    /// admission layer and nonloop playback remain outside this loop-only model.
+    /// an admitted repeating sample. Optional once admission occurs AFTER chain/pitch draws and applies only when
+    /// the selected effect is not marked looping (004e1987..004e19b1, 004e0b6c..004e0b94). Device channels, sample
+    /// availability and nonloop playback remain outside this loop-only model.
     /// </summary>
-    public RepeatingEffect? PlayRepeatingEffect(SoundEffect? effect, object owner, CrtRandStream rand, float fade = 0)
+    public RepeatingEffect? PlayRepeatingEffect(SoundEffect? effect, object owner, CrtRandStream rand, float fade = 0, bool once = false)
     {
         SoundEffect? chosen = PlayEffect(effect, rand);
         if (chosen is null) return null;
+        if (once && !chosen.Looping && FindRepeatingSample(chosen.SampleName, owner) is { } existing) return existing;
         var playing = new RepeatingEffect(chosen, owner, fade);
         _repeating.Add(playing);
         return playing;

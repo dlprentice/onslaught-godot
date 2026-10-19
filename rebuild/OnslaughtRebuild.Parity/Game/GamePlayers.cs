@@ -170,7 +170,7 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
     /// pan; then, with a powered battle engine that is not dying: the look axes inverted by the career (read as off: the
     /// wiped career) and shaped by tan(1.2 v) * 3 over tan(1.2) * 3 (fptan's value approximated in double); the engine's
     /// own buttons; and the walker's moves.
-    /// The jet, morphing, zoom, configuration, weapons and cloak are not ported (they throw).
+    /// The jet and walker have separate controls. Configuration and cloak remain unsupported.
     /// </summary>
     public void ReceiveButtonAction(Platform.Controller from, int button, float val)
     {
@@ -224,8 +224,14 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
             switch (button)
             {
                 case Platform.Buttons.MechMorph:
+                    be.Morph();
+                    break;
                 case Platform.Buttons.MechChangeZoomIn:
+                    be.ZoomIn();
+                    break;
                 case Platform.Buttons.MechChangeZoomOut:
+                    be.ZoomOut();
+                    break;
                 case Platform.Buttons.MechChargeGunPod:
                     be.ChargeWeapon();
                     break;
@@ -275,7 +281,19 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
 
         if (be.State == BattleEngineState.Jet)
         {
-            throw new NotSupportedException("CPlayer::ReceiveButtonAction: the jet's controls are not ported");
+            BattleEngineJetPart jet = be.JetPart!;
+            switch (button)
+            {
+                case Platform.Buttons.MechYawLeft:
+                case Platform.Buttons.MechYawRight: jet.Turn(val); break;
+                case Platform.Buttons.MechPitchUp:
+                case Platform.Buttons.MechPitchDown: jet.Pitch(val); break;
+                case Platform.Buttons.MechStrafeLeft: jet.YawLeft(val); break;
+                case Platform.Buttons.MechStrafeRight: jet.YawRight(val); break;
+                case Platform.Buttons.MechForward:
+                case Platform.Buttons.MechBackward: jet.Thrust(val); break;
+                // MechJetAfterburner is deliberately a no-op in retail Player.cpp too.
+            }
         }
     }
 

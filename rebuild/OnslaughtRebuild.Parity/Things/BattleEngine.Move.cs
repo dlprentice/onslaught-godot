@@ -506,7 +506,7 @@ public sealed partial class BattleEngine
         }
         else
         {
-            throw new NotSupportedException("CBattleEngine::Move: the jet part (not ported yet)");
+            JetPart!.Move();
         }
 
         float speed = (float)X87.Sqrt((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) + (Velocity.Z * Velocity.Z));
@@ -603,7 +603,7 @@ public sealed partial class BattleEngine
     /// GroundParticleEffect (0040ef20): within 10 of the ground or the water below, a land or water effect there, half as
     /// far again below as the altitude.
     /// </summary>
-    private void GroundParticleEffect()
+    internal void GroundParticleEffect()
     {
         float waterLevel = Context.Map.WaterLevel;
         float groundLevel = Context.Map.Collide(Pos);
@@ -628,13 +628,13 @@ public sealed partial class BattleEngine
     }
 
     /// <summary>ActivateThrusters (0040e940): single player, only the in-flight sound when they start.</summary>
-    private void ActivateThrusters()
+    internal void ActivateThrusters()
     {
         if (!ThrustersActive)
         {
             if (Context.SoundEffects is { } sounds)
             {
-                sounds.PlayEffect(sounds.Find("BE Engines(in-flight)"), Context.Crt);
+                sounds.PlayRepeatingEffect(sounds.Find("BE Engines(in-flight)"), this, Context.Crt, once: true);
             }
             else
             {
@@ -646,7 +646,13 @@ public sealed partial class BattleEngine
     }
 
     /// <summary>DeactivateThrusters (0040eb50): the in-flight sound fades (in the walker).</summary>
-    private void DeactivateThrusters() => ThrustersActive = false;
+    internal void DeactivateThrusters()
+    {
+        if (!ThrustersActive) return;
+        if (State == BattleEngineState.Walker && Context.SoundEffects is { } sounds)
+            sounds.FadeRepeatingSample(sounds.Find("BE Engines(in-flight)"), this, 0, .02f);
+        ThrustersActive = false;
+    }
 
     private Weapon? CurrentWeaponForZoom() => GetCurrentWeapon();
 
@@ -752,14 +758,8 @@ public sealed partial class BattleEngine
         }
         else
         {
-            // Off the ground (or a jet): the pitch is damped beyond +-1.17 unless the jet part is looping. A walker's
-            // jet part never loops; the jet is not ported.
-            if (State == BattleEngineState.Jet)
-            {
-                throw new NotSupportedException("CBattleEngine::UpdateRotation for the jet (CBattleEngineJetPart::DoingLoop) is not ported");
-            }
-
-            if (CurrentOrientation.Pitch > 1.17f && Pitchvel > 0.0f)
+            // The jet-part loop flag suppresses both pitch limits in every airborne/morph state.
+            if (CurrentOrientation.Pitch > 1.17f && Pitchvel > 0.0f && JetPart?.DoingLoop != true)
             {
                 float mult = 1.0f - ((CurrentOrientation.Pitch - 1.17f) * 1.5f);
                 if (mult < 0.0f)
@@ -770,7 +770,7 @@ public sealed partial class BattleEngine
                 Pitchvel *= mult;
             }
 
-            if (CurrentOrientation.Pitch < -1.17f && Pitchvel < 0.0f)
+            if (CurrentOrientation.Pitch < -1.17f && Pitchvel < 0.0f && JetPart?.DoingLoop != true)
             {
                 float mult = 1.0f - MathF.Abs((CurrentOrientation.Pitch + 1.17f) * 1.5f);
                 if (mult < 0.0f)
@@ -796,6 +796,7 @@ public sealed partial class BattleEngine
         {
             CurrentOrientation.Roll *= 0.8f;
         }
+        else if (JetPart!.AutoLevel()) CurrentOrientation.Roll *= 0.97f;
 
         Orientation = ShakenOrientation();
         if (MathF.Abs(YawShake) > 0.001f || MathF.Abs(PitchShake) > 0.001f || MathF.Abs(RollShake) > 0.001f)
@@ -972,14 +973,14 @@ public sealed partial class BattleEngine
     /// <summary>
     /// HandleSounds (00409950), as far as it draws rand(). Each PlayEffect draws for its chain (and pitch), unless the
     /// effect is missing (level 100's sound table has no "BE On 02", so the hum never plays). The low-health and
-    /// low-energy loops play when not already playing; the sound-playing state is not modelled, so reaching one throws
-    /// rather than drop or invent a draw (their fades draw nothing). The incoming-missile sound waits on the radar
+    /// low-energy loops use the same logical repeating-sound owner as flight: stop the competing warning, admit only
+    /// when absent and fade on recovery. Channel admission and device/nonloop lifetimes remain outside this model. The incoming-missile sound waits on the radar
     /// warning receiver, the lock sounds on the locks and the aim sound on the auto-aim target or the unit over the
     /// crosshair: the radar warning receiver and the locks are not ported, so those never play; the aim sound plays when the
     /// unit over the crosshair (CalcUnitOverCrossHair) is first an enemy (the auto-aim search is not ported). The walking block: on the ground as a walker, every 1.5 units walked
     /// counts a step, and standing still after more than 5 steps plays the hydraulics (PlayHudSample).
     /// </summary>
-    private void HandleSounds()
+    internal void HandleSounds()
     {
         if (Context.SoundEffects is not { } sounds)
         {
@@ -992,19 +993,23 @@ public sealed partial class BattleEngine
             throw new NotSupportedException("CBattleEngine::HandleSounds: the hum's IsEffectPlaying (sound-playing state not modelled)");
         }
 
+        var healthLow = sounds.Find("BE Energy Critical");
+        var energyLow = sounds.Find("BE Energy Low");
+        // mEnergyVeryLowSound is NULL in the retail Init (00404dd0); its old source branch is inactive.
         if (Life < 7.0f)
         {
-            if (sounds.Find("BE Energy Critical") is not null)
-            {
-                throw new NotSupportedException("CBattleEngine::HandleSounds: the low-health loop's IsEffectPlaying (sound-playing state not modelled)");
-            }
+            sounds.StopRepeatingSample(energyLow, this);
+            if (!sounds.IsRepeatingEffectPlaying(healthLow, this)) sounds.PlayRepeatingEffect(healthLow, this, Context.Crt);
         }
         else if (Energy < 2.0f)
         {
-            if (sounds.Find("BE Energy Low") is not null)
-            {
-                throw new NotSupportedException("CBattleEngine::HandleSounds: the low-energy loop's IsEffectPlaying (sound-playing state not modelled)");
-            }
+            sounds.StopRepeatingSample(healthLow, this);
+            if (!sounds.IsRepeatingEffectPlaying(energyLow, this)) sounds.PlayRepeatingEffect(energyLow, this, Context.Crt);
+        }
+        else
+        {
+            sounds.FadeRepeatingSample(energyLow, this, 0, 0.02f);
+            sounds.FadeRepeatingSample(healthLow, this, 0, 0.02f);
         }
 
         // Aiming: a new auto-aim target, or else an enemy unit coming under the crosshair, plays the aim sound once.

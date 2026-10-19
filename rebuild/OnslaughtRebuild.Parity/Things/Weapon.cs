@@ -458,6 +458,38 @@ public sealed class Weapon(ThingContext context, WeaponData data, int type) : Eq
         }
     }
 
+    /// <summary>Weapon destruction: release member links/readers, then notify the monitor's pending event readers.</summary>
+    public void Release()
+    {
+        foreach (ParticleEffectLink? effect in Effects) effect?.Release();
+        Target.Release();
+        Destroy();
+    }
+
+    /// <summary>
+    /// MoveEmitter005078f0: the two retained muzzle effects follow their recorded launch indices. The launch-angle
+    /// ordinal here is the EFFECT slot, not the recorded launch index. Retail calls the angle constructor004062d0
+    /// and matrix product0040d320 out of line; orientate=false updates position only.
+    /// </summary>
+    public void MoveEmitter(bool orientate)
+    {
+        if (Mode is not { } mode) return;
+        for (int i = 0; i < 2; i++)
+        {
+            if (Effects[i] is not { Full: true } effect) continue;
+            AttachedTo!.GetLaunchPosition(this, Emitters[i], out FVector pos, out FMatrix ori, false);
+            effect.SetPos(pos);
+            if (!orientate) continue;
+            FMatrix angle = FMatrix.MakeRotation(0, 1, 0);
+            if (i < mode.LaunchAngles.Count)
+            {
+                LaunchAngle a = mode.LaunchAngles[i];
+                angle = FMatrix.MakeRotationOutOfLine(a.A, a.B, 0);
+            }
+            effect.SetOrientation(ori.MultiplyOutOfLine(angle));
+        }
+    }
+
     /// <summary>mEffects / mEmitters: the two muzzle effects and the launch index each follows.</summary>
     public ParticleEffectLink?[] Effects { get; } = new ParticleEffectLink?[2];
 

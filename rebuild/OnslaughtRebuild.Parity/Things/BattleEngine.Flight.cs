@@ -13,6 +13,13 @@ public sealed partial class BattleEngine
     public bool RenderThingIsWalker = true;
     private MCBattleEngine? _backupMotionController;
 
+    public float LastTimeInHostileEnvironment;
+    internal void HostileEnvironment()
+    {
+        if (Context.Events.Time - LastTimeInHostileEnvironment > 5.0f) PlayHudSample("hud_hostile_environment");
+        LastTimeInHostileEnvironment = Context.Events.Time;
+    }
+
     public void EnableFlightMode() => FlightModeActive = true;
     public void DisableFlightMode()
     {
