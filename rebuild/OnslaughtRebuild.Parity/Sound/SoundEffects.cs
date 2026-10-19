@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// The sound effects as the sound manager knows them, for the rand() draws playing one makes. Adapted from bea-decomp
+// Effect metadata/selection and the explicit old-loop adapter. SoundEffects.Events owns event state. Adapted from bea-decomp
 // src/SoundManager.cpp (CEffect::LoadSFXFile 004e2530, GetEffectByName 004e2a90, CSoundManager::PlayEffect's choice of
-// chained effect and pitch, 004e1910..004e19bb). The samples themselves are presentation.
+// chained effect and pitch, 004e1910..004e19bb). Event lifetime is simulation state; output audio is presentation.
 
 using System.Text;
 using OnslaughtRebuild.Parity.Crt;
 
 namespace OnslaughtRebuild.Parity.Sound;
 
-/// <summary>CEffect: a named effect, its pitch variance and the effects chained after it (one is picked at random).</summary>
-public sealed class SoundEffect(string name, int pitchVariance, string? sampleName = null, bool looping = false)
+/// <summary>CEffect: named sample, authored gain/language/loop flags and a randomly selected effect chain.</summary>
+public sealed class SoundEffect(string name, int pitchVariance, string? sampleName = null, bool looping = false, int volume = 100, bool languageDependent = false)
 {
     public string Name { get; } = name;
 
@@ -19,11 +19,15 @@ public sealed class SoundEffect(string name, int pitchVariance, string? sampleNa
 
     public bool Looping { get; } = looping;
 
+    public int Volume { get; } = volume;
+
+    public bool LanguageDependent { get; } = languageDependent;
+
     public SoundEffect? Chained;
 }
 
 /// <summary>The effects of data\sounds\sounds.sfx, a later effect of an earlier one's name chained after it.</summary>
-public sealed class SoundEffects
+public sealed partial class SoundEffects
 {
     public const string FileName = @"data\sounds\sounds.sfx";
 
@@ -65,19 +69,16 @@ public sealed class SoundEffects
         {
             string name = ReadLine();
             string sample = ReadLine();
-            ReadLine();
-            ReadLine();
-            ReadLine();
+            ReadLine(); // low-pass sample
+            int volume = Atoi(ReadLine());
+            ReadLine(); // falloff
             int pitch = Atoi(ReadLine());
             bool looping = version >= 101 && ReadLine().StartsWith('1');
 
-            if (version >= 103)
-            {
-                ReadLine();
-            }
+            bool languageDependent = version >= 103 && ReadLine().StartsWith('1');
 
             ReadLine();
-            var e = new SoundEffect(name, pitch, sample, looping);
+            var e = new SoundEffect(name, pitch, sample, looping, volume, languageDependent);
             SoundEffect? found = effects._effects.FirstOrDefault(c => Particles.ParticleSet.Stricmp(c.Name, name) == 0);
             if (found is null)
             {
@@ -145,139 +146,98 @@ public sealed class SoundEffects
         return _effects.FirstOrDefault(e => Particles.ParticleSet.Stricmp(e.Name, s) == 0);
     }
 
-    /// <summary>
-    /// Silent logical state for explicitly repeating effects only. This does not model channel allocation, device
-    /// audibility, nonloop sample durations or callbacks. Its owner must call AdvanceLoopStatus once per MainLoop's
-    /// SOUND.UpdateStatus boundary, including the original pause state; never once per simulated movement.
-    /// </summary>
-    public sealed class RepeatingEffect(SoundEffect effect, object owner, float fade)
+    /// <summary>Compatibility view over the ONE event owner, not a separate sound lifetime model.</summary>
+    public sealed class RepeatingEffect
     {
-        public SoundEffect Effect { get; } = effect;
-        public object? Owner { get; internal set; } = owner;
-        public float SubVolume { get; internal set; } = fade > 0 ? 0 : 1;
-        public float Fade { get; internal set; } = fade;
-        public float FadeDestination { get; internal set; } = fade < 0 ? 0 : 1;
+        internal RepeatingEffect(SoundEvent e) => Event = e;
+        internal SoundEvent Event { get; }
+        public SoundEffect Effect => Event.Effect!;
+        public object? Owner => Event.Owner;
+        public float SubVolume => Event.SubVolume;
+        public float Fade => Event.Fade;
+        public float FadeDestination => Event.FadeDestination;
     }
 
-    private readonly List<RepeatingEffect> _repeating = [];
-    public IReadOnlyList<RepeatingEffect> RepeatingEffects => _repeating;
+    public IReadOnlyList<RepeatingEffect> RepeatingEffects => Events.Where(e => e.Playing && e.Looping && e.Effect is not null)
+        .Select(e => e.LoopHandle ??= new RepeatingEffect(e)).ToArray();
 
-    private void RemoveRepeatingAt(int index)
+    /// <summary>Native KillSamplesForThing: exact-owner playing entries; read Next after callback/stop.</summary>
+    public void KillSamplesForThing(object? owner)
     {
-        _repeating[index].Owner = null; // StopSoundEvent's SetReader(NULL), including a retained inspection handle.
-        _repeating.RemoveAt(index);
+        for (SoundEvent? e = _first; e is not null;)
+        {
+            if (e.Playing && ReferenceEquals(e.Owner, owner)) StopSoundEvent(e);
+            SoundEvent? next = e.Next;
+            if (e.Legacy && !e.Playing) DeleteSoundEvent(e); // explicit legacy stopped-list projection
+            e = next;
+        }
     }
 
-    /// <summary>
-    /// KillSamplesForThing004e1130: stop every PLAYING event with this exact owner, even when paused or silent.
-    /// The admitted repeating list contains only playing entries; removal is its stopped-state projection, not
-    /// native event-pool deletion timing. No initialization, unit Active, fade or sample-name filter, and no RNG.
-    /// Nonloop events, completion callbacks and channel release remain outside this loop-only owner.
-    /// </summary>
-    public void KillSamplesForThing(object owner)
-    {
-        for (int i = 0; i < _repeating.Count;)
-            if (ReferenceEquals(_repeating[i].Owner, owner)) RemoveRepeatingAt(i);
-            else i++;
-    }
+    public bool IsRepeatingEffectPlaying(SoundEffect? effect, object owner) => IsEffectPlaying(effect, owner);
 
-    /// <summary>IsEffectPlaying004e1ab0: test every chained sample with the same owner.</summary>
-    public bool IsRepeatingEffectPlaying(SoundEffect? effect, object owner)
+    public RepeatingEffect? FindRepeatingSample(string sample, object owner)
     {
-        for (SoundEffect? current = effect; current is not null; current = current.Chained)
-            if (FindRepeatingSample(current.SampleName, owner) is not null) return true;
-        return false;
+        SoundEvent? e = Events.FirstOrDefault(e => e.Playing && e.Looping && ReferenceEquals(e.Owner, owner)
+            && StringComparer.OrdinalIgnoreCase.Equals(e.Sample.Name, sample));
+        return e is null ? null : e.LoopHandle ??= new RepeatingEffect(e);
     }
-
-    public RepeatingEffect? FindRepeatingSample(string sample, object owner) => _repeating.FirstOrDefault(e =>
-        ReferenceEquals(e.Owner, owner) && StringComparer.OrdinalIgnoreCase.Equals(e.Effect.SampleName, sample));
 
     /// <summary>
-    /// PlayEffect004e1940 chooses the effect and draws pitch through the existing owner. The caller guarantees
-    /// an admitted repeating sample. Optional once admission occurs AFTER chain/pitch draws and applies only when
-    /// the selected effect is not marked looping (004e1987..004e19b1, 004e0b6c..004e0b94). Device channels, sample
-    /// availability and nonloop playback remain outside this loop-only model.
+    /// Existing loop-only projection, on the same event nodes. It deliberately has no device/channel/sample-duration
+    /// claim. ConfigureEventKernel refuses while these entries exist; after migration this entry point refuses.
     /// </summary>
     public RepeatingEffect? PlayRepeatingEffect(SoundEffect? effect, object owner, CrtRandStream rand, float fade = 0, bool once = false)
     {
+        RequireLegacyProjection();
         SoundEffect? chosen = PlayEffect(effect, rand);
         if (chosen is null) return null;
         if (once && !chosen.Looping && FindRepeatingSample(chosen.SampleName, owner) is { } existing) return existing;
-        var playing = new RepeatingEffect(chosen, owner, fade);
-        _repeating.Add(playing);
-        return playing;
+        if (!_legacySamples.TryGetValue(chosen.SampleName, out SampleMetadata? sample))
+            _legacySamples.Add(chosen.SampleName, sample = new SampleMetadata(chosen.SampleName, 0));
+        var e = new SoundEvent(this, -1) { Legacy = true, LegacyOwner = owner, Sample = sample, Effect = chosen,
+            Playing = true, Looping = true, Channel = -1, Fade = fade, SubVolume = fade > 0 ? 0 : 1,
+            FadeDestination = fade < 0 ? 0 : 1, InActiveList = true };
+        SoundEvent? last = _first;
+        if (last is null) _first = e;
+        else { while (last.Next is not null) last = last.Next; last.Next = e; e.Previous = last; }
+        _eventCount++;
+        return e.LoopHandle = new RepeatingEffect(e);
     }
 
-    /// <summary>StopSample004e1800: every matching sample of this owner, no random draw.</summary>
     public void StopRepeatingSample(SoundEffect? effect, object owner)
     {
         if (effect is null) return;
-        for (int i = 0; i < _repeating.Count;)
-            if (ReferenceEquals(_repeating[i].Owner, owner)
-                && StringComparer.OrdinalIgnoreCase.Equals(_repeating[i].Effect.SampleName, effect.SampleName)) RemoveRepeatingAt(i);
-            else i++;
+        StopSample(effect.SampleName, owner);
+        for (SoundEvent? e = _first; e is not null;)
+        { var next = e.Next; if (e.Legacy && !e.Playing) DeleteSoundEvent(e); e = next; }
     }
 
-    /// <summary>FadeTo004e1260: the first matching sample, signed speed from its current volume.</summary>
     public void FadeRepeatingSample(SoundEffect? effect, object owner, float destination, float speed)
     {
-        if (effect is null || FindRepeatingSample(effect.SampleName, owner) is not { } playing) return;
-        playing.FadeDestination = destination;
-        playing.Fade = destination < playing.SubVolume ? -speed : speed;
+        if (effect is null || FindRepeatingSample(effect.SampleName, owner) is not { } handle) return;
+        handle.Event.FadeDestination = destination;
+        handle.Event.Fade = destination < handle.Event.SubVolume ? -speed : speed;
     }
 
-    /// <summary>
-    /// UpdateStatus004e1b20: one addition per unpaused status update, then STRICT overshoot comparisons. Reaching zero
-    /// exactly does not stop the sample until the next update; replacing this with a <= comparison changes RNG later.
-    /// </summary>
     public void AdvanceLoopStatus(bool paused)
     {
+        RequireLegacyProjection();
         if (paused) return;
-        for (int i = 0; i < _repeating.Count;)
+        for (SoundEvent? e = _first; e is not null;)
         {
-            RepeatingEffect effect = _repeating[i];
-            if (effect.Fade != 0)
-            {
-                effect.SubVolume += effect.Fade;
-                if ((effect.Fade > 0 && effect.SubVolume > effect.FadeDestination)
-                    || (effect.Fade < 0 && effect.SubVolume < effect.FadeDestination))
-                {
-                    bool stop = effect.Fade < 0 && effect.FadeDestination == 0;
-                    effect.SubVolume = effect.FadeDestination;
-                    effect.Fade = 0;
-                    if (stop) { RemoveRepeatingAt(i); continue; }
-                }
-            }
-            i++;
+            if (e.Fade != 0) AdvanceFade(e);
+            var next = e.Next;
+            if (!e.Playing) DeleteSoundEvent(e);
+            e = next;
         }
     }
 
-    /// <summary>PlayEffect's draws: one of the chain at random, then (with pitch variance on) its pitch.</summary>
+    /// <summary>Compatibility selection-only entry point; the configured kernel requires full playback arguments.</summary>
     public SoundEffect? PlayEffect(SoundEffect? effect, CrtRandStream rand)
     {
-        if (effect is null)
-        {
-            return null;
-        }
-
-        int chained = 0;
-        for (SoundEffect? c = effect; c is not null; c = c.Chained)
-        {
-            chained++;
-        }
-
-        int pick = rand.Rand() % chained;
-        SoundEffect current = effect;
-        for (; pick > 0; pick--)
-        {
-            current = current.Chained!;
-        }
-
-        if (current.PitchVariance != 0 && PitchVarianceEnabled)
-        {
-            rand.Rand();
-        }
-
-        return current;
+        RequireLegacyProjection();
+        if (!Initialised || effect is null) return null;
+        var playback = new SoundPlayback();
+        return ChooseEffect(effect, rand, ref playback);
     }
 }
