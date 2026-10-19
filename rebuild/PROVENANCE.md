@@ -109,6 +109,7 @@ package licence expression is `GPL-3.0-only`.
 | `Mesh/MeshPolyBucket.cs` (the part's poly bucket as stored) | `src/PolyBucket.cpp` and its header | GPL-3.0-or-later (not in Stuart's release) |
 | `Mesh/MatrixOps.cs` (FMatrix sum, difference and scale; the 16/48-byte layouts) | `src/maths.h` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Thing.cs` (CThing, CComplexThing) | `src/thing.h`, `src/thing.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Things/RadarWarningReceiver.cs`, ordered world round membership, BattleEngine receiver ownership and ComplexThing animation destruction | `src/RadarWarningReceiver.cpp` (Init 004d65a0, Update 004d66b0), `src/round.cpp`, `src/BattleEngine.cpp` (cockpit call 004055dc before receiver Init 00405710), `src/thing.cpp` (destructor 004f3f00) | GPL-3.0-only as combined; reconstructed receiver file GPL-3.0-or-later. Real ordered scans and monitored lifetimes; existing atan2, lock admission and nonloop sound limits remain explicit. |
 | `Things/Actor.cs` (CActor) | `src/actor.h`, `src/actor.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Things/InitThing.cs` (CInitCSThing, CInitThing's runtime fields, Copy) | `src/InitThing.h` | GPL-3.0-only (in Stuart's release) |
 | `Things/ThingType.cs` (THING_TYPE_ bits) | `src/ThingType.h`, `src/waypoint.h` | GPL-3.0-or-later (not in Stuart's release) |

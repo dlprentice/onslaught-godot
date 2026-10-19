@@ -22,6 +22,7 @@ public sealed class LevelSession
 {
     private IEnumerator<int>? _mainLoop;
     private bool _started;
+    private bool _startUnitNoisePending;
 
     private LevelSession(ThingContext context, Game game, LevelResources resources, Clock.PlatformClock clock)
     {
@@ -79,7 +80,21 @@ public sealed class LevelSession
                 Clock.Present();
             }
 
-            // RestartLoopRunLevel after the pre-run and the loading screen's last Present: each unit starts its looping init noise (one draw for the chain).
+            // Return at the loading Present itself, where the native probe is taken. Startup noises happen only
+            // after that Present returns to RestartLoopRunLevel, not before the caller can observe this boundary.
+            _startUnitNoisePending = true;
+            return;
+        }
+
+        if (Tape is not null)
+        {
+            Input.Deliver(Tape.EventsAt(before));
+        }
+
+        if (_startUnitNoisePending)
+        {
+            _startUnitNoisePending = false;
+            // RestartLoopRunLevel: each unit starts its init noise after the loading screen's last Present.
             foreach (Thing thing in Context.World.UnitNB.ToList())
             {
                 if (thing is Unit { UnitData: { } data } && data.EffectNames[11] is { } noise && Context.SoundEffects is { } sounds)
@@ -87,12 +102,6 @@ public sealed class LevelSession
                     sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(noise)), Context.Crt);
                 }
             }
-            return;
-        }
-
-        if (Tape is not null)
-        {
-            Input.Deliver(Tape.EventsAt(before));
         }
 
         if (Ended)

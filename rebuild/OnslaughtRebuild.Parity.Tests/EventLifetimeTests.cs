@@ -12,6 +12,25 @@ namespace OnslaughtRebuild.Parity.Tests;
 
 public sealed class EventLifetimeTests
 {
+    [GameDataFact]
+    public void LoadingPresentMatchesNativeRadarCountAndPreNoiseRandomBoundary()
+    {
+        // Frozen native e55cb2d8bf87: codex-l100-route-moving-forward-over-ridge-20261017/probes.txt, P3.
+        // Original pre-run ends before the loading Present. Nine unit-noise draws occur only after it returns.
+        var session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        session.AdvanceToNextPresent();
+        Assert.Equal(3, session.PresentCount);
+        Assert.Equal(6683u, session.Context.Events.TotalEventsProcessed);
+        Assert.Equal(4103L, session.Context.Crt.Calls);
+        Assert.Equal(0x10181a1eu, session.Context.Crt.HoldRand);
+        var engine = Assert.IsType<BattleEngine>(session.Game.GetPlayer(0)!.BattleEngine);
+        Assert.NotNull(engine.RadarWarningReceiver);
+        var radar = engine.RadarWarningReceiver;
+        engine.Shutdown();
+        Assert.Null(engine.RadarWarningReceiver);
+        Assert.Equal(0, radar.DeletionCount);
+    }
+
     private sealed class TestThing(ThingContext context) : ComplexThing(context, Oid.Thing);
     private sealed class TestUnit(ThingContext context) : Unit(context);
 

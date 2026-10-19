@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (live tree placement and intro skip reproduced; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-19 (walker/flight prerequisites and event lifetimes; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -30,6 +30,24 @@ acceptance. The private tape SHA-256 is
 `eff3538300257457779df55692c3c67b59a82db4e169d485307f8089ef949ae4`;
 receipts are in the existing private `live-host/resume-20261019/` owner and the internal rebuild
 clone's `local-data/test-runs/change-weapon-20261019/`. No physical device or audio acceptance is claimed.
+
+Following event-lifetime repair (2026-10-19): the real radar receiver now scans the ordered
+round set, retains monitored threats and schedules its next update; it is initialized after the
+cockpit, as native calls 004055dc then 00405710 require. ComplexThing deletion releases its
+animation monitor after its script, preserving the already-queued null event but preventing
+further dead-owner animation scheduling. These fix the missing 60 pre-run radar events and the
+later orphaned aircraft animations. The loading Present now returns before unit-init sound draws,
+matching the native probe boundary; the draws still occur before the first gameplay update.
+
+The same tape now matches **all nine probes at every Present 3..6,016**. The seven primary
+probes and CRT state/count match through 13,000. EVN first differs by one at Present 6,017
+and differs on 6,984 later records; this is still an open event-lifecycle question, not full-state
+parity. All 116,982 comparisons were performed. Root's integrated suite passes **443 tests,
+9 existing optional-reference skips, 0 failures**. Private receipts are
+`live-host/resume-20261019/event-lifetime-comparison.json` and the internal clone's
+`local-data/test-runs/event-lifetime-20261019/`. Radar bearing retains the existing explicit
+atan2 approximation; missile lock admission, nonloop warning playback and complete battle-engine
+teardown are not established by this slice.
 
 ## Proof-of-concept milestones (2026-10-15)
 

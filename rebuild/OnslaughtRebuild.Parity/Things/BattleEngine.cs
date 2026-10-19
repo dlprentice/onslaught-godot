@@ -70,6 +70,10 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
     /// <summary>mCockpit: the cockpit drawn in first-person view.</summary>
     public Cockpit? Cockpit;
+    /// <summary>mCachedRadarWarningReceiver; owned equipment, released before the unit's destructor.</summary>
+    public RadarWarningReceiver? RadarWarningReceiver { get; private set; }
+    /// <summary>mPlayIncomingMissileSound: the receiver sets it; HandleSounds consumes it.</summary>
+    public bool PlayIncomingMissileSound;
     public int ThrusterFrames;
     public int EngineFrames;
     public float Zoom;
@@ -146,8 +150,11 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         Visible = false;
         base.Init(init);
         SetCollisionShape();
-        Context.Skip("CBattleEngine::Init: the radar warning receiver and the stores");
+        Context.Skip("CBattleEngine::Init: the stores");
         Cockpit = new Cockpit(Context, this, Configuration?.Cockpit is { } cockpit && Context.Meshes.TryGetValue(System.Text.Encoding.ASCII.GetString(cockpit), out Mesh.MeshData? cm) ? cm : null);
+        // 004055dc constructs Cockpit before 00405710 initializes the radar. Both queue end-of-frame events.
+        RadarWarningReceiver = new RadarWarningReceiver(Context, Context.World.Set110, () => PlayIncomingMissileSound = true);
+        RadarWarningReceiver.Init(new InitEquipment { AttachedTo = this }, 80.0f, 0.03f);
         Zoom = 1.0f;
         PoweredUp = true;
         ShieldRegeneration = 0;
@@ -160,6 +167,15 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
     /// <summary>SetCollisionShape (004063b0): a cylinder of the radius and half the centre-of-gravity height.</summary>
     public void SetCollisionShape() => Seeker!.SetShape(new Collision.CylinderVolume(GetRadius(), COfGHeight() * 0.5f));
+
+    protected override void Deleted()
+    {
+        // ~CBattleEngine deletes equipment before the base Unit/ComplexThing destruction. Other part teardown
+        // remains separate; this releases the receiver's threat readers and scheduled event recipients.
+        RadarWarningReceiver?.Delete();
+        RadarWarningReceiver = null;
+        base.Deleted();
+    }
 
     /// <summary>mWlcr: the crosshair's last line test (CalcUnitOverCrossHair with its data updated).</summary>
     public World.WorldLineReport Wlcr { get; } = new();
