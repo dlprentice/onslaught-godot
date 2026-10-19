@@ -471,24 +471,7 @@ public abstract partial class Unit
             Context.Skip("CUnit::Shutdown: delete the unit's idle spawners");
         }
 
-        // The effects stop: the weapon's, then the dust and vent links.
-        if (Unknown1AC is not null)
-        {
-            Unknown1AC.Stop(false);
-            Unknown1AC.Release();
-            Unknown1AC = null;
-        }
-
-        foreach (List<ParticleEffectLink> links in new[] { DustLinks, VentLinks })
-        {
-            foreach (ParticleEffectLink link in links)
-            {
-                link.Stop(false);
-                link.Release();
-            }
-
-            links.Clear();
-        }
+        ReleaseParticleEffects();
 
         Context.World.UnitNB.Remove(this);
         if (Guide is not null)
@@ -517,7 +500,29 @@ public abstract partial class Unit
         base.Shutdown();
     }
 
-    /// <summary>~CUnit (004f84e0): the AI is deleted (its effects are presentation).</summary>
+    /// <summary>Shutdown and ~CUnit: mUnknown1AC, then thrusters, dust and vent links, in that order.</summary>
+    private void ReleaseParticleEffects()
+    {
+        if (Unknown1AC is not null)
+        {
+            Unknown1AC.Stop(false);
+            Unknown1AC.Release();
+            Unknown1AC = null;
+        }
+
+        foreach (List<ParticleEffectLink> links in new[] { Thrusters, DustLinks, VentLinks })
+        {
+            foreach (ParticleEffectLink link in links)
+            {
+                link.Stop(false);
+                link.Release();
+            }
+
+            links.Clear();
+        }
+    }
+
+    /// <summary>~CUnit (004f84e0): the AI is deleted, then the owned particle links.</summary>
     protected override void Deleted()
     {
         if (AI is not null)
@@ -526,6 +531,7 @@ public abstract partial class Unit
             AI = null;
         }
 
+        ReleaseParticleEffects();
         base.Deleted();
     }
 }

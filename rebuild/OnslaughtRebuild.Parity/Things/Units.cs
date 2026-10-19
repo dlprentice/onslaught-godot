@@ -890,7 +890,7 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
     public int WingState;
     public float LaunchTime;
     public float DeathRoll;
-    public int ThrusterLinks;
+    public int ThrusterLinks => Thrusters.Count;
 
     public override void Init(InitThing init)
     {
@@ -909,11 +909,7 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
             WingState = 1;
             LaunchTime = 0;
         }
-        if (UnitData!.EffectNames[8] is not null)
-        {
-            ThrusterLinks = RenderThing!.CountEmitters("Engine");
-            Context.Skip("PARTICLE_SET lookup stood in by the effect name (afterburner)");
-        }
+        InitLaunchThrusters();
 
         DeathRoll = (float)(Context.Random.Random() % 65536) / 65536.0f > 0.5f ? 0.8f : -0.8f;
     }
@@ -927,7 +923,7 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
 
     /// <summary>
     /// CPlane::Move (004d1cd0): a dying plane rolls and noses down; otherwise the launch thrusters burn until the launch
-    /// time (presentation) and the wings open once out of launch mode. After CAirUnit::Move the velocity is turned onto
+    /// time and the wings open once out of launch mode. After CAirUnit::Move the velocity is turned onto
     /// the plane's heading at the same speed.
     /// </summary>
     public override void Move()
@@ -937,10 +933,7 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
             throw new NotSupportedException("CPlane::Move's death roll is not ported");
         }
 
-        if (LaunchTime > Context.Events.Time && ThrusterLinks > 0)
-        {
-            Context.Skip("CPlane::Move's launch thrusters (presentation)");
-        }
+        UpdateLaunchThrusters();
 
         if (AI!.AIMode != 2 && WingState == 0)
         {

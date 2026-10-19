@@ -124,6 +124,9 @@ public abstract partial class Unit(ThingContext context, int classId = Oid.Unit)
     public int DeployState;
     public bool ThrustersActive;
 
+    /// <summary>mThrusters: launch/boost effect links, owned and released by CUnit.</summary>
+    public readonly List<ParticleEffectLink> Thrusters = [];
+
     /// <summary>mAI: the unit's AI (set by the subclass's Init; null until then).</summary>
     public UnitAI? AI;
 
