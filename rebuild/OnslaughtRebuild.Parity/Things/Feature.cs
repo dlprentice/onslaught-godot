@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Adapted from bea-decomp src/feature.h and src/feature.cpp (CFeature::Init 0044ca30, Move 0044cc10, ClipToGround 0044d1d0,
+// Adapted from bea-decomp src/feature.h and src/feature.cpp (CFeature::Init 0044ca30, Shutdown 0044cbe0, Move 0044cc10, ClipToGround 0044d1d0,
 // CanGoUnderWater 00415a90, SetThingType). Not in Stuart's release.
 
 using System.Text;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Physics;
+using OnslaughtRebuild.Parity.Sound;
 using OnslaughtRebuild.Parity.World;
 
 namespace OnslaughtRebuild.Parity.Things;
@@ -130,7 +131,28 @@ public sealed class Feature(ThingContext context) : Actor(context, Oid.Feature)
         AboveWater = Context.WaterLevel > Pos.Z;
         if (Data.SoundName is not null)
         {
-            Context.Skip("SOUND.PlayEffect (a feature's sound)");
+            if (Context.SoundEffects is { EventKernelConfigured: true } sounds)
+            {
+                // Pristine 74154bfa:0044cb78..0044cb99. Repeat permits pre-run admission; Once still
+                // uses the resolved sample/owner identity (unless the authored effect disables Once).
+                sounds.PlayEffect(sounds.Find(Encoding.Latin1.GetString(Data.SoundName)), this, Context.Crt,
+                    new SoundPlayback(Volume: .7f, Tracking: SoundTracking.FollowAndDie, Once: true, Repeat: true));
+            }
+            else
+            {
+                Context.Skip("SOUND.PlayEffect (a feature's sound)");
+            }
         }
+    }
+
+    /// <summary>CFeature::Shutdown (0044cbe0): stop sounds before occupancy removal and the inherited teardown.</summary>
+    public override void Shutdown()
+    {
+        Context.SoundEffects?.KillSamplesForThing(this);
+        Occupancy.RemoveUnit(Context.Occupancy, Context.Map, this);
+        // Native 0044cc01 removes the lighting shadow, not the navigation occupancy shadow. The
+        // CStaticShadows owner/grid is not ported; do not substitute Occupancy.BuildStaticShadows.
+        Context.Skip("CStaticShadows::UpdateVisibility(feature, remove: true)");
+        base.Shutdown();
     }
 }

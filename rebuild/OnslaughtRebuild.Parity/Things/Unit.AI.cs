@@ -4,6 +4,7 @@
 // StartUndeploying 004fde70, Unknown82, GetVulnerable, Unknown97) and src/actor.h (CActor::Stop). Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Sound;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -87,10 +88,24 @@ public abstract partial class Unit
             throw new NotSupportedException("CGroundUnit::Unknown87 (0047d420) is not ported yet");
         }
 
-        Context.Skip("CUnit::Unknown87: the mode's sound and the component effects");
+        if (CurrentWeapon?.Mode?.PostFireSoundName is { } name)
+        {
+            if (Context.SoundEffects is { EventKernelConfigured: true } sounds)
+            {
+                // Pristine 74154bfa:004fc18a..004fc1ae: sound precedes component effects and state writes.
+                sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(name)), this, Context.Crt,
+                    new SoundPlayback(Volume: .7f, Tracking: SoundTracking.InitialPosition));
+            }
+            else
+            {
+                Context.Skip("CUnit::Unknown87: the mode's post-fire sound");
+            }
+        }
+        Context.Skip("CUnit::SpawnComponentEffects (post-fire)");
         Unknown1E8 = 0;
         float reload = CurrentWeapon?.Mode?.PostFireDelay ?? 0;
-        if (CurrentWeapon is not null && reload != 0)
+        // FCOMP / TEST AH,40 at 004fc1d4..004fc1e5 rejects both equal and unordered operands.
+        if (CurrentWeapon is not null && reload != 0 && !float.IsNaN(reload))
         {
             Unknown16C = Context.Events.Time + reload;
             Unknown168 = 2;
