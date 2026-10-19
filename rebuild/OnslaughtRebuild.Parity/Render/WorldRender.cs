@@ -57,6 +57,9 @@ public sealed class WorldRender(ThingContext context)
     /// <summary>Diagnostic: each mesh render's subject, LOD and whether its mesh was drawn, in the last render.</summary>
     public List<(IRenderSubject Subject, float Lod, bool Drawn)> MeshLog { get; } = [];
 
+    /// <summary>Admitted drawn parts and their hit brightness, in core render order; host drawing only reads this.</summary>
+    public List<(IRenderSubject Subject, MeshPart Part, int HitBrightness)> PartLog { get; } = [];
+
     /// <summary>The world pass of one render, from the camera's render view.</summary>
     public void Render(ParityCamera camera, float fraction2)
     {
@@ -69,6 +72,7 @@ public sealed class WorldRender(ThingContext context)
         MeshesDrawn = 0;
         Rendered.Clear();
         MeshLog.Clear();
+        PartLog.Clear();
 
         // The shadows asked for in the last render are drawn first (each unit from the light), then the list restarts.
         Shadows.RenderTextures(context.Game?.Clock.GetSysTimeFloat() ?? 0.0f, RenderThing);
@@ -411,7 +415,7 @@ public sealed class WorldRender(ThingContext context)
     }
 
     /// <summary>CRTMesh::Render: onto this frame's list; drawn as a mesh when near enough (no imposter, or within the fade).</summary>
-    private void RenderMesh(bool hasImposter, RenderThing rt)
+    internal void RenderMesh(bool hasImposter, RenderThing rt)
     {
         RenderMesh(hasImposter, rt, (rt.Subject as Thing)?.GetRenderImposterBias() ?? 1.0f);
     }
@@ -474,21 +478,98 @@ public sealed class WorldRender(ThingContext context)
 
         MeshesDrawn++;
 
-        // CMeshRenderer::Render (004b6260): a render thing with a pose rebuilds it for the drawn mesh, once a render
-        // frame. Collision between renders reads that pose, interpolated as the render saw it.
-        if (drawn.NumParts > 0 && rt.Pose is { } pose)
-        {
-            pose.Update(drawn, subject, context.RenderFrameNumber, force: true);
-        }
-
-        RunEffects(rt, drawn, subject);
+        RunParts(rt, drawn, subject);
     }
 
     /// <summary>GetCanBeImpostered: every thing but the battle engine (and rounds and components, not drawn here).</summary>
     private static bool CanBeImpostered(Thing thing) => thing is not BattleEngine;
 
-    /// <summary>The drawn mesh's effect emitters (part type 5), in part order: started the first time, then following the part.</summary>
-    private void RunEffects(RenderThing rt, MeshData drawn, IRenderSubject subject)
+    /// <summary>CMeshRenderer::Render / RenderPose: pose-parent and frame admission precede each part's effects.</summary>
+    internal void RunParts(RenderThing rt, MeshData drawn, IRenderSubject subject)
+    {
+        if (drawn.NumParts == 0)
+        {
+            return;
+        }
+
+        if (rt.Pose is { } pose)
+        {
+            pose.Update(drawn, subject, context.RenderFrameNumber, force: true);
+            FVector origin = subject.RenderPos;
+            FMatrix orientation = subject.RenderOrientation;
+            for (int i = 0; i < drawn.NumParts; i++)
+            {
+                if (pose.Parents[i] == -1)
+                {
+                    continue;
+                }
+
+                MeshPart part = drawn.Parts[pose.Parents[i]];
+                FVector pos = orientation.Transform(pose.Positions[i]) + origin;
+                FMatrix ori = orientation.Multiply(pose.Orientations[i]);
+                RunPart(rt, part, subject, pos, ori, pose.Frames[i]);
+            }
+        }
+        else
+        {
+            RunHierarchy(drawn.Parts[0], new FVector(0, 0, 0), FMatrix.Identity);
+        }
+
+        void RunHierarchy(MeshPart part, FVector pos, FMatrix ori)
+        {
+            if (part.Parent is null)
+            {
+                pos = subject.RenderOrientation.Transform(pos) + subject.RenderPos;
+                ori = subject.RenderOrientation.Multiply(ori);
+            }
+
+            int frame = 0;
+            MeshPart draw = MeshPose.EvaluateAnimatedTransform(subject, ref pos, ref ori, part, ref frame);
+            // The non-pose overload passes its incoming flags (zero here), not the controller's changed frame.
+            RunPart(rt, draw, subject, pos, ori, 0);
+            for (int i = 0; i < part.NumChildren; i++)
+            {
+                RunHierarchy(part.Children[i]!, pos, ori);
+            }
+        }
+    }
+
+    /// <summary>
+    /// RenderPart (004b6350): invisible/hidden/animated-static admission, emitter update, then collision-reference
+    /// resolution and the hit query. The query runs even for zero brightness and may schedule a future event.
+    /// </summary>
+    internal void RunPart(RenderThing rt, MeshPart part, IRenderSubject subject, FVector pos, FMatrix ori, int flags)
+    {
+        if ((part.PartType is 2 or 4) && (flags & 4) == 0 || (flags & 1) != 0)
+        {
+            return;
+        }
+
+        if ((flags & 0x10) != 0 && subject.RealAnimIndex != -1 && (part.NumHFrames > 1 || part.NumAFrames > 1))
+        {
+            return;
+        }
+
+        if (part.PartType == 5)
+        {
+            RunEmitter(rt, part, pos, ori);
+            if ((flags & 4) == 0)
+            {
+                return;
+            }
+        }
+
+        if (part.PartType == 6)
+        {
+            part = part.ReferenceTo ?? throw new InvalidOperationException("a collision mesh part has no referenced part");
+        }
+
+        int hit = subject is Thing thing ? thing.GetShouldDoHitEffect(part.PartNumber) : 0;
+        PartLog.Add((subject, part, hit > 0 ? hit : 0));
+    }
+
+    /// <summary>The admitted emitter (part type 5), started the first time and then following its world transform.</summary>
+    private void RunEmitter(RenderThing rt, MeshPart part, FVector pos, FMatrix ori)
     {
         if (context.Particles is not { } particles)
         {
@@ -496,56 +577,41 @@ public sealed class WorldRender(ThingContext context)
         }
 
         MeshEffects effects = rt.Effects ??= MakeEffects(rt.Mesh, particles);
-        if (effects.Parts.Length == 0)
+        int n = Array.IndexOf(effects.Parts, part);
+        if (n < 0 || effects.Types[n] is null)
         {
             return;
         }
 
-        foreach (MeshPart part in drawn.Parts)
+        if (effects.Links[n] is null)
         {
-            if (part.PartType != 5)
-            {
-                continue;
-            }
+            var link = new ParticleEffectLink(particles.Manager);
+            effects.Links[n] = link;
+            particles.Manager.CreateEffect(effects.Types[n], link, new FVector(0, 0, 0), true, false);
+            link.SetPos(new FVector(0, 0, 100.0f));
+            link.SetPos(new FVector(0, 0, 100.0f));
+            effects.Active[n] = false;
+        }
 
-            int n = Array.IndexOf(effects.Parts, part);
-            if (n < 0 || effects.Types[n] is null)
+        ParticleEffectLink effect = effects.Links[n]!;
+        int id = effects.Ids[n];
+        if (!effects.Active[n])
+        {
+            effects.Active[n] = true;
+            effect.SetPos(pos);
+            effect.SetPos(pos);
+            if ((id | 1) == 1 || (id | 2) == 2)
             {
-                continue;
+                effect.SetOrientation(ori);
             }
-
-            if (effects.Links[n] is null)
+        }
+        else
+        {
+            effect.SetPos(pos);
+            effect.SetPos(pos);
+            if ((id | 1) == 1)
             {
-                var link = new ParticleEffectLink(particles.Manager);
-                effects.Links[n] = link;
-                particles.Manager.CreateEffect(effects.Types[n], link, new FVector(0, 0, 0), true, false);
-                link.SetPos(new FVector(0, 0, 100.0f));
-                link.SetPos(new FVector(0, 0, 100.0f));
-                effects.Active[n] = false;
-            }
-
-            MeshPose.EvaluatePose(drawn, rt.Pose, subject, part, context.TransformStatics, out FVector pos, out FMatrix ori,
-                local: false, force: true);
-            ParticleEffectLink effect = effects.Links[n]!;
-            int id = effects.Ids[n];
-            if (!effects.Active[n])
-            {
-                effects.Active[n] = true;
-                effect.SetPos(pos);
-                effect.SetPos(pos);
-                if ((id | 1) == 1 || (id | 2) == 2)
-                {
-                    effect.SetOrientation(ori);
-                }
-            }
-            else
-            {
-                effect.SetPos(pos);
-                effect.SetPos(pos);
-                if ((id | 1) == 1)
-                {
-                    effect.SetOrientation(ori);
-                }
+                effect.SetOrientation(ori);
             }
         }
     }
@@ -573,8 +639,50 @@ public sealed class WorldRender(ThingContext context)
         };
     }
 
+    /// <summary>
+    /// CRTMesh::~CRTMesh (004dc950): unlink from both render-list heads before stopping and releasing emitter links.
+    /// Owner destruction calls this while the particle manager is alive; the next render must not revisit it.
+    /// </summary>
+    public void ReleaseRenderThing(RenderThing rt)
+    {
+        if (rt.NextRendered is { } next)
+        {
+            next.PrevRendered = rt.PrevRendered;
+        }
+
+        if (rt.PrevRendered is { } previous)
+        {
+            previous.NextRendered = rt.NextRendered;
+        }
+
+        if (ReferenceEquals(_renderedLastFrame, rt))
+        {
+            _renderedLastFrame = rt.NextRendered;
+        }
+
+        if (ReferenceEquals(_renderedThisFrame, rt))
+        {
+            _renderedThisFrame = rt.NextRendered;
+        }
+
+        rt.NextRendered = null;
+        rt.PrevRendered = null;
+        if (rt.Effects is { } effects)
+        {
+            for (int i = 0; i < effects.Links.Length; i++)
+            {
+                if (effects.Links[i] is { } link)
+                {
+                    link.Stop(false);
+                    link.Release();
+                    effects.Links[i] = null;
+                }
+            }
+        }
+    }
+
     /// <summary>UpdateRenderLists: the meshes drawn last frame and not this one lose their effects.</summary>
-    private void UpdateRenderLists()
+    internal void UpdateRenderLists()
     {
         while (_renderedLastFrame is { } rt)
         {

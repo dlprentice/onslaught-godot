@@ -224,6 +224,9 @@ public abstract class Thing : Monitor, IOccupancyUnit
     /// <summary>GetRenderImposterBias (IRenderableThing 23): scales the distance at which the mesh gives way to its imposter.</summary>
     public virtual float GetRenderImposterBias() => 1.0f;
 
+    /// <summary>CThing::GetShouldDoHitEffect (00405940, renderable slot 26): no hit flash.</summary>
+    public virtual int GetShouldDoHitEffect(int partNumber) => 0;
+
     /// <summary>GetCanBeStaticallyShadowed (slot 10): buildings and features take the static shadow map instead of a texture.</summary>
     public virtual bool CanBeStaticallyShadowed => false;
 
@@ -452,15 +455,6 @@ public abstract class Thing : Monitor, IOccupancyUnit
         // grid.
         Deleted();
         _mapWhoEntry?.RemoveFromMap(Context.MapWho);
-
-        // ~CThing deletes the collision seeker: its detector's pending checks lose their target, and other detectors'
-        // checks against it lose their data.
-        if (Seeker is { } seeker)
-        {
-            seeker.Detector.Destroy();
-            seeker.Destroy();
-            Seeker = null;
-        }
     }
 
     /// <summary>
@@ -469,6 +463,20 @@ public abstract class Thing : Monitor, IOccupancyUnit
     /// </summary>
     protected virtual void Deleted()
     {
+        // ~CThing (004f3640): collision seeker first, then the current render owner. Deleting the seeker removes
+        // its detector's pending targets and the data held by other detectors before the mesh links are released.
+        if (Seeker is { } seeker)
+        {
+            seeker.Detector.Destroy();
+            seeker.Destroy();
+            Seeker = null;
+        }
+
+        if (RenderThing is { } renderThing)
+        {
+            Context.Particles?.World.ReleaseRenderThing(renderThing);
+            RenderThing = null;
+        }
     }
 
     /// <summary>CThing::HandleEvent.</summary>
