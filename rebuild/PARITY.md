@@ -105,6 +105,18 @@ radius callback and Damage sink; it establishes bounded arithmetic, not the coll
 Receipts: `explosion-hit-root/`, `explosion-order-full.trx` and
 `explosion-order-regression-admission.json` in the same private death-integration owner.
 
+A subsequent noninterfering native first-hit observer preserves all145854 ordinary probe fields
+through Present16206 and captures eight paired callbacks without errors. Original Explosion.Hit
+returns native damage `3ecf1286` on the native inputs and managed damage `3ecf1334` on the
+managed inputs. Player position, radius and configuration agree; projectile position already differs
+at the direct Round.Damage boundary, before explosion placement. A separate managed collector
+preserves its entire16204-record trace and confirms unchanged position/velocity from Round.Hit
+through GoOff. Original placement on those managed inputs reproduces the managed explosion.
+Native velocity at that boundary was not observed, so it is not assumed equal. The next collision
+observer is a private, unexecuted draft, not another accepted fix. Root receipts are in the
+`parity-flight-20261019` worktree's `local-data/test-runs/flight-energy-20261019/native-first-hit/`
+and `placement-seam/root-reproduction/`. The full suite count above is unchanged.
+
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte
 length, block-clock progress, cursor, pause/resume and completion boundaries now have tested
