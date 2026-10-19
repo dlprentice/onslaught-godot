@@ -35,9 +35,18 @@ Receipts: internal clone `local-data/test-runs/flight-damage-integrated-20261019
 
 The Space-input flight fixture explicitly enables flight permission before exercising real input
 and scheduled takeoff/landing/refill; it does not establish the tutorial's permission route.
-Damaging skims, hard landing, lethal death/teardown, damage-flash drawing and nonloop incoming-missile
+Hard landing, lethal death/teardown, damage-flash drawing and nonloop incoming-missile
 sound lifetime remain open. An incoming warning now explicitly refuses that unsupported sound
 path rather than silently dropping its RNG/timing effect. Device audio and player acceptance remain open.
+
+Water skimming follow-up: `HandleSkimming00411500` now retains the original x87 speed/product
+precision and calls the BattleEngine damage owner with a null attacker and shields disabled,
+then reports the hostile environment. Root rebuilt the private oracle and reproduced all **4,151**
+original-code cases, including guard boundaries, large finite velocities and invulnerability;
+the PC53 negative changes **710** outputs. All **26** focused flight, skimming and damage tests
+pass without skips. Terrain, sound lookup and authored objects remain explicit oracle boundaries;
+this does not establish a tutorial water-skimming playthrough. Private receipt:
+`local-data/test-runs/flight-damage-integrated-20261019/skim-root/receipt.json`.
 
 Weapon-change input (2026-10-19): the native tutorial tape now runs through Present 13,000 in
 headless Parity. Previously its right-mouse release reached an unsupported `MechChangeWeapon`
