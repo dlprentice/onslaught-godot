@@ -12,6 +12,20 @@ public abstract partial class Unit : ISquadUnit
 {
     public Squad? GetSquad() => Squad;
 
+    /// <summary>
+    /// CUnit::SetSquadTarget (004fda20): notify this unit's squad first, then lock its AI's target.
+    /// Native continues through its component children; their construction already fails in Unit.Init here.
+    /// </summary>
+    public void SetSquadTarget(Unit? target)
+    {
+        if (UnitData?.Components.Count > 0)
+            throw new NotSupportedException("CUnit::SetSquadTarget: component children are not ported");
+
+        // An unsquadded target deliberately clears the squad's old target. A null target does not notify it.
+        if (Squad is not null && target is not null) Squad.Unknown85(target.Squad);
+        AI?.Unknown4ffdd0(target, true);
+    }
+
     /// <summary>SetSquad: a unit in a squad leaves the sides' lists; the squad stands for it there.</summary>
     public void SetSquad(Squad? squad)
     {

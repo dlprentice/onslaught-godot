@@ -322,8 +322,8 @@ public sealed partial class IScript
         result = new BoolData(Thing!.IsObjective());
 
     /// <summary>
-    /// Attack 00535fa0: a unit attacks a unit or a squad's leader (CUnit::SetSquadTarget); a squad attacks a squad or a
-    /// unit's squad (CSquad::Unknown85).
+    /// Attack 00535fa0: a unit attacks a unit or the squad's slot-74 member (CUnit::SetSquadTarget); a squad attacks
+    /// a squad or a unit's squad (CSquad::Unknown85). This sets targets, not movement, events or AI state.
     /// </summary>
     public void Attack(ScriptData?[] args, int numArgs, ref ScriptData? result)
     {
@@ -334,9 +334,17 @@ public sealed partial class IScript
             return;
         }
 
-        if (Thing!.IsA(ThingType.Unit) || Thing.IsA(ThingType.Unknown20000000))
+        if (Thing!.IsA(ThingType.Unit))
         {
-            throw new NotSupportedException("IScript::Attack: CUnit::SetSquadTarget and CSquad::Unknown74/85 are not ported");
+            Unit? unit = target.IsA(ThingType.Unit) ? (Unit)target
+                : target.IsA(ThingType.Unknown20000000) ? ((Squad)target).Unknown74() as Unit : null;
+            if (unit is not null) ((Unit)Thing).SetSquadTarget(unit);
+        }
+        else if (Thing.IsA(ThingType.Unknown20000000))
+        {
+            Squad? squad = target.IsA(ThingType.Unit) ? ((Unit)target).GetSquad()
+                : target.IsA(ThingType.Unknown20000000) ? (Squad)target : null;
+            if (squad is not null) ((Squad)Thing).Unknown85(squad);
         }
     }
 
