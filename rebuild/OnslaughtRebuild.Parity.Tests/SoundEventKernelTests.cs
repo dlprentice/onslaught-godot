@@ -78,11 +78,9 @@ public sealed class SoundEventKernelTests
         Assert.Same(loop.Event, Assert.Single(sounds.Events)); Assert.True(loop.Event.Looping);
         Assert.Equal(0, loop.SubVolume); Assert.Equal(.2f, loop.Fade);
         Assert.Null(sounds.PlayRepeatingEffect(effect, owner, random, once: true));
-        // Native FadeTo uses sample identity and owner, not a separate loop list or a name-only search.
+        // The BE finds the playing event by name, then passes its actual sample to native FadeTo.
+        // A later bank lookup of a new same-named sample must not prevent the existing sound fading.
         sounds.SampleLookup = (_, _) => new SampleMetadata("sample", 44100);
-        sounds.FadeRepeatingSample(effect, owner, .75f, .1f);
-        Assert.Equal(1, loop.FadeDestination);
-        sounds.SampleLookup = (_, _) => Sample;
         sounds.FadeRepeatingSample(effect, owner, .75f, .1f);
         Assert.Equal(.75f, loop.FadeDestination); Assert.Equal(.1f, loop.Fade);
     }

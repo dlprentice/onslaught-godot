@@ -9,6 +9,7 @@ using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.World;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Sound;
 
 namespace OnslaughtRebuild.Parity.Things;
 
@@ -967,7 +968,17 @@ public sealed partial class BattleEngine
             return;
         }
 
-        sounds.PlayEffect(sounds.Find("hud\\" + name), Context.Crt);
+        PlayHudEffect(sounds.Find("hud\\" + name));
+    }
+
+    // Both native HUD overloads keep the BE as monitored owner while ignoring its spatial position.
+    private void PlayHudEffect(SoundEffect? effect)
+    {
+        if (Context.SoundEffects is not { } sounds) return;
+        if (sounds.EventKernelConfigured)
+            sounds.PlayEffect(effect, this, Context.Crt,
+                new SoundPlayback(Volume: sounds.HudMessageVolume, IgnoreOwnerPosition: true));
+        else sounds.PlayEffect(effect, Context.Crt); // explicit selection-only legacy profile
     }
 
     /// <summary>
@@ -1013,11 +1024,9 @@ public sealed partial class BattleEngine
     public int WalkSounds;
 
     /// <summary>
-    /// HandleSounds (00409950), as far as it draws rand(). Each PlayEffect draws for its chain (and pitch), unless the
-    /// effect is missing (level 100's sound table has no "BE On 02", so the hum never plays). The low-health and
-    /// low-energy loops use the same logical repeating-sound owner as flight: stop the competing warning, admit only
-    /// when absent and fade on recovery. Channel admission and device/nonloop lifetimes remain outside this model. The incoming-missile sound waits on the radar
-    /// warning receiver; its nonloop sample lifetime and the weapon-lock sounds remain unported. The aim sound plays when the
+    /// HandleSounds (00409950). The configured process sound owner handles hum, warnings and incoming sample
+    /// admission/lifetime; the legacy selection-only profile still refuses lifetime-dependent incoming/hum paths.
+    /// Weapon-lock completion sounds remain with the unimplemented lock list. The aim sound plays when the
     /// unit over the crosshair (CalcUnitOverCrossHair) is first an enemy (the auto-aim search is not ported). The walking block: on the ground as a walker, every 1.5 units walked
     /// counts a step, and standing still after more than 5 steps plays the hydraulics (PlayHudSample).
     /// </summary>
@@ -1029,9 +1038,11 @@ public sealed partial class BattleEngine
             return;
         }
 
-        if (sounds.Find("BE On 02") is not null)
+        if (sounds.Find("BE On 02") is { } hum)
         {
-            throw new NotSupportedException("CBattleEngine::HandleSounds: the hum's IsEffectPlaying (sound-playing state not modelled)");
+            if (!sounds.EventKernelConfigured)
+                throw new NotSupportedException("CBattleEngine::HandleSounds: the hum requires configured sound-event lifetime");
+            if (!sounds.IsEffectPlaying(hum, this)) PlayHudEffect(hum);
         }
 
         var healthLow = sounds.Find("BE Energy Critical");
@@ -1056,14 +1067,20 @@ public sealed partial class BattleEngine
         // 00409b3f..00409b96 consumes this flag only after querying the nonloop effect's playback state.
         // A loop-only query or an unconditional draw would invent timing and RNG behavior.
         if (PlayIncomingMissileSound)
-            throw new NotSupportedException("CBattleEngine::HandleSounds: incoming missile sample playback lifetime is not ported");
+        {
+            if (!sounds.EventKernelConfigured)
+                throw new NotSupportedException("CBattleEngine::HandleSounds: incoming missile playback needs the configured sound event owner");
+            SoundEffect? incoming = sounds.Find("BE Incoming Missile");
+            if (!sounds.IsEffectPlaying(incoming, this)) PlayHudEffect(incoming);
+            PlayIncomingMissileSound = false;
+        }
 
         // Aiming: a new auto-aim target, or else an enemy unit coming under the crosshair, plays the aim sound once.
         if (AutoAimTarget.ToRead is { } aimTarget)
         {
             if (HadAutoAimTarget.ToRead is null)
             {
-                sounds.PlayEffect(sounds.Find("BE Target"), Context.Crt);
+                PlayHudEffect(sounds.Find("BE Target"));
                 HadAutoAimTarget.SetReader(aimTarget);
             }
         }
@@ -1071,7 +1088,7 @@ public sealed partial class BattleEngine
         {
             if (HadAutoAimTarget.ToRead is null)
             {
-                sounds.PlayEffect(sounds.Find("BE Target"), Context.Crt);
+                PlayHudEffect(sounds.Find("BE Target"));
                 HadAutoAimTarget.SetReader(over);
             }
         }
@@ -1094,7 +1111,7 @@ public sealed partial class BattleEngine
             {
                 if (WalkSounds > 5)
                 {
-                    sounds.PlayEffect(sounds.Find("BE Hydraulics 02"), Context.Crt);
+                    PlayHudEffect(sounds.Find("BE Hydraulics 02"));
                 }
 
                 WalkSounds = 0;

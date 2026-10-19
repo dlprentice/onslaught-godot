@@ -47,6 +47,10 @@ public sealed partial class SoundEffects
 
     public void SetGameSoundsMasterVolume(float value) => GameSoundsMasterVolume = value;
 
+    /// <summary>PC Init004e0210/004e0217; independent console-adjustable gains, not the global volume.</summary>
+    public float RadioMessageVolume { get; set; } = .42f;
+    public float HudMessageVolume { get; set; } = .45f;
+
     /// <summary>The process's loaded sample banks, retaining sample object identity and language selection.</summary>
     public Func<string, bool, SampleMetadata?>? SampleLookup { get; set; }
 
@@ -231,8 +235,10 @@ public sealed partial class SoundEffects
     {
         if (EventKernelConfigured)
         {
-            if (effect is not null && SampleLookup?.Invoke(effect.SampleName, effect.LanguageDependent) is { } sample)
-                FadeTo(sample, destination, speed, owner);
+            // BE callers first GetSoundEventForThing(name,owner), then pass that event's sample to FadeTo.
+            // A later bank lookup could return a different same-named sample after reloading.
+            if (effect is not null && FindPlayingSample(effect.SampleName, owner) is { } active)
+                FadeTo(active.Sample, destination, speed, owner);
             return;
         }
         if (effect is null || FindRepeatingSample(effect.SampleName, owner) is not { } handle) return;
