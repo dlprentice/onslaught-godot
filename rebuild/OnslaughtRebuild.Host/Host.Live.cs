@@ -361,7 +361,7 @@ public partial class Host
         }
 
         _liveBanner.Text = _liveReplay ? "Level 100 replay · silent preview" : session.Game.State == GameState.Panning
-            ? "Level 100 · silent preview · Intro skipping unavailable" : "Level 100 · silent preview · Esc pauses";
+            ? "Level 100 · silent preview · Enter skips intro" : "Level 100 · silent preview · Esc pauses";
         _liveNotice.Text = _liveStop ?? (!_liveReplay && !_liveFocused
             ? "Preview suspended while this window is unfocused."
             : session.Game.Paused ? (_liveReplay ? "Recorded pause — following the tape.\nPhysical input is disabled during replay."
