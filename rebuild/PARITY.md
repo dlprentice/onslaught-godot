@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (ground-route scheduler closure and plane attack/escort; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-19 (trainer target/thruster integration and sound-event kernel; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -58,18 +58,29 @@ target-reader order, 25/70 approach/retreat hysteresis, 30/120 escort thresholds
 draws. Root reproduced 1,024 cases executing five unchanged retail arithmetic blocks; the PC53 negative
 control differs in 765 cases. All 21 focused tests pass without skips. Radius callbacks and RNG returns
 are authored oracle boundaries; that oracle does not execute targeting, animation or the scheduler.
-The integrated trainer replay advances to completed Present 15,877, then explicitly stops at the
-unimplemented script Attack/squad-target path. Eight of nine fields remain equal throughout this prefix;
-CRT first differs at 15,669 and remains under investigation. The complete integrated suite passes
-**570 tests, 9 unchanged optional-reference skips, 0 failures**. This is a partial failed trainer
-replay, not completion. Private evidence remains in the existing death-integration owner, including
-`six-ground-round-fixed-admission.json` and `trainer-plane-fixed-admission.json`.
+The script Attack now routes through Unit/squad target ownership, preserving monitored readers and
+the native target-selection rules. Aircraft launch thrusters use their actual afterburner descriptors,
+emitter transforms and cleanup. The missing CRT draw at 15,669 comes from the afterburner timeline's
+emitter child, not effect allocation; no compensating random call was added. Root's integrated replay
+now agrees on **all nine fields at every Present 3..16,052: 144,450 comparisons, zero differences**.
+It then explicitly stops at the unimplemented weapon reach query before Present 16,053. This is
+partial trainer replay, not completion. The complete integrated suite passes **610 tests, 9 unchanged
+optional-reference skips, 0 failures**; all 579 prior test outcomes remain and 40 new cases execute.
+Private evidence remains in the existing death-integration owner, including
+`trainer-thruster-fixed-admission.json`, `trainer-sound-full.trx` and `trainer-sound-suite-admission.json`.
 
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte
 length, block-clock progress, cursor, pause/resume and completion boundaries now have tested
-owners. They are not yet connected to a complete ranked sound-event manager. Incoming-missile
-nonloop lifetime still refuses explicitly; no duration timer substitutes for channel admission.
+owners. A shared sound-event kernel now implements pool admission, channel retention, ordered ranking,
+pause/stop, deferred deletion and owner callbacks. Root independently rebuilt and reran 328 original
+kernel cases, 640 effect-admission cases and 64 platform PlaySound controls, including controls that
+distinguish clock reads, retained channels and stopped-event revival; all 26 focused tests execute.
+The concrete spatial/buffer adapter, process-wide caller migration and measured initial pool profile
+remain pending, so the kernel is not enabled in gameplay yet. Incoming-missile nonloop lifetime still
+refuses explicitly; no duration timer substitutes for channel admission. These are silent event/cursor
+checks, not audible playback acceptance. Original-code outputs remain private under the existing
+death-integration owner's `sound-events/` directory.
 
 Flight and damage integration (2026-10-19): ordinary jet controls now reach the measured jet
 movement, ground-effect, friction and maneuver paths. BattleEngine damage uses its own shield,
