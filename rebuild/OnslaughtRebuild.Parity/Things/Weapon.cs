@@ -168,10 +168,10 @@ public static class WeaponMaths
 /// <summary>
 /// CWeapon: a weapon a unit carries. Its mode is the charge level's weapon mode; it fires bursts through event
 /// WEAPON_BURST_EVENT. The queries a unit's AI asks (ranges, aim, fire tests) are ported where retail's arithmetic is
-/// float-exact; the ballistic branches, line tests and fear-grid tests throw until their x87 sequences and subsystems
-/// are ported, and a shot that would spawn a round throws (rounds are not ported, and a round's Init draws).
+/// float-exact. Nonballistic reach/fire queries use the world line owner; ballistic queries remain explicitly
+/// unsupported until their branch-specific arithmetic and native stack-slot reuse are modeled.
 /// </summary>
-public sealed class Weapon(ThingContext context, WeaponData data, int type) : Equipment
+public sealed partial class Weapon(ThingContext context, WeaponData data, int type) : Equipment
 {
     /// <summary>WEAPON_BURST_EVENT: a burst's next round.</summary>
     public const int BurstEvent = 5001;
@@ -839,47 +839,6 @@ public sealed class Weapon(ThingContext context, WeaponData data, int type) : Eq
         }
 
         return target.GetTargetablePos();
-    }
-
-    /// <summary>
-    /// Unknown5088b0 (CUnit::Unknown4fb5a0's test): below the sea, clear of the fear grid, then a ballistic range band,
-    /// a torpedo's water, or the deflection band, and a clear line. Only the parts before a fear-grid test, a ballistic
-    /// branch or a line test run here; those throw until ported.
-    /// </summary>
-    public bool CanReach(Unit target)
-    {
-        if (GetPrimaryPosition().Z > Context.WaterLevel)
-        {
-            return false;
-        }
-
-        if (Mode?.Round is { GridOfFear: not 0 })
-        {
-            throw new NotSupportedException("CWeapon::Unknown5088b0's fear-grid test: the fear grids are not reachable from the weapon yet");
-        }
-
-        throw new NotSupportedException(
-            "CWeapon::Unknown5088b0 past its first tests (the pitch band uses Elevation, the line test WORLD.FindFirstThingToHitLine)");
-    }
-
-    /// <summary>
-    /// Unknown507ab0 (CUnit::CanFireAt's test): below the sea, clear of the fear grid, within the yaw tolerance, then the
-    /// range or deflection tests and a clear line. As <see cref="CanReach"/>, only the opening tests run here.
-    /// </summary>
-    public bool CanFireAt(Unit target, bool a)
-    {
-        if (GetPrimaryPosition().Z > Context.WaterLevel)
-        {
-            return false;
-        }
-
-        if (Mode is not null && Mode.Round is { GridOfFear: not 0 })
-        {
-            throw new NotSupportedException("CWeapon::Unknown507ab0's fear-grid test: the fear grids are not reachable from the weapon yet");
-        }
-
-        throw new NotSupportedException(
-            "CWeapon::Unknown507ab0 past its first tests (yaw tolerance via Azimuth, ballistic ranges, WORLD.FindFirstThingToHitLine)");
     }
 
     /// <summary>CWeaponModeData::GetLaunchSequence: the sequence's value at that position, 0 past its end.</summary>
