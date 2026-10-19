@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-17 (cannon part transforms, dropship door frames and their pose/emitter consumers; deferred display-reset transaction and selected-mode encoding; real device/resource reset remains unsupported).
+Last updated: 2026-10-19 (walker weapon-change dispatch and HUD announcement; full flight and device/resource reset remain incomplete).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -120,6 +120,7 @@ package licence expression is `GPL-3.0-only`.
 | `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
+| `Things/BattleEngine.Weapons.cs` (active count, weapon-change admission, timestamp and HUD announcement; jet dispatch remains unsupported) | `src/BattleEngine.cpp` (`ChangeWeapon` 00409f70, `CountActiveWeapons` 0040dc90), `src/BattleEngineWalkerPart.cpp` (`CountActiveWeapons` 00414b70, `GetWeaponIconName` 004145f0) | GPL-3.0-only (BattleEngine.cpp in Stuart's release) |
 | `Things/LevelResources.cs` (the resource file's MESH, ERES and WRES chunks) | `src/ResourceAccumulator.cpp` (`ReadResources`) | GPL-3.0-only (in Stuart's release) |
 | `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-or-later (not in Stuart's release) |
 | `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |

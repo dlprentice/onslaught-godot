@@ -233,6 +233,8 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
                     be.FireWeapon();
                     break;
                 case Platform.Buttons.MechChangeWeapon:
+                    be.ChangeWeapon();
+                    break;
                 case Platform.Buttons.MechCloak:
                     throw new NotSupportedException($"CPlayer::ReceiveButtonAction: button {button} (the battle engine's own action) is not ported");
             }

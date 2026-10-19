@@ -15,6 +15,22 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
+Weapon-change input (2026-10-19): the native tutorial tape now runs through Present 13,000 in
+headless Parity. Previously its right-mouse release reached an unsupported `MechChangeWeapon`
+handler at Present 11,613. The restored `CBattleEngine::ChangeWeapon` wrapper preserves the
+active-count guard, selection/ammunition distinction, movement reset, change timestamp and HUD
+sound's shared random draw. Four focused tests execute, including ordinary right-mouse release,
+held-button non-repetition and the empty-secondary case. The old prefix through 11,612 is unchanged.
+
+Root compared all seven primary probes for every Present 3..13,000 with the frozen native port:
+all 90,986 values equal. CRT count/state also equals from Present 4 through 13,000; its first
+recorded sample differs. The additional EVN event-count probe differs on 12,997 records and is
+under investigation. These limits are explicit: this is not nine-probe parity or complete tutorial
+acceptance. The private tape SHA-256 is
+`eff3538300257457779df55692c3c67b59a82db4e169d485307f8089ef949ae4`;
+receipts are in the existing private `live-host/resume-20261019/` owner and the internal rebuild
+clone's `local-data/test-runs/change-weapon-20261019/`. No physical device or audio acceptance is claimed.
+
 ## Proof-of-concept milestones (2026-10-15)
 
 The target is retail under the retail replay harness's shim: `BEA.exe -level 100 -skipfmv -forcewindowed -res 640 480`
