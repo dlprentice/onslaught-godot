@@ -241,7 +241,11 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
             entry.Root.Visible = true;
             if (!parts)
             {
-                entry.Root.Transform = Place(rt.Subject.RenderPos, rt.Subject.RenderOrientation);
+                // Trees share NoSubject (origin/identity); their instance placement is the Thing's, as in BuildWhole.
+                // Other subjects retain their interpolated render placement, including the cockpit fallback.
+                entry.Root.Transform = thing is OnslaughtRebuild.Parity.Things.Tree instance
+                    ? Place(instance.Pos, instance.GetOrientation())
+                    : Place(rt.Subject.RenderPos, rt.Subject.RenderOrientation);
                 return;
             }
 
