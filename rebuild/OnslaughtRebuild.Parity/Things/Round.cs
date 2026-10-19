@@ -710,7 +710,9 @@ public sealed class RoundSeeker : CollisionSeekingThing
                 FVector delta = start - end;
                 float fraction = ((delta.X * start.X) + (delta.Y * start.Y) + (delta.Z * start.Z)) / delta.MagnitudeSq();
                 FVector closest = start + ((end - start) * fraction);
-                if (closest.MagnitudeSq() > radius * radius)
+                // 00425e01..00425e0e rejects x87 C0: radius squared is less than the distance OR unordered.
+                // A stopped round produces 0/0 above; it must not schedule collision checks from that NaN.
+                if (!(closest.MagnitudeSq() <= radius * radius))
                 {
                     return false;
                 }
