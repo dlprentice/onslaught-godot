@@ -55,7 +55,11 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
     // Retain the common sound owner's state. Per-channel/device gain remains the inner backend's responsibility.
     public void SetGameSoundsMasterVolume(float volume)
     {
-        Runtime?.Context.SoundEffects?.SetGameSoundsMasterVolume(volume);
+        if (Runtime?.Context.SoundEffects is { } sounds)
+        {
+            sounds.SetGameSoundsMasterVolume(volume);
+            if (sounds.EventKernelConfigured) sounds.UpdateVolumeForAllSoundEvents();
+        }
         inner.SetGameSoundsMasterVolume(volume);
     }
 
@@ -89,7 +93,14 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
 
     public void AtmosphericsProcessAll() => inner.AtmosphericsProcessAll();
 
-    public void SetAllSamplesPaused(bool paused) => inner.SetAllSamplesPaused(paused);
+    public void SetAllSamplesPaused(bool paused)
+    {
+        if (Runtime?.Context.SoundEffects is { EventKernelConfigured: true } sounds)
+        {
+            if (paused) sounds.PauseAllSamples(); else sounds.UnPauseAllSamples();
+        }
+        inner.SetAllSamplesPaused(paused);
+    }
 
     public void ShowLevelEndMenu() => inner.ShowLevelEndMenu();
 
@@ -111,11 +122,17 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
     /// <summary>SOUND.UpdateStatus (voice and admitted repeating effects), then the remaining main-loop services.</summary>
     public void AfterUpdate()
     {
-        Runtime?.MessageBox?.Voice.UpdateStatus();
         // Retail MainLoop calls SOUND.UpdateStatus at 0046eff6, after Update's pause transition and before the
         // render loop. A second Present in the same MainLoop must not advance a fade a second time.
-        if (Runtime is { } runtime)
-            runtime.Context.SoundEffects?.AdvanceLoopStatus(runtime.Context.Game?.PausedAllGameSounds == true);
+        if (Runtime?.Context.SoundEffects is { EventKernelConfigured: true } sounds)
+            sounds.UpdateStatus();
+        else
+        {
+            // Explicitly unconfigured legacy fixtures retain the earlier voice/draw-only projection.
+            Runtime?.MessageBox?.Voice.UpdateStatus();
+            if (Runtime is { } runtime)
+                runtime.Context.SoundEffects?.AdvanceLoopStatus(runtime.Context.Game?.PausedAllGameSounds == true);
+        }
         inner.AfterUpdate();
     }
 

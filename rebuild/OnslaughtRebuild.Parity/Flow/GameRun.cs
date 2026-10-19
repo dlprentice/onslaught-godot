@@ -7,6 +7,7 @@ using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Platform;
 using OnslaughtRebuild.Parity.Script;
+using OnslaughtRebuild.Parity.Sound;
 
 namespace OnslaughtRebuild.Parity.Flow;
 
@@ -24,7 +25,7 @@ public sealed class GameRun : ISystemParts
     private readonly bool _skipFmv;
 
     public GameRun(Func<string, (string Name, byte[] Bytes)> read, Func<int, string>? pcText, IFilmFiles films,
-        bool skipFmv, Func<PlatformClock, IMessageVoice>? voice = null)
+        bool skipFmv, Func<PlatformClock, IMessageVoice>? voice = null, VirtualSoundProcessOptions? soundOptions = null)
     {
         _read = read;
         _voice = voice;
@@ -43,12 +44,24 @@ public sealed class GameRun : ISystemParts
         Loading = new LoadingScreen(Clock, () => Input.Process(Clock.QueryPerformanceCounter()));
         FrontEnd.Loading = Loading;
         FrontEnd.WriteDefaultOptionsFile = bytes => DefaultOptionsFile = bytes;
-        Sound.SoundEffects sounds = Sound.SoundEffects.Load(read(Sound.SoundEffects.FileName).Bytes);
-        FrontEnd.PlayEffect = name => sounds.PlayEffect(sounds.Find(name), Crt.MainThread);
+        Sounds = SoundEffects.Load(read(SoundEffects.FileName).Bytes);
+        SoundProcess = soundOptions is null ? null : new SoundProcess(Sounds, Clock, soundOptions);
+        FrontEnd.SoundProcess = SoundProcess;
+        FrontEnd.PlayEffect = name =>
+        {
+            if (Sounds.EventKernelConfigured)
+                Sounds.PlayEffect(Sounds.Find(name), null, Crt.MainThread, new SoundPlayback(Volume: 1));
+            else Sounds.PlayEffect(Sounds.Find(name), Crt.MainThread);
+        };
         Clock.Presented = Presented;
     }
 
     public PlatformClock Clock { get; } = new();
+
+    public SoundEffects Sounds { get; }
+
+    /// <summary>Null means the explicitly legacy draw/voice projection, not complete sound parity.</summary>
+    public SoundProcess? SoundProcess { get; }
 
     public PlatformInput Input { get; }
 
@@ -95,6 +108,7 @@ public sealed class GameRun : ISystemParts
         // before this Present shifts the full-boot clock by 333,333 ticks and changes the front-end filter at P2289.
         Clock.PresentDevice();
         Clock.GetSysTimeFloat();
+        SoundProcess?.InitialiseAfterFirstPresent(FrontEnd.Career.Record.SoundVolume);
         if (!_skipFmv)
         {
             BootFilms.Play(_films, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: false, Attract: false));
@@ -144,6 +158,8 @@ public sealed class GameRun : ISystemParts
                 Career = FrontEnd.Career,
                 MenuHost = FrontEnd,
                 ParticleState = FrontEnd.ParticleState,
+                Sounds = Sounds,
+                SoundProcess = SoundProcess,
             });
         while (true)
         {
@@ -161,6 +177,7 @@ public sealed class GameRun : ISystemParts
             Level = Level.Restart();
         }
 
+        Level.ReleaseSoundForRestartOrReturn();
         Level.Context.Particles?.Manager.Shutdown();
         return Level.Game.Quit;
     }

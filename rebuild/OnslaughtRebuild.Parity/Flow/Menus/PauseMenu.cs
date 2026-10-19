@@ -231,7 +231,7 @@ public sealed class PauseMenu : IButtonReceiver
             }
             else
             {
-                _host.Career.Record.SoundVolume = volume;
+                _host.SetSoundVolume(volume);
             }
         }
     }

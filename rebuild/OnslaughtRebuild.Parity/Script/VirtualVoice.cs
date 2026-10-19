@@ -8,6 +8,7 @@
 
 using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Events;
+using OnslaughtRebuild.Parity.Sound;
 
 namespace OnslaughtRebuild.Parity.Script;
 
@@ -41,6 +42,8 @@ public sealed class VirtualVoice : IMessageVoice
     private readonly long _baseNs;
     private int _loadedSize;
     private (long EndBlocks, ActiveReader<ScriptMessage> Message)? _playing;
+    private SoundProcess? _process;
+    private SampleMetadata? _sample;
 
     /// <param name="clock">The platform clock the game Presents through.</param>
     /// <param name="read">The game's files by game path.</param>
@@ -52,21 +55,39 @@ public sealed class VirtualVoice : IMessageVoice
         _baseNs = baseSteps * StepNs;
     }
 
-    /// <summary>The voices started and finished, for comparison with the traces: (blocks when played, frames, blocks when found stopped).</summary>
+    /// <summary>
+    /// Voice starts and observed completions: (path, decoded bytes, blocks when played, blocks when stopped).
+    /// Configured voices record actual owner callbacks; an ownerless/destroyed owner remains -1 rather than inventing
+    /// a completion observation. Legacy voices retain their separately identified virtual-duration projection.
+    /// </summary>
     public List<(string Path, int Size, long PlayedAt, long StoppedAt)> Trace { get; } = [];
+
+    /// <summary>Bind a fresh voice facade to the process's actual event owner; no second completion timer runs.</summary>
+    public void BindSoundProcess(SoundProcess process)
+    {
+        ArgumentNullException.ThrowIfNull(process);
+        if (!ReferenceEquals(process.Clock, _clock) || _baseNs != StepNs)
+            throw new ArgumentException("The shared mixer uses this process clock with its Present1 origin.", nameof(process));
+        if (_process is not null || _playing is not null || _loadedSize != 0 || Trace.Count != 0)
+            throw new InvalidOperationException("Only a fresh voice can join the process sound owner.");
+        _process = process;
+    }
 
     private string? _path;
 
-    public bool SoundInitialised => true;
+    public bool SoundInitialised => _process is null || (_process.Initialised && _process.Effects.Initialised);
 
     public bool LoaderBusy => false;
 
     public bool HasLoadedData => _loadedSize != 0;
 
     /// <summary>The blocks mixed by now (Mixer::CatchUp's whole blocks up to the virtual time).</summary>
-    public long BlocksMixed()
+    public long BlocksMixed() => BlocksMixed(_clock, _baseNs / StepNs);
+
+    /// <summary>The shared virtual-port clock, without a platform timer read or a new per-level origin.</summary>
+    public static long BlocksMixed(PlatformClock clock, long baseSteps = 1)
     {
-        long ns = (_clock.PeekSteps * StepNs) - _baseNs;
+        long ns = (clock.PeekSteps * StepNs) - (baseSteps * StepNs);
         if (ns <= 0)
         {
             return 0;
@@ -87,6 +108,27 @@ public sealed class VirtualVoice : IMessageVoice
     {
         int size = _loadedSize;
         _loadedSize = 0;
+        if (_process is { } process)
+        {
+            if (!process.Initialised) throw new InvalidOperationException("The sound process has not reached Init.");
+            KillVoice(); // deleting the previous global voice sample kills its actual event first.
+            var sample = new SampleMetadata(_path ?? "", checked((uint)size));
+            if (!SampleBufferFormat.TryCreate(sample.OriginalPcmBytes, process.Backend.Profile.SoundRate, out _))
+                throw new NotSupportedException("The loaded voice has no admitted virtual sound-buffer format.");
+            _sample = sample; process.RegisterVoiceSample(sample);
+            int index = Trace.Count;
+            Trace.Add((_path ?? "", size, BlocksMixed(), -1));
+            process.Effects.PlaySample(sample, message,
+                new SoundPlayback(Volume: process.Effects.RadioMessageVolume, Tracking: SoundTracking.None,
+                    InformOwner: true, IgnoreOwnerPosition: true),
+                (owner, _) =>
+                {
+                    (string path, int bytes, long started, long _) = Trace[index];
+                    Trace[index] = (path, bytes, started, BlocksMixed());
+                    ((ScriptMessage)owner).SampleFinishedPlaying();
+                });
+            return;
+        }
         long frames = ((size + 1) / 2) / 2;
         long now = BlocksMixed();
         var reader = new ActiveReader<ScriptMessage>();
@@ -97,6 +139,12 @@ public sealed class VirtualVoice : IMessageVoice
 
     public void KillVoice()
     {
+        if (_sample is { } sample && _process is { } process)
+        {
+            process.Effects.KillAllInstancesOfSample(sample);
+            process.ReleaseVoiceSample(sample);
+            _sample = null;
+        }
         if (_playing is { } p)
         {
             p.Message.SetReader(null);
@@ -107,6 +155,8 @@ public sealed class VirtualVoice : IMessageVoice
 
     public void UpdateStatus()
     {
+        if (_process is not null)
+            throw new InvalidOperationException("Update the shared sound manager once; a configured voice owns no timer.");
         if (_playing is not { } p || BlocksMixed() < p.EndBlocks)
         {
             return;

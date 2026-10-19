@@ -312,6 +312,9 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// </summary>
     public Action<string>? PlayEffect { get; set; }
 
+    /// <summary>The process sound owner; native Process updates it between particles and controller flush.</summary>
+    public Sound.SoundProcess? SoundProcess { get; set; }
+
     /// <summary>Replaces the live options (the options menu's settings); null where they cannot change.</summary>
     public Action<Career.CareerOptions>? SetOptions { get; set; }
 
@@ -325,6 +328,14 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     public int Sound3DMethod { get; set; }
 
     Platform.ControlBindings Menus.IMenuHost.Bindings => Controls.Bindings;
+
+    void Menus.IMenuHost.SetSoundVolume(float volume)
+    {
+        // SetMasterVolume004e04c0 stores both master and CAREER before polling current channels. The career
+        // store here precedes the kernel's master store so any completion callback observes the new option.
+        Career.Record.SoundVolume = volume;
+        if (SoundProcess is { Initialised: true } process) process.Effects.SetMasterVolume(volume);
+    }
 
     float Menus.IMenuHost.MouseSensitivity
     {
@@ -703,7 +714,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// advances by the previous step, the platform handles the window's messages (a quit request ends the front end),
     /// the controllers flush and deliver their button actions, the frame step is filtered from the clock, a transition
     /// in progress advances (and completes once it reaches its time), every page processes in page order, and the
-    /// message box processes. Events tick, then particles step by one turn, before controllers. Not modelled: sound,
+    /// message box processes. Events tick, then particles step by one turn and configured sound updates, before controllers. Not modelled:
     /// music and video updates, the inactivity quit (playable demo only), and the second player's reconnect check on the
     /// multiplayer start page (not ported).
     /// </summary>
@@ -719,6 +730,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         // EVENT_MANAGER.Update: a tick on (nothing the front end runs schedules events).
         Events.Update();
         Particles?.Manager.Process(1f, true);
+        SoundProcess?.Effects.UpdateStatus();
 
         foreach (Controller? controller in Controllers) controller?.Flush(Controls);
 

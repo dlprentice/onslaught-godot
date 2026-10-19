@@ -276,6 +276,7 @@ public sealed class MessageBox : Monitor
 
     private readonly ThingContext _context;
     private readonly ActiveReader<ScriptMessage> _voiceMessage = new();
+    private bool _deleted;
 
     /// <summary>CMessageBox::CMessageBox (CGame::InitRestartLoop makes it).</summary>
     public MessageBox(ThingContext context, IGameText text, IMessageVoice voice)
@@ -496,6 +497,27 @@ public sealed class MessageBox : Monitor
     {
         VoiceName = null;
         Voice.KillVoice();
+    }
+
+    /// <summary>
+    /// ~CMessageBox004b7930: kill the global voice, delete queued messages, kill again, clear pending voice ownership,
+    /// then notify readers. The process sound manager survives; stopped events remain deferred in its list.
+    /// </summary>
+    public void Delete()
+    {
+        if (_deleted) return;
+        _deleted = true;
+        Voice.KillVoice();
+        foreach (ScriptMessage message in Queue.ToList()) message.Delete();
+        Queue.RemoveAll();
+        Current = null;
+        AllowedToPlay = true;
+        CanAdvance = true;
+        Voice.KillVoice();
+        VoiceName = null;
+        PendingVoiceName = null;
+        _voiceMessage.Release();
+        Destroy();
     }
 
     public override void HandleEvent(Event e)

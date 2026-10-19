@@ -8,6 +8,7 @@ using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.Script;
+using OnslaughtRebuild.Parity.Sound;
 using OnslaughtRebuild.Parity.Text;
 using OnslaughtRebuild.Parity.Things;
 
@@ -23,6 +24,7 @@ public sealed class LevelSession
     private IEnumerator<int>? _mainLoop;
     private bool _started;
     private bool _startUnitNoisePending;
+    private bool _soundReleased;
 
     private LevelSession(ThingContext context, Game game, LevelResources resources, Clock.PlatformClock clock)
     {
@@ -63,6 +65,7 @@ public sealed class LevelSession
             {
                 Clock.PresentDevice();
                 Clock.GetSysTimeFloat();
+                SoundProcess?.InitialiseAfterFirstPresent(Career!.Record.SoundVolume);
                 Clock.Present();
             }
 
@@ -99,7 +102,11 @@ public sealed class LevelSession
             {
                 if (thing is Unit { UnitData: { } data } && data.EffectNames[11] is { } noise && Context.SoundEffects is { } sounds)
                 {
-                    sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(noise)), Context.Crt);
+                    var effect = sounds.Find(System.Text.Encoding.Latin1.GetString(noise));
+                    if (sounds.EventKernelConfigured)
+                        sounds.PlayEffect(effect, thing, Context.Crt,
+                            new SoundPlayback(Volume: .7f, Tracking: SoundTracking.FollowAndDie, Once: true, Repeat: true));
+                    else sounds.PlayEffect(effect, Context.Crt);
                 }
             }
         }
@@ -122,14 +129,19 @@ public sealed class LevelSession
                     continue;
                 }
 
-                Context.Skip("CGame::RunLevel's close: the samples killed");
+                Context.SoundEffects?.KillAllSamples();
                 if (Game.Quit is OnslaughtRebuild.Parity.Clock.QuitType.UserQuitToFrontEnd or OnslaughtRebuild.Parity.Clock.QuitType.RestartLevel
                     or OnslaughtRebuild.Parity.Clock.QuitType.UserQuitToTitleScreen)
                 {
                     // CFrontEnd::PlaySound(FES_SELECT) (0046e1b7), then SOUND.UpdateStatus once.
                     if (Context.SoundEffects is { } sounds)
                     {
-                        sounds.PlayEffect(sounds.Find("Front End Select"), Context.Crt);
+                        if (sounds.EventKernelConfigured)
+                        {
+                            sounds.PlayEffect(sounds.Find("Front End Select"), null, Context.Crt, new SoundPlayback(Volume: 1));
+                            sounds.UpdateStatus();
+                        }
+                        else sounds.PlayEffect(sounds.Find("Front End Select"), Context.Crt);
                     }
                     else
                     {
@@ -165,6 +177,9 @@ public sealed class LevelSession
 
     private Func<Clock.PlatformClock, IMessageVoice>? Voice { get; init; }
 
+    /// <summary>The same explicitly admitted sound process across front end, level and restart; null is legacy.</summary>
+    public SoundProcess? SoundProcess { get; private init; }
+
     private Func<uint, Data.ChunkReader, bool>? OtherChunk { get; init; }
 
     /// <summary>CAREER.GetSlots(), as InitRestartLoop copies them.</summary>
@@ -193,18 +208,37 @@ public sealed class LevelSession
         }
 
         OnslaughtRebuild.Parity.Career.Career career = Career ?? throw new InvalidOperationException("a restart needs CAREER");
+        ReleaseSoundForRestartOrReturn();
         var host = new LevelHost(Clock, Input.Input, Context.Bindings!, Input.Shared, Context.Crt, EndLevelData, SlotsOf(career),
             Loading ?? new Flow.LoadingScreen(Clock, () => Input.Input.Process(Clock.QueryPerformanceCounter())), career.SetSlot)
         {
             Career = career,
             MenuHost = Input.PauseMenuHost,
             ParticleState = Context.Particles?.Manager.State,
+            Sounds = Context.SoundEffects,
+            SoundProcess = SoundProcess,
         };
         Context.Particles?.Manager.Shutdown();
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Game.Loop.CarryFrameTimes(Game.Loop);
         next.Tape = Tape;
         return next;
+    }
+
+    /// <summary>
+    /// Sound-side ShutdownRestartLoop0046ca70: delete MessageBox, then reset game master gain and detach the camera.
+    /// The current host retains the ended world for inspection rather than executing complete WORLD.Shutdown; this
+    /// is the corresponding sound-only release boundary, not a claim of complete native teardown. RunLevel close
+    /// has already killed every sample before this; native deferred list/pool state survives for the next level.
+    /// </summary>
+    public void ReleaseSoundForRestartOrReturn()
+    {
+        if (!Ended) throw new InvalidOperationException("Release a level's sound only after its close has completed.");
+        if (_soundReleased) return;
+        _soundReleased = true;
+        ScriptRuntime.Of(Context).MessageBox?.Delete();
+        Context.SoundEffects?.SetGameSoundsMasterVolume(1); // native field-only reset; no status/gain refresh here.
+        SoundProcess?.ReleaseLevel(Context);
     }
 
     /// <summary>The process's loading screen, for a level from the front end.</summary>
@@ -224,8 +258,11 @@ public sealed class LevelSession
     /// </summary>
     public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read,
         Func<Clock.PlatformClock, IMessageVoice>? voice = null,
-        Func<uint, Data.ChunkReader, bool>? otherChunk = null, LevelHost? host = null)
+        Func<uint, Data.ChunkReader, bool>? otherChunk = null, LevelHost? host = null,
+        VirtualSoundProcessOptions? soundOptions = null)
     {
+        if (host is not null && soundOptions is not null)
+            throw new ArgumentException("A hosted level inherits its process sound profile.", nameof(soundOptions));
         (string pname, byte[] pbytes) = read(@"data\default physics.dat");
         PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
         (string bname, byte[] bbytes) = read(@"data\battle engine configurations.dat");
@@ -319,10 +356,20 @@ public sealed class LevelSession
         services.Runtime = scripts;
         TextDatabase text = TextDatabase.Load(read(TextDatabase.FileName(0, americanText: false)).Bytes);
         scripts.Text = text;
-        scripts.MessageBox = new MessageBox(context, text, voice?.Invoke(clock) ?? new UnmodelledVoice());
-
-        // The sound manager's effects (data\sounds\sounds.sfx).
-        context.SoundEffects = Sound.SoundEffects.Load(read(Sound.SoundEffects.FileName).Bytes);
+        // One manager per process. The explicit backend profile is configured only after device Present1 below.
+        context.SoundEffects = host?.SoundProcess?.Effects ?? host?.Sounds ?? SoundEffects.Load(read(SoundEffects.FileName).Bytes);
+        SoundProcess? soundProcess = host?.SoundProcess ?? (soundOptions is null ? null : new(context.SoundEffects, clock, soundOptions));
+        if (host?.Sounds is not null && !ReferenceEquals(host.Sounds, context.SoundEffects))
+            throw new ArgumentException("The host sound owner and configured process disagree.", nameof(host));
+        IMessageVoice messageVoice = voice?.Invoke(clock) ?? (soundProcess is null ? new UnmodelledVoice() : new VirtualVoice(clock, read));
+        if (soundProcess is not null)
+        {
+            if (messageVoice is not VirtualVoice virtualVoice)
+                throw new NotSupportedException("The admitted process requires its shared-event VirtualVoice facade.");
+            virtualVoice.BindSoundProcess(soundProcess);
+            soundProcess.BindLevel(context);
+        }
+        scripts.MessageBox = new MessageBox(context, text, messageVoice);
 
         // CGame::LoadResources's particle set.
         var particleSet = new ParticleSet();
@@ -357,7 +404,9 @@ public sealed class LevelSession
             // CFrontEnd::PlaySound in a level: SOUND.PlayEffect(SOUND.GetEffectByName(name), NULL).
             if (context.SoundEffects is { } sounds)
             {
-                sounds.PlayEffect(sounds.Find(name), context.Crt);
+                if (sounds.EventKernelConfigured)
+                    sounds.PlayEffect(sounds.Find(name), null, context.Crt, new SoundPlayback(Volume: 1));
+                else sounds.PlayEffect(sounds.Find(name), context.Crt);
             }
             else
             {
@@ -402,6 +451,7 @@ public sealed class LevelSession
             Level = level,
             Read = read,
             Voice = voice,
+            SoundProcess = soundProcess,
             OtherChunk = otherChunk,
         };
     }
@@ -425,4 +475,10 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
 
     /// <summary>Particle globals shared with the front end and with subsequent levels/restarts.</summary>
     public ParticleProcessState? ParticleState { get; init; }
+
+    /// <summary>The process's one effect/event owner, retained even by explicitly legacy fixtures.</summary>
+    public SoundEffects? Sounds { get; init; }
+
+    /// <summary>Explicit virtual backend/profile binding, never constructed anew for a hosted level.</summary>
+    public SoundProcess? SoundProcess { get; init; }
 }

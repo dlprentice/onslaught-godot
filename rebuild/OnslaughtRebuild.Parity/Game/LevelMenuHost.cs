@@ -70,7 +70,9 @@ public sealed class LevelMenuHost : IMenuHost
     {
         if (_context.SoundEffects is { } sounds)
         {
-            sounds.PlayEffect(sounds.Find(FrontEnd.SoundName(sound)), _context.Crt);
+            if (sounds.EventKernelConfigured)
+                sounds.PlayEffect(sounds.Find(FrontEnd.SoundName(sound)), null, _context.Crt, new Sound.SoundPlayback(Volume: 1));
+            else sounds.PlayEffect(sounds.Find(FrontEnd.SoundName(sound)), _context.Crt);
         }
         else
         {
@@ -79,4 +81,11 @@ public sealed class LevelMenuHost : IMenuHost
     }
 
     public void SaveFromPause() => DefaultOptionsFile = CareerSaveGame.Save(Career, Bindings.SaveConfigurable(), Options);
+
+    public void SetSoundVolume(float volume)
+    {
+        // Both stores precede channel updates/callbacks, as in SOUND.SetMasterVolume004e04c0.
+        Career.Record.SoundVolume = volume;
+        if (_context.SoundEffects is { EventKernelConfigured: true } sounds) sounds.SetMasterVolume(volume);
+    }
 }

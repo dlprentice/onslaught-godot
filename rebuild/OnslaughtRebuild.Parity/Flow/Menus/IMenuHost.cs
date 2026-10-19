@@ -11,6 +11,9 @@ public interface IMenuHost
     /// <summary>CFrontEnd::PlaySound: SOUND.PlayEffect of the front-end sound (a rand() draw).</summary>
     void PlaySound(FrontEndSound sound);
 
+    /// <summary>SOUND.SetMasterVolume: retain the career option and refresh the process's live event gains.</summary>
+    void SetSoundVolume(float volume);
+
     PlatformClock Clock { get; }
 
     /// <summary>CAREER.</summary>
