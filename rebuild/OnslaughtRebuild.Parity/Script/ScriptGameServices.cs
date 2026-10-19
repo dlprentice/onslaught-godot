@@ -95,10 +95,14 @@ public sealed class ScriptGameServices(IGameServices inner) : IGameServices
 
     public void EnterAttractMode() => inner.EnterAttractMode();
 
-    /// <summary>SOUND.UpdateStatus (the voice's part) first, then the rest.</summary>
+    /// <summary>SOUND.UpdateStatus (voice and admitted repeating effects), then the remaining main-loop services.</summary>
     public void AfterUpdate()
     {
         Runtime?.MessageBox?.Voice.UpdateStatus();
+        // Retail MainLoop calls SOUND.UpdateStatus at 0046eff6, after Update's pause transition and before the
+        // render loop. A second Present in the same MainLoop must not advance a fade a second time.
+        if (Runtime is { } runtime)
+            runtime.Context.SoundEffects?.AdvanceLoopStatus(runtime.Context.Game?.PausedAllGameSounds == true);
         inner.AfterUpdate();
     }
 

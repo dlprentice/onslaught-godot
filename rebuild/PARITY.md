@@ -33,6 +33,30 @@ clone's `local-data/test-runs/change-weapon-20261019/`. No physical device or au
 
 ## Proof-of-concept milestones (2026-10-15)
 
+Walker dodge and flight prerequisites (2026-10-19): the four directional dash paths now preserve
+their strict double-tap window, charge loss, shared sound draw, asymmetric roll assignments and
+retail left/right matrix paths. The jet has its own weapons and measured thrust/turn/pitch/gravity/
+auto-level controls. Morph admission preserves permission, energy and special-move ordering,
+mesh/controller ownership and scheduled transitions. These are prerequisites: ordinary jet input,
+the complete jet movement loop, damaging landings and full flight acceptance remain unfinished.
+
+The integrating lead independently compiled and ran the original-code fixtures: **1,864 dash cases**
+and **10,000 jet-control cases**, with all recorded output words equal. Changing x87 precision to
+53 bits changes 364 dash and 106 jet-control cases, respectively. The integrated Parity suite passes
+**428 tests, 9 existing optional-reference skips, 0 failures**; no reference expectation was changed.
+The host builds with zero warnings/errors. The existing ordinary-input tutorial tape still reaches
+Present 13,000 and all 12,998 selected-state records equal the preceding weapon-change build.
+This preserves its seven-probe result and its explicit EVN/P3-CRT limitations above.
+
+Repeating sound state is logical and silent: its fade now advances once at MainLoop's
+`SOUND.UpdateStatus` boundary (0046eff6), after the pause transition and before repeated renders.
+A real LevelSession test drives ordinary Escape pause/resume and distinguishes update from render
+cadence. Device channels, audibility and nonloop duration are not established by this model.
+Private original-code fixtures and lead reproduction are in the internal clone's existing
+`local-data/test-runs/walker-dodge-20261019/`, `flight-20261019/` and
+`flight-integrated-20261019/` owners. These are isolated execution and reconstruction checks,
+not a complete retail or Godot tutorial playthrough.
+
 The target is retail under the retail replay harness's shim: `BEA.exe -level 100 -skipfmv -forcewindowed -res 640 480`
 in Wine with a virtual clock of 1/30 s per Present (QueryPerformanceFrequency 10 MHz, 333333 counts per Present from
 the first Present), tapes indexed by Present number, probes read every 50 Presents. Present counts are defined only
