@@ -130,6 +130,9 @@ public sealed class WorldRegistry(SPtrSetPool pool)
     public SPtrSet<Thing> NamedThings { get; } = new(pool);
     public SPtrSet<Thing> ObjectiveThings { get; } = new(pool);
 
+    /// <summary>mSet110: rounds targeting a battle engine, in CRound::SetTarget's head-insertion order.</summary>
+    public SPtrSet<Thing> Set110 { get; } = new(pool);
+
     /// <summary>mBaseWorldThingNB: a reader per base-world thing in file order (empty for one the career destroyed).</summary>
     public List<ActiveReader<Thing>> BaseWorldThingNB { get; } = [];
 

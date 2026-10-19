@@ -42,7 +42,7 @@ public static class RoundEvent
 /// <remarks>
 /// Not ported yet, each throwing where it is reached: the damage a hit does (CThing::Damage and the kill it confirms),
 /// explosions (UPhysicsManager::SpawnExplosion), beams (CCSRay), jumping rounds, missiles (CMissile), the battle engine's
-/// lock hits, and rounds homing on a battle engine (WORLD.mSet110, the radar warning receiver's list).
+/// lock hits, and the CanBeLocked query for rounds homing on a battle engine. Radar set membership is implemented.
 /// </remarks>
 public class Round : Actor
 {
@@ -636,7 +636,7 @@ public class Round : Actor
         Target.SetReader(target);
         if (target.IsA(ThingType.BattleEngine))
         {
-            throw new NotSupportedException("CRound::SetTarget on a battle engine (WORLD.mSet110, the radar warning receiver's list) is not ported");
+            Context.World.Set110.Add(this);
         }
     }
 
@@ -650,7 +650,7 @@ public class Round : Actor
 
         if (Target.ToRead is { } t && t.IsA(ThingType.BattleEngine))
         {
-            throw new NotSupportedException("WORLD.mSet110 (rounds homing on a battle engine) is not ported");
+            Context.World.Set110.Remove(this);
         }
 
         Target.SetReader(null);

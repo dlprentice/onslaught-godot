@@ -667,7 +667,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
 
     /// <summary>
     /// CComplexThing::Shutdown: out of the named things, no longer an objective, then CThing's; its `delete this`
-    /// runs ~CComplexThing (004f3f00), which deletes the script.
+    /// runs ~CComplexThing (004f3f00), which deletes the script and animation.
     /// </summary>
     public override void Shutdown()
     {
@@ -681,7 +681,7 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
         base.Shutdown();
     }
 
-    /// <summary>~CComplexThing (004f3f00): the script is deleted.</summary>
+    /// <summary>~CComplexThing (004f3f00): script then animation destruction, including pending readers.</summary>
     protected override void Deleted()
     {
         if (Script is not null)
@@ -689,6 +689,11 @@ public abstract class ComplexThing(ThingContext context, int classId) : Thing(co
             Script.Delete();
             Script = null;
         }
+
+        // The animation is a separate monitor, not a reader of its thing. Its pending event must lose its target;
+        // Flush still counts that one null-target event, but it cannot reschedule the dead owner's animation.
+        Animation?.Destroy();
+        Animation = null;
 
         base.Deleted();
     }
