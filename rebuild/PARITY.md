@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-17 (full-boot timing, control/display transactions, cannon/dropship motion controllers, front-end particles and experimental live host; earlier rows keep their dates)
+Last updated: 2026-10-19 (live tree placement and intro skip reproduced; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -183,20 +183,46 @@ recorded seven-probe and extended-state field through Present 4020 (4,018 record
 four comparison negative controls reject changes). This is selected-state equality, not proof of
 all simulation state or retail visual parity.
 
-The live images differ from snapshot mode in 4,701 pixels at Present 30 and 7,464 at Present 3900.
-Root inspection shows missing trees in the live view. Investigate `MeshView.LiveSet`'s whole-mesh
-placement: the tree render subject has a default placement while the snapshot uses each Thing's
-position/orientation. No correction or pixel parity is claimed at this checkpoint. A 124-frame,
+At the October 17 checkpoint, live images differed from snapshot mode in 4,701 pixels at Present 30
+and 7,464 at Present 3900, with missing trees. That placement defect is corrected below. A 124-frame,
 640x480, 30fps movie of Presents 3900-4020 plus settling frames was recorded; full moving-footage
 review, longer resource-growth/performance checks and actual Godot event delivery remain pending.
-The real-LevelSession adapter checks cover same-batch pause/resume and focus loss after the pan;
-skipping the initial pan remains unsupported on this integrated head (a separate helper commit is
-pending integration). The UI qualifies the early-pan control limitation.
+The real-LevelSession adapter checks cover same-batch pause/resume and focus loss after the pan.
+Intro skipping was unsupported at that checkpoint; the preserved correction is integrated below.
 
 Private runs and comparisons are under
 `bea-decomp/local-data/scratch/codex-onslaught-20261017/live-host/`; headless trace, build and suite
 records are in `local-data/test-runs/live-host-20261017/` of the internal rebuild clone. This is an
 opt-in experimental implementation and safe resume point, not completed M7 or full tutorial acceptance.
+
+Live host corrections (2026-10-19): `MeshView.LiveSet` now places each tree from its own Thing
+position/orientation, as the snapshot view does. Trees share a render subject whose position is
+zero and orientation is identity; using that subject put all live trees at the origin. Other
+subjects keep their interpolated placement. No simulation, controller or pose callbacks changed.
+Fresh offscreen captures show the trees restored. Compared with the retained snapshot images,
+the difference falls to **7 pixels at Present 30 and 73 at Present 3900**, each differing by at
+most one RGB code value. Those residual differences remain unclassified; pixel equality and
+retail visual parity are not claimed.
+
+`Player.ReceiveButtonAction` now restores the preferred control camera and starts play when
+SkipPanning is admitted, preserving the guards, fall-through and original scheduled deadlines.
+The integrating lead rechecked pristine instructions 004d3160..004d3199 and 0046fec0..0046ff0b,
+then reproduced all four installed-data tests: Space, Return, keypad Enter, and Escape (which
+skips then pauses in the same controller flush). The old camera's monitored readers clear; the
+scheduled callbacks still run without replacing the control camera or repeating message admission.
+Third-person view remains unsupported. The host now advertises Enter to skip the intro.
+
+The integrated suite passes **401 tests, the same 9 optional-reference skips, and zero failures**;
+all earlier outcomes are preserved. Host build has zero warnings/errors. Three fresh offscreen
+Godot runs exit zero. Live traces agree with the retained headless trace on all selected fields
+through Present 3900 (3,898 records). A new ordinary Return-key tape skips at Present 31 and
+agrees with a fresh independent headless session through Present 600 (598 records); all four
+comparison negative controls reject alterations. This exercises tape delivery in the running
+Godot host, not physical input-event delivery, audio, or the complete tutorial.
+
+Private capture/trace commands, hashes and root comparisons are in
+`bea-decomp/local-data/scratch/codex-onslaught-20261017/live-host/resume-20261019/`;
+suite/build receipts are `local-data/test-runs/resume-20261019/` in the internal rebuild clone.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
