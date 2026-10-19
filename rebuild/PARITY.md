@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (trainer target/thruster integration and sound-event kernel; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-19 (trainer reach/launch integration and sound-event kernel; full tutorial and M7 remain incomplete; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -62,12 +62,16 @@ The script Attack now routes through Unit/squad target ownership, preserving mon
 the native target-selection rules. Aircraft launch thrusters use their actual afterburner descriptors,
 emitter transforms and cleanup. The missing CRT draw at 15,669 comes from the afterburner timeline's
 emitter child, not effect allocation; no compensating random call was added. Root's integrated replay
-now agrees on **all nine fields at every Present 3..16,052: 144,450 comparisons, zero differences**.
-It then explicitly stops at the unimplemented weapon reach query before Present 16,053. This is
-partial trainer replay, not completion. The complete integrated suite passes **610 tests, 9 unchanged
-optional-reference skips, 0 failures**; all 579 prior test outcomes remain and 40 new cases execute.
+now agrees on **all nine fields at every Present 3..16,066: 144,576 comparisons, zero differences**.
+The nonballistic weapon reach/firing queries now execute through the trainer's first missile launch;
+root reproduced 2,073 original cases (20,730 output words), with 600 cases distinguished by the
+PC53 negative control, and all 13 focused cases pass. The replay then explicitly stops at unsupported
+missile homing against the battle engine before Present 16,067. This is partial trainer replay,
+not completion. The complete integrated suite passes **623 tests, 9 unchanged optional-reference
+skips, 0 failures**; all 619 prior test outcomes remain and 13 new cases execute.
 Private evidence remains in the existing death-integration owner, including
-`trainer-thruster-fixed-admission.json`, `trainer-sound-full.trx` and `trainer-sound-suite-admission.json`.
+`trainer-reach-fixed-admission.json`, `weapon-reach-root/`, `weapon-reach-full.trx` and
+`weapon-reach-suite-admission.json`.
 
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte
