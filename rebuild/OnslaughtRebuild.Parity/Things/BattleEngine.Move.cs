@@ -342,7 +342,7 @@ public sealed partial class BattleEngine
     /// </summary>
     public override void Move()
     {
-        Context.Skip("CBattleEngine::ProcessDamageFlashes (no damage flashes yet)");
+        ProcessDamageFlashes();
         HandleEngines();
         HitDamageDone = false;
 
@@ -975,8 +975,7 @@ public sealed partial class BattleEngine
     /// effect is missing (level 100's sound table has no "BE On 02", so the hum never plays). The low-health and
     /// low-energy loops use the same logical repeating-sound owner as flight: stop the competing warning, admit only
     /// when absent and fade on recovery. Channel admission and device/nonloop lifetimes remain outside this model. The incoming-missile sound waits on the radar
-    /// warning receiver, the lock sounds on the locks and the aim sound on the auto-aim target or the unit over the
-    /// crosshair: the radar warning receiver and the locks are not ported, so those never play; the aim sound plays when the
+    /// warning receiver; its nonloop sample lifetime and the weapon-lock sounds remain unported. The aim sound plays when the
     /// unit over the crosshair (CalcUnitOverCrossHair) is first an enemy (the auto-aim search is not ported). The walking block: on the ground as a walker, every 1.5 units walked
     /// counts a step, and standing still after more than 5 steps plays the hydraulics (PlayHudSample).
     /// </summary>
@@ -1011,6 +1010,11 @@ public sealed partial class BattleEngine
             sounds.FadeRepeatingSample(energyLow, this, 0, 0.02f);
             sounds.FadeRepeatingSample(healthLow, this, 0, 0.02f);
         }
+
+        // 00409b3f..00409b96 consumes this flag only after querying the nonloop effect's playback state.
+        // A loop-only query or an unconditional draw would invent timing and RNG behavior.
+        if (PlayIncomingMissileSound)
+            throw new NotSupportedException("CBattleEngine::HandleSounds: incoming missile sample playback lifetime is not ported");
 
         // Aiming: a new auto-aim target, or else an enemy unit coming under the crosshair, plays the aim sound once.
         if (AutoAimTarget.ToRead is { } aimTarget)

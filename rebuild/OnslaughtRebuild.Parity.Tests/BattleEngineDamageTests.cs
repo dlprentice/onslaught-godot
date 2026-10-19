@@ -15,6 +15,22 @@ namespace OnslaughtRebuild.Parity.Tests;
 
 public sealed class BattleEngineDamageTests
 {
+    [GameDataFact]
+    public void ScheduledMovementExpiresDamageFlashesWithoutManualLifetimeUpdates()
+    {
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
+        while (session.PresentCount < 3000) session.AdvanceToNextPresent();
+        BattleEngine be = Assert.IsType<BattleEngine>(session.Game.GetPlayer(0)!.BattleEngine);
+        var attacker = new BattleEngine(session.Context) { Pos = be.Pos + new FVector(5, 0, 0) };
+        be.Damage(.25f, attacker);
+        float started = Assert.Single(be.DamageFlashes).StartTime;
+        while (session.Context.Events.Time <= started + 2.0f) session.AdvanceToNextPresent();
+        // The first Present can precede Move's next tick; let the actual scheduler deliver it.
+        for (int i = 0; i < 4 && be.DamageFlashes.Count != 0; i++) session.AdvanceToNextPresent();
+        Assert.Empty(be.DamageFlashes);
+        Assert.True(be.Life > 0);
+    }
+
     private static BattleEngine Engine(int seed = 12345, int frames = 840)
     {
         var pool = new SPtrSetPool(); pool.Init(64);

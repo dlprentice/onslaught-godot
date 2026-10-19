@@ -15,6 +15,30 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
+Flight and damage integration (2026-10-19): ordinary jet controls now reach the measured jet
+movement, ground-effect, friction and maneuver paths. BattleEngine damage uses its own shield,
+repair, augmentation, statistics and shake rules rather than inherited Unit damage. Damage flashes
+expire through scheduled movement. The lead reproduced 5,000 yaw and 7,000 movement cases, plus
+1,035 damage/shake and 1,006 flash cases, against isolated original code. Precision-negative
+controls change 75 yaw, 1,179 movement and 257 damage results. The integrated suite passes
+**462 tests, 9 unchanged optional-reference skips, 0 failures**.
+
+The extended native ordinary-input tape destroys two of six moving targets at Presents 14,184
+and 14,304, after the two static ranges; it retains health 20 and energy 8 with no friendly-fire
+loss, abort or Won. Headless Parity executes this tape through Present 14,350: all seven primary
+probes plus CRT agree for every Present 3..14,350, across 129,132 total nine-probe comparisons.
+EVN alone still first differs at 6,017 (8,334 differing later records). This is selected-state
+agreement with the native port, not a fresh retail whole-route comparison or a complete tutorial.
+The tape SHA-256 is `84fbc81038f43117bf49584d2d3808c2e069cccbd7668b751eb2cb2f2f52ad81`.
+Receipts: internal clone `local-data/test-runs/flight-damage-integrated-20261019/`, and private
+`live-host/resume-20261019/flight-damage-comparison-14350.json`.
+
+The Space-input flight fixture explicitly enables flight permission before exercising real input
+and scheduled takeoff/landing/refill; it does not establish the tutorial's permission route.
+Damaging skims, hard landing, lethal death/teardown, damage-flash drawing and nonloop incoming-missile
+sound lifetime remain open. An incoming warning now explicitly refuses that unsupported sound
+path rather than silently dropping its RNG/timing effect. Device audio and player acceptance remain open.
+
 Weapon-change input (2026-10-19): the native tutorial tape now runs through Present 13,000 in
 headless Parity. Previously its right-mouse release reached an unsupported `MechChangeWeapon`
 handler at Present 11,613. The restored `CBattleEngine::ChangeWeapon` wrapper preserves the
