@@ -757,7 +757,13 @@ public abstract partial class Unit
             Unknown1EC = 1;
             if (CurrentWeapon.Mode!.PreFireSoundName is not null)
             {
-                Context.Skip("SOUND.PlayEffect (CUnit::Unknown86's pre-fire sound)");
+                if (Context.SoundEffects is { EventKernelConfigured: true } sounds)
+                {
+                    // Pristine74154bfa call004fbdad, after the preparation state writes and before charge effects.
+                    sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(CurrentWeapon.Mode.PreFireSoundName)), this, Context.Crt,
+                        new Sound.SoundPlayback(Volume: .7f, Tracking: Sound.SoundTracking.InitialPosition));
+                }
+                else Context.Skip("SOUND.PlayEffect (CUnit::Unknown86's pre-fire sound)");
             }
 
             if (CurrentWeapon.Mode.PreFireEffectName is not null)

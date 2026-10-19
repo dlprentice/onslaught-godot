@@ -500,7 +500,16 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
     {
         if (Context.SoundEffects is { } sounds)
         {
-            sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(mode.LaunchSoundName!)), Context.Crt);
+            Sound.SoundEffect? effect = sounds.Find(System.Text.Encoding.Latin1.GetString(mode.LaunchSoundName!));
+            if (sounds.EventKernelConfigured)
+            {
+                // Pristine74154bfa: Fire00506163..0050619c and SpawnRound00506a4d..00506a96.
+                // The weapon's owner is the attached unit; a BE shot deliberately has no spatial owner.
+                bool player = AttachedTo!.IsA(ThingType.BattleEngine);
+                sounds.PlayEffect(effect, player ? null : AttachedTo, Context.Crt,
+                    new Sound.SoundPlayback(Volume: .5f, Tracking: player ? Sound.SoundTracking.None : Sound.SoundTracking.FollowDontDie));
+            }
+            else sounds.PlayEffect(effect, Context.Crt);
         }
         else
         {

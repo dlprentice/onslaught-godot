@@ -119,10 +119,16 @@ public sealed class Explosion(ThingContext context) : ComplexThing(context, Oid.
                 link.Release();
             }
 
-            byte[]? sound = ColType == 2 ? b.WaterSoundName : b.SoundName;
+            // Native unsigned ColType<=3 dispatch0044bdd6 rejects unsupported collision types.
+            byte[]? sound = ColType switch { 0 or 1 or 3 => b.SoundName, 2 => b.WaterSoundName, _ => null };
             if (sound is not null && Context.SoundEffects is { } sounds)
             {
-                sounds.PlayEffect(sounds.Find(System.Text.Encoding.Latin1.GetString(sound)), Context.Crt);
+                Sound.SoundEffect? selected = sounds.Find(System.Text.Encoding.Latin1.GetString(sound));
+                // Pristine74154bfa call0044be28: keep the explosion's initial position after its owner expires.
+                if (sounds.EventKernelConfigured)
+                    sounds.PlayEffect(selected, this, Context.Crt,
+                        new Sound.SoundPlayback(Volume: .7f, Tracking: Sound.SoundTracking.InitialPosition));
+                else sounds.PlayEffect(selected, Context.Crt);
             }
 
             if (b.Light != -1)

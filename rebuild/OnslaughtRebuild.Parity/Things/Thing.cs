@@ -402,7 +402,11 @@ public abstract class Thing : Monitor, IOccupancyUnit
             Sound.SoundEffect? effect = hi == 0x66 ? sounds.Find("impact\\Wood") : sounds.Find($"hit {(a.Context.Crt.Rand() % 6) + 1}");
             if (effect is not null)
             {
-                sounds.PlayEffect(effect, a.Context.Crt);
+                // Pristine74154bfa call004e2f11: sorting materials never changes the audible owner (argument a).
+                if (sounds.EventKernelConfigured)
+                    sounds.PlayEffect(effect, a, a.Context.Crt,
+                        new Sound.SoundPlayback(Volume: .7f, Tracking: Sound.SoundTracking.InitialPosition));
+                else sounds.PlayEffect(effect, a.Context.Crt);
             }
         }
     }
