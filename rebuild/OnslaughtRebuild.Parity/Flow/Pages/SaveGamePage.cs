@@ -153,10 +153,16 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
 
     private void Show(uint timeout, MessageBoxOption option, int question, Text text)
     {
-        // The boxes that take clicks get their layout (FEPSaveGame.cpp's Create calls); the timed "saved" box has none.
+        // Each box gets its layout from its text (FEPSaveGame.cpp's Create calls). The "saved" box reads the career's text
+        // first, which checks the X key, even when saved from the options page, whose own text replaces it (CreateSave).
         float width = text is Text.TooManySaves or Text.Overwrite ? 300f : 400f;
         Func<OnslaughtRebuild.Parity.Text.FrontEndTexts, string>? source = text switch
         {
+            Text.SaveDone or Text.FreshSaveDone or Text.SavedFromOptions => t =>
+            {
+                string saved = t.GetTextByName(CareerWasInProgress ? "FETX_SAVEDONE" : "FETX_FRESHSAVEDONE");
+                return text == Text.SavedFromOptions ? t.PcText(0xd6) : saved;
+            },
             Text.CouldNotDelete => t => t.PcText(0x76),
             Text.TooManySaves => t => t.GetText(Fet.TooManySaves),
             Text.Overwrite => t => t.GetText(Fet.OverwriteSaveGame),
