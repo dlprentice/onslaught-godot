@@ -5,6 +5,7 @@ using Godot;
 using OnslaughtRebuild.Parity;
 using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Flow;
+using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Game;
 
 namespace OnslaughtRebuild.Host;
@@ -17,7 +18,10 @@ namespace OnslaughtRebuild.Host;
 /// HOST_FULL_BOOT=1 plays the boot films (default: as -skipfmv); HOST_TRACE writes each snapshot's line; HOST_END_PRESENT
 /// stops the run; HOST_DRAW=0 (with a tape) runs as fast as it can. HOST_FLOW_STRAIGHT=1 (with a tape, an end and a trace)
 /// instead runs the same game straight through on this thread, writing the reference the stepped trace must equal.
-/// This slice shows where the run is, not the game's pictures.
+/// The front end is drawn by Godot (<see cref="FrontEndView"/>) from the frames its render path records; the level is not
+/// drawn yet. HOST_SHOTS ("P,P,...") with HOST_SHOT_DIR saves those Presents' pictures: always the software reference
+/// (<see cref="FrontEndRaster"/>, shot-NNNNN-raster.png), and with HOST_SHOT_GODOT=1 (a GPU run) Godot's
+/// (shot-NNNNN-godot.png).
 /// </summary>
 public partial class Host
 {
@@ -33,6 +37,14 @@ public partial class Host
     private bool _flowFailure;
     private int _flowSettle;
     private Label? _flowStatus;
+    private CanvasFrame? _flowFrame;
+    private FrontEndView? _flowView;
+    private FrontEndRaster? _flowRaster;
+    private HashSet<long>? _flowShots;
+    private string? _flowShotDir;
+    private bool _flowShotGodot;
+    private long? _flowPendingShot;
+    private int _flowShotWait;
 
     private void ReadyFlow()
     {
@@ -79,6 +91,39 @@ public partial class Host
             return;
         }
 
+        if (System.Environment.GetEnvironmentVariable("HOST_SHOTS") is { } shots)
+        {
+            _flowShots = [.. shots.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(long.Parse)];
+            _flowShotDir = System.Environment.GetEnvironmentVariable("HOST_SHOT_DIR")
+                ?? throw new ArgumentException("HOST_SHOTS requires HOST_SHOT_DIR");
+            Directory.CreateDirectory(_flowShotDir);
+            _flowShotGodot = System.Environment.GetEnvironmentVariable("HOST_SHOT_GODOT") == "1";
+        }
+
+        if (_flowDraw || _flowShots is not null)
+        {
+            // The run's thread records each front-end frame; the Step that returns its Present hands it over.
+            var images = new FrontEndImages(files.Read);
+            run.FrontEnd.Draw = new FrontEndDraw(new FrontEndTextures(files.Read))
+            {
+                Canvas = new RecordingCanvas(frame => Volatile.Write(ref _flowFrame, frame)),
+            };
+            _flowRaster = new FrontEndRaster(images.Get);
+            if (_flowDraw || _flowShotGodot)
+            {
+                _flowView = new FrontEndView(images);
+                AddChild(_flowView.Viewport);
+                AddChild(new TextureRect
+                {
+                    Name = "FrontEndImage",
+                    Texture = _flowView.Viewport.GetTexture(),
+                    Size = new Vector2(FrontEndRaster.Width, FrontEndRaster.Height),
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                });
+            }
+        }
+
         _flowRun = new SteppedGameRun(run);
         _flowStatus = new Label { Name = "FlowStatus", Position = new Vector2(8, 6), MouseFilter = Control.MouseFilterEnum.Ignore };
         AddChild(_flowStatus);
@@ -92,9 +137,26 @@ public partial class Host
             return;
         }
 
+        if (_flowPendingShot is { } pending)
+        {
+            // Godot's picture of the shot's frame is ready once it has been drawn.
+            if (++_flowShotWait >= 3)
+            {
+                SaveGodotShot(pending);
+                _flowPendingShot = null;
+            }
+
+            return;
+        }
+
         if (_flowStop is null)
         {
-            if (!_flowDraw)
+            if (_flowShots is not null)
+            {
+                // One Present a frame, so that each shot is taken of its own frame.
+                StepFlow();
+            }
+            else if (!_flowDraw)
             {
                 // A replay without drawing: as many Presents as a frame allows; time is the run's own.
                 for (int i = 0; i < 2000 && _flowStop is null; i++)
@@ -141,6 +203,21 @@ public partial class Host
 
         _flowLast = snapshot;
         _flowTrace?.WriteLine(snapshot.Line());
+        if (Interlocked.Exchange(ref _flowFrame, null) is { } frame && frame.Present == snapshot.Present)
+        {
+            _flowView?.Show(frame);
+            if (_flowShots?.Contains(snapshot.Present) == true)
+            {
+                _flowRaster!.Draw(frame);
+                SaveRasterShot(snapshot.Present);
+                if (_flowShotGodot)
+                {
+                    _flowPendingShot = snapshot.Present;
+                    _flowShotWait = 0;
+                }
+            }
+        }
+
         if (_flowEnd is { } end && snapshot.Present >= end)
         {
             _flowStop = "Preview complete.";
@@ -177,6 +254,30 @@ public partial class Host
             _flowRun.Post(run => run.Input.PostTapeKey(pc.VirtualKey, pc.ScanCode, down));
             GetViewport().SetInputAsHandled();
         }
+    }
+
+    private void SaveRasterShot(long present)
+    {
+        uint[] pixels = _flowRaster!.Pixels;
+        var rgb = new byte[pixels.Length * 3];
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            rgb[i * 3] = (byte)(pixels[i] >> 16);
+            rgb[i * 3 + 1] = (byte)(pixels[i] >> 8);
+            rgb[i * 3 + 2] = (byte)pixels[i];
+        }
+
+        string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-raster.png");
+        Error error = Image.CreateFromData(FrontEndRaster.Width, FrontEndRaster.Height, false, Image.Format.Rgb8, rgb).SavePng(path);
+        GD.Print($"HOST_SHOT {path} {error}");
+    }
+
+    private void SaveGodotShot(long present)
+    {
+        using Image image = _flowView!.Viewport.GetTexture().GetImage();
+        string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-godot.png");
+        Error error = image.SavePng(path);
+        GD.Print($"HOST_SHOT {path} {error}");
     }
 
     private sealed class StopStraight : Exception;

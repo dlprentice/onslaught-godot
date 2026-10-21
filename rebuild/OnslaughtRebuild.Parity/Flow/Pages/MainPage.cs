@@ -2,6 +2,7 @@
 // Adapted from bea-decomp src/FEPMain.cpp (reconstructed from the retail program; not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Career;
+using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Crt;
 using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Maths;
@@ -290,57 +291,312 @@ public sealed class MainPage(FrontEnd frontEnd) : FrontEndPageBase
     };
 
     /// <summary>
-    /// The state-changing part of <c>CFEPMain::Render</c> (0x00462d40): the language row (from y 268; its arrows click
-    /// left and right) and then each action, 20 apart from 36 below it, centred on x 219 at the small font's size of its
-    /// text. Once the page is nine tenths in, hovering an available action selects it and clicking it presses select.
-    /// Runs only with the host's small font and texts (<see cref="FrontEnd.SmallFont"/>).
+    /// <c>CFEPMain::RenderPreCommon</c> (0x00462b70): the background video, centred, growing in from a larger size as the page
+    /// arrives (not from the intro) and brightening.
+    /// </summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest)
+    {
+        if (frontEnd.Draw is not { } draw) return;
+        float t = FrontEndDraw.RangeTransition(transition, 0.5f, 1f);
+        if (dest == FrontEndPage.Intro) t = 1f;
+        float u = 2f - t;
+        float scale = (u * u * u - 1f) * 0.87f + 1f;
+        float v = 1f - u;
+        uint colour = unchecked((uint)(X87.Fist(X87.Mul(1f - v * v, 255f)) * 0x3f0000)) | 0xffffff;
+        draw.VideoWithoutFilm(FrontEndDraw.WindowWidth / 2f, FrontEndDraw.WindowHeight / 2f, 0.96f,
+            FrontEndDraw.WindowWidth * scale * 0.0087890625f, FrontEndDraw.WindowHeight * scale * 0.0079101566f, colour, true);
+    }
+
+    /// <summary>
+    /// <c>CFEPMain::Render</c> (0x00462d40). Its state-changing part: the language row (from y 268; its arrows click left
+    /// and right) and then each action, 20 apart from 36 below it, centred on x 219 at the small font's size of its text;
+    /// once the page is nine tenths in, hovering an available action selects it and clicking it presses select. That part
+    /// runs only with the host's small font and texts (<see cref="FrontEnd.SmallFont"/>). With <see cref="FrontEnd.Draw"/>
+    /// it also draws: the Forseti strip scrolling behind, the actions (the selected one on a bar), the language row's flag
+    /// and arrows, the title's brackets and symbol (assembling as the intro hands over), the selected action's symbol, the
+    /// version, the title with its passing shine, and a white flash as the page arrives.
     /// </summary>
     public override void Render(float transition, FrontEndPage dest)
     {
-        if (frontEnd.SmallFont is not { } font || frontEnd.Texts is not { } texts) return;
-        float y = 268f;
-        int start = -1;
-        if (AmericanText)
+        FrontEndDraw? draw = frontEnd.Draw;
+        float counter = frontEnd.Counter;
+        if (draw is not null)
         {
-            start = 0;
-            y = 304f;
-        }
-        for (int i = start; i < NumActions; i++)
-        {
-            if (i != -1)
+            float strip = 175f - (float)((double)(counter * 0.3f) % 350.0);
+            uint stripCol = FrontEndDraw.BlendAlpha2(0x3fffffff, X87.Fist(X87.Mul(FrontEndDraw.RangeTransition(transition, 0.75f, 1f), 255f)));
+            for (int k = 0; k < 3; k++)
             {
-                (int cx, int cy) = font.GetTextExtent(texts.GetText(ActionText(i)));
-                // x87: the halved width is subtracted from 219 and stored; the half height divides as an int.
-                float tx = (float)X87.Sub(219f, X87.Mul(cx, 0.5f));
-                float ty = (float)X87.Sub(y, cy / 2);
-                float right = (float)X87.Add(cx, tx), bottom = (float)X87.Add(cy, ty);
-                if (transition > 0.9f && IsActionAvailable(i))
+                draw.DrawColouredSprite(458f, strip + 350f * k, 0.9f, FrontEndTexture.ForsetiText, stripCol, 1f, 1f, SpriteAlign.Centre);
+            }
+        }
+
+        if (frontEnd.SmallFont is { } font && frontEnd.Texts is { } texts)
+        {
+            float y = 268f;
+            int start = -1;
+            if (AmericanText)
+            {
+                start = 0;
+                y = 304f;
+            }
+            int alpha = FrontEndDraw.MakeAlpha(FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
+            for (int i = start; i < NumActions; i++)
+            {
+                if (i != -1)
                 {
-                    if (frontEnd.GetCursorStateInRect(tx, ty, right, bottom)) Selected = i;
-                    if (frontEnd.MouseClickedInRect(tx, ty, right, bottom))
+                    string text = texts.GetText(ActionText(i));
+                    (int cx, int cy) = font.GetTextExtent(text);
+                    if (i == Selected)
                     {
-                        Selected = i;
-                        ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+                        alpha = FrontEndDraw.MakeAlpha(FrontEndDraw.RangeTransition(transition, 0.8f, 1f));
+                        draw?.DrawColouredSprite(219f, y, 0.33f, FrontEndTexture.BeaTitleTextBox, FrontEndDraw.BlendAlpha2(0x7f000000, alpha),
+                            (cx + 30f) * (1f / 256f), 1f, SpriteAlign.Centre);
                     }
+                    uint c = IsActionAvailable(i) ? 0xff4f4f4f : 0x7f1f1f1f;
+                    if (i == Selected) c = 0xffff6f3f;
+                    // x87: the halved width is subtracted from 219 and stored; the half height divides as an int.
+                    float tx = (float)X87.Sub(219f, X87.Mul(cx, 0.5f));
+                    float ty = (float)X87.Sub(y, cy / 2);
+                    c = FrontEndDraw.BlendAlpha2(FrontEndDraw.BlendAlpha2(c, alpha), 255);
+                    float right = (float)X87.Add(cx, tx), bottom = (float)X87.Add(cy, ty);
+                    if (transition > 0.9f && IsActionAvailable(i))
+                    {
+                        if (frontEnd.GetCursorStateInRect(tx, ty, right, bottom)) Selected = i;
+                        if (frontEnd.MouseClickedInRect(tx, ty, right, bottom))
+                        {
+                            Selected = i;
+                            ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+                        }
+                    }
+                    draw?.DrawTextDynamic(font, CanvasTextureKind.SmallFont, tx, ty, 0.32f, 1f, 1f, c, text, 1000f);
+                    y = (float)X87.Add(y, 20f);
                 }
-                y = (float)X87.Add(y, 20f);
+                else
+                {
+                    uint c = 0xff7f7f7f;
+                    if (Selected == -1)
+                        c = unchecked(0xffdfdfdf - (uint)(X87.Fist(MathF.Sin(counter * 3.14f * (1f / 30f)) * -32f) * 0x10101));
+                    c = FrontEndDraw.BlendAlpha2(FrontEndDraw.BlendAlpha2(c, alpha), 255);
+                    float top = (float)X87.Sub(y, 20f), bottom = (float)X87.Add(y, 20f);
+                    if (transition > 0.9f && IsActionAvailable(-1) && frontEnd.GetCursorStateInRect(119f, top, 319f, bottom)) Selected = -1;
+                    if (frontEnd.MouseClickedInRect(119f, top, 199f, bottom))
+                    {
+                        Selected = -1;
+                        ButtonPressed(FrontEndButtons.MenuLeft, 1f);
+                    }
+                    if (frontEnd.MouseClickedInRect(239f, top, 319f, bottom))
+                    {
+                        Selected = -1;
+                        ButtonPressed(FrontEndButtons.MenuRight, 1f);
+                    }
+                    if (draw is not null) DrawLanguageRow(draw, y, c, alpha, counter);
+                    y = (float)X87.Add(y, 36f);
+                }
+            }
+        }
+
+        if (draw is not null) DrawTitle(draw, transition, dest, counter);
+    }
+
+    // The language row's flag between its arrows (each arrow flashing larger after a press).
+    private void DrawLanguageRow(FrontEndDraw draw, float y, uint c, int alpha, float counter)
+    {
+        draw.DrawColouredSprite(219f, y, 0.32f, FrontEndTexture.FlagUk + frontEnd.Language, c, 0.65f, 0.25f, SpriteAlign.Centre);
+        bool shown = X87.Fist(counter) % 64 < 50;
+        void Arrow(float x, float flash, float yaw)
+        {
+            if (!shown && !(flash > 0f)) return;
+            uint ac = FrontEndDraw.BlendAlpha2(0xffffffff, alpha);
+            if (Selected != -1) ac = FrontEndDraw.BlendAlpha2(ac, 64);
+            draw.DrawColouredSprite(x, y, 0.32f, FrontEndTexture.HelpArrow, FrontEndDraw.BlendAlpha2(ac, 255), 0.8f, 0.8f, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+            uint fc = FrontEndDraw.BlendAlpha2(0xffffffff, X87.Fist(flash * 255f));
+            fc = FrontEndDraw.BlendAlpha2(fc, alpha);
+            float scale = (1f - flash + 1f) * 0.8f;
+            draw.DrawColouredSprite(x, y, 0.32f, FrontEndTexture.HelpArrow, FrontEndDraw.BlendAlpha2(fc, 255), scale, scale, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+        }
+        Arrow(154f, LeftArrowFlash, -3.14159265358979f);
+        Arrow(284f, RightArrowFlash, 0f);
+    }
+
+    // Everything after the menu rows: the title's brackets and symbol, the selected action's symbol, the version, the
+    // title and its shine, and the white flash.
+    private void DrawTitle(FrontEndDraw draw, float transition, FrontEndPage dest, float counter)
+    {
+        float shx = FrontEndDraw.ShadowOffsetX(counter), shy = FrontEndDraw.ShadowOffsetY(counter);
+
+        // The title's brackets: they close in as the intro hands over, and fly apart as the page leaves.
+        int a = 255;
+        float scale = 1.25f, yaw = 0f;
+        if (transition < 1f)
+        {
+            if (dest == FrontEndPage.Intro)
+            {
+                if (transition < 0.2f)
+                {
+                    float f = FrontEndDraw.RangeTransition(transition, 0f, 0.2f);
+                    a = FrontEndDraw.MakeAlpha(f);
+                    scale = f;
+                    yaw = -((1f - f) * 0.3f);
+                }
+                else if (transition < 0.4f) scale = 1f;
+                else if (transition < 0.6f) scale = FrontEndDraw.RangeTransition(transition, 0.4f, 0.6f) * 0.25f + 1f;
             }
             else
             {
-                float top = (float)X87.Sub(y, 20f), bottom = (float)X87.Add(y, 20f);
-                if (transition > 0.9f && IsActionAvailable(-1) && frontEnd.GetCursorStateInRect(119f, top, 319f, bottom)) Selected = -1;
-                if (frontEnd.MouseClickedInRect(119f, top, 199f, bottom))
-                {
-                    Selected = -1;
-                    ButtonPressed(FrontEndButtons.MenuLeft, 1f);
-                }
-                if (frontEnd.MouseClickedInRect(239f, top, 319f, bottom))
-                {
-                    Selected = -1;
-                    ButtonPressed(FrontEndButtons.MenuRight, 1f);
-                }
-                y = (float)X87.Add(y, 36f);
+                float f = 1f - FrontEndDraw.RangeTransition(transition, 0.5f, 1f);
+                a = FrontEndDraw.MakeAlpha(1f - f);
+                scale = f * 10f + 1.25f;
+                yaw = f * -0.5f;
             }
+        }
+        // Retail adds the x shadow offset to both coordinates here.
+        draw.DrawColouredSprite(224f + shx, 349f + shx, 0.35f, FrontEndTexture.BeaTitleBracket01, FrontEndDraw.BlendAlpha2(0x3f000000, a),
+            scale * 1.05f, scale * 1.05f, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+        draw.DrawColouredSprite(219f, 344f, 0.3f, FrontEndTexture.BeaTitleBracket01, FrontEndDraw.BlendAlpha2(0xffffffff, a),
+            scale, scale, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+
+        a = 255;
+        yaw = 0f;
+        if (transition < 1f && dest == FrontEndPage.Intro)
+        {
+            bool drawBracket2 = true;
+            if (transition < 0.2f)
+            {
+                float f = FrontEndDraw.RangeTransition(transition, 0f, 0.2f);
+                a = FrontEndDraw.MakeAlpha(f);
+                scale = f;
+                yaw = (1f - f) * 0.3f;
+            }
+            else if (transition < 0.6f) scale = 1f;
+            else if (transition < 0.8f)
+            {
+                float f = 1f - FrontEndDraw.RangeTransition(transition, 0.6f, 0.8f);
+                a = FrontEndDraw.MakeAlpha(f);
+                scale = f;
+                yaw = -((1f - f) * 0.3f);
+            }
+            else drawBracket2 = false;
+            if (drawBracket2)
+            {
+                draw.DrawColouredSprite(224f + shx, 349f + shx, 0.35f, FrontEndTexture.BeaTitleBracket02, FrontEndDraw.BlendAlpha2(0x3f000000, a),
+                    scale * 1.05f, scale * 1.05f, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+                draw.DrawColouredSprite(219f, 344f, 0.3f, FrontEndTexture.BeaTitleBracket02, FrontEndDraw.BlendAlpha2(0xffffffff, a),
+                    scale, scale, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+            }
+        }
+
+        // The title's symbol, the same way a little later.
+        a = 255;
+        scale = 1.25f;
+        yaw = 0f;
+        if (transition < 1f)
+        {
+            if (dest == FrontEndPage.Intro)
+            {
+                if (transition < 0.1f) a = 0;
+                else if (transition < 0.3f)
+                {
+                    float f = FrontEndDraw.RangeTransition(transition, 0.1f, 0.3f);
+                    a = FrontEndDraw.MakeAlpha(f);
+                    scale = f;
+                    yaw = -(f * 0.3f);
+                }
+                else if (transition < 0.5f) scale = 1f;
+                else if (transition < 0.7f) scale = FrontEndDraw.RangeTransition(transition, 0.5f, 0.7f) * 0.25f + 1f;
+            }
+            else
+            {
+                float f = 1f - FrontEndDraw.RangeTransition(transition, 0.75f, 1f);
+                a = FrontEndDraw.MakeAlpha(1f - f);
+                scale = f * 1.4f + 1.25f;
+                yaw = -f;
+            }
+        }
+        draw.DrawColouredSprite(462f + shx, 365f + shy, 0.35f, FrontEndTexture.BeaTitleSymbolBracket01, FrontEndDraw.BlendAlpha2(0x3f000000, a),
+            scale * 1.05f, scale * 1.05f, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+        draw.DrawColouredSprite(457f, 355f, 0.3f, FrontEndTexture.BeaTitleSymbolBracket01, FrontEndDraw.BlendAlpha2(0xffffffff, a),
+            scale, scale, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+
+        a = 255;
+        yaw = 0f;
+        if (transition < 1f && dest == FrontEndPage.Intro && !(transition < 0.1f))
+        {
+            bool drawSymbolBracket2 = true;
+            if (transition < 0.3f)
+            {
+                float f = FrontEndDraw.RangeTransition(transition, 0.1f, 0.3f);
+                a = FrontEndDraw.MakeAlpha(f);
+                scale = f;
+                yaw = -(f * 0.3f);
+            }
+            else if (transition < 0.7f) scale = 1f;
+            else if (transition < 0.9f)
+            {
+                float f = 1f - FrontEndDraw.RangeTransition(transition, 0.7f, 0.9f);
+                a = FrontEndDraw.MakeAlpha(f);
+                scale = f;
+                yaw = -(f * 0.3f);
+            }
+            else drawSymbolBracket2 = false;
+            if (drawSymbolBracket2)
+            {
+                draw.DrawColouredSprite(462f + shx, 365f + shy, 0.35f, FrontEndTexture.BeaTitleSymbolBracket02, FrontEndDraw.BlendAlpha2(0x3f000000, a),
+                    scale * 1.05f, scale * 1.05f, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+                draw.DrawColouredSprite(457f, 355f, 0.3f, FrontEndTexture.BeaTitleSymbolBracket02, FrontEndDraw.BlendAlpha2(0xffffffff, a),
+                    scale, scale, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+            }
+        }
+
+        // The selected action's symbol.
+        FrontEndTexture? symbol = Selected switch
+        {
+            -1 => FrontEndTexture.BeaTitleNavSymbolLanguage01,
+            0 => FrontEndTexture.BeaTitleNavSymbolNewgame01,
+            1 => FrontEndTexture.BeaTitleNavSymbolContinuegame01,
+            2 => FrontEndTexture.BeaTitleNavSymbolLoadgame01,
+            8 => FrontEndTexture.BeaTitleNavSymbolSavegame01,
+            3 => FrontEndTexture.BeaTitleNavSymbolMultiplayer01,
+            4 => FrontEndTexture.BeaTitleNavSymbolGoodies01,
+            5 => FrontEndTexture.BeaTitleNavSymbolOptions01,
+            6 => FrontEndTexture.BeaTitleNavSymbolQuitgame01,
+            _ => null,
+        };
+        if (symbol is { } tex)
+        {
+            a = FrontEndDraw.MakeAlpha(FrontEndDraw.RangeTransition(transition, 0.8f, 1f));
+            draw.DrawColouredSprite(462f + shx, 365f + shy, 0.34f, tex, FrontEndDraw.BlendAlpha2(0x3f000000, a), 1.05f, 1.05f, SpriteAlign.Centre);
+            draw.DrawColouredSprite(457f, 355f, 0.1f, tex, FrontEndDraw.BlendAlpha2(0xffffffff, a), 1f, 1f, SpriteAlign.Centre);
+        }
+
+        // The version, bottom left (drawn with gInFrontEnd clear: its own font colours are not affected by it).
+        if (frontEnd.SmallFont is { } font)
+        {
+            float v = FrontEndDraw.RangeTransition(transition, 0.75f, 1f);
+            string version = $"V{frontEnd.VersionMajor % 10}.{frontEnd.VersionMinor:00}";
+            draw.DrawTextDynamic(font, CanvasTextureKind.SmallFont, 0f, FrontEndDraw.WindowHeight - 16, 0.01f, 1f, 1f,
+                ((uint)X87.Fist(v * 255f) << 24) | 0x102025, version, 1000f);
+        }
+
+        // The title, and the shine that passes over it.
+        a = X87.Fist(FrontEndDraw.RangeTransition(transition, 0.75f, 1f) * 255f);
+        if (dest == FrontEndPage.Intro) a = 255;
+        draw.DrawColouredSprite(325f + shx, 140f + shy, 0.1f, FrontEndTexture.BeaTitle2, FrontEndDraw.BlendAlpha2(0x3f000000, a), 1.05f, 1.05f, SpriteAlign.Centre);
+        draw.ZAlways = true;
+        draw.DrawColouredSprite(320f, 130f, 0.999f, FrontEndTexture.BeaTitle2, FrontEndDraw.BlendAlpha2(0xffafcfff, a), 1f, 1f, SpriteAlign.Centre);
+        draw.ZAlways = false;
+        float sx = 256f - (float)((double)(counter * 0.6f) % 512.0) + 65f;
+        draw.Blend = CanvasBlend.Additive;
+        uint shine = 0xff000000 + ((uint)(a * 127) >> 8) * 0x10101;
+        draw.DrawColouredSprite(sx, 120f, 0.998f, FrontEndTexture.LogoShine, shine, 1f, 2f, SpriteAlign.Centre);
+        draw.DrawColouredSprite(sx + 512f, 120f, 0.998f, FrontEndTexture.LogoShine, shine, 1f, 2f, SpriteAlign.Centre);
+        draw.Blend = CanvasBlend.Modulate;
+
+        // A white flash as the page arrives.
+        float d = MathF.Abs(transition - 0.75f);
+        if (d < 0.15f && dest != FrontEndPage.Intro)
+        {
+            float s = FrontEndDraw.WindowWidth * (1f / 32f);
+            draw.DrawColouredSprite(0f, 0f, 0.001f, FrontEndTexture.White, FrontEndDraw.BlendAlpha2(0xffffffff, X87.Fist((1f - d * (1f / 0.15f)) * 128f)), s, s);
         }
     }
 

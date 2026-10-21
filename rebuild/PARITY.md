@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-21 (trainer missiles: straight aim and wiggle follow retail's code; the port's seek and wiggle orders are separate port corrections; earlier rows keep their dates)
+Last updated: 2026-10-21 (whole-game host slices 1 and 2: the front end drawn through a pure canvas, Godot and a software oracle against the port; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -466,6 +466,29 @@ Godot host, not physical input-event delivery, audio, or the complete tutorial.
 Private capture/trace commands, hashes and root comparisons are in
 `bea-decomp/local-data/scratch/codex-onslaught-20261017/live-host/resume-20261019/`;
 suite/build receipts are `local-data/test-runs/resume-20261019/` in the internal rebuild clone.
+
+Whole-game host, slices 1 and 2 (2026-10-21, M7 in progress):
+- Slice 1: `HOST_LIVE=flow` runs the whole game (`GameRun`, boot to quit) on its own thread through `SteppedGameRun`. Godot's
+  thread reads only the immutable `FlowSnapshot` each Present hands back, and keys reach the run through its input queue.
+  `rebuild/tools/host_flow_check.py` holds each route's stepped trace equal to its straight one and to the port's fields.
+- Slice 2 draws the front end. `Parity/Flow/Draw` forms the quads as the game forms its vertices (`DrawSprite`,
+  `DrawTextScaled`/`DrawTextDynamic`, `DrawLine`/`DrawPanel`/`DrawBox`, `RenderMouseCursor`, and the video quad with no film
+  open, which is every -skipfmv run) and hands them to a pure canvas (`IFrontEndCanvas`: no Godot types, called only from
+  the render path). It covers the main page, the common page's lines, the message box and the cursor.
+- `FrontEndCanvasTests`: the front-end loss route to Present 1400 makes the same snapshot every Present with no canvas, a
+  null canvas and a recording canvas, and two recordings draw the same frames.
+- The Host draws each frame through Godot (`FrontEndView`): meshes under an orthographic camera with retail's state
+  (alpha test at 8, depth LESSEQUAL with writes, source-alpha or additive blend, draw order by render priority). A quad
+  drawn with ZFUNC ALWAYS draws its depth again in a second pass, because OpenGL writes no depth with the test off.
+- `FrontEndRaster` is a software rasterizer of the same frames: a repeatable oracle that runs headless.
+- Long frame names are cut as LoadFrame cuts them (61 characters past the folder), which is how the install stores two
+  of the title's symbols.
+- Measured against the port's back buffer (ae04185f, fe-r1, every 10th Present from 160 to 680; main page, quit box,
+  cursor): mean absolute difference per channel 0.12–0.13 for the oracle and 0.39–0.49 for Godot. 0.10–0.11% of pixels
+  differ by more than 16 in either; the remaining differences are along anti-aliased glyph and sprite edges.
+- Not drawn yet: the intro page (Present 150 differs throughout), the other pages, particles and the level.
+- Font colours are doubled for a plain modulate, as the game does without modulate 2x; a channel can differ where the
+  doubled colour clamps.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):

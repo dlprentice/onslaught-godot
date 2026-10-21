@@ -255,16 +255,31 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// Create's argument.
     /// </summary>
     public void ShowMessage(float x, float y, float width, Func<Text.FrontEndTexts, string> text, uint timeout, uint fadeTime,
-        MessageBoxOption option, int question)
+        MessageBoxOption option, int question, float z = 0.1f)
     {
         if (SmallFont is { } small && NormalFont is { } normal && Texts is { } texts)
-            MessageBox.Create(x, y, width, text(texts), small, normal, timeout, fadeTime, false, option, question);
+            MessageBox.Create(x, y, width, text(texts), small, normal, timeout, fadeTime, false, option, question, z);
         else
             MessageBox.Create(timeout, fadeTime, false, option, question);
     }
 
     /// <summary>The front end's video player, from the host.</summary>
     public IFrontEndVideo? Video { get; set; }
+
+    /// <summary>
+    /// Where the render path draws (<see cref="Flow.Draw.FrontEndDraw"/>), when the host draws the front end; null draws nothing.
+    /// Drawing never changes the simulation: a run draws the same whether this is null, discards or records.
+    /// </summary>
+    public Flow.Draw.FrontEndDraw? Draw { get; set; }
+
+    /// <summary>
+    /// <c>VERSION_MAJOR</c> and <c>VERSION_MINOR</c>: WinMain reads them from the executable's version resource (1.0.0.0 on
+    /// the Steam release's BEA.exe); the main page shows them.
+    /// </summary>
+    public int VersionMajor { get; set; } = 1;
+
+    /// <inheritdoc cref="VersionMajor"/>
+    public int VersionMinor { get; set; }
 
     /// <summary><c>gAllCheatsEnabled</c> (00679ec1), which the game sets: every cheat counts as active.</summary>
     public bool AllCheatsEnabled { get; set; }
@@ -786,11 +801,14 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// <c>CFrontEnd::Render</c> (0x00468200), as far as the flow sees it: the render time; when the scene starts, the
     /// pages' render logic (in a transition the higher-numbered page first, the arriving page at the transition's
     /// fraction and the leaving one at its complement; otherwise the active page at 1), then the message box's (when the
-    /// host supplied the normal font and texts); then one Present. The common page's render is drawing only.
+    /// host supplied the normal font and texts); then one Present. The common page's render is drawing only. With
+    /// <see cref="Draw"/> set, the frame (cleared first, as <c>CDXFrontEnd::RenderStart</c> does) is handed over just
+    /// before its Present.
     /// </summary>
     private bool Render()
     {
         LastRenderTime = Clock.GetSysTimeFloat();
+        Draw?.BeginFrame();
         bool started = BeginScene();
         if (started)
         {
@@ -813,6 +831,7 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
                 }
             }
             else this[ActivePage].RenderPreCommon(1f, FrontEndPage.None);
+            if (Draw is { } draw) RenderCommon(draw, trans);
             if (ActivePage == FrontEndPage.Transition)
             {
                 float back = (float)X87.Sub(1f, trans);
@@ -834,8 +853,27 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
             if (NormalFont is { } normal && Texts is { } texts) MessageBox.Render(normal, texts);
             Particles?.Render();
         }
+        // CFrontEnd::RenderEnd: the cursor, whether or not the scene started.
+        Draw?.DrawMouseCursor(Platform.Mouse.X, Platform.Mouse.Y, Platform.Mouse.CursorAlpha);
+        Draw?.Present(Clock.PresentCount + 1);
         Clock.Present();
         return started;
+    }
+
+    /// <summary>
+    /// <c>CFEPCommon::Render</c> (0x00452b70): the two lines across the screen (x 123 down, y 180 across), faint white,
+    /// fading with a transition to or from the load or credits page; not on the intro or load page.
+    /// </summary>
+    private void RenderCommon(Flow.Draw.FrontEndDraw draw, float transition)
+    {
+        uint col = 0x3fffffff;
+        if (ActivePage is FrontEndPage.Intro or FrontEndPage.LoadGame) return;
+        if (TransitionTo is FrontEndPage.LoadGame or FrontEndPage.Credits)
+            col = ((uint)X87.Fist(X87.Mul(Flow.Draw.FrontEndDraw.RangeTransition(transition, 1f, 0f), 63f)) << 24) | 0xffffff;
+        else if (TransitionFrom is FrontEndPage.LoadGame or FrontEndPage.Credits)
+            col = ((uint)X87.Fist(X87.Mul(transition < 0f ? 0f : transition > 1f ? 1f : transition, 63f)) << 24) | 0xffffff;
+        draw.DrawLine(123f, 0f, 123f, Flow.Draw.FrontEndDraw.WindowHeight, col, 1f, 0.95f, 1f);
+        draw.DrawLine(0f, 180f, Flow.Draw.FrontEndDraw.WindowWidth, 180f, col, 1f, 0.95f, 1f);
     }
 
     /// <summary><c>CFrontEnd::GetCursorStateInRect</c> (0x004693d0): the cursor moved this frame and is inside.</summary>

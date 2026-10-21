@@ -69,6 +69,9 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
 
     private int _finalChoice = -1;
 
+    /// <summary><c>mAlpha</c>: the box's fade, which only its drawing reads.</summary>
+    public int Alpha { get; private set; }
+
     public bool IsInteractive => BeingDisplayed && Option != MessageBoxOption.None;
 
     /// <summary><c>CFEMessBox::Create</c> (0x0044d390): ignored while a box is displayed. A fade time of 0 shows it at once.</summary>
@@ -87,14 +90,22 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
         Time = 0f;
         FadeCount = 0f;
         FadeState = 0;
-        if (fadeTime == 0) FadeState = 1;
+        if (fadeTime == 0)
+        {
+            FadeState = 1;
+            Alpha = 0xff;
+        }
         if (ClosesOnProgress) Option = MessageBoxOption.None;
         else if (option == MessageBoxOption.YesNo) Cursor = 0;
         BeingDisplayed = true;
     }
 
-    /// <summary>The layout of a box created with its text: centre, width, wrapped lines, line height and height.</summary>
-    public sealed record Layout(float X, float Y, float Width, IReadOnlyList<string> Lines, int LineHeight, float Height);
+    /// <summary>
+    /// The layout of a box created with its text: centre, width, wrapped lines, line height and height; the depth it is
+    /// drawn at and the font its lines are drawn in.
+    /// </summary>
+    public sealed record Layout(float X, float Y, float Width, IReadOnlyList<string> Lines, int LineHeight, float Height,
+        float Z = 0.1f, Text.BitmapFont? Font = null);
 
     /// <summary>The current box's layout, or null when it was created without one (its render then takes no clicks).</summary>
     public Layout? BoxLayout { get; private set; }
@@ -105,7 +116,7 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
     /// two for yes and no, or 32 for a progress box.
     /// </summary>
     public void Create(float x, float y, float width, string text, Text.BitmapFont font, Text.BitmapFont normalFont,
-        uint timeout, uint fadeTime, bool closesOnProgress, MessageBoxOption option, int question)
+        uint timeout, uint fadeTime, bool closesOnProgress, MessageBoxOption option, int question, float z = 0.1f)
     {
         if (BeingDisplayed) return;
         Create(timeout, fadeTime, closesOnProgress, option, question);
@@ -116,7 +127,7 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
         if (closesOnProgress) height = (float)X87.Add(height, 32f);
         else if (option is MessageBoxOption.Ok or MessageBoxOption.AContinue) height = (float)X87.Add(height, normalFont.Height);
         else if (option == MessageBoxOption.YesNo) height = (float)X87.Add(height, normalFont.Height * 2);
-        BoxLayout = new Layout(x, y, width, lines, lineHeight, height);
+        BoxLayout = new Layout(x, y, width, lines, lineHeight, height, z, font);
     }
 
     public void Kill() => BeingDisplayed = false;
@@ -131,24 +142,52 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
     public void Render(Text.BitmapFont normalFont, Text.FrontEndTexts texts)
     {
         if (!BeingDisplayed || BoxLayout is not { } layout) return;
+        Draw.FrontEndDraw? draw = frontEnd.Draw;
         Platform.PlatformInput platform = frontEnd.Platform;
         float halfWidth = (float)X87.Mul(layout.Width, 0.5f), halfHeight = (float)X87.Mul(layout.Height, 0.5f);
         float left = (float)X87.Sub(layout.X, halfWidth), right = (float)X87.Add(layout.X, halfWidth);
         float top = (float)X87.Sub(layout.Y, halfHeight), bottom = (float)X87.Add(layout.Y, halfHeight);
+        uint back = Faded(0xaf000000), text = Faded(0xffffffff), grey = Faded(0xff7f7f7f), highlight = Faded(0xaf40ff40);
+        var normal = new Draw.QuadTexture(Draw.CanvasTextureKind.NormalFont);
+        draw?.DrawPanel(left, top, right, bottom, layout.Z, back);
         if ((Option is MessageBoxOption.Ok or MessageBoxOption.AContinue or (MessageBoxOption)4)
             && platform.Mouse.ClickedInRect(left, top, right, bottom, platform.KeyTrap))
             ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+        if (draw is not null)
+        {
+            draw.DrawBox(left, top, right, bottom, grey, 2f, layout.Z);
+            if (layout.Font is { } font)
+            {
+                var kind = new Draw.QuadTexture(ReferenceEquals(font, frontEnd.NormalFont) ? Draw.CanvasTextureKind.NormalFont : Draw.CanvasTextureKind.SmallFont);
+                for (int c0 = 0; c0 < layout.Lines.Count; c0++)
+                {
+                    int cx = font.GetTextExtent(layout.Lines[c0]).Width;
+                    draw.DrawTextWithShadow(font, kind, layout.X - cx / 2, layout.LineHeight * c0 + top + 8f, text, layout.Lines[c0]);
+                }
+            }
+        }
         if (ClosesOnProgress) return;
         switch (Option)
         {
             case MessageBoxOption.Ok:
             case MessageBoxOption.AContinue:
-                texts.GetText(Text.FrontEndText.Ok);
-                texts.GetText(Text.FrontEndText.Ok);
+            {
+                string ok = texts.GetText(Text.FrontEndText.Ok);
+                (int cx, int cy) = normalFont.GetTextExtent(ok);
+                float bx = layout.X - cx / 2 - 4f, y = layout.LineHeight * layout.Lines.Count + top + 8f;
+                draw?.DrawPanel(bx, y, bx + cx + 8f, y + cy, layout.Z, highlight);
+                draw?.DrawTextWithShadow(normalFont, normal, layout.X - cx / 2, y, text, texts.GetText(Text.FrontEndText.Ok));
                 break;
+            }
             case MessageBoxOption.YesNo:
             {
-                int rowHeight = normalFont.GetTextExtent(texts.GetText(Cursor != 0 ? Text.FrontEndText.Yes : Text.FrontEndText.No)).Height;
+                (int sx, int rowHeight) = normalFont.GetTextExtent(texts.GetText(Cursor != 0 ? Text.FrontEndText.Yes : Text.FrontEndText.No));
+                if (draw is not null)
+                {
+                    float bx = layout.X - sx / 2 - 4f;
+                    float hy = (float)X87.Add(X87.Add(X87.Add((1 - Cursor) * rowHeight, layout.LineHeight * layout.Lines.Count), top), 8f);
+                    draw.DrawPanel(bx, hy, bx + sx + 8f, hy + rowHeight, layout.Z, highlight);
+                }
                 for (int c0 = 0; c0 < 2; c0++)
                 {
                     // x87: the int products, then the adds rounded to 24 bits (0044da24, 0044da97, 0044dc27).
@@ -168,14 +207,22 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
                         break;
                     }
                 }
-                texts.GetText(Text.FrontEndText.Yes);
-                texts.GetText(Text.FrontEndText.Yes);
-                texts.GetText(Text.FrontEndText.No);
-                texts.GetText(Text.FrontEndText.No);
+                string yes = texts.GetText(Text.FrontEndText.Yes);
+                int yesWidth = normalFont.GetTextExtent(yes).Width;
+                string yesText = texts.GetText(Text.FrontEndText.Yes);
+                draw?.DrawTextWithShadow(normalFont, normal, layout.X - yesWidth / 2, layout.LineHeight * layout.Lines.Count + top + 8f, text, yesText);
+                string no = texts.GetText(Text.FrontEndText.No);
+                (int noWidth, int noHeight) = normalFont.GetTextExtent(no);
+                string noText = texts.GetText(Text.FrontEndText.No);
+                draw?.DrawTextWithShadow(normalFont, normal, layout.X - noWidth / 2,
+                    (float)X87.Add(X87.Add(X87.Add(layout.LineHeight * layout.Lines.Count, noHeight), top), 8f), text, noText);
                 break;
             }
         }
     }
+
+    // The box's colours at its fade: the alpha scaled by mAlpha / 256 (ScaledAlphaBits), the colour kept.
+    private uint Faded(uint col) => unchecked(((col >> 24) * (uint)Alpha & 0xffffff00) * 0x10000) | (col & 0x00ffffff);
 
     /// <summary>
     /// <c>CFEMessBox::Init</c> (0x0044d320), at each front-end start: no cursor or choice, times and fades zeroed, not
@@ -227,11 +274,17 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
             case 0:
                 FadeCount = (float)X87.Add(FadeCount, X87.Mul(frontEnd.Timing.FrameStep, 50f));
                 if (FadeCount >= FadeTime) FadeState = 1;
+                Alpha = Draw.FrontEndDraw.MakeAlpha((float)X87.Div(FadeCount, FadeTime));
                 break;
             case 1:
                 if (ClosesOnProgress)
                 {
-                    if (Progress >= 1f) FadeState = 2;
+                    if (Progress >= 1f)
+                    {
+                        FadeState = 2;
+                        Alpha = 0xff;
+                        break;
+                    }
                 }
                 else if (Option == MessageBoxOption.None)
                 {
@@ -243,6 +296,7 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
                         OnDismissPage = FrontEndPage.None;
                     }
                 }
+                Alpha = 0xff;
                 break;
             case 2:
                 FadeCount = (float)X87.Add(FadeCount, 1.0);
@@ -250,7 +304,9 @@ public sealed class FrontEndMessageBox(FrontEnd frontEnd) : IFrontEndMessageBox
                 {
                     FadeState = 0;
                     BeingDisplayed = false;
+                    break;
                 }
+                Alpha = Draw.FrontEndDraw.MakeAlpha((float)X87.Sub(1f, X87.Div(FadeCount, FadeTime)));
                 break;
         }
     }
