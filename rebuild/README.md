@@ -1,12 +1,38 @@
 # Onslaught Rebuild
 
 Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
-Last updated: 2026-10-15 (reactivated; new parity core and retail tape harness; OnslaughtRebuild.Host as the successor host; the sections after the proof-of-concept one describe the earlier fixed-point rebuild)
+Last updated: 2026-10-21 (working lane section: integration branch, internal-disk clone and the Parity suite's reference environment; the earlier fixed-point rebuild's section relabelled as history)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
 thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 "1:1 parity" means operationally and what is currently graded.
+
+## Working lane
+
+- Integration branch: `codex/rebuild-takeover-20261017` (merged into `main` when its gate passes).
+- Work in the internal-disk clone `$SCRATCH`, or in a worktree of it. The familiar
+  checkout `~/Projects/game-dev/Onslaught-Career-Editor` lives on Archive B (a USB drive): builds, test runs and
+  captures never run there.
+- The Parity suite compares the simulation with recorded retail and native-port references. Set the reference
+  environment, then run the suite and build the Host from the clone root:
+
+```bash
+export ONSLAUGHT_PORT_REFS=$SCRATCH
+export ONSLAUGHT_PORT_CRT=$SCRATCH
+export ONSLAUGHT_PORT_LOGS=$SCRATCH
+export ONSLAUGHT_RETAIL_ORACLE="$PWD/local-data/test-runs/death-integration-20261019/oracle-view"
+export ONSLAUGHT_RETAIL_GOLDEN=$SCRATCH
+export ONSLAUGHT_GOLDEN_VDS=$SCRATCH
+export ONSLAUGHT_BEOBJ_VDS=$SCRATCH
+dotnet test rebuild/OnslaughtRebuild.Parity.Tests --logger 'console;verbosity=normal'
+dotnet build rebuild/OnslaughtRebuild.Host
+npm run -s test:docs && npm run -s test:safety
+```
+
+A missing reference, an empty selection or a new skip is not a pass; plain `npm test` is not this suite. The
+references live in machine-local scratch, not in the repository; [PARITY.md](PARITY.md) records what each
+measurement covers and what remains open.
 
 ## Proof of concept (2026-10-15)
 
@@ -56,7 +82,9 @@ box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
 `OnslaughtRebuild.Host` is the successor host: a Godot 4.8 .NET project, built in code, that runs the parity core and
 draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which retires (with Core and Client's
 earlier simulation, if nothing else needs them) in one cleanup commit once this host carries level 100 and the front
-end; until then pieces are copied over only as needed, noting their origin. Today it renders one level-100 Present:
+end; until then pieces are copied over only as needed, noting their origin. By default it renders one level-100
+Present; an experimental live mode (`HOST_LIVE=1`, with `HOST_TAPE` and `HOST_TRACE`) runs level 100 from the parity
+core with ordinary input, as [PARITY.md](PARITY.md) records. A single Present:
 
 ```bash
 cd rebuild/OnslaughtRebuild.Host
@@ -76,10 +104,11 @@ local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is commi
 at its motion controller's bones (CMCMech, in the parity core). Particles are the parity core's (the particle system is deterministic and shares the CRT rand stream with the simulation); the host draws their sprites as retail's RenderSprites builds them (the sun sprite among them). Not drawn yet: the landscape's geometry levels of detail, particle trails and meshes, and the HUD. Diagnostics:
 `HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
 
-## The earlier rebuild (parked state, 2026-09-26)
+## The earlier rebuild (history)
 
-David parked this lane on 2026-10-15. The faithful cross-platform game is now a native source port of the
-byte-matching decompilation (private bea-decomp); a future remake would fork that port. The code here is the state
+History: on 2026-10-15 David first parked the fixed-point rebuild in favour of the native source port of the
+byte-matching decompilation (private bea-decomp), then reactivated the lane the same day as the parity-core proof of
+concept above. The fixed-point code described from here on is the state
 at the old tag archive/godot-rebuild-20260926 (kept in the private RE archive since the history flatten): C# only and built in code, Level 100 winnable through the player-input
 surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in the Godot
 host). Its retail-data decoders, determinism notes and RE contract citations remain useful reference; the sections
