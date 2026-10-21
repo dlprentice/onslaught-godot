@@ -69,6 +69,19 @@ public sealed class FrontEndTexts(TextDatabase database, TextIds ids, PlatformIn
     /// <summary><c>sShowEnglish</c> (00679b88).</summary>
     public bool ShowEnglish { get; private set; }
 
+    /// <summary>
+    /// <c>FET.GetText</c> for a front-end text named by its text.stf name (the FEX_ cases that read <c>FETX_</c> names this
+    /// enum does not list): the X key is read first, as every call does. The English fallback is only available for the
+    /// texts <see cref="FrontEndText"/> lists.
+    /// </summary>
+    public string GetTextByName(string name)
+    {
+        if (platform.KeyOnce(Dik.X)) ShowEnglish = !ShowEnglish;
+        if (ShowEnglish)
+            throw new NotSupportedException($"The English fallback of {name} (GetAsciiText) is not carried for texts named only in text.stf.");
+        return database.GetStringById(ids[name]);
+    }
+
     public string GetText(FrontEndText text)
     {
         if (platform.KeyOnce(Dik.X)) ShowEnglish = !ShowEnglish;
