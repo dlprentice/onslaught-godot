@@ -109,7 +109,7 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
     /// defaultoptions.bea, and the 18 owner types whose spatial state is their position with zero sound velocity. These
     /// are measured process inputs, not universal retail device defaults.
     /// </summary>
-    private static VirtualSoundProcessOptions SoundProfile(string path)
+    internal static VirtualSoundProcessOptions SoundProfile(string path)
     {
         byte[] profileBytes = File.ReadAllBytes(path);
         Assert.Equal("e4b10a4d8b8d0b61140c2e97ac3b1ecfbe92b9caa74f42362bba20925840d009", Convert.ToHexString(SHA256.HashData(profileBytes)).ToLowerInvariant());

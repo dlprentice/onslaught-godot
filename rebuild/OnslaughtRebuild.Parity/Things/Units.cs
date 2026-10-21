@@ -635,9 +635,98 @@ public sealed class SimpleBuilding(ThingContext context) : Unit(context)
 /// <summary>CAirUnit: a flying unit.</summary>
 public abstract class AirUnit(ThingContext context) : Unit(context)
 {
-    /// <summary>CAirUnit::StartDieProcess (00403690): the class's death; not ported yet.</summary>
-    public override bool StartDieProcess() =>
-        IsDying ? false : throw new NotSupportedException("CAirUnit::StartDieProcess (00403690) is not ported");
+    /// <summary>
+    /// CAirUnit::StartDieProcess (00403690): CUnit's death, its children released (killed, as it is dying), and its trails'
+    /// and engines' links stopped and deleted.
+    /// </summary>
+    public override bool StartDieProcess()
+    {
+        if (!base.StartDieProcess())
+        {
+            return false;
+        }
+
+        if (UnitData?.Components.Count > 0)
+        {
+            throw new NotSupportedException("CUnit::ReleaseChildren (a unit's components) is not ported");
+        }
+
+        foreach (List<ParticleEffectLink> links in new[] { Trails, Engines })
+        {
+            foreach (ParticleEffectLink link in links)
+            {
+                link.Stop(false);
+                link.Release();
+            }
+
+            links.Clear();
+        }
+
+        return true;
+    }
+
+    /// <summary>mUnknown258 (+0x258): the "Smoke" emitter a dying aircraft trails smoke from (0: none yet).</summary>
+    public int Unknown258;
+
+    /// <summary>
+    /// CAirUnit::Damage (004037a0): CUnit's, then once it is dying (and not yet shut down) its smoke starts at one of its
+    /// "Smoke" emitters: the only one, or one drawn from the rest by GAME.Random(); the player's shots make the effect an
+    /// important one.
+    /// </summary>
+    public override void Damage(float amount, Thing? byThis, bool damageShields = true, int meshPart = -1)
+    {
+        base.Damage(amount, byThis, damageShields, meshPart);
+        if (Life < 0 && (Flags & ThingFlags.DeclaredShutdown) == 0 && Unknown258 == 0)
+        {
+            Unknown258 = 0;
+            var smoke = Context.FindParticle(UnitData!.EffectNames[4]);
+            if (smoke is not null)
+            {
+                bool important = byThis is Round round && round.Launcher.ToRead is { } launcher && launcher.IsA(ThingType.BattleEngine);
+                int n = 1;
+                GetEmitter(25, n, out FVector pos, out FMatrix _);
+                while (pos.X != 0 || pos.Y != 0 || pos.Z != 0)
+                {
+                    GetEmitter(25, ++n, out pos, out FMatrix _);
+                }
+
+                n--;
+                if (n != 0)
+                {
+                    Unknown258 = n == 1 ? n : (Context.Random.Random() % (n - 1)) + 1;
+                    GetEmitter(25, Unknown258, out pos, out FMatrix _);
+                    if ((pos.X != 0 || pos.Y != 0 || pos.Z != 0) && Effect is not null && Context.Particles is { } particles)
+                    {
+                        Effect.Effect = null;
+                        particles.Manager.CreateEffect(smoke, Effect, new FVector(0, 0, 0), false, important);
+                        Effect.SetPos(pos);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>CAirUnit::DeclareOnGround (00403730): a dying aircraft explodes where it lands (unless mUnknown11C).</summary>
+    public override void DeclareOnGround()
+    {
+        base.DeclareOnGround();
+        if (IsDying && UnitData!.Retreat == 0)
+        {
+            SpawnUnitExplosion();
+            AddShutdownEvent();
+        }
+    }
+
+    /// <summary>CAirUnit::DeclareInWater (00403760): a dying aircraft explodes in the water (unless mUnknown11C or big).</summary>
+    public override void DeclareInWater()
+    {
+        base.DeclareInWater();
+        if (IsDying && UnitData!.Retreat == 0 && UnitData.Big == 0)
+        {
+            SpawnUnitExplosion();
+            AddShutdownEvent();
+        }
+    }
 
     /// <summary>
     /// CAirUnit::Move (00402fa0): a dying aircraft tumbles; the guide's thrust and gravity join the velocity; a big unit
@@ -741,9 +830,20 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
             }
         }
 
+        // Dying: it explodes once it has taken its unit data's life again in damage, and trails smoke meanwhile.
         if (Life < 0)
         {
-            throw new NotSupportedException("CAirUnit::Move's dying explosion and smoke are not ported");
+            if (-UnitData!.Life > Life && UnitData.Retreat == 0)
+            {
+                SpawnUnitExplosion();
+                AddShutdownEvent();
+            }
+
+            if (Unknown258 != 0 && (Flags & ThingFlags.DeclaredShutdown) == 0)
+            {
+                GetEmitter(25, Unknown258, out FVector smokePos, out FMatrix _);
+                Effect?.SetPos(smokePos);
+            }
         }
     }
 
@@ -875,12 +975,20 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
             if ((!other.IsA(ThingType.AirUnit) || other.IsA(ThingType.BattleEngine) || ((Unit)other).Allegiance != Allegiance)
                 && (other.IsA(ThingType.Unit) || other.IsA(ThingType.Tree | ThingType.CanBeWalkedOn)))
             {
-                throw new NotSupportedException("CPlane::Hit: a crash (ConfirmedKill, SpawnExplosion) is not ported");
+                if (other is Unit victim)
+                {
+                    victim.ConfirmedKill(this);
+                }
+
+                SpawnUnitExplosion();
+                AddShutdownEvent();
             }
 
+            // CSmallAirUnit::Hit: a dying aircraft explodes on what it flies into (after CPlane's, so both can explode).
             if (IsDying && (other.IsA(ThingType.Unit) || other.IsA(ThingType.Tree | ThingType.CanBeWalkedOn)))
             {
-                throw new NotSupportedException("CSmallAirUnit::Hit: a dying aircraft's crash (SpawnExplosion) is not ported");
+                SpawnUnitExplosion();
+                AddShutdownEvent();
             }
         }
 
@@ -918,6 +1026,28 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
 
     public override float Gravity() => IsDying ? 0.025f : 0.0f;
 
+    /// <summary>CPlane::DeclareOnGround (004d20a0): CAirUnit's, then without "Retreat" any plane that touches the ground dies.</summary>
+    public override void DeclareOnGround()
+    {
+        base.DeclareOnGround();
+        if (UnitData!.Retreat == 0)
+        {
+            SpawnUnitExplosion();
+            AddShutdownEvent();
+        }
+    }
+
+    /// <summary>CPlane::DeclareInWater (0047bf60, folded): CAirUnit's, then a plane in the water dies (unless retreating or big).</summary>
+    public override void DeclareInWater()
+    {
+        base.DeclareInWater();
+        if (UnitData!.Retreat == 0 && UnitData.Big == 0)
+        {
+            SpawnUnitExplosion();
+            AddShutdownEvent();
+        }
+    }
+
     /// <summary>CPlane::Stop (00422750): only the guide stops (the plane keeps flying).</summary>
     public override void Stop() => Guide?.Stop();
 
@@ -930,14 +1060,31 @@ public sealed partial class Plane(ThingContext context) : AirUnit(context)
     {
         if (IsDying)
         {
-            throw new NotSupportedException("CPlane::Move's death roll is not ported");
+            // The death roll: rolling one way (DeathRoll) and nosing straight down. Retail wraps with `roll < PI`, not
+            // `-PI`, so any roll up to PI gains 2 PI.
+            const float Pi = 3.14159265f;
+            Unknown12C.Roll = 0.2f;
+            float roll = DeathRoll + CurrentOrientation.Roll;
+            if (roll > Pi)
+            {
+                roll -= Pi * 2;
+            }
+            else if (roll < Pi)
+            {
+                roll += Pi * 2;
+            }
+
+            Unknown120.Roll = roll;
+            Unknown120.Pitch = Pi / 2;
         }
-
-        UpdateLaunchThrusters();
-
-        if (AI!.AIMode != 2 && WingState == 0)
+        else
         {
-            WingState = 1;
+            UpdateLaunchThrusters();
+
+            if (AI!.AIMode != 2 && WingState == 0)
+            {
+                WingState = 1;
+            }
         }
 
         base.Move();
