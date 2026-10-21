@@ -74,6 +74,9 @@ public sealed class MachineDisplay(Platform.DisplayReset reset)
     /// <summary>LT.mJoypads.</summary>
     public int Joypads { get; init; }
 
+    /// <summary>LT.mUnknown33474[MAX_JOYPADS]: whether each joystick is used (TRUE for each pad at start).</summary>
+    public bool[] JoystickInUse { get; } = [true, true, true, true];
+
     /// <summary>The process-wide request; this is the clock's owner, not a menu-local copy.</summary>
     public Platform.DisplayReset Reset { get; } = reset;
 

@@ -61,12 +61,23 @@ public sealed class JoystickEnableMenuItem(IMenuHost host, int joystick) : MenuI
     /// <summary>GetText (004d0310), as drawing reaches it: enabled when LT has the joystick.</summary>
     public override void Render(bool selected) => Enabled = Joystick < host.Machine.Joypads;
 
-    /// <summary>ReceiveButtonAction (004d0410): a joystick taken in or out, then the controls preset again.</summary>
+    /// <summary>
+    /// ReceiveButtonAction (004d0410, PauseMenu.cpp:1374): a joystick taken in or out (a joystick taken out loses its
+    /// joystick inputs), then the controls preset again. The item is enabled only for a joystick the machine has, so the
+    /// harness (no joysticks) never reaches it; the preset's joystick branches are not ported, so a preset applied while
+    /// a present joystick is in use stops the run.
+    /// </summary>
     public override void ReceiveButtonAction(int button, float value)
     {
         if (button == FrontEndButtons.MenuSelect)
         {
-            throw new NotSupportedException("CJoystickEnableItem: the joysticks (LT.mUnknown33474) are not ported");
+            OptionSettings.ToggleJoystick(host.Machine, host.Bindings, Joystick);
+            if (Enumerable.Range(0, Math.Min(host.Machine.Joypads, host.Machine.JoystickInUse.Length)).Any(j => host.Machine.JoystickInUse[j]))
+            {
+                throw new NotSupportedException("ApplyControlPreset with a joystick in use: the preset's joystick branches are not ported");
+            }
+
+            OptionSettings.ApplyControlPreset(host, host.Options.ControlPreset);
         }
     }
 }
@@ -95,6 +106,32 @@ public static class OptionSettings
     {
         host.Bindings.ApplyPreset(preset);
         host.Options = host.Options with { ControlPreset = (short)preset };
+    }
+
+    /// <summary>
+    /// CJoystickEnableItem's toggle (004d0410): LT.mUnknown33474[joystick] flips; taken out, every binding input on that
+    /// pad of a joystick type (BUTTON_ON .. ANALOGUE_MINUS_ACT_AS_BUTTON_REPEAT: buttons and axes, not keys or the mouse) loses
+    /// its pad.
+    /// </summary>
+    public static void ToggleJoystick(MachineDisplay machine, ControlBindings bindings, int joystick)
+    {
+        machine.JoystickInUse[joystick] = !machine.JoystickInUse[joystick];
+        if (machine.JoystickInUse[joystick])
+        {
+            return;
+        }
+
+        for (int b = 0; bindings.Id(b) != -1; b++)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                if (bindings.InputPad(b, i) == joystick && bindings.InputType(b, i) >= PushType.ButtonOn
+                    && bindings.InputType(b, i) <= PushType.AnalogueMinusActAsButtonRepeat)
+                {
+                    bindings.SetInputPad(b, i, -1);
+                }
+            }
+        }
     }
 
     /// <summary>CRTMesh::GetQualityLevel (004dd770): by TREE_MESH_DISTANCE.</summary>

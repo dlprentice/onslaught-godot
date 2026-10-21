@@ -173,6 +173,7 @@ public sealed class ControlBindings
     public int Id(int binding) => BinaryPrimitives.ReadInt32LittleEndian(_records[binding].AsSpan(4));
     public int InputPad(int binding, int input) => BinaryPrimitives.ReadInt32LittleEndian(_records[binding].AsSpan(8 + 12 * input));
     public PushType InputType(int binding, int input) => (PushType)BinaryPrimitives.ReadInt32LittleEndian(_records[binding].AsSpan(12 + 12 * input));
+    public void SetInputPad(int binding, int input, int pad) => BinaryPrimitives.WriteInt32LittleEndian(_records[binding].AsSpan(8 + 12 * input), pad);
     public short InputKey(int binding, int input) => BinaryPrimitives.ReadInt16LittleEndian(_records[binding].AsSpan(16 + 12 * input));
     public short InputVirtualKey(int binding, int input) => BinaryPrimitives.ReadInt16LittleEndian(_records[binding].AsSpan(18 + 12 * input));
 
