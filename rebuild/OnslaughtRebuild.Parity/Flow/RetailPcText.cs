@@ -3,14 +3,14 @@
 using System.Buffers.Binary;
 using System.Text;
 
-namespace OnslaughtRebuild.Parity.Tests.Flow;
+namespace OnslaughtRebuild.Parity.Flow;
 
 /// <summary>
-/// The test host's PC texts: <c>Localization_GetStringById</c> (0x00524830) read from the player's own BEA.exe, so no
+/// The hosts' PC texts: <c>Localization_GetStringById</c> (0x00524830) read from the player's own BEA.exe, so no
 /// program string is carried in source. The function switches on the language (a jump table at 0x00526098), then on the
 /// id (<c>cmp eax, max; ja; jmp [eax*4 + table]</c>); each case is <c>mov eax, string; ret</c>.
 /// </summary>
-internal sealed class RetailPcText(byte[] exe, int language)
+public sealed class RetailPcText(byte[] exe, int language)
 {
     private const uint LanguageTable = 0x00526098;
 

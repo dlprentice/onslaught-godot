@@ -214,6 +214,12 @@ public partial class Host
 
     public override void _Input(InputEvent @event)
     {
+        if (_flowMode)
+        {
+            InputFlow(@event);
+            return;
+        }
+
         if (_liveMode && !_liveReplay && _liveStop is null && _liveFocused && _liveInput is { } adapter
             && _liveSession is { } session && adapter.Observe(@event, menuNavigationEnabled: !session.Game.Paused))
         {
@@ -456,6 +462,16 @@ public partial class Host
 
     public override void _ExitTree()
     {
+        if (_flowMode)
+        {
+            if (_flowRun is not null)
+            {
+                FinishFlow();
+            }
+
+            return;
+        }
+
         if (!_liveMode || _liveDisposed)
         {
             return;

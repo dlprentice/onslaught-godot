@@ -25,6 +25,20 @@ public partial class Host : Node
 
     public override void _Ready()
     {
+        if (System.Environment.GetEnvironmentVariable("HOST_LIVE") == "flow")
+        {
+            try
+            {
+                ReadyFlow();
+            }
+            catch (Exception e)
+            {
+                GD.PrintErr($"HOST_FLOW_ERROR: {e}");
+                GetTree().Quit(1);
+            }
+            return;
+        }
+
         if (System.Environment.GetEnvironmentVariable("HOST_LIVE") == "1")
         {
             try
@@ -197,6 +211,12 @@ public partial class Host : Node
 
     public override void _Process(double delta)
     {
+        if (_flowMode)
+        {
+            ProcessFlow(delta);
+            return;
+        }
+
         if (_liveMode)
         {
             try
