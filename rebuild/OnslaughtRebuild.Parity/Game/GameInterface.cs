@@ -86,8 +86,7 @@ public sealed class GameInterface : IButtonReceiver
 
             ShowJoypad = false;
 
-            // GetCursorPos's answer is the system cursor's, which the window's last mouse position stands for here.
-            _mouse.Shutdown(_windowMouse.X, _windowMouse.Y);
+            _mouse.Shutdown(_windowMouse.SystemCursor.X, _windowMouse.SystemCursor.Y);
         }
         else
         {

@@ -526,8 +526,10 @@ Slice 3 (2026-10-21): the front end's other pages draw.
   - the configuration page's 3D Battle Engine;
   - front-end particles (the main page's fireworks, the debriefing's);
   - the controls page's key list (debug font, Windows key names).
-- Open, the cursor after a level: `ShutdownMouse` takes `GetCursorPos`, the system cursor, which no tape records. The
-  port answers (0, 0) offscreen, while Parity uses the window's last position (320, 240).
+- The cursor after a level: `ShutdownMouse` takes `GetCursorPos`, the system cursor, which no tape records. It is now a
+  platform input (`Mouse.SystemCursor`), machine state like the clock, defaulting to the port harness's offscreen answer
+  (0, 0); the debriefing then matches the port at 0.11. Open: what retail's harness (Wine on the same Xvfb) answers,
+  which the next retail pair can log.
 
 Slice 4 (2026-10-21, groundwork): the level inside the flow.
 - `SteppedGameRun.Inspect` is the host's one way into the run's objects. It runs only while the run's thread is parked

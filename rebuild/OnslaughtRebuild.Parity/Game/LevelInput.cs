@@ -170,8 +170,7 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
         Flow.Menus.PauseMenu menu = PauseMenu ?? throw new InvalidOperationException("no pause menu (CreatePauseMenu)");
         menu.Activate(true);
 
-        // GetCursorPos's answer is the system cursor's, which the window's last mouse position stands for here.
-        Mouse.Shutdown(Input.Mouse.X, Input.Mouse.Y);
+        Mouse.Shutdown(Input.Mouse.SystemCursor.X, Input.Mouse.SystemCursor.Y);
         from.SetToControl(menu);
     }
 
