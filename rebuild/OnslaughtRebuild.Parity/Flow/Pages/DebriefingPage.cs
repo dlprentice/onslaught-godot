@@ -183,28 +183,31 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
 
         frontEnd.RenderHelpArrow(4, dest == FrontEndPage.LevelSelect ? transition : Fade);
 
-        if (draw is not null) DrawResults(draw, transition, dest);
+        RenderResults(draw, transition, dest);
 
         if (transition == 1f && !frontEnd.MessageBox.IsInteractive)
             frontEnd.ProcessMouseClickInRect(0f, 0f, 640f, 480f, FrontEndButtons.MenuSelect);
 
-        // FET.GetText(FEX_DEBRIEFING), read by its id (see DrawResults).
-        if (draw is not null && frontEnd.Texts is { } texts) frontEnd.DrawTitleBar(texts.ById(texts.Ids["FETX_DEBRIEFING"]), transition, dest);
+        // The title is read whether or not it is drawn (each read checks the X key).
+        if (frontEnd.Texts is { } texts) frontEnd.DrawTitleBar(texts.GetTextByName("FETX_DEBRIEFING"), transition, dest);
     }
 
     /// <summary>
     /// The results: the level's name (normal font), the mission status and the primary and secondary objectives (small
-    /// font, each label followed by its result in red, green or grey), then a won level's grade. Retail reads the labels
-    /// and results with <c>FET.GetText</c> and the grade's clock with <c>PLATFORM.GetSysTimeFloat</c>; drawing must not
-    /// change the simulation, so the texts are read by their ids (as GetText does with the English fallback off) and the
-    /// clock is the one the frame's render started with.
+    /// font, each label followed by its result in red, green or grey), then a won level's grade. The labels' and
+    /// results' <c>FET.GetText</c> calls (each checks the X key) and a won level's clock read are made whether or not
+    /// anything is drawn, in retail's order and under its conditions; the level's name (<c>GetLevelName</c>, from the
+    /// language file) has no side effect and is read only to be drawn.
     /// </summary>
-    private void DrawResults(FrontEndDraw draw, float transition, FrontEndPage dest)
+    private void RenderResults(FrontEndDraw? draw, float transition, FrontEndPage dest)
     {
-        if (frontEnd.NormalFont is not { } normal || frontEnd.SmallFont is not { } small || frontEnd.Texts is not { } texts) return;
+        if (frontEnd.Texts is not { } texts) return;
+        // Drawing needs both fonts.
+        if (frontEnd.NormalFont is null || frontEnd.SmallFont is null) draw = null;
+        Text.BitmapFont? normalFont = draw is null ? null : frontEnd.NormalFont;
+        Text.BitmapFont? smallFont = draw is null ? null : frontEnd.SmallFont;
         var normalKind = CanvasTextureKind.NormalFont;
         var smallKind = CanvasTextureKind.SmallFont;
-        string Fet(string name) => texts.ById(name == "FETX_PRIMARY_OBJECTIVES" ? PrimaryObjectivesId : texts.Ids[name]);
         Career.EndLevelData end = frontEnd.EndLevelData;
         // GAME_STATE_LEVEL_LOST and GAME_STATE_LEVEL_WON.
         const int lost = 4, won = 5;
@@ -214,57 +217,64 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
         float off = d * d * -800f;
         int alpha = X87.Fist(tr * 255f);
         uint alphaBits = unchecked((uint)alpha << 24);
-        draw.DrawTextDynamic(normal, normalKind, off + 130f, 149f, 0.1f, 1f, 1f, alphaBits | 0xffffff, LevelName(texts, end.WorldFinished), 1000f);
+        draw?.DrawTextDynamic(normalFont!, normalKind, off + 130f, 149f, 0.1f, 1f, 1f, alphaBits | 0xffffff, LevelName(texts, end.WorldFinished), 1000f);
 
+        // The labels, each read for its width.
+        string statusLabel = texts.GetTextByName("FETX_MISSION_STATUS");
+        string primaryLabel = texts.GetTextByName("FETX_PRIMARY_OBJECTIVES");
+        string secondaryLabel = texts.GetTextByName("FETX_SECONDARY_OBJECTIVES");
         int maxw = -1;
-        maxw = Math.Max(maxw, small.GetTextExtent(Fet("FETX_MISSION_STATUS")).Width);
-        maxw = Math.Max(maxw, small.GetTextExtent(Fet("FETX_PRIMARY_OBJECTIVES")).Width);
-        maxw = Math.Max(maxw, small.GetTextExtent(Fet("FETX_SECONDARY_OBJECTIVES")).Width);
+        if (smallFont is not null)
+        {
+            maxw = Math.Max(maxw, smallFont.GetTextExtent(statusLabel).Width);
+            maxw = Math.Max(maxw, smallFont.GetTextExtent(primaryLabel).Width);
+            maxw = Math.Max(maxw, smallFont.GetTextExtent(secondaryLabel).Width);
+        }
         float tab = maxw + 20f;
 
         // TEXT.GetLanguage(): the front end's text database is the English one (language 0), so the separator is ": ".
         const string separator = ": ";
         uint lcol = alphaBits | 0xffaf3f;
-        draw.DrawTextDynamic(small, smallKind, off + 130f, 184f, 0.1f, 1f, 1f, lcol, Fet("FETX_MISSION_STATUS") + separator, 1000f);
+        string label = texts.GetTextByName("FETX_MISSION_STATUS") + separator;
+        draw?.DrawTextDynamic(smallFont!, smallKind, off + 130f, 184f, 0.1f, 1f, 1f, lcol, label, 1000f);
 
         (string text, uint col) = end.FinalGameState switch
         {
-            lost => (Fet("FETX_DEFEAT"), 0xffff3f1fu),
-            won => (Fet("FETX_VICTORY"), 0xff3fff2fu),
-            _ => (Fet("FETX_ABORTED"), 0xff3f3f3fu),
+            lost => (texts.GetTextByName("FETX_DEFEAT"), 0xffff3f1fu),
+            won => (texts.GetTextByName("FETX_VICTORY"), 0xff3fff2fu),
+            _ => (texts.GetTextByName("FETX_ABORTED"), 0xff3f3f3fu),
         };
-        draw.DrawTextDynamic(small, smallKind, tab + off + 130f, 184f, 0.1f, 1f, 1f, (col & 0xffffff) | alphaBits, text, 1000f);
+        draw?.DrawTextDynamic(smallFont!, smallKind, tab + off + 130f, 184f, 0.1f, 1f, 1f, (col & 0xffffff) | alphaBits, text, 1000f);
 
         float y = 210f;
         int primary = Summary(end.PrimaryObjectives);
         if (end.WorldFinished == 500 && end.FinalGameState == won) primary = 1;
         if (primary != -1)
         {
-            draw.DrawTextDynamic(small, smallKind, off + 130f, y, 0.1f, 1f, 1f, lcol, Fet("FETX_PRIMARY_OBJECTIVES") + separator, 1000f);
-            (text, col) = primary == 1 ? (Fet("FETX_COMPLETE"), 0xff3fff2fu) : (Fet("FETX_INCOMPLETE"), 0xffff3f1fu);
-            draw.DrawTextDynamic(small, smallKind, tab + off + 130f, y, 0.1f, 1f, 1f, (col & 0xffffff) | alphaBits, text, 1000f);
+            label = texts.GetTextByName("FETX_PRIMARY_OBJECTIVES") + separator;
+            draw?.DrawTextDynamic(smallFont!, smallKind, off + 130f, y, 0.1f, 1f, 1f, lcol, label, 1000f);
+            (text, col) = primary == 1 ? (texts.GetTextByName("FETX_COMPLETE"), 0xff3fff2fu) : (texts.GetTextByName("FETX_INCOMPLETE"), 0xffff3f1fu);
+            draw?.DrawTextDynamic(smallFont!, smallKind, tab + off + 130f, y, 0.1f, 1f, 1f, (col & 0xffffff) | alphaBits, text, 1000f);
             y += 16f;
         }
 
         int secondary = Summary(end.SecondaryObjectives);
         if (secondary != -1)
         {
-            draw.DrawTextDynamic(small, smallKind, off + 130f, y, 0.1f, 1f, 1f, lcol, Fet("FETX_SECONDARY_OBJECTIVES") + separator, 1000f);
-            (text, col) = secondary == 1 ? (Fet("FETX_COMPLETE"), 0xff3fff2fu) : (Fet("FETX_INCOMPLETE"), 0xffff3f1fu);
-            draw.DrawTextDynamic(small, smallKind, tab + off + 130f, y, 0.1f, 1f, 1f, (col & 0xffffff) | alphaBits, text, 1000f);
+            label = texts.GetTextByName("FETX_SECONDARY_OBJECTIVES") + separator;
+            draw?.DrawTextDynamic(smallFont!, smallKind, off + 130f, y, 0.1f, 1f, 1f, lcol, label, 1000f);
+            (text, col) = secondary == 1 ? (texts.GetTextByName("FETX_COMPLETE"), 0xff3fff2fu) : (texts.GetTextByName("FETX_INCOMPLETE"), 0xffff3f1fu);
+            draw?.DrawTextDynamic(smallFont!, smallKind, tab + off + 130f, y, 0.1f, 1f, 1f, (col & 0xffffff) | alphaBits, text, 1000f);
         }
 
         if (end.FinalGameState != won) return;
-        int a = DrawGradeBrackets(draw, transition, dest);
-        draw.DrawTextDynamic(normal, normalKind, off + 130f, 295f, 0.1f, 1f, 1f, unchecked((uint)a << 24) | 0xffffff, Fet("FETX_GRADE"), 1000f);
-        DrawGrade(draw, transition, end.Ranking);
+        int a = draw is not null ? DrawGradeBrackets(draw, transition, dest) : 0;
+        string grade = texts.GetTextByName("FETX_GRADE");
+        draw?.DrawTextDynamic(normalFont!, normalKind, off + 130f, 295f, 0.1f, 1f, 1f, unchecked((uint)a << 24) | 0xffffff, grade, 1000f);
+        // The grade's age, read whether or not it is drawn.
+        float t = frontEnd.Clock.GetSysTimeFloat() - StartTime;
+        if (draw is not null) DrawGrade(draw, transition, end.Ranking, t);
     }
-
-    /// <summary>
-    /// FETX_PRIMARY_OBJECTIVES: text.stf defines it as -846478193, and <see cref="Text.TextIds"/> reads only unsigned ids,
-    /// so it is given here as the 32-bit id the game compiles it to.
-    /// </summary>
-    private const uint PrimaryObjectivesId = unchecked((uint)-846478193);
 
     // -1 when no objective of the kind is defined, 1 when all defined are complete, 0 otherwise.
     private static int Summary(Career.ObjectiveState[] objectives)
@@ -358,15 +368,13 @@ public sealed class DebriefingPage(FrontEnd frontEnd) : FrontEndPageBase
     /// with its shadow, drawn over everything; once landed it glints (the scrolling glare, added) for one second in every
     /// four, and while landing a larger copy flashes over it.
     /// </summary>
-    private void DrawGrade(FrontEndDraw draw, float transition, float ranking)
+    private void DrawGrade(FrontEndDraw draw, float transition, float ranking, float t)
     {
         sbyte grade = Career.Career.GradeFromRanking(ranking);
         FrontEndTexture gtex = grade == 'S' ? FrontEndTexture.RankingS : FrontEndTexture.RankingA + (grade - 'A');
         // A won level's ranking is from 0 to 1 (S, A to E); any other grade would index past the ranking textures.
         if (gtex is < FrontEndTexture.RankingS or > FrontEndTexture.RankingE) return;
 
-        // PLATFORM.GetSysTimeFloat(), as the frame's render read it.
-        float t = frontEnd.LastRenderTime - StartTime;
         if (!(t > 1f) || !(transition > 0.75f)) return;
         float s = (0.5f - t + 1f) * 10f;
         float flash = -1f;

@@ -258,53 +258,56 @@ public sealed class DevSelectPage(FrontEnd frontEnd) : FrontEndPageBase
     {
         FrontEndDraw? draw = frontEnd.Draw;
         Text.FrontEndTexts? texts = frontEnd.Texts;
-        // FET.GetText(...): drawing must not change the simulation, so the texts are read by their ids (as GetText does
-        // with the English fallback off).
-        string Fet(Text.FrontEndTexts t, string name) => t.ById(t.Ids[name]);
 
-        if (draw is not null)
-        {
-            frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
-            if (transition > 0f) DrawDevices(draw, transition, dest);
-        }
+        frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+        if (transition > 0f) RenderDevices(draw, transition, dest);
 
         if (Card != -2 || frontEnd.MessageBox.BeingDisplayed) frontEnd.RenderHelpArrow(5, transition);
         if (frontEnd.SuccessPage == FrontEndPage.Debriefing) frontEnd.RenderHelpArrow(3, transition);
         else frontEnd.RenderHelpArrow(frontEnd.SaveMode ? 2 : 1, transition);
 
-        if (draw is null) return;
         float tr = (transition - 0.75f) * 4f;
         tr = tr < 0f ? 0f : tr > 1f ? 1f : tr;
         frontEnd.RenderSmallBEALogo(tr);
 
+        // The title and the help text are read whether or not they are drawn (each read checks the X key); retail reads the
+        // help text twice, once to measure it and once to draw it.
         if (texts is null) return;
-        string title, help;
+        Text.FrontEndText title;
+        string help;
         if (frontEnd.SaveMode)
         {
-            title = frontEnd.Career.Record.CareerInProgress != 0 ? "FETX_SAVEGAME2" : "FETX_SAVENEWGAME2";
+            title = frontEnd.Career.Record.CareerInProgress != 0 ? Text.FrontEndText.SaveGame2 : Text.FrontEndText.SaveNewGame2;
             help = "FETX_SELECTSAVLOC";
         }
         else
         {
-            title = "FETX_LOADGAME2";
+            title = Text.FrontEndText.LoadGame2;
             help = "FETX_SELECTLOADLOC";
         }
-        frontEnd.DrawTitleBar(Fet(texts, title), transition, dest);
+        frontEnd.DrawTitleBar(texts.GetText(title), transition, dest);
 
-        if (frontEnd.SmallFont is not { } small) return;
         int ta = FrontEndDraw.MakeAlpha(tr);
-        string helpText = Fet(texts, help);
-        int cx = small.GetTextExtent(helpText).Width;
+        string measured = texts.GetTextByName(help);
+        string helpText = texts.GetTextByName(help);
+        if (draw is null || frontEnd.SmallFont is not { } small) return;
+        int cx = small.GetTextExtent(measured).Width;
         draw.DrawTextDynamic(small, CanvasTextureKind.SmallFont, 395f - cx * 0.5f, 100f, 0.01f, 1f, 1f, FrontEndDraw.BlendAlpha2(0xff3f3f5f, ta),
             helpText, 1000f);
     }
 
     /// <summary>
-    /// The devices: the hard disk (never on PC) and the cards two to a column, then the "available blocks" label; with the
-    /// hard disk selected its name and free space (never on PC). The selected card's name and sizes are only measured.
+    /// The devices: the hard disk (never on PC) and the cards two to a column, then the "available blocks" label, which
+    /// retail reads twice (to measure it and to draw it) whether or not anything is drawn; each read checks the X key.
+    /// The hard disk's name and free space, shown while it is selected, are left out (the PC has no hard disk device),
+    /// and the selected card's name and sizes are only measured.
     /// </summary>
-    private void DrawDevices(FrontEndDraw draw, float transition, FrontEndPage dest)
+    private void RenderDevices(FrontEndDraw? draw, float transition, FrontEndPage dest)
     {
+        string? measured = frontEnd.Texts?.GetTextByName("FETX_DS_AVAILABLE_BLOCKS_XBOX");
+        string? blocks = frontEnd.Texts?.GetTextByName("FETX_DS_AVAILABLE_BLOCKS_XBOX");
+        if (draw is null) return;
+
         int alpha = FrontEndDraw.MakeAlpha(dest == FrontEndPage.VirtualKeyboard
             ? FrontEndDraw.RangeTransition(transition, 0.5f, 1f)
             : FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
@@ -327,28 +330,13 @@ public sealed class DevSelectPage(FrontEnd frontEnd) : FrontEndPageBase
                 State == 1 && Cursor == i, false, formatted, present);
         }
 
-        if (frontEnd.SmallFont is { } small && frontEnd.Texts is { } texts)
+        if (frontEnd.SmallFont is { } small && measured is not null && blocks is not null)
         {
-            string blocks = texts.ById(AvailableBlocksId);
-            int cx = small.GetTextExtent(blocks).Width;
+            int cx = small.GetTextExtent(measured).Width;
             draw.DrawTextWithShadow(small, new QuadTexture(CanvasTextureKind.SmallFont), 410f - cx - 10f + 100f, 340f,
                 FrontEndDraw.BlendAlpha2(0xff7f7f00, alpha), blocks, 0, 0.79f);
-
-            if (State == 0 && Card0.IsHddAvailable && frontEnd.NormalFont is { } normal)
-            {
-                // The hard disk's free space (MakeHumanReadableSize) is not ported: the PC has no hard disk device.
-                uint col = FrontEndDraw.BlendAlpha2(0xff7f7f7f, alpha);
-                draw.DrawTextWithShadow(normal, new QuadTexture(CanvasTextureKind.NormalFont), 92f, 340f, col,
-                    texts.ById(texts.Ids["FETX_DS_XBOXHARDDISK"]), 0, 0.79f);
-            }
         }
     }
-
-    /// <summary>
-    /// FETX_DS_AVAILABLE_BLOCKS_XBOX: text.stf defines it as -1104069445, and <see cref="Text.TextIds"/> reads only
-    /// unsigned ids, so it is given here as the 32-bit id the game compiles it to.
-    /// </summary>
-    private const uint AvailableBlocksId = unchecked((uint)-1104069445);
 
     /// <summary>
     /// <c>CFEPDevSelect::RenderDevice</c> (0x004595b0): the device's panel (pulsing green when selected, red when a save

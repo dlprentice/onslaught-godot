@@ -173,7 +173,7 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
         else frontEnd.RenderHelpArrow(0, transition);
         frontEnd.RenderHelpArrow(1, transition);
 
-        if (draw is not null) DrawConfiguration(draw, offset);
+        RenderConfiguration(draw, offset);
 
         if (NumConfigs > 1)
         {
@@ -189,10 +189,10 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
             }
         }
 
-        // FET.GetText(FEX_BE_CONFIG): the text is read by its id here (see DrawConfiguration).
-        if (draw is not null && frontEnd.Texts is { } texts)
+        // The title is read whether or not it is drawn (each read checks the X key).
+        if (frontEnd.Texts is { } texts)
         {
-            string title = texts.ById(texts.Ids["FETX_BE_CONFIG"]);
+            string title = texts.GetTextByName("FETX_BE_CONFIG");
             if (dest != FrontEndPage.Wingmen) frontEnd.DrawTitleBar(title, transition, dest);
             else frontEnd.DrawTitleBar(title, 1f, FrontEndPage.Wingmen);
         }
@@ -209,14 +209,21 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
 
     /// <summary>
     /// The configuration's name (normal font), the ground and air weapons under their headings (small font; the names
-    /// revealed from the last change), the rating columns' icons and each weapon's stars. Retail reads the headings with
-    /// <c>FET.GetText</c> and the reveal with <c>PLATFORM.GetSysTimeFloat</c>; drawing must not change the simulation, so
-    /// the headings are read by their ids (as GetText does with the English fallback off) and the reveal uses the clock
-    /// the frame's render started with.
+    /// revealed from the last change), the rating columns' icons and each weapon's stars. The reads retail's render makes
+    /// here are made whether or not anything is drawn, in its order: the clock for the reveal, the two headings'
+    /// <c>FET.GetText</c> (each checks the X key), then a clock read whose value is unused, before the rating columns.
+    /// The names from the language file (<c>TEXT.GetStringById</c>) have no side effect and are read only to be drawn.
     /// </summary>
-    private void DrawConfiguration(FrontEndDraw draw, float offset)
+    private void RenderConfiguration(FrontEndDraw? draw, float offset)
     {
-        if (frontEnd.NormalFont is not { } normal || frontEnd.SmallFont is not { } small || frontEnd.Texts is not { } texts) return;
+        Text.FrontEndTexts? texts = frontEnd.Texts;
+        float reveal = frontEnd.Clock.GetSysTimeFloat() - ChangeTime;
+        string? ground = texts?.GetTextByName("FETX_GROUND_WEAPONS");
+        string? air = texts?.GetTextByName("FETX_AIR_WEAPONS");
+        frontEnd.Clock.GetSysTimeFloat();
+
+        if (draw is null || texts is null || ground is null || air is null || frontEnd.NormalFont is not { } normal
+            || frontEnd.SmallFont is not { } small) return;
         var normalKind = CanvasTextureKind.NormalFont;
         var smallKind = CanvasTextureKind.SmallFont;
 
@@ -224,10 +231,8 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
         int cx = normal.GetTextExtent(text).Width;
         draw.DrawTextDynamic(normal, normalKind, 400f - cx * 0.5f - offset, 100f, FrontEndDraw.FO(100), 1f, 1f, 0xffffffff, text, 1000f);
 
-        float reveal = frontEnd.LastRenderTime - ChangeTime;
-
         float tx = 280f - offset;
-        draw.DrawTextDynamic(small, smallKind, tx, 210f, FrontEndDraw.FO(100), 1f, 1f, 0xffff6f1f, texts.ById(texts.Ids["FETX_GROUND_WEAPONS"]), 1000f);
+        draw.DrawTextDynamic(small, smallKind, tx, 210f, FrontEndDraw.FO(100), 1f, 1f, 0xffff6f1f, ground, 1000f);
 
         float y = 226f;
         int walker = NumWalkerWeapons(Config);
@@ -238,7 +243,7 @@ public sealed class BeConfigPage(FrontEnd frontEnd) : FrontEndPageBase
         }
 
         y += 16f;
-        draw.DrawTextDynamic(small, smallKind, tx, y, FrontEndDraw.FO(100), 1f, 1f, 0xffff6f1f, texts.ById(texts.Ids["FETX_AIR_WEAPONS"]), 1000f);
+        draw.DrawTextDynamic(small, smallKind, tx, y, FrontEndDraw.FO(100), 1f, 1f, 0xffff6f1f, air, 1000f);
         y += 16f;
 
         int jet = NumJetWeapons(Config);
