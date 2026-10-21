@@ -17,10 +17,7 @@ namespace OnslaughtRebuild.Parity.Flow.Pages;
 /// hovering and clicking, and scrolls the grid at the screen's edges.
 /// </summary>
 /// <remarks>
-/// Not modelled: the auto-configuration test's two automatic selections (the switch is off). The render's two clock
-/// reads (the name and episode text's ages) and its two <c>FET.GetText</c> calls (the locked level's name and the title,
-/// each of which reads the X key) are left out; the drawing takes the clock from <see cref="FrontEnd.LastRenderTime"/>
-/// (the same value within one render) and the texts by id.
+/// Not modelled: the auto-configuration test's two automatic selections (the switch is off).
 /// </remarks>
 public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
 {
@@ -362,10 +359,11 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
             gx = (float)X87.Add(gx, 60f);
         }
 
-        if (draw is not null) RenderNames(draw, transition, dest, t4);
+        RenderNames(draw, transition, dest, t4);
         _frontEnd.RenderHelpArrow(5, transition);
         _frontEnd.RenderHelpArrow(1, transition);
-        if (draw is not null && _frontEnd.Texts is { } texts) _frontEnd.DrawTitleBar(LevelText.ByName(_frontEnd, texts, "FETX_SELECT_LEVEL"), transition, dest);
+        // The title is read whether or not it is drawn (each read checks the X key).
+        if (_frontEnd.Texts is { } texts) _frontEnd.DrawTitleBar(texts.GetText(FrontEndText.SelectLevel), transition, dest);
     }
 
     /// <summary>
@@ -484,25 +482,27 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
     /// <summary>
     /// The render's last drawing: the small logo (whole while the briefing or debriefing is arriving), then the cursor
     /// world's name (the unknown text while it is locked; narrower when over 450 wide) and its episode's name, sliding in
-    /// from the left and revealed from when the cursor and the episode last changed.
+    /// from the left and revealed from when the cursor and the episode last changed. The locked world's text (which reads
+    /// the X key) and the two clock reads are made whether or not anything is drawn, as retail makes them.
     /// </summary>
-    private void RenderNames(FrontEndDraw draw, float transition, FrontEndPage dest, float t4)
+    private void RenderNames(FrontEndDraw? draw, float transition, FrontEndPage dest, float t4)
     {
         _frontEnd.RenderSmallBEALogo(dest is FrontEndPage.Briefing or FrontEndPage.Debriefing ? 1f : FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
-        if (_frontEnd.NormalFont is not { } font || _frontEnd.Texts is not { } texts) return;
+        if (_frontEnd.Texts is not { } texts) return;
+        int shownLevel = _levels[Column, ClampedRow()];
+        string shownName = IsWorldUnlocked(shownLevel) ? LevelText.LevelName(_frontEnd, texts, shownLevel) : texts.GetText(FrontEndText.GoodyUnknown);
+        float cursorAge = _frontEnd.Clock.GetSysTimeFloat() - CursorTime;
+        float episodeAge = _frontEnd.Clock.GetSysTimeFloat() - EpisodeTime;
+        if (draw is null || _frontEnd.NormalFont is not { } font) return;
         uint ta = (uint)FrontEndDraw.MakeAlpha(t4 - 2f);
         float d = 1f - transition - 0.25f;
         if (d < 0f) d = 0f;
         float off = d * d * 3000f;
-        int level = _levels[Column, ClampedRow()];
-        string name = IsWorldUnlocked(level) ? LevelText.LevelName(_frontEnd, texts, level) : LevelText.ByName(_frontEnd, texts, "FETX_GOODY_UNKNOWN");
-        float sx = font.GetTextExtent(name).Width > 450f ? 0.8f : 1f;
+        float sx = font.GetTextExtent(shownName).Width > 450f ? 0.8f : 1f;
         float lx = 130f - off;
-        // The clock as the render started: retail's reads here return the same value within one render.
-        float now = _frontEnd.LastRenderTime;
-        draw.DrawTextDynamic(font, CanvasTextureKind.NormalFont, lx, 153f, 0.305f, sx, 1f, (ta << 24) | 0x7f6f3f, name, now - CursorTime);
+        draw.DrawTextDynamic(font, CanvasTextureKind.NormalFont, lx, 153f, 0.305f, sx, 1f, (ta << 24) | 0x7f6f3f, shownName, cursorAge);
         draw.DrawTextDynamic(font, CanvasTextureKind.NormalFont, lx, 125f, 0.305f, 1f, 1f, (ta << 24) | 0x7f7f7f,
-            LevelText.EpisodeName(_frontEnd, texts, level / 100), now - EpisodeTime);
+            LevelText.EpisodeName(_frontEnd, texts, shownLevel / 100), episodeAge);
     }
 
     private const float Pi = 3.14159265358979f;
@@ -521,30 +521,9 @@ internal static class LevelText
         432, 500, 511, 512, 521, 522, 523, 524, 600, 611, 612, 621, 622, 700, 710, 720, 731, 732, 741, 742, 800,
     ];
 
-    // text.stf's names with negative ids (FETX_MISSION_BRIEFING's is), which TextIds.Read does not keep, by text table.
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<TextIds, Dictionary<string, uint>> NegativeIds = new();
+    /// <summary>A text by its name in text.stf.</summary>
+    public static string ByName(FrontEnd frontEnd, FrontEndTexts texts, string name) => texts.ById(texts.Ids[name]);
 
-    /// <summary>A text by its name in text.stf (a negative id, as the header's <c>#define</c> gives it, is read as unsigned).</summary>
-    public static string ByName(FrontEnd frontEnd, FrontEndTexts texts, string name)
-    {
-        Dictionary<string, uint> negative = NegativeIds.GetValue(texts.Ids, _ => ReadNegativeIds(frontEnd));
-        return texts.ById(negative.TryGetValue(name, out uint id) ? id : texts.Ids[name]);
-    }
-
-    private static Dictionary<string, uint> ReadNegativeIds(FrontEnd frontEnd)
-    {
-        Dictionary<string, uint> ids = new(StringComparer.Ordinal);
-        if (frontEnd.ReadDataFile?.Invoke(TextIds.FileName) is not { } file) return ids;
-        foreach (string line in System.Text.Encoding.Latin1.GetString(file).Split('\n'))
-        {
-            string[] parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length >= 3 && parts[0] == "#define" && parts[2].StartsWith('-') && int.TryParse(parts[2], out int id))
-                ids.TryAdd(parts[1], unchecked((uint)id));
-        }
-        return ids;
-    }
-
-    /// <summary><c>CFrontEndText::GetLevelName</c> (0x00469550).</summary>
     public static string LevelName(FrontEnd frontEnd, FrontEndTexts texts, int level) =>
         Named.Contains(level) ? ByName(frontEnd, texts, $"FETX_LEVEL_NAME_{(level == 201 ? 200 : level)}") : "Unnamed Level";
 

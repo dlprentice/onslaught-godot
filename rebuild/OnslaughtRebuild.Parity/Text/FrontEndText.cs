@@ -39,6 +39,9 @@ public enum FrontEndText
     DeleteGame2,
     SelectLoadGame2,
     EmptyDirectory,
+    SelectLevel,
+    GoodyUnknown,
+    MissionBriefing,
 
     /// <summary>The PC's "too many saves" and "no space" texts, which return the PC text 0xb5 (<c>PCText</c>).</summary>
     TooManySaves,
@@ -106,6 +109,9 @@ public sealed class FrontEndTexts(TextDatabase database, TextIds ids, PlatformIn
             FrontEndText.DeleteGame2 => "FETX_DELETEGAME2",
             FrontEndText.SelectLoadGame2 => "FETX_SELECTLOADGAME2",
             FrontEndText.EmptyDirectory => "FETX_EMPTY_DIRECTORY",
+            FrontEndText.SelectLevel => "FETX_SELECT_LEVEL",
+            FrontEndText.GoodyUnknown => "FETX_GOODY_UNKNOWN",
+            FrontEndText.MissionBriefing => "FETX_MISSION_BRIEFING",
             _ => "FETX_QUIT",
         }]);
     }

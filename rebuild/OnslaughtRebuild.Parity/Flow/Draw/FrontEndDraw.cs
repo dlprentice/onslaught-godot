@@ -31,11 +31,19 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     /// <summary>The depth function: ALWAYS after <c>SRS(ZFUNC, ALWAYS)</c>, otherwise LESSEQUAL.</summary>
     public bool ZAlways { get; set; }
 
+    /// <summary>
+    /// Whether the colour stage modulates 2x (<c>LT.SetModulate(0)</c>, with the modulate-2x tweak on): every render starts
+    /// so and every sprite leaves it so; a plain <c>STS(COLOROP, MODULATE)</c> (the video's, the briefing's) clears it.
+    /// Text drawn under 2x has its colours doubled, as the stage does (<see cref="ModulateColour"/>).
+    /// </summary>
+    public bool Modulate2x { get; set; } = true;
+
     /// <summary>The start of a frame's render (<c>CDXFrontEnd::RenderStart</c>): the clear, and the default state.</summary>
     public void BeginFrame()
     {
         Blend = CanvasBlend.Modulate;
         ZAlways = false;
+        Modulate2x = true;
         Canvas.Clear(0x001f1f3f);
     }
 
@@ -198,6 +206,7 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
         const float sx = WindowWidth * (1f / 640f), sy = WindowHeight * (1f / 480f);
         CanvasVertex Vertex(int i) => new(v[i].X * sx, v[i].Y * sy, z, rhw, col, v[i].U, v[i].V);
         Canvas.Quad(new CanvasQuad(texture, Blend, true, ZAlways, Vertex(0), Vertex(1), Vertex(2), Vertex(3)) { Clamp = clamp });
+        Modulate2x = true; // LT.SetModulate(0)
     }
 
     // --- CDXBitmapFont --------------------------------------------------------------------------------------------
@@ -251,7 +260,8 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
             float tx1 = font.TexCoord(cell, 0), ty1 = font.TexCoord(cell, 1), tx2 = font.TexCoord(cell, 2), ty2 = font.TexCoord(cell, 3);
             float w = (tx2 - tx1) * font.TexWidth * scalex;
             float h = (ty2 - ty1) * font.TexHeight * scaley;
-            uint col = ModulateColour(colours.IsEmpty ? colour : colours[k++]);
+            uint given = colours.IsEmpty ? colour : colours[k++];
+            uint col = Modulate2x ? ModulateColour(given) : given;
             float x1 = sx - 0.5f, x2 = sx + w - 0.5f, y1 = sy - 0.5f, y2 = sy + h - 0.5f;
             Canvas.Quad(new CanvasQuad(new QuadTexture(kind), Blend, zEnable, ZAlways,
                 new(x1, y1, z, 1f, col, tx1, ty1), new(x2, y1, z, 1f, col, tx2, ty1),
@@ -370,7 +380,8 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     public void VideoWithoutFilm(float x, float y, float z, float xscale, float yscale, uint colour, bool centred, int width = 128, int height = 128)
     {
         if (z == 0f) z = 0.0001f;
-        // DrawPrimitiveUP with the current blend (the front end's modulate), alpha test off.
+        // DrawPrimitiveUP with the current blend (the front end's modulate), alpha test off, the colour stage plain.
+        Modulate2x = false;
         colour &= 0xff000000;
         float w = width * xscale, h = height * yscale;
         if (centred)
