@@ -2,9 +2,10 @@
 // Adapted from bea-decomp src/MessageBox.cpp and MessageBox.h (CMessage 004b6e50, ~CMessage 004b7160,
 // SampleFinishedPlaying 004b71d0; CMessageBox 004b71e0, ~CMessageBox 004b7930, SwitchMessagesOn 004b7b60,
 // SwitchMessagesOff 004b7b70, TryAdvance 004b7b80, AddMessage 004b7ca0, PlayPendingSamples 004b7d90, StartMessage
-// 004b7ea0, AdvanceReveal 004b8020, HandleEvent 004b81d0, StopCurrentPlayingSound 004b8800) and src/SPtrSet.cpp
-// (GenericSPtrSet::operator= 004e58a0), reconstructed from the retail executable; not in Stuart's release. The queue and
-// its timing only: portraits, word wrap and drawing are the renderer's.
+// 004b7ea0, AdvanceReveal 004b8020, HandleEvent 004b81d0, StopCurrentPlayingSound 004b8800, InitResources 004b7320,
+// GetPortrait 004b7ab0, RenderBattleLinePulse 004b82b0, RenderOverlay 004b8850), src/Hud.cpp (CHud::RenderObjectiveBar
+// 00482210, the message tweaks) and src/SPtrSet.cpp (GenericSPtrSet::operator= 004e58a0), reconstructed from the retail
+// executable; not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;
@@ -297,6 +298,35 @@ public sealed class MessageBox : Monitor
 
     public IMessageVoice Voice { get; }
 
+    // --- The box's picture: state only its render reads (CMessageBox::RenderOverlay, RenderBattleLinePulse) -------------
+
+    /// <summary>mUnknown020: the portrait's interference, 1 when a message starts or ends, easing to its delay.</summary>
+    public float Interference { get; private set; }
+
+    /// <summary>mUnknown024: the message is over (or its speaker gone): the portrait is not drawn.</summary>
+    public bool PortraitOff { get; private set; }
+
+    /// <summary>mRandom: the box's own stream (seed 123456), drawn only by its render.</summary>
+    public Game.SeedUniformRandomNumberStream Random { get; } = new(123456);
+
+    /// <summary>mPortrait: the speaker's portrait set (GetPortrait).</summary>
+    public int Portrait { get; private set; }
+
+    /// <summary>mUnknown1ac: the portrait's frame (its mouth).</summary>
+    public int PortraitFrame { get; private set; }
+
+    /// <summary>mPortraitTexture, as its name (null for a set without that frame).</summary>
+    public string? PortraitTexture { get; private set; }
+
+    /// <summary>mUnknown1b4: the event time of the frame's last change.</summary>
+    public float PortraitTime { get; private set; }
+
+    /// <summary>mOpen: the panel, 0 shut, 1 its frame open, 2 its text shown.</summary>
+    public float Open { get; private set; }
+
+    /// <summary>mUnknown1bc: the message's lines.</summary>
+    public const int Lines = 3;
+
     /// <summary>mCurrent: the message being shown.</summary>
     public ScriptMessage? Current { get; private set; }
 
@@ -349,13 +379,18 @@ public sealed class MessageBox : Monitor
             Current = m;
             StartTime = Events.Time;
             AllowedToPlay = false;
+            Interference = 1f;
             VoiceName = null;
+            PortraitOff = false;
             if (m.Speaker.ToRead is not null)
             {
                 _context.Skip("CHud::SetMessageSpeaker");
             }
 
-            _context.Skip("CMessageBox::GetPortrait (display)");
+            Portrait = GetPortrait(m.Name ?? "");
+            PortraitFrame = 0;
+            PortraitTexture = PortraitTextures[Portrait][0];
+            PortraitTime = Events.Time;
             Current.EndTime = (float)X87.Add(_context.Game?.LevelStartTime ?? 0.0f, Events.Time);
             Events.AddEventIn(0.2f, Start, this);
             return;
@@ -426,6 +461,8 @@ public sealed class MessageBox : Monitor
         ScriptMessage current = Current!;
         if (current.SpeakerGone())
         {
+            Interference = 1f;
+            PortraitOff = true;
             Events.AddEventIn(0.5f, Finish, this);
             return;
         }
@@ -458,18 +495,25 @@ public sealed class MessageBox : Monitor
     public void AdvanceReveal()
     {
         ScriptMessage m = Current!;
-        if (m.SpeakerGone() && m.Revealed < m.Text.Length)
+        if (m.SpeakerGone())
         {
-            StopCurrentPlayingSound();
-            m.Dots++;
-            if (m.Dots < 5)
+            Interference = 1f;
+            if (m.Revealed < m.Text.Length)
             {
-                Events.AddEventIn(0.038f, Reveal, this);
+                StopCurrentPlayingSound();
+                m.Dots++;
+                if (m.Dots < 5)
+                {
+                    Events.AddEventIn(0.038f, Reveal, this);
+                    return;
+                }
+
+                PortraitOff = true;
+                Events.AddEventIn(2.7f, Finish, this);
                 return;
             }
 
-            Events.AddEventIn(2.7f, Finish, this);
-            return;
+            PortraitOff = true;
         }
 
         m.RevealLetter();
@@ -489,6 +533,8 @@ public sealed class MessageBox : Monitor
             return;
         }
 
+        Interference = 1f;
+        PortraitOff = true;
         Events.AddEventIn(0.3f, Finish, this);
     }
 
@@ -552,5 +598,268 @@ public sealed class MessageBox : Monitor
                 TryAdvance();
                 break;
         }
+    }
+
+    // --- The box's picture ---------------------------------------------------------------------------------------
+
+    /// <summary>InitResources' portraits by speaker (13 sets of up to 6 frames) and the speakers' name texts.</summary>
+    private static readonly string?[][] PortraitTextures =
+    [
+        Set("Carver"), Set("tat"), Set("FC_Kramer"), [null, null, null, null, null, null], Set("fc_Tara"),
+        [
+            @"MessageBox\FC_Simmons_surprise_closed.tga", @"MessageBox\FC_Simmons_surprise_open.tga",
+            @"MessageBox\FC_Simmons_stern_closed.tga", @"MessageBox\FC_Simmons_stern_open.tga",
+            @"MessageBox\FC_Simmons_blank_closed.tga", @"MessageBox\FC_Simmons_blank_open.tga",
+        ],
+        Set("FC_Lorenzo"), Set("FC_Billy"), Set("cmdr"), Set("officer"), Set("rad_officr"), Set("technic"), Set("pilot"),
+    ];
+
+    private static readonly uint[] SpeakerIds =
+        [0xdcdee, 0x170470, 0xe0831, 0x5c2de, 0x3c345, 0x1a19e0, 0x19f8cf, 0xcb1fd, 0x534dfa, 0x1837c4, 0x85595, 0xa13898, 0x552e30d];
+
+    private static string?[] Set(string who) =>
+        [$@"MessageBox\{who}_oo.tga", $@"MessageBox\{who}_ee.tga", $@"MessageBox\{who}_mm.tga", $@"MessageBox\{who}_aa.tga", null, null];
+
+    /// <summary>
+    /// GetPortrait (004b7ab0): the speaker whose name text equals the name (the last match), or the commander's set for
+    /// a name containing text 0x0a336c2c (the first such); otherwise 2. Set 3 has no pictures and becomes 2.
+    /// </summary>
+    private int GetPortrait(string name)
+    {
+        bool found = false;
+        int portrait = 2;
+        for (int i = 0; i < SpeakerIds.Length; i++)
+        {
+            if (name == Text.GetString(SpeakerIds[i]))
+            {
+                portrait = i;
+                found = true;
+            }
+            else if (!found && SpeakerIds[i] == 0x534dfa && Text.GetString(0x0a336c2c) is { } commander && name.Contains(commander, StringComparison.Ordinal))
+            {
+                portrait = i;
+                found = true;
+            }
+        }
+
+        return portrait == 3 ? 2 : portrait;
+    }
+
+    // The HUD in one 640 x 480 viewport (HUD.mViewport*, HUD_OFFSET_X/Y 0) and the message tweaks (Hud.cpp).
+    private const float ViewportBottom = 480f, ViewportRight = 640f, ViewportWidth = 640f;
+    private const float MessageBoxX = 10f, MessageBoxY = 23f, MessageBoxWidth = 22f, MessageTextY = 27f;
+    private const int MessageWrapWidth = 26;
+
+    /// <summary>
+    /// RenderOverlay (004b8850), from CHud::RenderBattleline while a player shows the HUD: a finished game stops the
+    /// voice; the panel opens (to 1, its frame) and widens (towards 2, its text) while a message shows, closes back to 1
+    /// and then shuts when none is left; the objective bar is drawn at its opening and, once open, the message's lines.
+    /// The opening and the voice stop happen whether or not anything is drawn.
+    /// </summary>
+    public void RenderOverlay(Flow.Draw.FrontEndDraw? draw, Text.BitmapFont? small)
+    {
+        Game.Game? game = _context.Game;
+        if (game is not null && game.State > GameState.Playing)
+        {
+            StopCurrentPlayingSound();
+            return;
+        }
+
+        float frameLength = _context.Particles?.RenderFrameLength ?? 1f;
+        if (Current is null)
+        {
+            if (Open > 1f)
+            {
+                if (Queue.Size == 0)
+                {
+                    float step = frameLength * 0.5f;
+                    bool opening = Open < 1f;
+                    float dir = opening ? 0.01f : -0.01f;
+                    Open += (Open - 2f + dir) * step;
+                    if (opening)
+                    {
+                        if (Open > 1f) Open = 1f;
+                    }
+                    else if (Open < 1f)
+                    {
+                        Open = 1f;
+                    }
+                }
+            }
+            else
+            {
+                Open -= frameLength * 0.4f;
+                if (Open < 0f) Open = 0f;
+            }
+
+            if (Open == 0f) return;
+        }
+        else if (Open < 1f)
+        {
+            Open += frameLength * 0.4f;
+            if (Open > 1f) Open = 1f;
+        }
+        else
+        {
+            float f = frameLength * 0.5f;
+            Open += (2f - Open) * f;
+            if (MathF.Abs(2f - Open) < 0.01f) Open = 2f;
+        }
+
+        if (draw is null || small is null) return;
+        float y = ViewportBottom + 16f - 128f + 48f + MessageBoxY;
+        float width = 230f + MessageBoxWidth;
+        float x = ViewportWidth * 0.5f + MessageBoxX + 12f;
+        if (Open < 1f) ObjectiveBar(draw, x, y, width, 60f, Open);
+        else ObjectiveBar(draw, x, y, (Open - 1f) * width, 60f, 1f);
+        if (Current is not { } current || Open < 2f) return;
+        string[] lines = current.WordWrap(MessageWrapWidth, Lines);
+        float tx = x - width * 0.5f - 12f;
+        var kind = new Flow.Draw.QuadTexture(Flow.Draw.CanvasTextureKind.SmallFont);
+        draw.DrawTextWithShadow(small, kind, tx, y - MessageTextY, 0xffffffff, "  ", 0, 1f);
+        for (int i = 0; i < 5; i++)
+        {
+            if (i < lines.Length) draw.DrawTextWithShadow(small, kind, tx, i * 15 + y - MessageTextY, 0xffffffff, lines[i], 0, 1f);
+        }
+    }
+
+    /// <summary>CHud::RenderObjectiveBar (00482210): the panel's ends and middle at its width, or, half open, its ends turning in.</summary>
+    private static void ObjectiveBar(Flow.Draw.FrontEndDraw draw, float x, float y, float width, float height, float open)
+    {
+        if (height < 10f) height = 10f;
+        const string left = @"hud\v2\ObjectiveLeft.tga", right = @"hud\v2\ObjectiveRight.tga";
+        const string innerLeft = @"hud\v2\ObjectiveInnerLeft.tga", innerRight = @"hud\v2\ObjectiveInnerRight.tga", innerCentre = @"hud\v2\ObjectiveInnerCentre.tga";
+        const string any = Flow.Draw.FrontEndTextures.AnyFormat;
+        if (open == 1f)
+        {
+            float scale = height * (1f / 64f);
+            float half = width * 0.5f;
+            float px = x - half;
+            draw.DrawNamedSprite(left, px, y, 0.009f, 0xffffffff, scale, scale, Flow.Draw.SpriteAlign.Centre, format: any);
+            draw.DrawNamedSprite(innerLeft, px, y, 0.009f, 0x90000000, scale, scale, (Flow.Draw.SpriteAlign)7, format: any);
+            px = half + x;
+            draw.DrawNamedSprite(right, px, y, 0.009f, 0xffffffff, scale, scale, Flow.Draw.SpriteAlign.Centre, format: any);
+            draw.DrawNamedSprite(innerRight, px, y, 0.009f, 0x90000000, scale, scale, Flow.Draw.SpriteAlign.LeftMiddle, format: any);
+            float segment = scale * 64f;
+            float n = width / segment;
+            px = x - half;
+            while (n >= 1f)
+            {
+                draw.DrawNamedSprite(innerCentre, px, y, 0.009f, 0x90000000, scale, scale, Flow.Draw.SpriteAlign.LeftMiddle, format: any);
+                n -= 1f;
+                px += segment;
+            }
+
+            if (n > 0f)
+                draw.DrawNamedSprite(innerCentre, px, y, 0.009f, 0x90000000, scale, scale, Flow.Draw.SpriteAlign.LeftMiddle,
+                    Flow.Draw.SpriteType.FillRight, n, format: any);
+        }
+        else if (open > 0.5f && open < 1f)
+        {
+            float scale = height * open * (1f / 64f);
+            int alpha = Math.Clamp((int)(open * 255f), 0, 255);
+            uint col = unchecked((uint)(alpha * 255) << 16) | 0xffffff;
+            float turn = 1f - open;
+            draw.DrawNamedSprite(left, x, y, 0.009f, col, scale, scale, Flow.Draw.SpriteAlign.Centre, Flow.Draw.SpriteType.None, 1f, turn, format: any);
+            draw.DrawNamedSprite(right, x, y, 0.009f, col, scale, scale, Flow.Draw.SpriteAlign.Centre, Flow.Draw.SpriteType.None, 1f, turn, format: any);
+        }
+    }
+
+    /// <summary>
+    /// RenderBattleLinePulse (004b82b0), from CHud::RenderBattleline at (x, y) while a message shows: the portrait's
+    /// mouth changes every 0.05 s by the box's own stream (Simmons' at random, the others weighted), the portrait drawn
+    /// six times with interference while it shows, the noise over it, and the interference easing towards the message's
+    /// delay. While paused the stream is put back. The stream, frames and interference change whether or not anything
+    /// is drawn.
+    /// </summary>
+    public void RenderBattleLinePulse(Flow.Draw.FrontEndDraw? draw, float x, float y, int a, float fps)
+    {
+        if (Current is not { } current) return;
+        Game.Game? game = _context.Game;
+        int seed = Random.Value;
+        float level = Interference;
+        if ((Random.Next() % 200) / 100.0f < Interference)
+        {
+            level = Interference + 0.2f;
+            if (level < 1f) level = 1f;
+        }
+
+        float now = Events.Time;
+        if (Portrait == 5)
+        {
+            if (PortraitTime + 0.05f < now)
+            {
+                PortraitTime = now;
+                if (Random.Next() % 2 == 0)
+                {
+                    if (Random.Next() % 7 == 0) PortraitFrame = Random.Next() % 5;
+                    PortraitFrame += PortraitFrame % 2 == 0 ? 1 : -1;
+                    PortraitTexture = PortraitTextures[Portrait][PortraitFrame];
+                }
+            }
+        }
+        else if (PortraitTime + 0.05f < now)
+        {
+            PortraitTime = now;
+            if (Random.Next() % 2 == 0)
+            {
+                int old = PortraitFrame;
+                do
+                {
+                    float r = (float)((Random.Next() & 0xff) * (100.0 / 256.0));
+                    PortraitFrame = r < 8f ? 0 : r < 20f ? 1 : r < 60f ? 2 : 3;
+                }
+                while (old == PortraitFrame);
+                PortraitTexture = PortraitTextures[Portrait][PortraitFrame];
+            }
+        }
+
+        if (!PortraitOff)
+        {
+            int alpha = 0x40;
+            if (level > 0.3f) alpha = Random.Next() % 64;
+            float v = level > 0.1f ? level * ((Random.Next() % 100) / 300.0f) : 0f;
+            float v1 = v + 1f;
+            float u = level > 0.1f ? level * ((Random.Next() % 100) / 500.0f) : 0f;
+            float u1 = u + 1f;
+            uint col = ((uint)alpha << 24) + 0xffffff;
+            for (int i = 5; i >= 0; i--)
+            {
+                float su0 = u, su1 = u1;
+                if (level > 0.2)
+                {
+                    float sx = level < 0.5f ? 0.5f : level; // Clamped(level, 0.5, level)
+                    if (i % 2 == 0)
+                    {
+                        float start = u + sx * i * 0.16f;
+                        su0 = start;
+                        su1 = start + 1f;
+                    }
+                    else
+                    {
+                        su0 = u - sx * i * 0.16f;
+                        su1 = 1f - sx * i * 0.16f + u;
+                    }
+                }
+
+                if (PortraitTexture is { } texture)
+                    draw?.DrawNamedSprite(texture, x + 16f, y - 16f, a / 1000f, col, 0.75f, 0.75f, (Flow.Draw.SpriteAlign)2,
+                        Flow.Draw.SpriteType.None, 1f, 0f, su0, su1, v, v1, format: Flow.Draw.FrontEndTextures.AnyFormat);
+            }
+        }
+
+        float nu = (Random.Next() % 100) / 100f;
+        float nv = (Random.Next() % 100) / 100f;
+        int noiseAlpha = (int)(((Random.Next() % 10) + 40) * (level + 1.5f));
+        draw?.DrawNamedSprite(@"MessageBox\noisebig.tga", x, y, a / 1000f, ((uint)noiseAlpha << 24) + 0xffffff, 1f, 1f,
+            (Flow.Draw.SpriteAlign)2, Flow.Draw.SpriteType.None, 1f, 0f, nu, nu + 1f, nv, nv + 1f, format: Flow.Draw.FrontEndTextures.AnyFormat);
+        float target = current.Delay;
+        if (!PortraitOff && level > target && game?.Paused != true)
+        {
+            Interference -= 60f / fps * 0.06f;
+            if (Interference < target) Interference = target;
+        }
+
+        if (game?.Paused == true) Random.Value = seed;
     }
 }

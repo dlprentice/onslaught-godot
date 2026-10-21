@@ -447,6 +447,7 @@ public sealed class LevelSession
         {
             // CGame::Render counts each render first (mRenderFrameNumber, 0 until the level's first render).
             context.RenderFrameNumber++;
+            context.Particles.StartRender();
             if (game.WinLoseScreenAlpha != 255)
             {
                 foreach (MCBattleEngine mc in context.MotionControllers)
@@ -461,6 +462,14 @@ public sealed class LevelSession
             // end's fonts and mouse tests when the level runs in the whole game), then CGame::DrawGameStuff's end screen.
             Flow.Draw.FrontEndDraw? draw = made?.Draw;
             draw?.BeginOverlay();
+            // HUD.RenderBattleline (00487d10) while the player's camera shows the HUD: the message box's panel and text,
+            // then its portrait in the battle line's circle (HUD.mViewportRight - 137, the viewport's bottom).
+            if (game.GetPlayer(0) is not null && game.GetCurrentCamera(0)?.GetShowHud() == true && scripts.MessageBox is { } messages)
+            {
+                messages.RenderOverlay(draw, frontEnd?.SmallFont);
+                messages.RenderBattleLinePulse(draw, 640f - 137f, 480f, 7, clock.FramesPerSec);
+            }
+
             input.MessageLog?.Render();
             input.BriefingLog?.Render();
             if (input.PauseMenu is { } pause)

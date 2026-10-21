@@ -304,10 +304,24 @@ public sealed class FrontEndTextures
     /// </summary>
     public static string[] FramePaths(string name, string format = DefaultFormat)
     {
+        if (format == AnyFormat)
+        {
+            return [.. FormatNames.SelectMany(f => FramePaths(name, f))];
+        }
+
         string file = name.Replace('\\', '%') + "(0)" + format + ".aya";
         return [Cut($@"data\resources\textures\{file}", 0x18), Cut($@"data\resources\dxtntextures\{file}", 0x1c),
             Cut($@"data\resources\textures\mustbe_{file}", 0x18)];
     }
+
+    /// <summary>
+    /// A texture found with an unknown format (<c>TEXFMT_UNKNOWN</c>): its frame file is whichever converted copy the
+    /// installation has, the formats tried in the order of <c>CDXTexture::FormatToString</c>'s names.
+    /// </summary>
+    public const string AnyFormat = "*";
+
+    private static readonly string[] FormatNames =
+        ["A8R8G8B8", "X8R8G8B8", "A1R5G5B5", "A4R4G4B4", "R5G6B5", "DXT1", "DXT2", "DXT4", "UNKNOWN"];
 
     private static string Cut(string path, int len) => path.Length > len + 0x41 ? path[..(len + 0x3d)] + ".aya" : path;
 

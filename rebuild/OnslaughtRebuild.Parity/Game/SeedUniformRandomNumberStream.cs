@@ -27,7 +27,7 @@ public sealed class SeedUniformRandomNumberStream
     }
 
     /// <summary>mValue (+0x00): the last value drawn.</summary>
-    public int Value { get; private set; }
+    public int Value { get; internal set; }
 
     /// <summary>mSeed (+0x04): the seed the stream was made with.</summary>
     public int Seed { get; }

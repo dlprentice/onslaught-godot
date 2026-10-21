@@ -59,17 +59,26 @@ public sealed class LevelParticles : IParticleWorld
             ? mesh.Radius
             : throw new NotSupportedException($"particle mesh '{name}' is not in the level resource file (retail loads it from disk)");
 
-    /// <summary>One render of viewpoint 0 (CGame::Render, then CDXEngine::Render's particle steps).</summary>
-    public void Render(int numRenders)
+    /// <summary>
+    /// CGame::Render's frame length (game.cpp:1682), every render before the world is drawn or skipped: the render's
+    /// time in game ticks less the last render's.
+    /// </summary>
+    public void StartRender()
     {
         Game.Game game = _context.Game ?? throw new InvalidOperationException("particles render without a game");
-        Manager.State.RenderFraction = game.Loop.Fraction;
         // VC6 folds the division by CLOCK_TICK into a multiplication by its reciprocal (20): the port's per-render
         // new_time agrees with the product at the last bit where the quotient does not (fe-lose P4942, P4943).
         float newTime = (_context.Events.Time + (game.Loop.Fraction * ClockTick)) * (1.0f / ClockTick);
         float length = _lastRenderFrameTime != -1.0f ? newTime - _lastRenderFrameTime : 1.0f;
         _lastRenderFrameTime = newTime;
         RenderFrameLength = length;
+    }
+
+    /// <summary>One render of viewpoint 0 (CDXEngine::Render's particle steps), after <see cref="StartRender"/>.</summary>
+    public void Render(int numRenders)
+    {
+        Game.Game game = _context.Game ?? throw new InvalidOperationException("particles render without a game");
+        Manager.State.RenderFraction = game.Loop.Fraction;
         bool first = numRenders == 0;
         _camera = game.GetCurrentCamera(0) is { } camera
             ? (ParityCamera.RenderView(camera, game.Loop.Fraction2) is var v ? (v.Pos, v.Ori) : null)
@@ -83,7 +92,7 @@ public sealed class LevelParticles : IParticleWorld
 
         if (!game.Paused)
         {
-            Manager.Process(length, first);
+            Manager.Process(RenderFrameLength, first);
         }
 
         Manager.DoInterpolation();
