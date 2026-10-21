@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-19 (trainer sound integration and incoming warning verified; first native airborne target; full tutorial and M7 remain incomplete; earlier rows keep their dates)
+Last updated: 2026-10-21 (trainer missiles: straight aim and wiggle follow retail's code; the port's seek and wiggle orders are separate port corrections; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -14,6 +14,29 @@ pristine specimen; do not infer another executable's identity from its folder na
 Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
+
+Trainer missile launch and flight (2026-10-21): the level 100 trainer's first LIFE difference
+(Present 16206) came from the Forseti Missile's state before its collision, not from the collision.
+Per-frame traces of each missile against the frozen native port, with retail's own code run on the
+captured inputs, separate three causes:
+
+- Launch: `CWeapon::Unknown509140`'s straight aim (`005093c6..00509434`) stores the magnitude
+  sqrt((Y² + X²) + Z²), the CRT asin pitch and the fpatan yaw, then calls the out-of-line
+  `FMatrix(yaw, pitch, 0)` at `004062d0`. The Core used the inline-model constructor and a double asin
+  (row 1's Y one unit off at the Present 16144 launch). Corrected; `StraightAimTests` holds nine cases
+  whose yaw, pitch and matrix come from retail's block and constructor. The native port already agreed.
+- Wiggle: `CRound::Move` builds both wiggle matrices with `004062d0` and sums the wiggle product
+  (X + Y) + Z (`004d90d6..004d916a`) and the unwiggle (Y + Z) + X (`004d921e..004d929a`). On 92 captured
+  frames retail's blocks agree with the corrected Core in all 92 and with the former Core in 65 and 84.
+  Corrected; `RoundWiggleTests` holds 39 retail cases. The native port differs here too (a port
+  correction, separate from this rebuild change).
+- Seek turn: the Core already follows retail's direction and product orders; the native port's differ
+  (port patch 0029). With 0029 and the launch fix the first missile's hit is equal through Present 16628.
+
+Both rebuild corrections leave every existing Parity test's outcome and output unchanged. The trainer
+route is compared again with the native port once the port's wiggle correction is in; until then the
+remaining LIFE differences are the port's. Evidence (private): the Track B packet under
+`bea-decomp/local-data/scratch/claude-20261020/peer-a/` (seek and launch captures, oracle receipts).
 
 Death, landing and render-lifetime integration (2026-10-19): hard ground contact now executes
 BattleEngine damage with the retail cap, component spills and shield-bypass rules. The BE has its
