@@ -28,18 +28,16 @@ ROUTES = [
     ("fe-r3", "fe-r3-load-port/fer3b.tape", "fe-r3-load-port", 1600, [("BEA 1", "fe-r3-load-port/BEA 1.bes")], False),
     ("fe-r4", "fe-r4-options-port/feopt.tape", "fe-r4-options-port", 3000, [], False),
     ("fe-r5", "fe-r5-fullboot-idle-port/empty.tape", "fe-r5-fullboot-idle-port", 5700, [], True),
-    ("fe-lose", "tapes/fe-level100-lose-quit-7300f.tape", "fe-lose-port", 7300, [], False),
+    ("fe-lose", "tapes/fe-level100-lose-quit-7300f.tape", "fe-lose-port-20261021", 7300, [], False),
     ("fe-god", "fe-god-port-20261021/fe-god-route.tape", "fe-god-port-20261021", 5200,
      [("Maladim", "fe-god-port-20261021/Maladim.bes")], False),
 ]
 
 
 # Known, documented Core-against-port differences (open items, not the Host's): route -> (field, first Present, last Present,
-# port minus ours). fe-lose: from Present 4280 to the level's end the port has processed exactly one more event than the
-# Core (EVENT_MANAGER's processed count); every other field agrees. Its route test compares rand() and the pages only.
-KNOWN = {
-    "fe-lose": ("EVN", 4280, 6850, 1),
-}
+# port minus ours). None at present: fe-lose's earlier reference (fe-lose-port, an older port build) counted one more
+# processed event from Present 4280 to 6851 than today's port, which the Core equals.
+KNOWN: dict[str, tuple[str, int, int, int]] = {}
 
 
 def port_fields(route_dir: Path) -> dict[tuple[int, str], str]:
