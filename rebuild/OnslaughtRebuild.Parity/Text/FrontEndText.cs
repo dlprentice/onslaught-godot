@@ -30,6 +30,16 @@ public enum FrontEndText
     BadSaveVersion,
     SaveError,
 
+    // The pages' titles (CFrontEnd::DrawTitleBar's text) and the empty save list.
+    ChooseGameName2,
+    ChooseDelete,
+    SaveGame2,
+    SaveNewGame2,
+    LoadGame2,
+    DeleteGame2,
+    SelectLoadGame2,
+    EmptyDirectory,
+
     /// <summary>The PC's "too many saves" and "no space" texts, which return the PC text 0xb5 (<c>PCText</c>).</summary>
     TooManySaves,
 }
@@ -88,6 +98,14 @@ public sealed class FrontEndTexts(TextDatabase database, TextIds ids, PlatformIn
             FrontEndText.LoadInvalid => "FETX_LOADINVALID_XBOX",
             FrontEndText.BadSaveVersion => "FETX_BADSAVEVERSION_XBOX",
             FrontEndText.SaveError => "FETX_SAVEERROR",
+            FrontEndText.ChooseGameName2 => "FETX_CHOOSEGAMENAME2",
+            FrontEndText.ChooseDelete => "FETX_CHOOSEDELETE",
+            FrontEndText.SaveGame2 => "FETX_SAVEGAME2",
+            FrontEndText.SaveNewGame2 => "FETX_SAVENEWGAME2",
+            FrontEndText.LoadGame2 => "FETX_LOADGAME2",
+            FrontEndText.DeleteGame2 => "FETX_DELETEGAME2",
+            FrontEndText.SelectLoadGame2 => "FETX_SELECTLOADGAME2",
+            FrontEndText.EmptyDirectory => "FETX_EMPTY_DIRECTORY",
             _ => "FETX_QUIT",
         }]);
     }

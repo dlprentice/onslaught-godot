@@ -127,6 +127,41 @@ public sealed class VirtualKeyboardPage : FrontEndPageBase, INameKeyboard
             _frontEnd.PlaySound(FrontEndSound.Select);
         }
         _frontEnd.RenderHelpArrow(5, transition);
+        DrawPanel(transition, Draw.FrontEndDraw.MakeAlpha(Draw.FrontEndDraw.RangeTransition(transition, 0.5f, 1f)));
+        // The title is read whether or not it is drawn (each read checks the X key).
+        if (_frontEnd.Texts is { } texts)
+            _frontEnd.DrawTitleBar(texts.GetText(_frontEnd.SaveMode ? Text.FrontEndText.ChooseGameName2 : Text.FrontEndText.ChooseDelete), transition, dest);
+        _frontEnd.RenderSmallBEALogo(Draw.FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
+    }
+
+    /// <summary><c>CFEPVirtualKeyboard::RenderPreCommon</c>: the standard video background.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest) =>
+        _frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
+
+    /// <summary>
+    /// <c>CFEPVirtualKeyboard::DrawPanel</c> (0x00521260): the name's panel and box below the list, the name centred in the
+    /// normal font (on a highlight while fresh), and, once edited, the text cursor blinking each second. The blink reads
+    /// the clock whether or not anything is drawn, as retail does.
+    /// </summary>
+    private void DrawPanel(float transition, int alpha)
+    {
+        const float left = 128f, right = 530f, top = 408f, bottom = 448f, textY = 414f;
+        Draw.FrontEndDraw? draw = _frontEnd.Draw;
+        Text.BitmapFont? font = _frontEnd.NormalFont;
+        float x = 0f;
+        if (draw is not null && font is not null)
+        {
+            draw.DrawPanel(left, top, right, bottom + 3f, 0.13f, Draw.FrontEndDraw.BlendAlpha2(0xa0000000, alpha));
+            draw.DrawBox(left, top, right, bottom + 3f, Draw.FrontEndDraw.BlendAlpha2(0xa0ffffff, alpha), 2f, 0.13f);
+            (int cx, int cy) = font.GetTextExtent(Name);
+            x = (right - left) * 0.5f + left - (cx >> 1);
+            if (Fresh) draw.DrawPanel(x - 2f, textY, x + cx + 2f, textY + cy, 0.13f, Draw.FrontEndDraw.BlendAlpha2(0xff0080a0, alpha));
+            draw.DrawTextDynamic(font, Draw.CanvasTextureKind.NormalFont, x, textY, 0.13f, 1f, 1f, Draw.FrontEndDraw.BlendAlpha2(0xffffffff, alpha), Name, 1000f);
+        }
+
+        if (Fresh || !(_frontEnd.Clock.GetSysTimeFloat() % 1f < 0.5f) || draw is null || font is null) return;
+        int lx = font.GetTextExtent(Name[..Math.Min(Position, Name.Length)]).Width;
+        draw.DrawTextDynamic(font, Draw.CanvasTextureKind.NormalFont, x + lx + 1f, textY, 0.13f, 1f, 1f, Draw.FrontEndDraw.BlendAlpha2(0xff0080a0, alpha), "I", 1000f);
     }
 
     /// <summary><c>CFEPVirtualKeyboard::TransitionNotification</c> (0x00520130): entering from the device, save list or main page.</summary>
@@ -141,10 +176,12 @@ public sealed class VirtualKeyboardPage : FrontEndPageBase, INameKeyboard
         Position = Math.Min(Name.Length, MaxLength);
     }
 
-    /// <summary><c>CFEPVirtualKeyboard::Process</c> (0x005202d0): the key trap is installed while active and removed otherwise.</summary>
+    /// <summary><c>CFEPVirtualKeyboard::Process</c> (0x005202d0): the save list refreshes unless inactive; the key trap is installed while active and removed otherwise.</summary>
     public override void Process(FrontEndPageState state)
     {
         PlatformInput platform = _frontEnd.Platform;
+        // The save list beside the keyboard is the directory page's, refreshed from the card here (0x005202d0).
+        if (state != FrontEndPageState.Inactive) _frontEnd.Directory?.RefreshSaveFileList(state);
         if (state == FrontEndPageState.Active)
         {
             if (platform.KeyTrap != TrapHandler) platform.KeyTrap = TrapHandler;

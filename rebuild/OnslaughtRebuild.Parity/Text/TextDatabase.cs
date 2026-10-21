@@ -149,7 +149,10 @@ public sealed class TextIds
         foreach (string line in Encoding.Latin1.GetString(file).Split('\n'))
         {
             string[] parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length >= 3 && parts[0] == "#define" && uint.TryParse(parts[2], out uint id)) ids.TryAdd(parts[1], id);
+            if (parts.Length < 3 || parts[0] != "#define") continue;
+            // A negative id (FETX_EMPTY_DIRECTORY) is an int the game passes as its 32-bit id.
+            if (uint.TryParse(parts[2], out uint id)) ids.TryAdd(parts[1], id);
+            else if (int.TryParse(parts[2], out int signed)) ids.TryAdd(parts[1], unchecked((uint)signed));
         }
         return new TextIds(ids);
     }

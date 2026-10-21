@@ -14,7 +14,8 @@ namespace OnslaughtRebuild.Host;
 /// HOST_LIVE=flow: the whole game, boot to quit (<see cref="GameRun"/>), on its own thread through
 /// <see cref="SteppedGameRun"/>. Godot's thread advances it one Present per fixed step and only ever reads the immutable
 /// <see cref="FlowSnapshot"/> each Present hands back; keys go to the run's thread through its input queue. HOST_TAPE
-/// replays a tape instead of the keyboard; HOST_SAVES ("NAME=FILE;...") puts career saves on the card first;
+/// replays a tape instead of the keyboard; the installation's savegames are on the card (HOST_INSTALL_SAVES=0 leaves
+/// them off) and HOST_SAVES ("NAME=FILE;...") adds career saves;
 /// HOST_FULL_BOOT=1 plays the boot films (default: as -skipfmv); HOST_TRACE writes each snapshot's line; HOST_END_PRESENT
 /// stops the run; HOST_DRAW=0 (with a tape) runs as fast as it can. HOST_FLOW_STRAIGHT=1 (with a tape, an end and a trace)
 /// instead runs the same game straight through on this thread, writing the reference the stepped trace must equal.
@@ -69,6 +70,17 @@ public partial class Host
         if (tape is not null)
         {
             run.Tape = RetailTape.Load(tape);
+        }
+
+        // The installation's own saves are on the card, as the game run from its folder (and the port, whose path layer
+        // reads the installation beneath its user folder) sees them; HOST_INSTALL_SAVES=0 leaves the card empty.
+        string installSaves = Path.Combine(files.Root, "savegames");
+        if (System.Environment.GetEnvironmentVariable("HOST_INSTALL_SAVES") != "0" && Directory.Exists(installSaves))
+        {
+            foreach (string file in Directory.GetFiles(installSaves).Where(f => f.EndsWith(".bes", StringComparison.OrdinalIgnoreCase)).Order(StringComparer.Ordinal))
+            {
+                run.FrontEnd.MemoryCard.Folder.Write(Path.GetFileNameWithoutExtension(file), File.ReadAllBytes(file));
+            }
         }
 
         if (System.Environment.GetEnvironmentVariable("HOST_SAVES") is { } saves)

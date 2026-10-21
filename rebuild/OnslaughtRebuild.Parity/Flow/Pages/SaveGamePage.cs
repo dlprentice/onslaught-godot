@@ -130,6 +130,23 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
         }
     }
 
+    /// <summary>
+    /// <c>CFEPSaveGame::Render</c> (0x00464a80): the borders and mask, the title, the small logo and the continue arrow (its
+    /// click presses select). The title is read whether or not it is drawn (each read checks the X key).
+    /// </summary>
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+        if (frontEnd.Texts is { } texts)
+            frontEnd.DrawTitleBar(texts.GetText(OnslaughtRebuild.Parity.Text.FrontEndText.SaveGame2), transition, dest);
+        frontEnd.RenderSmallBEALogo(Draw.FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
+        frontEnd.RenderHelpArrow(4, transition);
+    }
+
+    /// <summary><c>CFEPSaveGame::RenderPreCommon</c>: the standard video background.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest) =>
+        frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
+
     /// <summary><c>CFEPSaveGame::TransitionNotification</c> (0x00464b10).</summary>
     public override void TransitionNotification(FrontEndPage from) =>
         StartTime = (float)X87.Add(frontEnd.Clock.GetSysTimeFloat(), 2.0);

@@ -121,6 +121,12 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
         // x87: 24 * 11 + 130 + 7 is exact.
         const float bottom = Line * VisibleRows + Top + 7f;
         string? clicked = null;
+        Draw.FrontEndDraw? draw = frontEnd.Draw;
+        int alpha = Numerics.X87.Fist(Draw.FrontEndDraw.RangeTransition(transition, 0.5f, 1f) * 255f);
+        frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+        uint boxcol = transition > 0.5f ? Draw.FrontEndDraw.BlendAlpha2(0x80ffffff, Numerics.X87.Fist((transition - 0.5f) * 510f)) : 0;
+        draw?.DrawPanel(Left - 4f, Top, 530f, bottom, 0.55f, Draw.FrontEndDraw.BlendAlpha2(0xa0000000, alpha));
+        draw?.DrawBox(Left - 4f, Top, 530f, bottom, boxcol, 2f, 0.5f);
         while (FirstShown + VisibleRows <= Cursor) FirstShown++;
         while (FirstShown > Cursor) FirstShown--;
 
@@ -132,6 +138,19 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
             if (row >= VisibleRows) break;
             float y = (float)X87.Add(X87.Mul(row, Line), Top);
             float yBottom = (float)X87.Add(y, Line);
+            if (draw is not null && frontEnd.NormalFont is { } font)
+            {
+                uint col = 0xff404040;
+                if (i == Cursor)
+                {
+                    int pulse = X87.Fist((float)Math.Cos(frontEnd.Counter * 3.14f * (1f / 30f)) * -100f);
+                    col = unchecked(0xff969696 - (uint)(pulse * 0x010101));
+                }
+                // The name, cut to 17 characters and "..." when longer.
+                string name = _saves[i]!;
+                string shown = name.Length > 17 ? name[..17] + "..." : name;
+                draw.DrawTextDynamic(font, Draw.CanvasTextureKind.NormalFont, Left, y, 0.1f, 1f, 1f, Draw.FrontEndDraw.BlendAlpha2(col, alpha), shown, 1000f);
+            }
             if (frontEnd.MouseOverRect(Left, y, 510f, yBottom))
             {
                 Cursor = i;
@@ -145,7 +164,19 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
             }
         }
 
-        if (i != 0)
+        if (i == 0)
+        {
+            // The empty list's text, measured then drawn: two reads of it, each checking the X key, drawn or not.
+            string empty = frontEnd.Texts?.GetText(Text.FrontEndText.EmptyDirectory) ?? "";
+            string emptyText = frontEnd.Texts?.GetText(Text.FrontEndText.EmptyDirectory) ?? "";
+            if (draw is not null && frontEnd.NormalFont is { } font)
+            {
+                float x = (640f - font.GetTextExtent(empty).Width) * 0.5f;
+                draw.DrawTextDynamic(font, Draw.CanvasTextureKind.NormalFont, x, Line * 5.5f + Top, 0.1f, 1f, 1f,
+                    Draw.FrontEndDraw.BlendAlpha2(0x80ffffff, alpha), emptyText, 1000f);
+            }
+        }
+        else
         {
             const float height = bottom - Top;
             float num = NumSaves;
@@ -153,6 +184,9 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
             float barTop = (float)X87.Add(X87.Add(X87.Mul(FirstShown, per), Top), 5f);
             float barBottom = (float)X87.Add(X87.Mul(i - FirstShown, per), barTop);
             float bar = (float)X87.Sub(barBottom, barTop);
+            draw?.DrawBox(510f, Top, 530f, bottom, boxcol, 2f, 0.5f);
+            uint barcol = transition > 0.5f ? Draw.FrontEndDraw.BlendAlpha2(0xffffffff, Numerics.X87.Fist((transition - 0.5f) * 510f)) : 0;
+            draw?.DrawBox(515f, barTop, 525f, barBottom, barcol, 5f, 0.5f);
             Platform.Mouse mouse = frontEnd.Platform.Mouse;
             if (frontEnd.GetCursorStateInRect(510f, Top, 530f, bottom) && NumSaves != 0 && mouse.Held[0])
             {
@@ -175,5 +209,13 @@ public sealed class DirectoryPage(FrontEnd frontEnd) : FrontEndPageBase
     public override void Render(float transition, FrontEndPage dest)
     {
         if (RenderSaveFileList(transition, dest) is not null) ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+        // The title is read whether or not it is drawn (each read checks the X key).
+        if (frontEnd.Texts is { } texts)
+            frontEnd.DrawTitleBar(texts.GetText(frontEnd.SaveMode ? Text.FrontEndText.DeleteGame2 : Text.FrontEndText.SelectLoadGame2), transition, dest);
+        frontEnd.RenderSmallBEALogo(Draw.FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
     }
+
+    /// <summary><c>CFEPDirectory::RenderPreCommon</c> (0x0051ae50): the standard video background.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest) =>
+        frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
 }

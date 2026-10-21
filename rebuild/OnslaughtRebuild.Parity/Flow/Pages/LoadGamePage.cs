@@ -80,7 +80,18 @@ public sealed class LoadGamePage(FrontEnd frontEnd) : FrontEndPageBase
     }
 
     /// <summary>The state-changing part of <c>CFEPLoadGame::Render</c> (0x00461d90): the help arrow (continue).</summary>
-    public override void Render(float transition, FrontEndPage dest) => frontEnd.RenderHelpArrow(4, transition);
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+        // The title is read whether or not it is drawn (each read checks the X key).
+        if (frontEnd.Texts is { } texts) frontEnd.DrawTitleBar(texts.GetText(OnslaughtRebuild.Parity.Text.FrontEndText.LoadGame2), transition, dest);
+        frontEnd.RenderSmallBEALogo(Draw.FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
+        frontEnd.RenderHelpArrow(4, transition);
+    }
+
+    /// <summary><c>CFEPLoadGame::RenderPreCommon</c>: the standard video background.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest) =>
+        frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
 
     /// <summary><c>CFEPLoadGame::TransitionNotification</c>.</summary>
     public override void TransitionNotification(FrontEndPage from) =>
