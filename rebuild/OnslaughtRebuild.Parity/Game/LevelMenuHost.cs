@@ -43,7 +43,8 @@ public sealed class LevelMenuHost : IMenuHost
 
     public int SoundDevices => 1;
 
-    public int Sound3DMethod => 0;
+    /// <summary>SOUND.m3DSoundMethod: 2, as the sound manager chooses with a device and the options at -1.</summary>
+    public int Sound3DMethod => 2;
 
     public Platform.ControlBindings Bindings { get; }
 

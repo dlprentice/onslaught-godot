@@ -339,8 +339,11 @@ public sealed partial class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// <summary>CPCSoundManager::GetNumDevices: the sound devices the host lists.</summary>
     public int SoundDevices { get; set; } = 1;
 
-    /// <summary>SOUND.m3DSoundMethod: the method the sound manager chose (the options' -1 means it).</summary>
-    public int Sound3DMethod { get; set; }
+    /// <summary>
+    /// SOUND.m3DSoundMethod: the method the sound manager chose (the options' -1 means it). With a sound device and the
+    /// options at -1, CPCSoundManager's start-up chooses 2 whatever the device's free hardware buffers (pcsoundmanager.cpp).
+    /// </summary>
+    public int Sound3DMethod { get; set; } = 2;
 
     Platform.ControlBindings Menus.IMenuHost.Bindings => Controls.Bindings;
 

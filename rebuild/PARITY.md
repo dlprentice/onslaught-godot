@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-21 (whole-game host slices 1 and 2: the front end drawn through a pure canvas, Godot and a software oracle against the port; earlier rows keep their dates)
+Last updated: 2026-10-21 (whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -489,6 +489,54 @@ Whole-game host, slices 1 and 2 (2026-10-21, M7 in progress):
 - Not drawn yet: the intro page (Present 150 differs throughout), the other pages, particles and the level.
 - Font colours are doubled for a plain modulate, as the game does without modulate 2x; a channel can differ where the
   doubled colour clamps.
+
+Slice 3 (2026-10-21): the front end's other pages draw.
+- Pages: intro, name keyboard and save list, save, load, level select, briefing, Battle Engine configuration (without its
+  3D Battle Engine), debriefing, storage device, and options with its pause menus.
+- Shared drawing: `FrontEnd.Draw.cs` (title bar, borders and mask, video background, small logo and the Forseti writing,
+  selection marker) and textures found by name.
+- `FrontEndDraw.Modulate2x` tracks the colour stage: every sprite leaves it at 2x, while the video quad and the
+  briefing's plain modulate clear it. Text doubles its colours only under 2x.
+- Retail's renders make state-changing calls that Parity lacked; they are now made whether or not anything is drawn:
+  - each page title's `FET.GetText`, and the other texts the renders read (each checks the X key);
+  - the clock reads the renders make (each counts toward the spin escapes);
+  - the keyboard page's refresh of the save list;
+  - the save and load pages' timed boxes, which now read their texts and are laid out;
+  - the options menus' cursor hover and clicks, first-render time and title.
+  The front-end route tests are unchanged by all of them.
+- text.stf's negative ids now parse.
+- The flow Host puts the installation's own saves on the card, as the game run from its folder (and the port) sees them.
+- Measured against the port's back buffer (ae04185f), as mean per-channel difference from the software oracle on
+  settled frames:
+
+| Page | Mean difference |
+|---|---|
+| Intro | 0.41 |
+| Keyboard and save | 0.11–0.14 |
+| Level select | 0.10 |
+| Briefing | 0.41 |
+| Battle Engine configuration, outside the Battle Engine | 0.38 |
+| Debriefing | 0.20 |
+| Options, first list | 0.09–0.11 |
+| Options, sound list | 0.58 |
+
+  - Before this slice Parity's 3D sound method was 0. Retail chooses 2 with a sound device and the options at -1, and
+    the port shows 2.
+- Open, not drawn yet:
+  - the configuration page's 3D Battle Engine;
+  - front-end particles (the main page's fireworks, the debriefing's);
+  - the controls page's key list (debug font, Windows key names).
+- Open, the cursor after a level: `ShutdownMouse` takes `GetCursorPos`, the system cursor, which no tape records. The
+  port answers (0, 0) offscreen, while Parity uses the window's last position (320, 240).
+
+Slice 4 (2026-10-21, groundwork): the level inside the flow.
+- `SteppedGameRun.Inspect` is the host's one way into the run's objects. It runs only while the run's thread is parked
+  at a Present and throws otherwise.
+- `InspectReadsTheRunOnlyWhileItIsParkedAndChangesNothing` is the stress check. Over fe-lose to Present 7300, each inspect
+  sees the run standing at its Present despite random host delays, and every snapshot equals the straight run's.
+- `GameRun.LevelChunks` hands the host each level's textures and surf.
+- The flow Host builds the live level views when a level starts, updates them through `Inspect` and frees them when it
+  ends.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
