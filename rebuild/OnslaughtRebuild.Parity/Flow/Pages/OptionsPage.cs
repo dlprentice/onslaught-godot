@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/FEPOptions.cpp (CFEPOptions: Init 0051f4b0, ButtonPressed 0051f4e0, SaveDefaultOptions
-// 0051f500, Process 0051f600, TransitionNotification 0051f7e0; reconstructed from the retail program, not in Stuart's
+// 0051f500, Process 0051f600, RenderPreCommon 0051f6d0, Render 0051f700, TransitionNotification 0051f7e0; reconstructed from the retail program, not in Stuart's
 // release).
 
 using OnslaughtRebuild.Parity.Career;
@@ -105,6 +105,27 @@ public sealed class OptionsPage(FrontEnd frontEnd) : FrontEndPageBase
         Menu.Activate(false);
     }
 
-    /// <summary>The state Render changes: the menu's.</summary>
-    public override void Render(float transition, FrontEndPage dest) => Menu?.Render();
+    /// <summary>RenderPreCommon (0051f6d0): the standard video background, settled when leaving for the credits or screen position.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest)
+    {
+        if (dest is FrontEndPage.Credits or FrontEndPage.ScreenPos) transition = 1f;
+        frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
+    }
+
+    /// <summary>
+    /// Render (0051f700): the borders, the menu (with the front end's mouse), the title bar with the shown list's title
+    /// or text 0x265233 (TEXT.GetStringById: no X-key read), the help line's back arrow and the small logo.
+    /// </summary>
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+        MenuDrawing? drawing = MenuDrawing.Of(frontEnd);
+        MenuTitle? title = Menu?.Render(drawing, new FrontEndMenuMouse(frontEnd));
+        // The title is drawing only (no X-key read): resolved only when drawn.
+        if (drawing is { Draw: not null })
+            frontEnd.DrawTitleBar(title is { } t ? t.Resolve(drawing.Texts) : drawing.Texts.ById(0x265233), transition, dest);
+        frontEnd.RenderHelpArrow(1, transition);
+        transition = dest is FrontEndPage.Credits or FrontEndPage.ScreenPos ? 1f : Draw.FrontEndDraw.RangeTransition(transition, 0.75f, 1f);
+        frontEnd.RenderSmallBEALogo(transition);
+    }
 }

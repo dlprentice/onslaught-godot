@@ -23,6 +23,12 @@ public sealed class MachineDisplay(Platform.DisplayReset reset)
     /// <summary>LT.m_dwNumAdapters.</summary>
     public int NumAdapters { get; init; } = 1;
 
+    /// <summary>
+    /// Each adapter's d3dAdapterIdentifier.Description (CVideoDeviceSelect's choices; -1 is the current adapter). The
+    /// harness's is not recorded: drawing only.
+    /// </summary>
+    public Func<int, string> AdapterDescription { get; init; } = _ => "";
+
     /// <summary>LT.m_dwAdapter.</summary>
     public int Adapter { get; set; }
 
