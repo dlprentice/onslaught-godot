@@ -5,7 +5,9 @@
 // CnVidia 004cfd00, CVideoDetailLevel 004cfdb0, CConfigName 004d01d0, CControllerBackMenuItem 004d0220,
 // CJoystickEnableItem 004d0310; SyncDetailItems), src/RTTree.cpp (CRTMesh::SetQualityLevel 004dd6b0, GetQualityLevel
 // 004dd770) and src/FEPControls.cpp (ApplyControlPreset 00453780, CControllerDefinition 00453970, AllControlBindingsSet
-// 00456650). Reconstructed from the retail program, not in Stuart's release. The choices' texts are drawing only.
+// 00456650; CControllerDefinition::Render 00453ad0, RenderBindingsList 00455010, GetWidth 00456610, GetHeight 00456620,
+// IsExpanded 00456630, Refresh 00456640), and the choices' texts (GetChoiceText of each item, PauseMenu.cpp 004ceed0..
+// 004d01f0). Reconstructed from the retail program, not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Career;
 using OnslaughtRebuild.Parity.Numerics;
@@ -14,7 +16,8 @@ using OnslaughtRebuild.Parity.Platform;
 namespace OnslaughtRebuild.Parity.Flow.Menus;
 
 /// <summary>A choice of a setting the options file keeps, or of the machine's, read and written through the host.</summary>
-public class OptionMenuItem(IMenuHost host, int pcText, bool deferred, Func<int> choices, Func<int> get, Action<int> set)
+public class OptionMenuItem(IMenuHost host, int pcText, bool deferred, Func<int> choices, Func<int> get, Action<int> set,
+    Func<MenuRender, int, string> choiceText)
     : MenuMenuItem(host, pcText, deferred)
 {
     public override int GetNumChoices() => choices();
@@ -22,6 +25,11 @@ public class OptionMenuItem(IMenuHost host, int pcText, bool deferred, Func<int>
     public override int GetValue() => get();
 
     public override void SetValue(int value) => set(value);
+
+    public override string GetChoiceText(MenuRender r, int n) => choiceText(r, n);
+
+    /// <summary>CBOOLMenuItem::GetChoiceText (004a4220): PC texts 6 and 5.</summary>
+    public static string BoolText(MenuRender r, int n) => r.Pc(n == 0 ? 6 : 5);
 }
 
 /// <summary>CMouseSensitivityMenuItem: gMouseSensitivity in 20 steps of 3, told at every step.</summary>
@@ -44,22 +52,96 @@ public sealed class MouseSensitivityMenuItem : ScaleMenuItem
         CommittedValue = Value = X87.Fist((float)X87.Add(X87.Div(_host.MouseSensitivity, 3.0f), 0.5f)) - 1;
 }
 
-/// <summary>CControllerDefinition: the key bindings' list, which the keyboard never selects (IsEnabled is FALSE).</summary>
+/// <summary>
+/// CControllerDefinition: the key bindings' list (three columns, 230 high), which the keyboard never selects (IsEnabled is
+/// FALSE) but the cursor can. Its scroll (mUnknown20) starts at 0 and only its own arrows, drawn while it is not 0, move
+/// it, so they never show; its remap capture starts from a click on a binding.
+/// </summary>
 public sealed class ControllerDefinitionMenuItem() : MenuItem(0, 0x32)
 {
     public override bool IsEnabled => false;
+
+    /// <summary>mExpanded: only ever cleared (Refresh).</summary>
+    public override bool IsExpanded => false;
+
+    /// <summary>GetWidth (00456610).</summary>
+    public override int GetWidth(MenuRender r) => 400;
+
+    /// <summary>GetHeight (00456620).</summary>
+    public override int GetHeight() => 230;
+
+    /// <summary>
+    /// Render (00453ad0): RenderBindingsList's three columns. They are drawn in FONT_DEBUG with the keys' Windows names
+    /// (GetKeyNameTextA), neither of which this port has, so nothing is drawn; selected under a live cursor, the bindings'
+    /// hovers and clicks (which start a remap capture through a key trap) need those metrics, so such a run stops. The
+    /// key trap's capture (gKeytrapReleased clear) is never started without that click.
+    /// </summary>
+    public override void Render(MenuRender r, float x, float y, bool selected)
+    {
+        if (selected && r.MouseActive)
+            throw new NotSupportedException("the controls page's bindings list under the cursor needs FONT_DEBUG and the keys' names");
+    }
 }
 
 /// <summary>
-/// CJoystickEnableItem: a joystick's name and whether it is used. Its text (drawn each render) enables it only for a
-/// joystick that is there; until the first render it is enabled.
+/// CControllerBackMenuItem: back from the controls, reading the binding warning (PC text 0xe8 or 0xe9) instead of Back
+/// while a player has no free binding, drawn in pink then.
+/// </summary>
+public sealed class ControllerBackMenuItem(IMenuHost host, int back) : MenuItem(back)
+{
+    /// <summary>CPauseMenu::GetBindingWarning (004d0de0)'s PC text, or 0; the pause menu sets the game's form.</summary>
+    public Func<int> Warning { get; set; } = () => OptionSettings.AllControlBindingsSet(host.Bindings, 0) ? 0 : 0xe8;
+
+    /// <summary>GetText (004d0220): the warning, or text 0x6f9da.</summary>
+    public override string GetText(MenuRender r) => Warning() is var w and not 0 ? r.Pc(w) : r.Text(0x6f9da);
+
+    /// <summary>Render (004d0290).</summary>
+    public override void Render(MenuRender r, float x, float y, bool selected)
+    {
+        if (r.Draw is null) return;
+        uint col = Warning() != 0 ? 0xffff8080 : 0xffffffff;
+        RenderText(r, x, y, selected, col, GetText(r));
+    }
+}
+
+/// <summary>
+/// CJoystickEnableItem: a joystick's name and whether it is used. Its text (read for each render's widths and drawing)
+/// enables it only for a joystick that is there; until the first render it is enabled.
 /// </summary>
 public sealed class JoystickEnableMenuItem(IMenuHost host, int joystick) : MenuItem(0, 0x5d)
 {
     public int Joystick { get; } = joystick;
 
-    /// <summary>GetText (004d0310), as drawing reaches it: enabled when LT has the joystick.</summary>
-    public override void Render(bool selected) => Enabled = Joystick < host.Machine.Joypads;
+    /// <summary>GetHeight: 17.</summary>
+    public override int GetHeight() => 17;
+
+    /// <summary>GetText (004d0310)'s enable: enabled when LT has the joystick (and DirectInput its name).</summary>
+    public override void TextSideEffects() => Enabled = Joystick < host.Machine.Joypads;
+
+    /// <summary>
+    /// GetText (004d0310): "Joystick n: " and, for a joystick that is there, its instance name and whether it is used
+    /// (PC texts 0x64/0x65), else PC text 0x63. The machine model has no joystick names (the harness has no joysticks).
+    /// </summary>
+    public override string GetText(MenuRender r)
+    {
+        TextSideEffects();
+        string text = r.Pc(Joystick + 0x5e) + ": ";
+        if (Enabled)
+            throw new NotSupportedException("a present joystick's instance name is not modelled");
+        return text + r.Pc(0x63);
+    }
+
+    /// <summary>Render: CMenuItem's, which reads the text (and so the enable) again.</summary>
+    public override void Render(MenuRender r, float x, float y, bool selected)
+    {
+        if (r.Draw is null)
+        {
+            TextSideEffects();
+            return;
+        }
+
+        RenderText(r, x, y, selected, 0xffffffff, GetText(r));
+    }
 
     /// <summary>
     /// ReceiveButtonAction (004d0410, PauseMenu.cpp:1374): a joystick taken in or out (a joystick taken out loses its
@@ -237,6 +319,9 @@ public sealed class VideoDetailLevelMenuItem : MenuMenuItem
 
     public override int GetNumChoices() => 4;
 
+    /// <summary>GetChoiceText (004d01a0): PC texts 0xe0 on.</summary>
+    public override string GetChoiceText(MenuRender r, int n) => r.Pc(n + 0xe0);
+
     /// <summary>SetValue (004cfdb0): each item's choice for the preset.</summary>
     public override void SetValue(int value)
     {
@@ -316,12 +401,14 @@ public sealed class VideoDetailLevelMenuItem : MenuMenuItem
 public static class OptionsLists
 {
     /// <summary>The controls: mouse sensitivity, the preset, god mode with its cheat, the bindings, four joysticks, back.</summary>
-    public static MenuOptionsList Controls(IMenuHost host, int godOn, int godOff, int back)
+    /// <param name="y">The lists' centre: 300 on the options page, 240 in a game.</param>
+    public static MenuOptionsList Controls(IMenuHost host, int godOn, int godOff, int back, float y = 300f)
     {
-        var list = new MenuOptionsList(host);
+        var list = new MenuOptionsList(host, new MenuTitle(0, 3), 320f, y);
         list.AddItem(new MouseSensitivityMenuItem(host));
+        // CConfigName: PC texts 0xf0 (custom) and 0xf3.
         list.AddItem(new OptionMenuItem(host, 0xef, false, () => 2, () => host.Options.ControlPreset,
-            v => OptionSettings.ApplyControlPreset(host, v)));
+            v => OptionSettings.ApplyControlPreset(host, v), (r, n) => r.Pc(n == 0 ? 0xf0 : 0xf3)));
         if (host.IsCheatActive(3))
         {
             list.AddItem(new MenuItem(host.Career.Record.IsGod(0) == 1 ? godOn : godOff));
@@ -333,30 +420,35 @@ public static class OptionsLists
             list.AddItem(new JoystickEnableMenuItem(host, j));
         }
 
-        list.AddItem(new MenuItem(back));
+        list.AddItem(new ControllerBackMenuItem(host, back));
         return list;
     }
 
     /// <summary>The display: the GeForce FX features, the detail preset and its items, the device, VSync, apply, back.</summary>
-    public static MenuOptionsList Display(IMenuHost host, int back)
+    public static MenuOptionsList Display(IMenuHost host, int back, float y = 300f)
     {
         MachineDisplay m = host.Machine;
-        var list = new MenuOptionsList(host);
+        var list = new MenuOptionsList(host, new MenuTitle(0, 2), 320f, y);
         bool fx() => m.GeForceFxPower != 0 && m.PixelShaderVersion >= 0xffff0200;
+        // CnVidia: off/on with the GeForce FX features, else PC text 0xf8.
         list.AddItem(new OptionMenuItem(host, 0xf7, true, () => fx() ? 2 : 1, () => fx() ? m.ExtraGeForceFxFeatures : 0,
-            v => { m.ExtraGeForceFxFeatures = v; m.DisplaySettingChanged(); }));
+            v => { m.ExtraGeForceFxFeatures = v; m.DisplaySettingChanged(); }, (r, n) => fx() ? OptionMenuItem.BoolText(r, n) : r.Pc(0xf8)));
         var detail = new VideoDetailLevelMenuItem(host);
         list.AddItem(detail);
+        // CSCModeMenuItem: "%ld x %ld".
         detail.Resolution = Add(list, new OptionMenuItem(host, 0x13, true, () => m.Modes.Count, () => m.CurrentMode,
-            v => { m.CurrentMode = v; host.Options = host.Options with { DisplayModeKey = m.CurrentModeKey }; m.DisplaySettingChanged(); }));
+            v => { m.CurrentMode = v; host.Options = host.Options with { DisplayModeKey = m.CurrentModeKey }; m.DisplaySettingChanged(); },
+            (r, n) => $"{m.Modes[n].Width} x {m.Modes[n].Height}"));
+        // CDetailItem: PC texts 0x10 on.
         detail.ShadowDetail = Add(list, new OptionMenuItem(host, 0xe, false, () => 3, () => OptionSettings.GetShadowDetail(host.Options),
-            v => host.Options = OptionSettings.SetShadowDetail(host.Options, v)));
+            v => host.Options = OptionSettings.SetShadowDetail(host.Options, v), (r, n) => r.Pc(n + 0x10)));
         detail.TreeDetail = Add(list, new OptionMenuItem(host, 0xf, false, () => 3, () => OptionSettings.GetQualityLevel(host.Options),
-            v => host.Options = OptionSettings.SetQualityLevel(host.Options, v)));
+            v => host.Options = OptionSettings.SetQualityLevel(host.Options, v), (r, n) => r.Pc(n + 0x10)));
         detail.Trilinear = Add(list, new OptionMenuItem(host, 0x26, false, () => 2, () => host.Options.DisallowMipmapping == 0 ? 1 : 0,
-            v => host.Options = host.Options with { DisallowMipmapping = v == 0 ? 1 : 0 }));
+            v => host.Options = host.Options with { DisallowMipmapping = v == 0 ? 1 : 0 }, OptionMenuItem.BoolText));
+        // CVideoDeviceSelect: the adapter's description.
         list.AddItem(new OptionMenuItem(host, 0xde, true, () => m.NumAdapters, () => m.Adapter,
-            v => { m.Adapter = v; m.DisplaySettingChanged(); }));
+            v => { m.Adapter = v; m.DisplaySettingChanged(); }, (r, n) => m.AdapterDescription(n)));
         if (m.AllowWidescreenModes != 0)
         {
             throw new NotSupportedException("CScreenShape (ALLOW_WIDESCREEN_MODES) is not ported");
@@ -364,18 +456,22 @@ public static class OptionsLists
 
         detail.VSync = Add(list, new OptionMenuItem(host, 0x14, true, () => m.ForceVSync != 0 ? 1 : 2,
             () => m.ForceVSync != 0 ? 0 : host.Options.VSync,
-            v => { host.Options = host.Options with { VSync = v }; m.DisplaySettingChanged(); }));
+            v => { host.Options = host.Options with { VSync = v }; m.DisplaySettingChanged(); },
+            (r, n) => m.ForceVSync != 0 ? r.Pc(5) : OptionMenuItem.BoolText(r, n)));
         detail.LandscapeRes = Add(list, new OptionMenuItem(host, 0x15, false, () => LandscapeResChoices(m), () => GetLandscapeRes(host, m),
-            v => SetLandscapeRes(host, m, v)));
+            v => SetLandscapeRes(host, m, v), (r, n) => r.Pc(n switch { 0 => 0x25, 1 => 0x24, 2 => 0x23, _ => 0x22 })));
         detail.TextureRes = Add(list, new OptionMenuItem(host, 0x16, true, () => 3,
             () => host.Options.TextureResolutionLossShift > -1 ? host.Options.TextureResolutionLossShift : m.TextureResLossShift,
-            v => { host.Options = host.Options with { TextureResolutionLossShift = v }; m.DisplaySettingChanged(); }));
+            v => { host.Options = host.Options with { TextureResolutionLossShift = v }; m.DisplaySettingChanged(); },
+            (r, n) => r.Pc(n == m.TextureResLossShift ? n switch { 0 => 0x17, 1 => 0x18, _ => 0x19 } : n switch { 0 => 0x1a, 1 => 0x1b, _ => 0x1c })));
         detail.Bits32 = Add(list, new OptionMenuItem(host, 0x1d, true, () => (m.CurrentModeInfo.Flags & 4) != 0 ? 3 : 1,
             () => host.Options.TextureAllow32Bit != -1 ? host.Options.TextureAllow32Bit : m.TextureAllow32Bit,
-            v => { host.Options = host.Options with { TextureAllow32Bit = v }; m.DisplaySettingChanged(); }));
+            v => { host.Options = host.Options with { TextureAllow32Bit = v }; m.DisplaySettingChanged(); },
+            (r, n) => r.Pc(n == m.TextureAllow32Bit ? n switch { 0 => 0x20, 1 => 0x21, _ => 0x1f } : n switch { 0 => 6, 1 => 0x1e, _ => 5 })));
         detail.Default32Bit = () => m.TextureAllow32Bit;
         detail.MultiSample = Add(list, new OptionMenuItem(host, 0xd3, true, () => MultiSampleChoices(m), () => GetMultiSample(host, m),
-            v => { host.Options = host.Options with { MultiSampleType = MultiSampleType(m, v) }; m.DisplaySettingChanged(); }));
+            v => { host.Options = host.Options with { MultiSampleType = MultiSampleType(m, v) }; m.DisplaySettingChanged(); },
+            (r, n) => MultiSampleType(m, n) is var t and >= 2 and <= 16 ? t.ToString(System.Globalization.CultureInfo.InvariantCulture) : r.Pc(0xd4)));
         list.AddItem(new ApplyMenuItem(list));
         OptionSettings.SyncDetailItems(host);
         list.AddItem(new MenuItem(back));
