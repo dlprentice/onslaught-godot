@@ -92,6 +92,9 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         | ThingType.AirUnit | ThingType.Mech | ThingType.CanDestroyTrees | ThingType.Vehicle);
 
     /// <summary>FullHealth: energy and life at their configuration's values.</summary>
+    /// <summary>CBattleEngine::GetMaxLife (00406040): its configuration's life.</summary>
+    public override float GetMaxLife() => Configuration!.Life;
+
     public bool FullHealth() => !(Energy < Configuration!.Energy || Life < Configuration.Life);
 
     /// <summary>NeedsRearm: a store below its configuration's value (the stores are not ported: counted, none).</summary>

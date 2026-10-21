@@ -399,6 +399,18 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
         return root;
     }
 
+    /// <summary>A mesh whole in its rest pose, built once (null when it has nothing to draw).</summary>
+    public ArrayMesh? Whole(MeshData mesh)
+    {
+        if (!_built.TryGetValue((mesh, false), out ArrayMesh? built))
+        {
+            built = BuildMesh(mesh);
+            _built[(mesh, false)] = built;
+        }
+
+        return built;
+    }
+
     /// <summary>A mesh at a placement (the cockpit: its render position and orientation), whole in its rest pose.</summary>
     public MeshInstance3D? BuildAt(MeshData mesh, FVector pos, FMatrix ori)
     {

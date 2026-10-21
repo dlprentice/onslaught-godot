@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-21 (whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect; earlier rows keep their dates)
+Last updated: 2026-10-21 (whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -539,6 +539,24 @@ Slice 4 (2026-10-21, groundwork): the level inside the flow.
 - `GameRun.LevelChunks` hands the host each level's textures and surf.
 - The flow Host builds the live level views when a level starts, updates them through `Inspect` and frees them when it
   ends.
+
+Slice 4, the level's 2D (2026-10-21), compared with the port's fe-lose shots (`HOST_SHOTS`, Godot and the `levelraster`
+oracle):
+- The end screen, the in-game menu, the message box's panel, text and portrait match. The portrait clips to the battle
+  line's circle through `CircleMask`'s depth, and the battle line leaves out its map while a message plays, as
+  `CDXBattleLine::Render` does. At P1500 to P6100 the circle's mean colour is within 1 to 6 of the port's.
+- The HUD's reads that touch the game now run in the core's HUD render (`WorldRender.RenderHud`), as retail makes them.
+  These are each objective's point (a segmented building's core pose, through the newly ported
+  `CDestructableSegmentsController::GetCentre`), the speaker's point, and the target box's choice with its clock read. The
+  host draws from what that render kept and evaluates no pose.
+- Drawn and matching the port: the objectives' screen markers, the eased crosshair, the guns panel, and the target box
+  (the target's mesh turning in its own view, with its health bar).
+- Open:
+  - At P5000 the target's health bar ends about a pixel short of the port's full bar, on a route whose reference is
+    known to drift from P4280.
+  - Not drawn yet: the HUD's text (the weapon name and warning lines, the objective panel), the lock-on pieces and
+    warning-receiver threats (neither is ported), the Thunderhead's imposter frame, the terrain's detail texture, and
+    P2800's dome.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):

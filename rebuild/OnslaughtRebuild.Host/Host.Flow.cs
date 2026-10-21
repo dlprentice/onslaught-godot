@@ -440,6 +440,8 @@ public partial class Host
         _liveParticles?.Dispose();
         _liveHudTextures?.Dispose();
         _liveMeshes?.Dispose();
+        _targetBox?.Dispose();
+        _targetBox = null;
         _liveWater?.Dispose();
         _liveSurf?.Dispose();
         _liveTerrain?.Dispose();

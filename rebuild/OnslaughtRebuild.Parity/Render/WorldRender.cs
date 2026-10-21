@@ -4,8 +4,10 @@
 // (GetViewMatrixFromCamera 00449ef0), renderinfo.cpp (SetProjection 00550b10, SetView 00550be0), gcgamut.cpp
 // (RenderThings 00476fe0), thing.cpp (CThing::Render 004f36d0), Building.cpp (CBuilding::Render 00417540),
 // BattleEngine.cpp (CBattleEngine::Render 0040d530), rtmesh.cpp (CRTMesh::Init's effect tables, Render 004dcba0,
-// UpdateRenderLists 004dd0c0) and MeshRenderer.cpp (Render's pose update 004b6260, RenderPart's effect emitters, 004b6350).
+// UpdateRenderLists 004dd0c0), MeshRenderer.cpp (Render's pose update 004b6260, RenderPart's effect emitters, 004b6350) and
+// Hud.cpp (the reads of RenderWorldTargets 00486e00, RenderTargetIndicator 00482590 and RenderTargetMarkers 00484340).
 
+using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
 using OnslaughtRebuild.Parity.Particles;
@@ -404,6 +406,62 @@ public sealed class WorldRender(ThingContext context)
     /// <summary>The speaking thing's point RenderTargetMarkers marks, from the last HUD render (null without one).</summary>
     public FVector? HudSpeakerPoint { get; private set; }
 
+    /// <summary>The target RenderTargetIndicator shows, from the last HUD render (null without one).</summary>
+    public HudIndicator? HudTarget { get; private set; }
+
+    // CHud's mUnknown09c / mUnknown0a4 for the first player: the target last shown and the clock when it was last chosen
+    // (Reset's -10000 at the level's start, as this render is made per level).
+    private readonly ActiveReader<Unit> _indicated = new();
+    private float _indicatedTime = -10000.0f;
+
+    /// <summary>
+    /// RenderTargetIndicator (00482590), as far as it reads the game: the auto-aim target if it is a unit, else the unit
+    /// over the crosshair; one chosen is remembered with the clock, and with none the remembered one stays for 2 seconds
+    /// (the clock is read once either way). A target with a render thing and a mesh is shown: its side (the unit data's
+    /// icon, else from its allegiance) and health. Components are not ported, so a target is never one.
+    /// </summary>
+    private void RenderTargetIndicator(Game.Game game, BattleEngine be)
+    {
+        HudTarget = null;
+        Unit? unit = be.AutoAimTarget.ToRead as Unit;
+        if (unit is null || !unit.IsA(ThingType.Unit))
+        {
+            unit = be.CurrentUnitOverCrosshair.ToRead;
+            if (unit is not null && !unit.IsA(ThingType.Unit))
+            {
+                unit = null;
+            }
+        }
+
+        float now = game.Clock.GetSysTimeFloat();
+        Unit? target;
+        if (unit is not null)
+        {
+            _indicated.SetReader(unit);
+            target = unit;
+            _indicatedTime = now;
+        }
+        else
+        {
+            if (now - _indicatedTime > 2.0f)
+            {
+                _indicated.SetReader(null);
+            }
+
+            target = _indicated.ToRead;
+        }
+
+        if (target?.RenderThing?.MeshOrNull is not { } mesh)
+        {
+            return;
+        }
+
+        int side = target.UnitData is { Icon: not -1 } data ? data.Icon : target.Allegiance switch { 0 => 1, 1 => 0, _ => 2 };
+        float max = target.GetMaxLife();
+        float? health = max > 0.0001f ? Math.Clamp(target.GetLifeUnknown4f9a40() / max, 0.0f, 1.0f) : null;
+        HudTarget = new HudIndicator(target, mesh, side, health);
+    }
+
     public void RenderHud()
     {
         HudObjectivePoints = [];
@@ -422,6 +480,7 @@ public sealed class WorldRender(ThingContext context)
         }
 
         HudObjectivePoints = points;
+        RenderTargetIndicator(game, be);
         if (Script.ScriptRuntime.Of(context).MessageBox?.Current is { } message && message.Speaker.ToRead is { } speaker)
         {
             HudSpeakerPoint = speaker is Unit unit && speaker.IsA(ThingType.Unit) ? unit.GetRenderUnknown90()
@@ -735,3 +794,6 @@ public sealed class WorldRender(ThingContext context)
         _renderedThisFrame = null;
     }
 }
+
+/// <summary>What RenderTargetIndicator shows: the target, its mesh, its side (0 red, 1 blue, 2 grey, 3 green) and its health (null when it has no maximum).</summary>
+public sealed record HudIndicator(Unit Target, MeshData Mesh, int Side, float? Health);

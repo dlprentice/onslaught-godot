@@ -22,6 +22,7 @@ public partial class Host
     private Node3D? _liveWorld;
     private Camera3D? _liveCamera;
     private HudTargetState _hudTargets = new();
+    private TargetBoxView? _targetBox;
     private Node3D? _liveSky;
     private TerrainLiveView? _liveTerrain;
     private MeshView.LiveSet? _liveMeshes;
@@ -158,7 +159,10 @@ public partial class Host
         });
         _liveCamera = new Camera3D { KeepAspect = Camera3D.KeepAspectEnum.Width, Near = 0.1f, Far = 20000 };
         _liveWorld.AddChild(_liveCamera);
-        _liveMeshes = new MeshView(textures, terrain).CreateLive(_liveWorld);
+        var meshView = new MeshView(textures, terrain);
+        _liveMeshes = meshView.CreateLive(_liveWorld);
+        Texture2D? white = textures.Get(@"hud\v2\white.tga") ?? textures.Find(@"hud\v2\white.tga", 0);
+        _targetBox = new TargetBoxView(meshView, this, white is null ? new Vector2I(64, 64) : (Vector2I)white.GetSize());
         _liveHudTextures = new HudView.TextureCache();
         if (session.Game.GetCurrentCamera(0) is { } camera)
         {
@@ -443,6 +447,11 @@ public partial class Host
                 _liveTextures!);
             var hud = new Node2D { Name = "HudPasses" };
             hud.AddChild(targets);
+            if (_targetBox is not null)
+            {
+                hud.AddChild(_targetBox.Update(session.Context.Particles?.World.HudTarget, session.Context.Events.Time, _liveTextures!));
+            }
+
             hud.AddChild(HudView.Build(be, _liveTextures!, session.Context.World.ObjectiveThings.ToList(),
                 ref _lastHealth, ref _lastEnergy, _dial ??= _liveFiles!.Read(@"data\Dial.raw").Bytes,
                 session.Game.Loop.Fraction, session.Context.World.UnitNB.ToList(), _ammo, frameLength, _liveHudTextures, crosshair: false));
@@ -513,6 +522,7 @@ public partial class Host
         _liveParticles?.Dispose();
         _liveHudTextures?.Dispose();
         _liveMeshes?.Dispose();
+        _targetBox?.Dispose();
         _liveWater?.Dispose();
         _liveSurf?.Dispose();
         _liveTerrain?.Dispose();
