@@ -420,6 +420,13 @@ public sealed class LevelSession
             Text.TextIds.Read(read(Text.TextIds.FileName).Bytes),
             bootOptions ?? OnslaughtRebuild.Parity.Career.CareerOptions.Read(new byte[OnslaughtRebuild.Parity.Career.CareerOptions.Size]), bindings),
             () => scripts.MessageBox!.Shown);
+        // MESH_LOD_BIAS and TREE_MESH_DISTANCE follow the loaded options (the career load and SetQualityLevel set them);
+        // without an options file retail keeps the globals' initial values, which the render falls back to.
+        if (host is not null || bootOptions is not null)
+        {
+            context.RenderOptions = () => input.PauseMenuHost!.Options;
+        }
+
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Shared = input.Shared;
 

@@ -96,6 +96,12 @@ public sealed class ThingContext(
     /// <summary>The PC's mouse look: CBattleEngine::UpdateMouseLookAngles's statics and the platform's mouse.</summary>
     public MouseLookState MouseLook { get; } = new();
 
+    /// <summary>
+    /// The live display options the world render reads (MESH_LOD_BIAS, TREE_MESH_DISTANCE): the pause menu host's, which the
+    /// career load and CRTMesh::SetQualityLevel set. Null: level 1's values.
+    /// </summary>
+    public Func<OnslaughtRebuild.Parity.Career.CareerOptions>? RenderOptions { get; set; }
+
     /// <summary>The main thread's C runtime rand() (shared by particles, sounds and parts of the simulation).</summary>
     public Crt.CrtRandStream Crt { get; set; } = new();
 

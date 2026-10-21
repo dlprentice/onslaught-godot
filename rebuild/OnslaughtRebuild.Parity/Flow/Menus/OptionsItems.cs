@@ -148,8 +148,8 @@ public static class OptionSettings
 
     /// <summary>
     /// CRTMesh::SetQualityLevel (004dd6b0): the tree and mesh distances, the trail detail, the blob shadows' fade and the
-    /// landscape's low-resolution geometry for the level. The core's world render draws at level 1's distances, so
-    /// another level stops the run.
+    /// landscape's low-resolution geometry for the level. The world render reads the mesh distances from these options
+    /// (<see cref="Things.ThingContext.RenderOptions"/>); the trail detail, blob shadows and landscape geometry are drawing only.
     /// </summary>
     public static CareerOptions SetQualityLevel(CareerOptions o, int level)
     {
@@ -161,11 +161,6 @@ public static class OptionSettings
             0 => o with { TreeMeshDistanceBits = Bits(10.0f), MeshLodBias = 3.0f, TrailDetailBits = Bits(0.1f), BlobShadowFadeDistance = Bits(15.0f), LandscapeLowResGeometry = 1 },
             _ => o,
         };
-        if (level is 0 or 2)
-        {
-            throw new NotSupportedException($"CRTMesh::SetQualityLevel({level}): the world render's mesh distances are level 1's");
-        }
-
         return set;
     }
 

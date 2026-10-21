@@ -29,10 +29,12 @@ public sealed class WorldRender(ThingContext context)
     private const float LandscapeFar = 700.0f;
     private const float AspectRatio = 0.75f;
     private const float ImposterFadeEnd = 40.0f;
-    private const float MeshLodBias = 1.0f;
+    /// <summary>MESH_LOD_BIAS (00631e88): the options' (CRTMesh::SetQualityLevel and the career load set it), else level 1's.</summary>
+    private float MeshLodBias => context.RenderOptions?.Invoke().MeshLodBias ?? 1.0f;
     private const float MeshLodMed = 10.0f;
     private const float MeshLodLow = 20.0f;
-    private const float TreeMeshDistance = 30.0f;
+    /// <summary>TREE_MESH_DISTANCE (006321a0): the options' (saved as the float's raw word), else level 1's.</summary>
+    private float TreeMeshDistance => context.RenderOptions is { } options ? BitConverter.Int32BitsToSingle(options().TreeMeshDistanceBits) : 30.0f;
     private const float ViewportWidth = 640.0f;
     private const int ViewportHalfWidth = 320;
     private const int ViewportHalfHeight = 240;

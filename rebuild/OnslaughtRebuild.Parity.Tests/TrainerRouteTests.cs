@@ -29,33 +29,45 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
     [RetailGoldenFact(Dir + "/port-probes-every1.txt", Dir + "/fire3-trainer-missile-dodge-20261019.tape", Dir + "/sound-seeds-admission-root-c.json")]
     public void TheTrainerRouteMatchesThePortEveryPresent()
     {
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read),
+            soundOptions: SoundProfile(RetailGolden.File(Dir + "/sound-seeds-admission-root-c.json")!));
+        session.Tape = RetailTape.Load(RetailGolden.File(Dir + "/fire3-trainer-missile-dodge-20261019.tape")!);
+        (long matched, string? first, int compared) = CompareEveryPresent(session, Dir + "/port-probes-every1.txt", MatchedThrough);
+        output.WriteLine($"{compared} fields compared; every field matches through Present {matched}; first difference: {first ?? "none"}");
+        Assert.True(matched >= MatchedThrough, $"matched through Present {matched}, below {MatchedThrough}; {first}");
+        Assert.True(compared >= 9 * (MatchedThrough - 3), $"only {compared} fields compared");
+    }
+
+    /// <summary>
+    /// Advances the session Present by Present to <paramref name="end"/> (or its first difference), comparing every probe
+    /// field the port's every-Present reference has: EVT, EVN, FT, SC, LVL, RNG, CRT, POS and LIFE.
+    /// </summary>
+    internal static (long Matched, string? First, int Compared) CompareEveryPresent(LevelSession session, string probesFile, long end)
+    {
         var port = new Dictionary<(long Present, string Name), string>();
-        foreach (string line in File.ReadLines(RetailGolden.File(Dir + "/port-probes-every1.txt")!))
+        foreach (string line in File.ReadLines(RetailGolden.File(probesFile)!))
         {
             string[] f = line.Split(' ');
-            if (f.Length == 4 && f[0] == "P" && f[2] is not ("ELD" or "ELDEXIT"))
+            if (f.Length == 4 && f[0] == "P" && f[2] is not ("ELD" or "ELDEXIT" or "FE"))
             {
                 port[(long.Parse(f[1]), f[2])] = f[3];
             }
         }
 
-        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read),
-            soundOptions: SoundProfile(RetailGolden.File(Dir + "/sound-seeds-admission-root-c.json")!));
-        session.Tape = RetailTape.Load(RetailGolden.File(Dir + "/fire3-trainer-missile-dodge-20261019.tape")!);
         static string Hex(ReadOnlySpan<byte> b) => Convert.ToHexString(b).ToLowerInvariant();
         static string U32(uint v) { Span<byte> b = stackalloc byte[4]; BinaryPrimitives.WriteUInt32LittleEndian(b, v); return Hex(b); }
         static string F32(params float[] v) => string.Concat(v.Select(x => U32(BitConverter.SingleToUInt32Bits(x))));
         long matched = 0;
         string? first = null;
         int compared = 0;
-        while (session.PresentCount < MatchedThrough && first is null)
+        while (session.PresentCount < end && first is null)
         {
             session.AdvanceToNextPresent();
             long p = session.PresentCount;
             var ours = new Dictionary<string, string>
             {
                 ["EVT"] = F32(session.Context.Events.Time),
-                ["EVN"] = U32(unchecked((uint)session.Context.Events.TotalEventsProcessed)),
+                ["EVN"] = U32(session.Context.Events.TotalEventsProcessed),
                 ["FT"] = F32(session.Game.Loop.FrameTime),
                 ["SC"] = U32(unchecked((uint)session.Game.Score)),
                 ["LVL"] = U32(unchecked((uint)session.Game.CurrentLevel)),
@@ -88,9 +100,7 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
             }
         }
 
-        output.WriteLine($"{compared} fields compared; every field matches through Present {matched}; first difference: {first ?? "none"}");
-        Assert.True(matched >= MatchedThrough, $"matched through Present {matched}, below {MatchedThrough}; {first}");
-        Assert.True(compared >= 9 * (MatchedThrough - 3), $"only {compared} fields compared");
+        return (matched, first, compared);
     }
 
     /// <summary>
