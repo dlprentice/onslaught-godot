@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Adapted from bea-decomp src/FEPDevSelect.cpp (reconstructed from the retail program; not in Stuart's release).
+// Adapted from bea-decomp src/FEPDevSelect.cpp (reconstructed from the retail program; not in Stuart's release):
+// RenderPreCommon (folded with CFEPDirectory's, 0051ae50), Render 00458ee0 and RenderDevice 004595b0.
 
+using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Numerics;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
@@ -242,15 +244,146 @@ public sealed class DevSelectPage(FrontEnd frontEnd) : FrontEndPageBase
         StartTime = (float)X87.Add(frontEnd.Clock.GetSysTimeFloat(), 2.0);
     }
 
+    /// <summary><c>CFEPDevSelect::RenderPreCommon</c> (0x0051ae50, shared with the directory page): the standard video background.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest) =>
+        frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
+
     /// <summary>
-    /// The state-changing part of <c>CFEPDevSelect::Render</c> (0x00458ee0): the help line's arrows. (The "no device"
-    /// box it creates and kills needs a card number of -2, which the PC never has.)
+    /// <c>CFEPDevSelect::Render</c> (0x00458ee0). Its state-changing part: the help line's arrows. (The "no device" box
+    /// it creates and kills needs a card number of -2, which the PC never has.) With <see cref="FrontEnd.Draw"/> it also
+    /// draws: the sliding text, borders and mask; the devices (the PC's one card, the hard disk being unavailable) with
+    /// the selected one pulsing; the "available blocks" label; the small logo; the title bar; and the help text.
     /// </summary>
     public override void Render(float transition, FrontEndPage dest)
     {
+        FrontEndDraw? draw = frontEnd.Draw;
+        Text.FrontEndTexts? texts = frontEnd.Texts;
+        // FET.GetText(...): drawing must not change the simulation, so the texts are read by their ids (as GetText does
+        // with the English fallback off).
+        string Fet(Text.FrontEndTexts t, string name) => t.ById(t.Ids[name]);
+
+        if (draw is not null)
+        {
+            frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+            if (transition > 0f) DrawDevices(draw, transition, dest);
+        }
+
         if (Card != -2 || frontEnd.MessageBox.BeingDisplayed) frontEnd.RenderHelpArrow(5, transition);
         if (frontEnd.SuccessPage == FrontEndPage.Debriefing) frontEnd.RenderHelpArrow(3, transition);
         else frontEnd.RenderHelpArrow(frontEnd.SaveMode ? 2 : 1, transition);
+
+        if (draw is null) return;
+        float tr = (transition - 0.75f) * 4f;
+        tr = tr < 0f ? 0f : tr > 1f ? 1f : tr;
+        frontEnd.RenderSmallBEALogo(tr);
+
+        if (texts is null) return;
+        string title, help;
+        if (frontEnd.SaveMode)
+        {
+            title = frontEnd.Career.Record.CareerInProgress != 0 ? "FETX_SAVEGAME2" : "FETX_SAVENEWGAME2";
+            help = "FETX_SELECTSAVLOC";
+        }
+        else
+        {
+            title = "FETX_LOADGAME2";
+            help = "FETX_SELECTLOADLOC";
+        }
+        frontEnd.DrawTitleBar(Fet(texts, title), transition, dest);
+
+        if (frontEnd.SmallFont is not { } small) return;
+        int ta = FrontEndDraw.MakeAlpha(tr);
+        string helpText = Fet(texts, help);
+        int cx = small.GetTextExtent(helpText).Width;
+        draw.DrawTextDynamic(small, CanvasTextureKind.SmallFont, 395f - cx * 0.5f, 100f, 0.01f, 1f, 1f, FrontEndDraw.BlendAlpha2(0xff3f3f5f, ta),
+            helpText, 1000f);
+    }
+
+    /// <summary>
+    /// The devices: the hard disk (never on PC) and the cards two to a column, then the "available blocks" label; with the
+    /// hard disk selected its name and free space (never on PC). The selected card's name and sizes are only measured.
+    /// </summary>
+    private void DrawDevices(FrontEndDraw draw, float transition, FrontEndPage dest)
+    {
+        int alpha = FrontEndDraw.MakeAlpha(dest == FrontEndPage.VirtualKeyboard
+            ? FrontEndDraw.RangeTransition(transition, 0.5f, 1f)
+            : FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
+
+        if (Card0.IsHddAvailable)
+        {
+            (_, _, int free, int total) = Card0.GetCardInfo(-1);
+            RenderDevice(draw, 200f, 120f, (float)total - free, total, 0.89f, 1f, alpha, State == 0, true, true, true);
+        }
+
+        for (int i = 0; i < Card0.NumCards; i++)
+        {
+            (bool present, bool formatted, int free, int total) = Card0.GetCardInfo(i);
+            if (!present || !formatted)
+            {
+                free = 0;
+                total = 0;
+            }
+            RenderDevice(draw, i / 2 * 96f + (i & 1) * 48f + 152f, 280f, (float)total - free, total, 0.89f, 0.5f, alpha,
+                State == 1 && Cursor == i, false, formatted, present);
+        }
+
+        if (frontEnd.SmallFont is { } small && frontEnd.Texts is { } texts)
+        {
+            string blocks = texts.ById(AvailableBlocksId);
+            int cx = small.GetTextExtent(blocks).Width;
+            draw.DrawTextWithShadow(small, new QuadTexture(CanvasTextureKind.SmallFont), 410f - cx - 10f + 100f, 340f,
+                FrontEndDraw.BlendAlpha2(0xff7f7f00, alpha), blocks, 0, 0.79f);
+
+            if (State == 0 && Card0.IsHddAvailable && frontEnd.NormalFont is { } normal)
+            {
+                // The hard disk's free space (MakeHumanReadableSize) is not ported: the PC has no hard disk device.
+                uint col = FrontEndDraw.BlendAlpha2(0xff7f7f7f, alpha);
+                draw.DrawTextWithShadow(normal, new QuadTexture(CanvasTextureKind.NormalFont), 92f, 340f, col,
+                    texts.ById(texts.Ids["FETX_DS_XBOXHARDDISK"]), 0, 0.79f);
+            }
+        }
+    }
+
+    /// <summary>
+    /// FETX_DS_AVAILABLE_BLOCKS_XBOX: text.stf defines it as -1104069445, and <see cref="Text.TextIds"/> reads only
+    /// unsigned ids, so it is given here as the 32-bit id the game compiles it to.
+    /// </summary>
+    private const uint AvailableBlocksId = unchecked((uint)-1104069445);
+
+    /// <summary>
+    /// <c>CFEPDevSelect::RenderDevice</c> (0x004595b0): the device's panel (pulsing green when selected, red when a save
+    /// will not fit) and white box under its picture, and its usage bar.
+    /// </summary>
+    private void RenderDevice(FrontEndDraw draw, float x, float y, float used, float total, float z, float scale, int alpha, bool selected,
+        bool hdd, bool formatted, bool present)
+    {
+        FrontEndTexture tex = hdd ? FrontEndTexture.XbXbox : formatted ? FrontEndTexture.XbMu : FrontEndTexture.XbMuCorrupt;
+        if (draw.Textures.Size(tex) is not { } size) return;
+        float w = size.Width * scale;
+        float h = size.Height * scale;
+
+        uint col;
+        if (selected)
+        {
+            // SINT(...): fistp under /QIfist.
+            uint v = unchecked((uint)(0xbf - X87.Fist(MathF.Sin(frontEnd.Counter * 3.14f * (1f / 30f)) * -64f)));
+            col = unchecked(0x6f000000 + (v & ~1u) * 128 + v);
+            col = unchecked(((col >> 24) * (uint)alpha & 0xffffff00) * 0x10000 | (col & 0x00ffffff));
+        }
+        else col = FrontEndDraw.BlendAlpha2(0x6f000000, alpha);
+
+        int saveSize = Card0.GetSaveSize(OnslaughtRebuild.Parity.Career.CareerSaveGame.Size);
+        if (total - used < saveSize && frontEnd.SaveMode && formatted) col = (col & 0xff000000) + ((col & 0xff) << 16);
+
+        float bottom = y + h;
+        draw.DrawPanel(x, y, x + w, bottom + 16f, z, col);
+        draw.DrawBox(x, y, x + w, bottom + 16f, FrontEndDraw.BlendAlpha2(0xffffffff, alpha), 2f, z);
+
+        if (!present) return;
+        draw.DrawColouredSprite(x, y, 0.79f, tex, FrontEndDraw.BlendAlpha2(0xffffffff, alpha), scale, scale);
+        if (total != 0f)
+            draw.DrawBarGraph(x + w * 0.05f, bottom + 4f, x + w * 0.95f, bottom + 12f, used, total, z, FrontEndDraw.BlendAlpha2(0xff004000, alpha),
+                FrontEndDraw.BlendAlpha2(0xffff0000, alpha));
     }
 
     /// <summary><c>CFEPDevSelect::SetCurrentCard</c> (0x00459810).</summary>
