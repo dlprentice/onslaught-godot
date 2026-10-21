@@ -75,6 +75,13 @@ public sealed partial class BattleEngine
     public int OldEngineState;
     public bool ThrustersOn;
     public bool InfinateEnergy;
+
+    /// <summary>SetInfinateEnergy (battleengine.h inline, 00405f20): CUnit's flag, then the energy filled to GetMaxEnergy.</summary>
+    public void SetInfinateEnergy(bool value)
+    {
+        InfinateEnergy = value;
+        Energy = Configuration!.Energy;
+    }
     public FVector StandingOnObjectMovement;
 
     /// <summary>mPlayer.ToRead().</summary>

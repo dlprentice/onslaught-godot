@@ -319,9 +319,18 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
     /// <summary>mPreferedControlView (PLAYER_FP_VIEW from the constructor).</summary>
     public PlayerView PreferredControlView { get; set; } = PlayerView.FirstPerson;
 
+    /// <summary>CAREER, whose god flag the player starts from and writes back (null: a wiped career, god off).</summary>
+    public OnslaughtRebuild.Parity.Career.Career? Career { get; init; }
+
+    /// <summary>mIsGod: from CAREER.GetIsGod(number - 1) at construction (004d27c0).</summary>
+    public bool IsGod { get; private set; }
+
+    /// <summary>The constructor's read of the career's god flag.</summary>
+    public void ReadCareerGod() => IsGod = Career is { } career && career.Record.IsGod(Number - 1) != 0;
+
     /// <summary>
-    /// CPlayer::AssignBattleEngine: the battle engine is read; it learns its player, and a god player's is made
-    /// invulnerable with infinite energy (the career's god flag is read as off: the wiped career).
+    /// CPlayer::AssignBattleEngine (004d3080): the battle engine is read; it learns its player, and a god player's is made
+    /// invulnerable with infinite energy.
     /// </summary>
     public void AssignBattleEngine(Thing? battleEngine)
     {
@@ -329,6 +338,31 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
         if (battleEngine is Things.BattleEngine be)
         {
             be.Player = this; // CBattleEngine::SetPlayer
+            if (IsGod)
+            {
+                be.Vulnerable = false;
+                be.SetInfinateEnergy(true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// CPlayer::SetIsGod (004d3020): the flag, the career's copy, the battle engine's vulnerability and infinite energy (which
+    /// fills its energy either way), and the cheat statistic when it is turned on.
+    /// </summary>
+    public void SetIsGod(bool god)
+    {
+        IsGod = god;
+        Career?.Record.SetIsGod(Number - 1, god ? 1 : 0);
+        if (BattleEngine is Things.BattleEngine be)
+        {
+            be.Vulnerable = !god;
+            be.SetInfinateEnergy(god);
+        }
+
+        if (god)
+        {
+            IncStat(PlayerStat.Cheated);
         }
     }
 
@@ -456,12 +490,13 @@ public sealed partial class Game
     /// CGame::LoadLevel after WORLD.Load (game.cpp:716): mPlayers is 2 for a multiplayer world, else 1, and each player
     /// is made (the controllers are the platform's).
     /// </summary>
-    public void CreatePlayers(ThingContext context, bool multiplayerWorld)
+    public void CreatePlayers(ThingContext context, bool multiplayerWorld, OnslaughtRebuild.Parity.Career.Career? career = null)
     {
         Players = multiplayerWorld ? 2 : 1;
         for (int i = 0; i < Players; i++)
         {
-            _player[i] = new Player(i + 1, context);
+            _player[i] = new Player(i + 1, context) { Career = career };
+            _player[i]!.ReadCareerGod();
         }
     }
 

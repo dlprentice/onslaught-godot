@@ -183,8 +183,7 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
     void Flow.Menus.IPauseMenuGame.UnPause() => _game!.UnPause();
 
     /// <summary>CPlayer::SetIsGod (004d3020): the career, the battle engine's vulnerability and energy, the cheat stat.</summary>
-    void Flow.Menus.IPauseMenuGame.SetPlayerGod(bool god) =>
-        throw new NotSupportedException("CPlayer::SetIsGod (the god mode cheat) is not ported");
+    void Flow.Menus.IPauseMenuGame.SetPlayerGod(bool god) => _game!.GetPlayer(0)!.SetIsGod(god);
 
     void Flow.Menus.IPauseMenuGame.InitMouse() => Mouse.Init();
 
