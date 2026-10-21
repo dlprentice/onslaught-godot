@@ -372,11 +372,13 @@ public partial class Round : Actor
         FMatrix unwiggle = FMatrix.Identity;
         if (Data.Wiggle > 0)
         {
+            // Both matrices through the out-of-line FMatrix(yaw, pitch, 0) (004062d0, called at 004d908d and 004d90d1); the wiggle
+            // product sums each component (X + Y) + Z.
             float pitch = ((Context.Random.FloatRandom() * 2) - 1) * Data.Wiggle;
             float yaw = ((Context.Random.FloatRandom() * 2) - 1) * Data.Wiggle;
-            FMatrix wiggle = FMatrix.FromYawPitchRoll(yaw, pitch, 0);
-            unwiggle = FMatrix.FromYawPitchRoll(-yaw, -pitch, 0);
-            Velocity = wiggle.Transform(Velocity);
+            FMatrix wiggle = FMatrix.MakeRotationOutOfLine(yaw, pitch, 0);
+            unwiggle = FMatrix.MakeRotationOutOfLine(-yaw, -pitch, 0);
+            Velocity = WiggleVelocity(wiggle, Velocity);
         }
 
         Velocity.Z += Gravity();
@@ -396,7 +398,7 @@ public partial class Round : Actor
         base.Move();
         if (Data.Wiggle > 0)
         {
-            Velocity = unwiggle.Transform(Velocity);
+            Velocity = UnwiggleVelocity(unwiggle, Velocity);
         }
 
         UpdateSeeking();

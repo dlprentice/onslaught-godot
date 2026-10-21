@@ -91,6 +91,20 @@ public partial class Round
         return new(Row(a.Row0), Row(a.Row1), Row(a.Row2));
     }
 
+    internal static FVector WiggleVelocity(FMatrix m, FVector v)
+    {
+        // 004d90d6..004d916a: (X + Y) + Z in every row.
+        float Row(FVector r) => (float)X87.Add(X87.Add(X87.Mul(r.X, v.X), X87.Mul(r.Y, v.Y)), X87.Mul(r.Z, v.Z));
+        return new(Row(m.Row0), Row(m.Row1), Row(m.Row2));
+    }
+
+    internal static FVector UnwiggleVelocity(FMatrix m, FVector v)
+    {
+        // 004d921e..004d929a: (Y + Z) + X in every row.
+        float Row(FVector r) => (float)X87.Add(X87.Add(X87.Mul(r.Y, v.Y), X87.Mul(r.Z, v.Z)), X87.Mul(r.X, v.X));
+        return new(Row(m.Row0), Row(m.Row1), Row(m.Row2));
+    }
+
     internal static FVector SeekVelocity(FMatrix m, FVector velocity)
     {
         // 004d97d4: speed is sqrt((X²+Y²)+Z²), stored to float. The call0040d2c0 multiplies
