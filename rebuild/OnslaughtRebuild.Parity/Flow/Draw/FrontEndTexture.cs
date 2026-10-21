@@ -302,9 +302,9 @@ public sealed class FrontEndTextures
     /// dxtntextures\) plus 0x41 is cut to 0x3d characters past that length and ends ".aya" again: the installation's long
     /// names are stored cut the same way.
     /// </summary>
-    public static string[] FramePaths(string name)
+    public static string[] FramePaths(string name, string format = DefaultFormat)
     {
-        string file = name.Replace('\\', '%') + "(0)A8R8G8B8.aya";
+        string file = name.Replace('\\', '%') + "(0)" + format + ".aya";
         return [Cut($@"data\resources\textures\{file}", 0x18), Cut($@"data\resources\dxtntextures\{file}", 0x1c),
             Cut($@"data\resources\textures\mustbe_{file}", 0x18)];
     }
@@ -314,19 +314,23 @@ public sealed class FrontEndTextures
     /// <summary>The mouse cursor's texture, which <c>RenderMouseCursor</c> finds by name.</summary>
     public const string CursorName = "mouse.tga";
 
+    /// <summary>The format the front end's textures are found with (<c>FindTexture(name, A8R8G8B8, ...)</c>).</summary>
+    public const string DefaultFormat = "A8R8G8B8";
+
     /// <summary>The cursor texture's size, or null without its file.</summary>
     public (int Width, int Height)? CursorSize { get; private set; }
 
     private readonly Func<string, (string Name, byte[] Bytes)> _read = null!;
-    private readonly Dictionary<string, (int Width, int Height)?> _named = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<(string, string), (int Width, int Height)?> _named = new();
 
     /// <summary>A texture found by name (<c>CDXTexture::FindTexture</c>)'s size, read on first use; null without its file.</summary>
-    public (int Width, int Height)? NamedSize(string name)
+    public (int Width, int Height)? NamedSize(string name, string format = DefaultFormat)
     {
-        if (!_named.TryGetValue(name, out (int Width, int Height)? size))
+        var key = (name.ToLowerInvariant(), format);
+        if (!_named.TryGetValue(key, out (int Width, int Height)? size))
         {
-            size = SizeOf(_read, name);
-            _named[name] = size;
+            size = SizeOf(_read, name, format);
+            _named[key] = size;
         }
 
         return size;
@@ -335,9 +339,9 @@ public sealed class FrontEndTextures
     /// <summary>The texture's real size, or null when the installation has no file for it.</summary>
     public (int Width, int Height)? Size(FrontEndTexture texture) => _sizes[(int)texture];
 
-    private static (int Width, int Height)? SizeOf(Func<string, (string Name, byte[] Bytes)> read, string name)
+    private static (int Width, int Height)? SizeOf(Func<string, (string Name, byte[] Bytes)> read, string name, string format = DefaultFormat)
     {
-        foreach (string path in FramePaths(name))
+        foreach (string path in FramePaths(name, format))
         {
             (string Name, byte[] Bytes) found;
             try

@@ -20,11 +20,12 @@ public enum CanvasTextureKind : byte
 /// A quad's texture: its kind and, for a front-end texture, its <see cref="FrontEndTexture"/> index, or for a named one its
 /// name as the game finds it.
 /// </summary>
-public readonly record struct QuadTexture(CanvasTextureKind Kind, int Index = 0, string? Name = null)
+public readonly record struct QuadTexture(CanvasTextureKind Kind, int Index = 0, string? Name = null, string Format = FrontEndTextures.DefaultFormat)
 {
     public static QuadTexture Fed(FrontEndTexture texture) => new(CanvasTextureKind.FrontEnd, (int)texture);
 
-    public static QuadTexture Find(string name) => new(CanvasTextureKind.Named, 0, name);
+    /// <summary>A texture found by name, its frame file named with its format (A8R8G8B8 unless given).</summary>
+    public static QuadTexture Find(string name, string format = FrontEndTextures.DefaultFormat) => new(CanvasTextureKind.Named, 0, name, format);
 }
 
 /// <summary>

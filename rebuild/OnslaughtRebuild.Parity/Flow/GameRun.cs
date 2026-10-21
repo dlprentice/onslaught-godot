@@ -150,6 +150,11 @@ public sealed class GameRun : ISystemParts
     /// </summary>
     public Func<int, Func<uint, Data.ChunkReader, bool>?>? LevelChunks { get; set; }
 
+    /// <summary>For each level, where its 2D overlays draw (<see cref="LevelSession.Draw"/>), from the host; null draws nothing.</summary>
+    public Func<Draw.FrontEndDraw?>? LevelDraw { get; set; }
+
+    private readonly Game.GameRenderStatics _renderStatics = new();
+
     public QuitType RunLevel(int level)
     {
         int[] slots = new int[Career.CareerRecord.SlotWordCount];
@@ -166,7 +171,9 @@ public sealed class GameRun : ISystemParts
                 ParticleState = FrontEnd.ParticleState,
                 Sounds = Sounds,
                 SoundProcess = SoundProcess,
+                RenderStatics = _renderStatics,
             });
+        Level.Draw = LevelDraw?.Invoke();
         while (true)
         {
             while (!Level.Ended)

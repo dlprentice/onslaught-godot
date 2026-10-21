@@ -50,6 +50,8 @@ public partial class Host
     private TextureLibrary? _flowLevelTextures;
     private SurfView? _flowLevelSurf;
     private bool _flowLevelShown;
+    private CanvasFrame? _flowLevelFrame;
+    private FrontEndView? _flowOverlay;
 
     private void ReadyFlow()
     {
@@ -120,9 +122,15 @@ public partial class Host
         {
             // The run's thread records each front-end frame; the Step that returns its Present hands it over.
             var images = new FrontEndImages(files.Read);
-            run.FrontEnd.Draw = new FrontEndDraw(new FrontEndTextures(files.Read))
+            var feTextures = new FrontEndTextures(files.Read);
+            run.FrontEnd.Draw = new FrontEndDraw(feTextures)
             {
                 Canvas = new RecordingCanvas(frame => Volatile.Write(ref _flowFrame, frame)),
+            };
+            // Each level's 2D overlays (pause and end menus, the end screen), drawn over its picture.
+            run.LevelDraw = () => new FrontEndDraw(feTextures)
+            {
+                Canvas = new RecordingCanvas(frame => Volatile.Write(ref _flowLevelFrame, frame)),
             };
             _flowRaster = new FrontEndRaster(images.Get);
             if (_flowDraw || _flowShotGodot)
@@ -140,6 +148,8 @@ public partial class Host
                 };
                 _flowView = new FrontEndView(images);
                 AddChild(_flowView.Viewport);
+                _flowOverlay = new FrontEndView(images, overlay: true);
+                AddChild(_flowOverlay.Viewport);
                 AddChild(new TextureRect
                 {
                     Name = "FrontEndImage",
@@ -313,6 +323,14 @@ public partial class Host
     private void SaveGodotShot(long present)
     {
         using Image image = (_flowLevelShown ? _view! : _flowView!.Viewport).GetTexture().GetImage();
+        if (_flowLevelShown && _flowOverlay is not null)
+        {
+            // The level's picture with its overlay over it, as the window shows them.
+            using Image over = _flowOverlay.Viewport.GetTexture().GetImage();
+            image.Convert(Image.Format.Rgba8);
+            over.Convert(Image.Format.Rgba8);
+            image.BlendRect(over, new Rect2I(0, 0, over.GetWidth(), over.GetHeight()), Vector2I.Zero);
+        }
         string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-godot.png");
         Error error = image.SavePng(path);
         GD.Print($"HOST_SHOT {path} {error}");
@@ -338,6 +356,18 @@ public partial class Host
             });
             _flowLevelShown = true;
             SetFrontEndVisible(false);
+            if (_flowOverlay is not null)
+            {
+                // The overlay's picture over the level's (added after the level's image, so drawn above it).
+                AddChild(new TextureRect
+                {
+                    Name = "LevelOverlayImage",
+                    Texture = _flowOverlay.Viewport.GetTexture(),
+                    Size = new Vector2(FrontEndRaster.Width, FrontEndRaster.Height),
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                });
+            }
         }
         else if (!inLevel && _flowLevelShown)
         {
@@ -349,6 +379,10 @@ public partial class Host
         if (_flowLevelShown)
         {
             _flowRun!.Inspect(_ => UpdateLivePresentation());
+            if (Interlocked.Exchange(ref _flowLevelFrame, null) is { } overlay && overlay.Present == snapshot.Present)
+            {
+                _flowOverlay?.Show(overlay);
+            }
         }
     }
 
@@ -382,6 +416,8 @@ public partial class Host
         _battleLine = null;
         _liveImage?.QueueFree();
         _liveImage = null;
+        GetNodeOrNull("LevelOverlayImage")?.Free();
+        _flowOverlay?.Show(new CanvasFrame(0, null, []));
         _view?.QueueFree();
         _view = null;
         _liveWorld = null;

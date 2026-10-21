@@ -145,6 +145,12 @@ public sealed partial class Game : Monitor, IMainLoopHost
     /// <summary>mFadeOut.</summary>
     public bool FadeOut { get; private set; }
 
+    /// <summary>
+    /// mWinLoseScreenAlpha: the end-of-level screen's darkness, 0 at the level's start, raised by each render once the level
+    /// is decided (<see cref="EndLevelOverlay"/>); at 255 the render draws nothing behind it.
+    /// </summary>
+    public int WinLoseScreenAlpha { get; set; }
+
     /// <summary>mPausedAllGameSounds.</summary>
     public bool PausedAllGameSounds { get; private set; }
 

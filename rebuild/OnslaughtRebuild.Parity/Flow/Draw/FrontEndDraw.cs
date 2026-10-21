@@ -49,6 +49,14 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
 
     public void Present(long present) => Canvas.Present(present);
 
+    /// <summary>The start of a frame drawn over a level's picture: the default state, no clear.</summary>
+    public void BeginOverlay()
+    {
+        Blend = CanvasBlend.Modulate;
+        ZAlways = false;
+        Modulate2x = true;
+    }
+
     // --- TransitionHelpers.h -------------------------------------------------------------------------------------
 
     /// <summary><c>RangeTransition</c>: the progress through [start, end], clamped to [0, 1].</summary>
@@ -123,10 +131,10 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     /// </summary>
     public void DrawNamedSprite(string name, float x, float y, float z, uint col, float xscale = 1f, float yscale = 1f,
         SpriteAlign align = SpriteAlign.TopLeft, SpriteType type = SpriteType.None, float a = 1f, float yaw = 0f,
-        float u0 = 0f, float u1 = 1f, float v0 = 0f, float v1 = 1f, bool clamp = false)
+        float u0 = 0f, float u1 = 1f, float v0 = 0f, float v1 = 1f, bool clamp = false, string format = FrontEndTextures.DefaultFormat)
     {
-        if (Textures.NamedSize(name) is not { } size) return;
-        DrawSprite(QuadTexture.Find(name), size, x, y, z, col, xscale, yscale, align, type, a, yaw, u0, u1, v0, v1, clamp);
+        if (Textures.NamedSize(name, format) is not { } size) return;
+        DrawSprite(QuadTexture.Find(name, format), size, x, y, z, col, xscale, yscale, align, type, a, yaw, u0, u1, v0, v1, clamp);
     }
 
     /// <summary>

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/GameInterface.cpp and src/GameInterface.h (CGameInterface: Reset 004729e0,
-// ToggleMenuDisplay 00472a90, MenuDown 00472ad0, SelectItem 00472b40, ReceiveButtonAction 00472d50; reconstructed from
-// the retail program, not in Stuart's release).
+// ToggleMenuDisplay 00472a90, MenuDown 00472ad0, SelectItem 00472b40, ReceiveButtonAction 00472d50, DrawBackground
+// 00472e50, Render 00472f10; reconstructed from the retail program, not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Platform;
@@ -10,8 +10,8 @@ namespace OnslaughtRebuild.Parity.Game;
 
 /// <summary>
 /// CGameInterface, GAMEINTERFACE: the in-game menu. Two pages of up to six items: the game menu (continue, message log,
-/// level briefing, restart, quit, options) and the options (god mode, auto-aim, back). Its picture is the host's; this is
-/// what it decides.
+/// level briefing, restart, quit, options) and the options (god mode, auto-aim, back). <see cref="Render"/> fades it and
+/// the joypad picture, takes its mouse clicks and draws it.
 /// </summary>
 public sealed class GameInterface : IButtonReceiver
 {
@@ -52,10 +52,18 @@ public sealed class GameInterface : IButtonReceiver
 
     public bool IsAvailable(int item) => _available[item];
 
+    /// <summary>mUnknown10: the joypad picture's fade, 0 to 255.</summary>
+    public int JoypadFade { get; private set; }
+
+    /// <summary>mUnknown18: the menu's fade, 0 to 255.</summary>
+    public int MenuFade { get; private set; }
+
     /// <summary>Init / Reset (004729e0, one function): the menu down on the game page, everything available.</summary>
     public void Reset()
     {
+        JoypadFade = 0;
         ShowJoypad = false;
+        MenuFade = 0;
         MenuUp = false;
         Selection = 0;
         RenderBackground = true;
@@ -242,4 +250,106 @@ public sealed class GameInterface : IButtonReceiver
                 break;
         }
     }
+
+    /// <summary>
+    /// <c>CGameInterface::Render</c> (0x00472f10), at the end of every level render: the joypad picture fades in or out by
+    /// 16 and the menu by 32. While the menu shows (and the free camera is off), the game page draws its title and six
+    /// items centred in the normal font from <see cref="YBoxOffset"/> below the middle, the selected one pulsing red (each
+    /// pulse reads the clock), unavailable ones dim or hidden; restart and quit take the mouse (hover selects, a click
+    /// picks the item for the controller that has the menu), and the cursor is drawn. The fades, the mouse and the clock
+    /// reads happen whether or not anything is drawn. Not drawn: the options page (page 2), reached only through the game
+    /// page's options item, which the PC never offers (its pause is CPauseMenu, and the level-end menu marks it
+    /// unavailable).
+    /// </summary>
+    public void Render(PlatformInput input, Controller?[] controllers, PlatformClock clock, Flow.Draw.FrontEndDraw? draw,
+        Text.BitmapFont? small, Text.BitmapFont? normal, Text.FrontEndTexts? texts)
+    {
+        JoypadFade = ShowJoypad ? Math.Min(JoypadFade + 16, 255) : Math.Max(JoypadFade - 16, 0);
+        bool drawing = draw is not null && small is not null && normal is not null && texts is not null;
+        if (JoypadFade != 0 && drawing)
+        {
+            uint col = ((uint)Numerics.X87.Fist(JoypadFade * 0.75f) << 24) | 0xffffff;
+            // The picture; its seven labels are the program's own English strings (sJoypadLabels), which are not carried
+            // in this source.
+            const string joypad = @"Interface\Joypad.tga";
+            if (draw!.Textures.NamedSize(joypad) is { } size)
+                draw.DrawNamedSprite(joypad, 320 - size.Width / 2, 240 - size.Height / 2, 0.001f, col);
+        }
+
+        MenuFade = MenuUp ? Math.Min(MenuFade + 32, 255) : Math.Max(MenuFade - 32, 0);
+        bool clicked = false;
+        if (Page == 1 && MenuFade != 0 && !_game.FreeCameraOn)
+        {
+            int alpha = Numerics.X87.Fist(MenuFade * 0.75f);
+            int back = Math.Min(alpha, 0xa0);
+            if (RenderBackground && drawing)
+                draw!.DrawNamedSprite(@"hud\Menu background.tga", 320f, 255f, 0.001f, ((uint)back << 24) | 0x505050, 0.34f, 0.8f,
+                    Flow.Draw.SpriteAlign.Centre, format: "X8R8G8B8");
+            int y = YBoxOffset - (normal?.Height ?? 32) * 5 / 2 + 240;
+            if (texts is not null && normal is not null)
+            {
+                string title = texts.ById(0x130ed7);
+                (int _, int titleHeight) = normal.GetTextExtent(title);
+                if (RenderBackground && drawing)
+                    Text(draw!, normal, title, y, ((uint)alpha << 24) | 0x505050, shadow: false);
+                y += titleHeight;
+            }
+
+            uint[] ids = [0x41d6e9, 0x1f08cea, 0x3fc4f9, 0xcada9, 0x7a211, 0x265233];
+            for (int item = 0; item < 6; item++)
+            {
+                uint col = Selection == item ? Pulse(alpha, clock)
+                    : _available[item] ? ((uint)alpha << 24) | 0xf0f0f0 : ((uint)alpha << 24) | 0x202020;
+                if (texts is not null && normal is not null && (_available[item] || RenderBackground))
+                {
+                    string text = texts.ById(ids[item]);
+                    (int cx, int cy) = normal.GetTextExtent(text);
+                    if (item is 3 or 4)
+                    {
+                        float left = 320f - cx / 2, right = 320f + cx / 2;
+                        if (input.Mouse.InRect(left, y, right, y + cy, input.KeyTrap is not null)) Selection = item;
+                        if (input.Mouse.ClickedInRect(left, y, right, y + cy, input.KeyTrap))
+                        {
+                            Selection = item;
+                            clicked = true;
+                        }
+                    }
+
+                    if (drawing) Text(draw!, normal, text, y, col, shadow: item != 0);
+                }
+
+                y += 0x18;
+            }
+
+            if (drawing) draw!.DrawMouseCursor(input.Mouse.X, input.Mouse.Y, input.Mouse.CursorAlpha);
+        }
+
+        if (clicked)
+        {
+            foreach (Controller? controller in controllers.Take(2))
+            {
+                if (controller is not null && controller.ToControl == this)
+                {
+                    SelectItem(controller);
+                    break;
+                }
+            }
+        }
+    }
+
+    // The selected item's colour, pulsing red (Pulse: the clock read each time).
+    private static uint Pulse(int alpha, PlatformClock clock)
+    {
+        int p = Math.Abs(Numerics.X87.Fist((float)(clock.GetSysTimeFloat() * 2.7f) * 100f) % 256 - 128);
+        return unchecked((uint)(((alpha << 24) | 0x400000) + (p << 16) + ((p / 4) << 8) + p / 4));
+    }
+
+    private static void Text(Flow.Draw.FrontEndDraw draw, Text.BitmapFont normal, string text, int y, uint col, bool shadow)
+    {
+        float x = 320f - normal.GetTextExtent(text).Width / 2;
+        var kind = new Flow.Draw.QuadTexture(Flow.Draw.CanvasTextureKind.NormalFont);
+        if (shadow) draw.DrawTextWithShadow(normal, kind, x, y, col, text, 0, 0f);
+        else draw.DrawTextScaled(normal, kind.Kind, x, y, 1f, 1f, 1f, col, text, 0);
+    }
+
 }

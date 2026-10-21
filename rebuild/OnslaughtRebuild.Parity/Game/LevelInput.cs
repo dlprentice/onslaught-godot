@@ -282,5 +282,19 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
         Rendered?.Invoke(numRenders);
     }
 
-    public void Flip() => _rest.Flip();
+    /// <summary>
+    /// <c>GAMEINTERFACE.Render()</c> at the end of each render's post-render (CDXEngine::PostRender 0053efc4): the in-game
+    /// menu's fades, mouse and clicks, and its drawing when given one.
+    /// </summary>
+    public void RenderGameInterface(Flow.Draw.FrontEndDraw? draw, Text.BitmapFont? small, Text.BitmapFont? normal, Text.FrontEndTexts? texts) =>
+        GameInterface?.Render(Input, _controllers, _clock, draw, small, normal, texts);
+
+    /// <summary>Called just before each flip (the level's drawing presents its frame then).</summary>
+    public Action? BeforeFlip { get; set; }
+
+    public void Flip()
+    {
+        BeforeFlip?.Invoke();
+        _rest.Flip();
+    }
 }

@@ -21,6 +21,12 @@ namespace OnslaughtRebuild.Parity.Game;
 /// </summary>
 public sealed class LevelSession
 {
+    /// <summary>
+    /// Where the level's 2D overlays draw (the pause and end menus, the end-of-level screen), when a host draws them; each
+    /// frame is presented just before the level's flip. Drawing never changes the simulation.
+    /// </summary>
+    public Flow.Draw.FrontEndDraw? Draw { get; set; }
+
     private IEnumerator<int>? _mainLoop;
     private bool _started;
     private bool _startUnitNoisePending;
@@ -430,25 +436,46 @@ public sealed class LevelSession
         context.MouseLook.Platform = input.Input.Mouse;
         context.MouseLook.Shared = input.Shared;
 
+        GameRenderStatics renderStatics = host?.RenderStatics ?? new GameRenderStatics();
+        var frontEnd = host?.MenuHost as Flow.FrontEnd;
+        LevelSession? made = null;
+
         // Retail draws the player's battle engine each render, which asks its motion controller for every part; the
-        // particles step and draw after the world.
+        // particles step and draw after the world. Behind an opaque end-of-level screen (alpha 255) the world is not
+        // rendered at all (CGame::Render 0046e5c8).
         input.Rendered = numRenders =>
         {
             // CGame::Render counts each render first (mRenderFrameNumber, 0 until the level's first render).
             context.RenderFrameNumber++;
-            foreach (MCBattleEngine mc in context.MotionControllers)
+            if (game.WinLoseScreenAlpha != 255)
             {
-                mc.Rendered();
+                foreach (MCBattleEngine mc in context.MotionControllers)
+                {
+                    mc.Rendered();
+                }
+
+                context.Particles.Render(numRenders);
             }
 
-            context.Particles.Render(numRenders);
-
-            // CDXEngine::PostRender after every frame: the message log, the briefing log, the pause menu.
+            // CDXEngine::PostRender after every frame: the message log, the briefing log, the pause menu (with the front
+            // end's fonts and mouse tests when the level runs in the whole game), then CGame::DrawGameStuff's end screen.
+            Flow.Draw.FrontEndDraw? draw = made?.Draw;
+            draw?.BeginOverlay();
             input.MessageLog?.Render();
             input.BriefingLog?.Render();
-            input.PauseMenu?.Render();
+            if (input.PauseMenu is { } pause)
+            {
+                if (frontEnd is not null && Flow.Menus.MenuDrawing.Of(frontEnd) is { } drawing)
+                    pause.Render(drawing with { Draw = draw, OnOptionsPage = false }, new Flow.Menus.FrontEndMenuMouse(frontEnd));
+                else
+                    pause.Render();
+            }
+
+            EndLevelOverlay.Render(game, clock, renderStatics, draw, frontEnd?.SmallFont, frontEnd?.NormalFont, frontEnd?.Texts);
+            input.RenderGameInterface(draw, frontEnd?.SmallFont, frontEnd?.NormalFont, frontEnd?.Texts);
         };
-        return new LevelSession(context, game, resources, clock)
+        input.BeforeFlip = () => made?.Draw?.Present(clock.PresentCount + 1);
+        made = new LevelSession(context, game, resources, clock)
         {
             Input = input,
             EndLevelData = host?.EndLevelData ?? new OnslaughtRebuild.Parity.Career.EndLevelData(),
@@ -461,6 +488,7 @@ public sealed class LevelSession
             SoundProcess = soundProcess,
             OtherChunk = otherChunk,
         };
+        return made;
     }
 }
 
@@ -482,6 +510,9 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
 
     /// <summary>Particle globals shared with the front end and with subsequent levels/restarts.</summary>
     public ParticleProcessState? ParticleState { get; init; }
+
+    /// <summary>The game render's process statics (<see cref="GameRenderStatics"/>), kept across levels.</summary>
+    public GameRenderStatics? RenderStatics { get; init; }
 
     /// <summary>The process's one effect/event owner, retained even by explicitly legacy fixtures.</summary>
     public SoundEffects? Sounds { get; init; }

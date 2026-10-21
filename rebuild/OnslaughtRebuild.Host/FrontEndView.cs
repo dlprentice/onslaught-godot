@@ -62,13 +62,25 @@ public sealed class FrontEndView
     private readonly Node3D _root;
     private readonly Godot.Environment _environment;
 
-    public FrontEndView(FrontEndImages images)
+    /// <param name="overlay">Draw over another picture (a level's): a transparent background, never cleared to a colour.</param>
+    public FrontEndView(FrontEndImages images, bool overlay = false)
     {
         _images = images;
-        Viewport = new SubViewport { Size = new Vector2I(FrontEndRaster.Width, FrontEndRaster.Height), RenderTargetUpdateMode = SubViewport.UpdateMode.Always };
+        Viewport = new SubViewport
+        {
+            Size = new Vector2I(FrontEndRaster.Width, FrontEndRaster.Height),
+            RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
+            TransparentBg = overlay,
+            // Its own 3D world: viewports otherwise share one, and each camera would see the other views' quads.
+            OwnWorld3D = true,
+        };
         _root = new Node3D { Name = "FrontEnd" };
         Viewport.AddChild(_root);
-        _environment = new Godot.Environment { BackgroundMode = Godot.Environment.BGMode.Color, BackgroundColor = Colors.Black };
+        _environment = new Godot.Environment
+        {
+            BackgroundMode = Godot.Environment.BGMode.Color,
+            BackgroundColor = overlay ? new Color(0, 0, 0, 0) : Colors.Black,
+        };
         _root.AddChild(new WorldEnvironment { Environment = _environment });
         // Pixel (x, y) at depth z sits at (x + 0.5 - 320, 240 - y - 0.5, -(1 + z)): Direct3D 9's pixel centres are whole
         // coordinates, Godot's are half; the depth range is [1, 2] in front of the camera.
