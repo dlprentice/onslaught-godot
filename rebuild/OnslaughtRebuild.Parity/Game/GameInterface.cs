@@ -160,7 +160,12 @@ public sealed class GameInterface : IButtonReceiver
         }
     }
 
-    /// <summary>SelectItem (00472b40): restart and quit set the game's quit; the rest are not ported yet.</summary>
+    /// <summary>
+    /// SelectItem (00472b40): restart and quit set the game's quit. On PC the menu comes up only at a lost or drawn level's
+    /// end, after CGame::Update has made continue, message log, level briefing and options unavailable (bea-decomp
+    /// src/game.cpp:2105..2129; the Player.cpp:297/306 toggles are commented out and nothing else sets mShowJoypad), so
+    /// those items and the joypad picture's close are unreachable and stay unported. The PC pause menu is CPauseMenu.
+    /// </summary>
     public void SelectItem(Controller from)
     {
         if (!MenuUp)
@@ -173,11 +178,11 @@ public sealed class GameInterface : IButtonReceiver
             switch (Selection)
             {
                 case 0:
-                    throw new NotSupportedException("CGameInterface::SelectItem continue (CGame::UnPause, the pause menu) is not ported");
+                    throw new NotSupportedException("CGameInterface::SelectItem continue: unreachable on PC (unavailable at the level-end menu, game.cpp:2105..2129)");
                 case 1:
-                    throw new NotSupportedException("CGameInterface::SelectItem message log is not ported");
+                    throw new NotSupportedException("CGameInterface::SelectItem message log: unreachable on PC (unavailable at the level-end menu, game.cpp:2105..2129)");
                 case 2:
-                    throw new NotSupportedException("CGameInterface::SelectItem level briefing is not ported");
+                    throw new NotSupportedException("CGameInterface::SelectItem level briefing: unreachable on PC (unavailable at the level-end menu, game.cpp:2105..2129)");
                 case 3:
                     _playFrontEndSound("Front End Select");
                     _game.SetQuit(QuitType.RestartLevel);
@@ -195,7 +200,7 @@ public sealed class GameInterface : IButtonReceiver
 
         if (Page == 2)
         {
-            throw new NotSupportedException("CGameInterface::SelectItem options page is not ported");
+            throw new NotSupportedException("CGameInterface::SelectItem options page: unreachable on PC (unavailable at the level-end menu, game.cpp:2105..2129)");
         }
     }
 
@@ -232,7 +237,7 @@ public sealed class GameInterface : IButtonReceiver
             case Buttons.Help:
                 if (ShowJoypad)
                 {
-                    throw new NotSupportedException("CGameInterface: the joypad picture's close (CGame::UnPause) is not ported");
+                    throw new NotSupportedException("CGameInterface: the joypad picture is unreachable on PC (nothing sets mShowJoypad; Player.cpp:297/306 commented out)");
                 }
 
                 break;

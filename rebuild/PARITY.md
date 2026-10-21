@@ -15,6 +15,12 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
+CGameInterface on PC (2026-10-21): the in-game menu rises only at a lost or drawn level's end, after
+`CGame::Update` has made continue, message log, level briefing and options unavailable (bea-decomp
+`src/game.cpp:2105..2129`); its other toggles are commented out and nothing sets the joypad picture. Those
+items are unreachable on PC and stay unported; the PC pause menu (`CPauseMenu`) carries continue, the
+message log and the briefing.
+
 Trainer missile launch and flight (2026-10-21): the level 100 trainer's first LIFE difference
 (Present 16206) came from the Forseti Missile's state before its collision, not from the collision.
 Per-frame traces of each missile against the frozen native port, with retail's own code run on the
