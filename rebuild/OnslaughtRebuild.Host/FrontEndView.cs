@@ -12,9 +12,9 @@ namespace OnslaughtRebuild.Host;
 /// Consecutive quads with the same texture and state form one mesh, whose triangles draw in order; the meshes draw in
 /// the frame's order by render priority. The viewport stores the shader's colours as they are, so blending happens on
 /// the game's values as Direct3D's does. A depth function of ALWAYS still writes depth in Direct3D, but OpenGL writes none
-/// with the test off, so such a quad draws twice: its colour with the test off, then its depth alone with the test
-/// inverted, which writes it wherever the stored depth is nearer (where the stored depth is farther, the cleared 1,
-/// later draws cannot tell the two apart).
+/// with the test off, so such a quad draws three times: its colour with the test off, then its depth alone with the
+/// test inverted (written where the stored depth is nearer) and with the ordinary test (written where it is farther or
+/// equal), which together write it everywhere the quad's texels pass the alpha test.
 /// </summary>
 public sealed class FrontEndView
 {
@@ -28,7 +28,8 @@ public sealed class FrontEndView
         uniform bool keep = false;
 
         void fragment() {
-            vec4 t = clamped ? texture(tex_clamped, UV) : texture(tex, UV);
+            // Wrapped in the shader: the sampler's repeat hint alone left the message box's offset layers clamped.
+            vec4 t = clamped ? texture(tex_clamped, UV) : texture(tex, fract(UV));
             float a = (alpha_from_colour ? 1.0 : t.a) * COLOR.a;
             if (!alpha_from_colour && a < 7.5 / 255.0) {
                 discard;
@@ -38,13 +39,16 @@ public sealed class FrontEndView
         }
         """;
 
-    private const string DepthOnlyShader = """
-        shader_type spatial;
-        render_mode unshaded, cull_disabled, depth_draw_always, blend_mix, depth_test_inverted;
+    private const string DepthOnlyHead = "shader_type spatial;\nrender_mode unshaded, cull_disabled, depth_draw_always, blend_mix";
+    private const string DepthOnlyBody = """
+        ;
         uniform sampler2D tex : filter_linear, repeat_enable;
+        uniform sampler2D tex_clamped : filter_linear, repeat_disable;
+        uniform bool clamped = false;
 
         void fragment() {
-            if (texture(tex, UV).a * COLOR.a < 7.5 / 255.0) {
+            vec4 t = clamped ? texture(tex_clamped, UV) : texture(tex, fract(UV));
+            if (t.a * COLOR.a < 7.5 / 255.0) {
                 discard;
             }
             ALBEDO = vec3(0.0);
@@ -53,8 +57,8 @@ public sealed class FrontEndView
         """;
 
     private readonly FrontEndImages _images;
-    private Shader? _depthOnly;
-    private readonly Dictionary<(QuadTexture, int), ShaderMaterial> _depthMaterials = [];
+    private readonly Shader?[] _depthOnly = new Shader?[2];
+    private readonly Dictionary<(QuadTexture, bool, bool, int), ShaderMaterial> _depthMaterials = [];
     private readonly Dictionary<(bool Additive, bool NoDepthTest), Shader> _shaders = [];
     private readonly Dictionary<QuadTexture, ImageTexture> _textures = [];
     private readonly Dictionary<(QuadTexture, bool, bool, bool, bool, int), ShaderMaterial> _materials = [];
@@ -123,11 +127,14 @@ public sealed class FrontEndView
             used++;
             if (first.ZEnable && first.ZAlways)
             {
-                MeshInstance3D depth = Instance(used);
-                depth.Mesh = mesh;
-                depth.MaterialOverride = DepthMaterial(first.Texture, used);
-                depth.Visible = true;
-                used++;
+                foreach (bool inverted in (ReadOnlySpan<bool>)[true, false])
+                {
+                    MeshInstance3D depth = Instance(used);
+                    depth.Mesh = mesh;
+                    depth.MaterialOverride = DepthMaterial(first.Texture, first.Clamp, inverted, used);
+                    depth.Visible = true;
+                    used++;
+                }
             }
 
             start = end;
@@ -224,15 +231,17 @@ public sealed class FrontEndView
         return material;
     }
 
-    private ShaderMaterial DepthMaterial(QuadTexture texture, int order)
+    private ShaderMaterial DepthMaterial(QuadTexture texture, bool clamp, bool inverted, int order)
     {
         int priority = Math.Min(order, 255) - 128;
-        if (!_depthMaterials.TryGetValue((texture, priority), out ShaderMaterial? material))
+        if (!_depthMaterials.TryGetValue((texture, clamp, inverted, priority), out ShaderMaterial? material))
         {
-            _depthOnly ??= new Shader { Code = DepthOnlyShader };
-            material = new ShaderMaterial { Shader = _depthOnly, RenderPriority = priority };
+            Shader shader = _depthOnly[inverted ? 1 : 0] ??= new Shader { Code = DepthOnlyHead + (inverted ? ", depth_test_inverted" : "") + DepthOnlyBody };
+            material = new ShaderMaterial { Shader = shader, RenderPriority = priority };
             material.SetShaderParameter("tex", Texture(texture));
-            _depthMaterials[(texture, priority)] = material;
+            material.SetShaderParameter("tex_clamped", Texture(texture));
+            material.SetShaderParameter("clamped", clamp);
+            _depthMaterials[(texture, clamp, inverted, priority)] = material;
         }
 
         return material;

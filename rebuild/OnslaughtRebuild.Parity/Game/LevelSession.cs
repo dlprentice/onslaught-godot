@@ -463,10 +463,23 @@ public sealed class LevelSession
             Flow.Draw.FrontEndDraw? draw = made?.Draw;
             draw?.BeginOverlay();
             // HUD.RenderBattleline (00487d10) while the player's camera shows the HUD: the message box's panel and text,
-            // then its portrait in the battle line's circle (HUD.mViewportRight - 137, the viewport's bottom).
+            // then its portrait in the battle line's circle (HUD.mViewportRight - 137, the viewport's bottom). Before the
+            // portrait the circle's mask writes depth alone (blend zero/one, depth ALWAYS, clamped, z 0.005), so the
+            // portrait's layers (z 0.007, LESSEQUAL) show only inside the circle.
             if (game.GetPlayer(0) is not null && game.GetCurrentCamera(0)?.GetShowHud() == true && scripts.MessageBox is { } messages)
             {
                 messages.RenderOverlay(draw, frontEnd?.SmallFont);
+                if (draw is not null)
+                {
+                    draw.Blend = Flow.Draw.CanvasBlend.Keep;
+                    draw.ZAlways = true;
+                    draw.DrawNamedSprite(@"hud\v2\CircleMask.tga", 640f - 137f + 64f, 480f - 64f, 0.005f, 0xffffffff, 1.5f, 1.5f,
+                        Flow.Draw.SpriteAlign.Centre, Flow.Draw.SpriteType.None, 1f, 0f, -0.25f, 1.25f, -0.25f, 1.25f, clamp: true,
+                        format: Flow.Draw.FrontEndTextures.AnyFormat);
+                    draw.Blend = Flow.Draw.CanvasBlend.Modulate;
+                    draw.ZAlways = false;
+                }
+
                 messages.RenderBattleLinePulse(draw, 640f - 137f, 480f, 7, clock.FramesPerSec);
             }
 

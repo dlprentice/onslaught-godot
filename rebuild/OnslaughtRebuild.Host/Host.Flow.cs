@@ -52,6 +52,7 @@ public partial class Host
     private bool _flowLevelShown;
     private CanvasFrame? _flowLevelFrame;
     private FrontEndView? _flowOverlay;
+    private CanvasFrame? _flowOverlayFrame;
 
     private void ReadyFlow()
     {
@@ -304,7 +305,7 @@ public partial class Host
         }
     }
 
-    private void SaveRasterShot(long present)
+    private void SaveRasterShot(long present, string kind = "raster")
     {
         uint[] pixels = _flowRaster!.Pixels;
         var rgb = new byte[pixels.Length * 3];
@@ -315,7 +316,7 @@ public partial class Host
             rgb[i * 3 + 2] = (byte)pixels[i];
         }
 
-        string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-raster.png");
+        string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-{kind}.png");
         Error error = Image.CreateFromData(FrontEndRaster.Width, FrontEndRaster.Height, false, Image.Format.Rgb8, rgb).SavePng(path);
         GD.Print($"HOST_SHOT {path} {error}");
     }
@@ -329,7 +330,41 @@ public partial class Host
             using Image over = _flowOverlay.Viewport.GetTexture().GetImage();
             image.Convert(Image.Format.Rgba8);
             over.Convert(Image.Format.Rgba8);
-            image.BlendRect(over, new Rect2I(0, 0, over.GetWidth(), over.GetHeight()), Vector2I.Zero);
+            if (_flowOverlayFrame is { } overlayFrame && overlayFrame.Present == present)
+            {
+                // The same overlay by the software rasterizer over Godot's level picture, which separates the
+                // overlay's drawing from the level's when compared with the port.
+                byte[] level = image.GetData();
+                var picture = new uint[level.Length / 4];
+                for (int i = 0; i < picture.Length; i++)
+                {
+                    picture[i] = 0xff000000u | ((uint)level[i * 4] << 16) | ((uint)level[i * 4 + 1] << 8) | level[i * 4 + 2];
+                }
+
+                _flowRaster!.DrawOver(picture, overlayFrame);
+                SaveRasterShot(present, "levelraster");
+                if (System.Environment.GetEnvironmentVariable("HOST_SHOT_LAYERS") == "1")
+                {
+                    // The overlay alone: Godot's (premultiplied RGBA) and the rasterizer's over black.
+                    over.SavePng(Path.Combine(_flowShotDir!, $"shot-{present:00000}-overlay-godot.png"));
+                    _flowRaster.DrawOver(new uint[picture.Length], overlayFrame);
+                    SaveRasterShot(present, "overlay-raster");
+                }
+            }
+
+            // The overlay's colours are premultiplied (its quads blend over a transparent black clear), so it goes over
+            // as premultiplied alpha, as the window's TextureRect draws it.
+            byte[] dst = image.GetData(), src = over.GetData();
+            for (int i = 0; i < dst.Length; i += 4)
+            {
+                int keep = 255 - src[i + 3];
+                for (int c = 0; c < 3; c++)
+                {
+                    dst[i + c] = (byte)Math.Min(255, src[i + c] + (dst[i + c] * keep + 127) / 255);
+                }
+            }
+
+            image.SetData(image.GetWidth(), image.GetHeight(), false, Image.Format.Rgba8, dst);
         }
         string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-godot.png");
         Error error = image.SavePng(path);
@@ -366,6 +401,8 @@ public partial class Host
                     Size = new Vector2(FrontEndRaster.Width, FrontEndRaster.Height),
                     MouseFilter = Control.MouseFilterEnum.Ignore,
                     ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                    // Its colours are premultiplied: its quads blend over a transparent black clear.
+                    Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.PremultAlpha },
                 });
             }
         }
@@ -382,6 +419,7 @@ public partial class Host
             if (Interlocked.Exchange(ref _flowLevelFrame, null) is { } overlay && overlay.Present == snapshot.Present)
             {
                 _flowOverlay?.Show(overlay);
+                _flowOverlayFrame = overlay;
             }
         }
     }

@@ -177,7 +177,8 @@ public partial class Host : Node
                 var nodes = influence.Nodes.ToList();
                 _battleLine ??= BattleLineData.Build(session.Context.Map, nodes);
                 _view!.AddChild(BattleLineView.Build(_battleLine, nodes, engine as OnslaughtRebuild.Parity.Things.BattleEngine,
-                    session.Context.World.ObjectiveThings.ToList(), session.Context.World.SquadNB.ToList(), session.Context.Events.Time, textures));
+                    session.Context.World.ObjectiveThings.ToList(), session.Context.World.SquadNB.ToList(), session.Context.Events.Time, textures,
+                    OnslaughtRebuild.Parity.Script.ScriptRuntime.Of(session.Context).MessageBox?.Current is not null));
             }
 
             if (session.Context.Particles is { } particles)

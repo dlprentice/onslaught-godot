@@ -31,6 +31,14 @@ public sealed class FrontEndRaster(Func<QuadTexture, RasterTexture?> textures)
     /// <summary>The picture, 0xAARRGGBB with alpha 0xff, row by row.</summary>
     public uint[] Pixels { get; } = new uint[Width * Height];
 
+    /// <summary>Draws a frame over a picture (0xAARRGGBB, row by row), the depth cleared to 1 first.</summary>
+    public void DrawOver(uint[] picture, CanvasFrame frame)
+    {
+        picture.CopyTo(Pixels, 0);
+        Array.Fill(_depth, 1f);
+        Draw(frame);
+    }
+
     /// <summary>Draws a frame over what the last one left, after its clear when it has one.</summary>
     public void Draw(CanvasFrame frame)
     {

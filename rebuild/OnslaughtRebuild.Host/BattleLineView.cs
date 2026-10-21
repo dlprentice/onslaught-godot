@@ -332,7 +332,8 @@ public sealed class Triangulate
 /// RenderBattleline (single player): the circle darkener, the outline, the influence mesh (method 2: the height
 /// texture's colour plus its alpha times the influence ramp at each vertex's u, added to the screen), the overlay points
 /// (each objective in yellow, each Forseti squad shot at recently in red, pulsing; 8-pixel point sprites drawn dark then
-/// added) and each player's battle-engine marker. The message box's pulse and overlay are not drawn yet.
+/// added) and each player's battle-engine marker. While the message box has a current message the circle holds its
+/// portrait instead: the mesh, the points and the marker are left out (and the Forseti icon with an empty map).
 /// </summary>
 public static class BattleLineView
 {
@@ -352,7 +353,7 @@ public static class BattleLineView
         """;
 
     public static Node2D Build(BattleLineData data, IReadOnlyList<InfluenceNode> nodes, BattleEngine? be, IEnumerable<Thing> objectives,
-        IEnumerable<Thing> squads, float time, TextureLibrary textures)
+        IEnumerable<Thing> squads, float time, TextureLibrary textures, bool messageCurrent)
     {
         var root = new Node2D { Name = "BattleLine" };
         Texture2D? Tex(string name) => textures.Get(name) ?? textures.Find(name, 0);
@@ -367,9 +368,10 @@ public static class BattleLineView
 
         Quads("CircleDarkener", CanvasItemMaterial.BlendModeEnum.Mix, [(Right - 121.0f, Bottom + 16.0f, 2, 0.0f, 0x7fffffffu, Tex(@"hud\v2\CircleDarkener.tga"), 1.0f)]);
         Quads("Outline", CanvasItemMaterial.BlendModeEnum.Add, [(Right - 121.0f, Bottom + 16.0f, 2, 0.0f, 0xff6f8fafu, Tex(@"hud\v2\BattleLineOutline.tga"), 1.0f)]);
-        if (nodes.Count == 0)
+        if (nodes.Count == 0 || messageCurrent)
         {
-            Quads("ForsetiIcon", CanvasItemMaterial.BlendModeEnum.Mix, [(Right - 104.0f, Bottom + 16.0f - 16.0f - 32.0f, 2, 0.0f, 0xffffffffu, Tex(@"hud\ForsetiIcon.tga"), 1.0f)]);
+            if (nodes.Count == 0 && !messageCurrent)
+                Quads("ForsetiIcon", CanvasItemMaterial.BlendModeEnum.Mix, [(Right - 104.0f, Bottom + 16.0f - 16.0f - 32.0f, 2, 0.0f, 0xffffffffu, Tex(@"hud\ForsetiIcon.tga"), 1.0f)]);
             return root;
         }
 
