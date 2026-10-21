@@ -146,6 +146,25 @@ public static class WeaponMaths
         return (float)(a - b);
     }
 
+    /// <summary>
+    /// CWeapon::Unknown509140's straight aim (005093c6..00509434): the magnitude sqrt((Y*Y + X*X) + Z*Z) stored to a
+    /// float; the pitch asin(Z / magnitude) through the CRT's __CIasin when the magnitude is positive, else 0, stored;
+    /// the yaw the negated fpatan of X over Y, stored; then the out-of-line FMatrix(yaw, pitch, 0) (004062d0).
+    /// </summary>
+    public static (float Yaw, float Pitch) StraightAimAngles(FVector d)
+    {
+        float m = (float)X87.Sqrt(X87.Add(X87.Add(X87.Mul(d.Y, d.Y), X87.Mul(d.X, d.X)), X87.Mul(d.Z, d.Z)));
+        float pitch = m > 0 ? (float)X87.Asin(X87.Div(d.Z, m)) : 0;
+        return (-(float)X87.Atan2(d.X, d.Y), pitch);
+    }
+
+    /// <summary>The straight aim's orientation: <see cref="StraightAimAngles"/> through the out-of-line constructor.</summary>
+    public static FMatrix StraightAimOrientation(FVector d)
+    {
+        (float yaw, float pitch) = StraightAimAngles(d);
+        return FMatrix.MakeRotationOutOfLine(yaw, pitch, 0);
+    }
+
     /// <summary>AngleDifference: a - b, with b taken round by 2PI when the two sit either side of +-PI/2.</summary>
     public static float AngleDifference(float a, float b)
     {
@@ -712,8 +731,7 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
                 throw new NotSupportedException("CWeapon::Unknown509140's ballistic pitch search: x87 sequence not transcribed");
             }
 
-            AimOrientation = FMatrix.FromYawPitchRoll(WeaponMaths.Azimuth(Context, d), WeaponMaths.Elevation(Context, d), 0);
-            Context.Skip("CWeapon::Unknown509140's FMatrix(yaw, pitch, 0) copy not checked against retail's register use");
+            AimOrientation = WeaponMaths.StraightAimOrientation(d);
         }
         else
         {
