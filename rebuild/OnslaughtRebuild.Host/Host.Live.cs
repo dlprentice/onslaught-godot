@@ -21,6 +21,7 @@ public partial class Host
     private Window? _liveWindow;
     private Node3D? _liveWorld;
     private Camera3D? _liveCamera;
+    private HudTargetState _hudTargets = new();
     private Node3D? _liveSky;
     private TerrainLiveView? _liveTerrain;
     private MeshView.LiveSet? _liveMeshes;
@@ -128,6 +129,7 @@ public partial class Host
 
     private void BuildLiveScene(SurfView surf)
     {
+        _hudTargets = new HudTargetState();
         LevelSession session = _liveSession!;
         TextureLibrary textures = _liveTextures!;
         _view = new SubViewport { Size = new Vector2I(640, 480), RenderTargetUpdateMode = SubViewport.UpdateMode.Always };
@@ -432,10 +434,21 @@ public partial class Host
         bool showHud = session.Game.GetPlayer(0) is not null && camera.GetShowHud();
         if (session.PresentCount > 3 && showHud && engine is BattleEngine be && !be.IsDying)
         {
-            _liveHud = new TransientHostView(HudView.Build(be, _liveTextures!, session.Context.World.ObjectiveThings.ToList(),
+            // RenderOverlayForViewpoint's order: the world's targets, the compass and panels, then the crosshair and guns.
+            float frameLength = session.Context.Particles?.RenderFrameLength ?? 1.0f;
+            Camera3D view3d = _liveCamera;
+            (Node2D targets, Node2D cross, Node2D guns) = HudTargetsView.Build(be, camera,
+                session.Context.Particles?.World.HudObjectivePoints ?? [], session.Context.Particles?.World.HudSpeakerPoint, _hudTargets, frameLength, session.Game.Loop.Fraction,
+                session.Context.Events.Time, p => view3d.IsPositionBehind(ToGodot(p)) ? null : view3d.UnprojectPosition(ToGodot(p)),
+                _liveTextures!);
+            var hud = new Node2D { Name = "HudPasses" };
+            hud.AddChild(targets);
+            hud.AddChild(HudView.Build(be, _liveTextures!, session.Context.World.ObjectiveThings.ToList(),
                 ref _lastHealth, ref _lastEnergy, _dial ??= _liveFiles!.Read(@"data\Dial.raw").Bytes,
-                session.Game.Loop.Fraction, session.Context.World.UnitNB.ToList(), _ammo,
-                session.Context.Particles?.RenderFrameLength ?? 1.0f, _liveHudTextures));
+                session.Game.Loop.Fraction, session.Context.World.UnitNB.ToList(), _ammo, frameLength, _liveHudTextures, crosshair: false));
+            hud.AddChild(cross);
+            hud.AddChild(guns);
+            _liveHud = new TransientHostView(hud);
             _view!.AddChild(_liveHud.Node);
         }
 

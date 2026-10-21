@@ -3,7 +3,7 @@
 // 004fb500, Unknown4fb5a0 004fb5a0, WeaponUnknown509140 004fb650, Unknown4fb670 004fb670, GetMinRange 004fb780,
 // GetMaxRange 004fb7e0, Unknown4fb840 004fb840, GetWeaponUnknownA0_88 004fbc90, Unknown86 004fbcb0, Unknown84
 // 004fc000, GetEmitter 004fc4e0, Unknown4fc6e0 004fc6e0, GetTargetablePos 004fd4d0, AnyWeaponUnknown94 004fd570,
-// AnyWeaponUnknown50a290 004fd760; the AnyWeaponBusy scan), src/actor.cpp (CActor::IsOnGround 00401f70, IsInWater
+// AnyWeaponUnknown50a290 004fd760, GetRenderUnknown90 004fd500; the AnyWeaponBusy scan), src/actor.cpp (CActor::IsOnGround 00401f70, IsInWater
 // 00401fa0), src/GroundUnit.cpp (CGroundUnit::IsOnGround 0047c8b0), src/unit.h (CBuilding::IsOnGround) and
 // src/WorldPhysicsManager.cpp (CUnitData::FindPair 00511bc0) and src/map.h (CMap::GetHeightAt). actor.cpp is in
 // Stuart's release, hence GPL-3.0-only.
@@ -482,7 +482,7 @@ public abstract partial class Unit
     {
         if (HasSegments)
         {
-            throw new NotSupportedException("CDestructableSegmentsController::GetCentre is not ported");
+            return Segments!.GetCentre();
         }
 
         FVector pos = GetCentrePos();
@@ -495,6 +495,12 @@ public abstract partial class Unit
 
         return pos;
     }
+
+    /// <summary>
+    /// GetRenderUnknown90 (004fd500): the targetable position moved as far as CActor::GetRenderPos is from the old position
+    /// (the HUD's point for a unit).
+    /// </summary>
+    public FVector GetRenderUnknown90() => GetTargetablePos() + ((OldPos + ((Pos - OldPos) * FrameRenderFraction)) - OldPos);
 
     /// <summary>The AnyWeaponBusy scan: a weapon in the middle of a burst.</summary>
     private bool AnyWeaponBusy() => WeaponList.Any(w => w.IsFiring());

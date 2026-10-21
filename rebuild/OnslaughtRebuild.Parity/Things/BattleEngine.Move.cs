@@ -1018,7 +1018,7 @@ public sealed partial class BattleEngine
         }
     }
 
-    /// <summary>mAutoAimTarget: the target HandleAutoAim chose (its search is not ported: none yet).</summary>
+    /// <summary>mAutoAimTarget: the target HandleAutoAim chose.</summary>
     public ActiveReader<Thing> AutoAimTarget { get; } = new();
 
     /// <summary>mHadAutoAimTarget: what the aim sound last played for.</summary>
@@ -1034,7 +1034,7 @@ public sealed partial class BattleEngine
     /// HandleSounds (00409950). The configured process sound owner handles hum, warnings and incoming sample
     /// admission/lifetime; the legacy selection-only profile still refuses lifetime-dependent incoming/hum paths.
     /// Weapon-lock completion sounds remain with the unimplemented lock list. The aim sound plays when the
-    /// unit over the crosshair (CalcUnitOverCrossHair) is first an enemy (the auto-aim search is not ported). The walking block: on the ground as a walker, every 1.5 units walked
+    /// auto-aim target is first set, or else the unit over the crosshair (CalcUnitOverCrossHair) is first an enemy. The walking block: on the ground as a walker, every 1.5 units walked
     /// counts a step, and standing still after more than 5 steps plays the hydraulics (PlayHudSample).
     /// </summary>
     internal void HandleSounds()

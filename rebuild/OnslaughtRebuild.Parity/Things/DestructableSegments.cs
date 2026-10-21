@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // A segmented unit's destructable segments and their motion controller. Adapted from bea-decomp
 // src/DestructableSegmentsController.cpp (the constructor 00443fc0, Init 00444660, CreateSegment 004449c0, ProcessNode
-// 00444c10, GetDamageStage 00444f00, CanUse 00444f20, GetCoreFall 00445010), DestroyableSegment.cpp/.h (the segments'
+// 00444c10, GetDamageStage 00444f00, CanUse 00444f20, GetCoreFall 00445010, GetCentre 00445070), DestroyableSegment.cpp/.h (the segments'
 // constructors, SetLife, GetTotalHealth 00442900, CanBreak, CDestroyableSwapSegment::GetDamageStage 00443830) and
 // MCDestructableSegments.cpp (GetPartTransform 00494ce0, Unknown6 00494fa0, Unknown7 00494ff0, Unknown9); the damage paths
 // from DestroyableSegment.cpp (SpawnPickup 00442710, GetActiveHealth 00442890, Damage 00442960, ScheduleChildBreaks
@@ -10,6 +10,7 @@
 // Break 00443810, the extra's Damage 00443890 and Break 004439c0, the extra-use-mesh's SpawnRubble 00443a20) and the
 // controller's (Damage 00444030, GetLife 00444330, GetLifeUnknown444370/4443b0, Unknown4443f0, GetLastDamageTime/Amount).
 
+using OnslaughtRebuild.Parity.Collision;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
@@ -615,6 +616,39 @@ public sealed class DestructableSegments(Unit owner, float unknown14, bool unkno
         {
             TotalHealth = Core.GetTotalHealth();
         }
+    }
+
+    /// <summary>
+    /// GetCentre (00445070): the live core segment with the highest number, at its part's pose in the world (evaluated as
+    /// retail does, through the render thing's pose); without one, the owner's centre position.
+    /// </summary>
+    public FVector GetCentre()
+    {
+        RenderThing rt = Owner.RenderThing!;
+        MeshData mesh = rt.Mesh;
+        int best = 0;
+        MeshPart? bestPart = null;
+        for (int n = 0; n < mesh.NumParts; n++)
+        {
+            MeshPart? part = n < mesh.Parts.Count ? mesh.Parts[n] : null;
+            if (part is not null && part.PartNumber < Segments.Length && Segments[part.PartNumber] is DestroyableCoreSegment
+                {
+                    Type: SegmentType.Core, Health: > 0,
+                } core && core.Number > best)
+            {
+                best = core.Number;
+                bestPart = part;
+            }
+        }
+
+        if (bestPart is not null)
+        {
+            var source = (IMeshCollisionSource)rt;
+            MeshPose.EvaluatePose(mesh, source.Pose, source.Subject, bestPart, source.Statics, out FVector pos, out _, false, false);
+            return pos;
+        }
+
+        return Owner.GetCentrePos();
     }
 
     private static bool Starts(string name, string lower, string upper) =>

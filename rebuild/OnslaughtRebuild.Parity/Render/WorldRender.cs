@@ -389,18 +389,43 @@ public sealed class WorldRender(ThingContext context)
     }
 
     /// <summary>
-    /// PostRender's HUD.Render, as far as it affects the game: for viewpoint 0's player, when its camera shows the HUD
-    /// and its battle engine is alive (RenderOverlayForViewpoint), Render00485d50's warning line runs the battle engine's
+    /// PostRender's HUD.Render, as far as it reads the game: for viewpoint 0's player, when its camera shows the HUD and
+    /// its battle engine is alive (RenderOverlayForViewpoint). RenderWorldTargets takes each objective's point (a unit's
+    /// GetRenderUnknown90, which evaluates a segmented building's core pose, otherwise its centre); RenderTargetMarkers
+    /// takes the speaking thing's point while a message plays; Render00485d50's warning line runs the battle engine's
     /// TestDanger while the game is no further than playing and no radar threat is newer than 5 seconds. The radar
     /// warning receiver is not ported; its threats are rounds homing on the battle engine, and rounds are not ported
-    /// either (spawning one throws), so its list is empty and the test always runs. The other HUD passes draw only.
+    /// either (spawning one throws), so its list is empty and the test always runs. The points are kept for the host to
+    /// draw (<see cref="HudObjectivePoints"/>, <see cref="HudSpeakerPoint"/>); the other HUD passes draw only.
     /// </summary>
+    /// <summary>The objectives and the points RenderWorldTargets marks them at, from the last HUD render.</summary>
+    public IReadOnlyList<(Thing Thing, FVector Pos)> HudObjectivePoints { get; private set; } = [];
+
+    /// <summary>The speaking thing's point RenderTargetMarkers marks, from the last HUD render (null without one).</summary>
+    public FVector? HudSpeakerPoint { get; private set; }
+
     public void RenderHud()
     {
+        HudObjectivePoints = [];
+        HudSpeakerPoint = null;
         if (context.Game is not { } game || game.GetPlayer(0)?.BattleEngine is not BattleEngine be
             || game.GetCurrentCamera(0)?.GetShowHud() != true || be.IsDying)
         {
             return;
+        }
+
+        var points = new List<(Thing, FVector)>();
+        // Through the list's own iterator, as retail walks WORLD.mObjectiveThings.
+        for (Thing? thing = context.World.ObjectiveThings.First(); thing is not null; thing = context.World.ObjectiveThings.Next())
+        {
+            points.Add((thing, thing is Unit unit && thing.IsA(ThingType.Unit) ? unit.GetRenderUnknown90() : thing.GetCentrePos()));
+        }
+
+        HudObjectivePoints = points;
+        if (Script.ScriptRuntime.Of(context).MessageBox?.Current is { } message && message.Speaker.ToRead is { } speaker)
+        {
+            HudSpeakerPoint = speaker is Unit unit && speaker.IsA(ThingType.Unit) ? unit.GetRenderUnknown90()
+                : speaker is IRenderSubject subject ? subject.RenderPos : speaker.Pos;
         }
 
         if (game.State <= Game.GameState.Playing)
