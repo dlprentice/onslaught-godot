@@ -46,6 +46,10 @@ public partial class Host
     private bool _flowShotGodot;
     private long? _flowPendingShot;
     private int _flowShotWait;
+    private GameFiles? _flowFiles;
+    private TextureLibrary? _flowLevelTextures;
+    private SurfView? _flowLevelSurf;
+    private bool _flowLevelShown;
 
     private void ReadyFlow()
     {
@@ -123,6 +127,17 @@ public partial class Host
             _flowRaster = new FrontEndRaster(images.Get);
             if (_flowDraw || _flowShotGodot)
             {
+                // Each level's textures and surf, read from its resource file as it loads (on the run's thread; the views
+                // are built from them on this thread while the run is parked).
+                _flowFiles = files;
+                run.LevelChunks = _ =>
+                {
+                    var textures = new TextureLibrary(files.Read);
+                    var surf = new SurfView();
+                    _flowLevelTextures = textures;
+                    _flowLevelSurf = surf;
+                    return (tag, c) => textures.ReadChunk(tag, c) || surf.ReadChunk(tag, c);
+                };
                 _flowView = new FrontEndView(images);
                 AddChild(_flowView.Viewport);
                 AddChild(new TextureRect
@@ -215,6 +230,11 @@ public partial class Host
 
         _flowLast = snapshot;
         _flowTrace?.WriteLine(snapshot.Line());
+        if (_flowFiles is not null)
+        {
+            ShowFlowLevel(snapshot);
+        }
+
         if (Interlocked.Exchange(ref _flowFrame, null) is { } frame && frame.Present == snapshot.Present)
         {
             _flowView?.Show(frame);
@@ -228,6 +248,12 @@ public partial class Host
                     _flowShotWait = 0;
                 }
             }
+        }
+        else if (_flowLevelShown && _flowShotGodot && _flowShots?.Contains(snapshot.Present) == true)
+        {
+            // The level is drawn by Godot only.
+            _flowPendingShot = snapshot.Present;
+            _flowShotWait = 0;
         }
 
         if (_flowEnd is { } end && snapshot.Present >= end)
@@ -286,10 +312,84 @@ public partial class Host
 
     private void SaveGodotShot(long present)
     {
-        using Image image = _flowView!.Viewport.GetTexture().GetImage();
+        using Image image = (_flowLevelShown ? _view! : _flowView!.Viewport).GetTexture().GetImage();
         string path = Path.Combine(_flowShotDir!, $"shot-{present:00000}-godot.png");
         Error error = image.SavePng(path);
         GD.Print($"HOST_SHOT {path} {error}");
+    }
+
+    /// <summary>
+    /// The level in the flow: while a level runs, its views (those of the live level host) are built when it starts and
+    /// updated each Present from the run's objects, read through <see cref="SteppedGameRun.Inspect"/> while the run is
+    /// parked; the front end's picture is hidden. When the level ends they are freed and the front end shows again.
+    /// </summary>
+    private void ShowFlowLevel(FlowSnapshot snapshot)
+    {
+        bool inLevel = snapshot.Segment == FlowSegment.Level;
+        if (inLevel && !_flowLevelShown)
+        {
+            _flowRun!.Inspect(run =>
+            {
+                _liveSession = run.Level ?? throw new InvalidOperationException("a level segment without a level session");
+                _liveTextures = _flowLevelTextures ?? throw new InvalidOperationException("the level's textures were not read");
+                _liveFiles = _flowFiles;
+                _liveDraw = true;
+                BuildLiveScene(_flowLevelSurf!);
+            });
+            _flowLevelShown = true;
+            SetFrontEndVisible(false);
+        }
+        else if (!inLevel && _flowLevelShown)
+        {
+            FreeFlowLevel();
+            SetFrontEndVisible(true);
+            return;
+        }
+
+        if (_flowLevelShown)
+        {
+            _flowRun!.Inspect(_ => UpdateLivePresentation());
+        }
+    }
+
+    private void SetFrontEndVisible(bool visible)
+    {
+        if (GetNodeOrNull<TextureRect>("FrontEndImage") is { } image)
+        {
+            image.Visible = visible;
+        }
+    }
+
+    /// <summary>Frees the level's views and nodes (as the live host's exit does), leaving the run's session to the run.</summary>
+    private void FreeFlowLevel()
+    {
+        _liveHud?.Dispose();
+        _liveBattleLine?.Dispose();
+        _liveParticles?.Dispose();
+        _liveHudTextures?.Dispose();
+        _liveMeshes?.Dispose();
+        _liveWater?.Dispose();
+        _liveSurf?.Dispose();
+        _liveTerrain?.Dispose();
+        _battleLine?.Height.Dispose();
+        _battleLine?.Influence.Dispose();
+        _liveHud = _liveBattleLine = _liveParticles = null;
+        _liveHudTextures = null;
+        _liveMeshes = null;
+        _liveWater = null;
+        _liveSurf = null;
+        _liveTerrain = null;
+        _battleLine = null;
+        _liveImage?.QueueFree();
+        _liveImage = null;
+        _view?.QueueFree();
+        _view = null;
+        _liveWorld = null;
+        _liveCamera = null;
+        _liveSky = null;
+        _liveSession = null;
+        _liveTextures = null;
+        _flowLevelShown = false;
     }
 
     private sealed class StopStraight : Exception;

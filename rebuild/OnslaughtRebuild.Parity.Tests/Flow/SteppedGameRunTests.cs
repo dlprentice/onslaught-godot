@@ -80,6 +80,49 @@ public sealed class SteppedGameRunTests(ITestOutputHelper output)
         return lines;
     }
 
+    /// <summary>
+    /// The host's one way into the run's objects: Inspect refuses before the first step, and between steps sees the run
+    /// standing still at the Present the step returned, through the front end, the level and the debriefing; inspecting
+    /// (with host delays inside the read) leaves every Present as a straight run makes it.
+    /// </summary>
+    [RetailGoldenFact("portrefs/tapes/fe-level100-lose-quit-7300f.tape")]
+    public void InspectReadsTheRunOnlyWhileItIsParkedAndChangesNothing()
+    {
+        const string tape = "portrefs/tapes/fe-level100-lose-quit-7300f.tape";
+        List<string> straight = Straight(NewRun(tape), 7300);
+        var random = new Random(20261022);
+        var lines = new List<string>();
+        int levelReads = 0;
+        using var stepped = new SteppedGameRun(NewRun(tape));
+        Assert.Throws<InvalidOperationException>(() => stepped.Inspect(_ => { }));
+        while (stepped.Step() is { } snapshot)
+        {
+            lines.Add(snapshot.Line());
+            stepped.Inspect(run =>
+            {
+                long before = run.Clock.PresentCount;
+                if (random.Next(8) == 0) Thread.Sleep(random.Next(2));
+                else Thread.SpinWait(random.Next(2000));
+                Assert.Equal(snapshot.Present, before);
+                Assert.Equal(before, run.Clock.PresentCount);
+                if (snapshot.Segment == FlowSegment.Level && run.Level is { } level)
+                {
+                    // What the level views read: the things, the camera and the particles.
+                    _ = level.Context.World.ObjectiveThings.ToList().Count;
+                    _ = level.Game.GetCurrentCamera(0);
+                    _ = level.Context.Particles?.Manager.NumLiveParticles;
+                    levelReads++;
+                }
+            });
+            if (snapshot.Present >= 7300) break;
+        }
+
+        Assert.Null(stepped.Failure);
+        output.WriteLine($"{lines.Count} Presents inspected, {levelReads} in the level");
+        Assert.Equal(straight, lines);
+        Assert.True(levelReads > 5000, $"only {levelReads} level Presents were inspected");
+    }
+
     [RetailGoldenFact("portrefs/fe-god-port-20261021/fe-god-route.tape", "portrefs/fe-god-port-20261021/Maladim.bes",
         "portrefs/tapes/fe-level100-lose-quit-7300f.tape")]
     public void ASteppedRunWithRandomHostDelaysMakesTheSamePresentsAsAStraightRun()

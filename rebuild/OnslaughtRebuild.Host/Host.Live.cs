@@ -30,6 +30,7 @@ public partial class Host
     private TransientHostView? _liveHud;
     private TransientHostView? _liveBattleLine;
     private TransientHostView? _liveParticles;
+    private TextureRect? _liveImage;
     private Label? _liveBanner;
     private Label? _liveNotice;
     private bool _liveReplay;
@@ -177,7 +178,7 @@ public partial class Host
 
         // The snapshot mode intentionally has no onscreen compositor. Live mode displays its viewport instead of
         // advancing an invisible simulation. Fixed 640x480 is also the input adapter's window coordinate system.
-        var image = new TextureRect
+        _liveImage = new TextureRect
         {
             Name = "LevelImage",
             Texture = _view.GetTexture(),
@@ -186,7 +187,13 @@ public partial class Host
             MouseFilter = Control.MouseFilterEnum.Ignore,
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
         };
-        AddChild(image);
+        AddChild(_liveImage);
+        if (_flowMode)
+        {
+            // The whole-game host shows its own status; the live preview's banner and notice are not made.
+            return;
+        }
+
         _liveBanner = new Label
         {
             Name = "PreviewStatus",

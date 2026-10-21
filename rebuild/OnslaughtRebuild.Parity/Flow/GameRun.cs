@@ -144,6 +144,12 @@ public sealed class GameRun : ISystemParts
         return FrontEnd.Quit;
     }
 
+    /// <summary>
+    /// For each level, a reader of the resource file's chunks the simulation does not use (its textures and surf), from the
+    /// host that draws it; called on the run's thread as the level loads. It never changes the simulation.
+    /// </summary>
+    public Func<int, Func<uint, Data.ChunkReader, bool>?>? LevelChunks { get; set; }
+
     public QuitType RunLevel(int level)
     {
         int[] slots = new int[Career.CareerRecord.SlotWordCount];
@@ -152,7 +158,7 @@ public sealed class GameRun : ISystemParts
             slots[word] = FrontEnd.Career.Record.SlotWord(word);
         }
 
-        Level = LevelSession.Load(level, _read, _voice,
+        Level = LevelSession.Load(level, _read, _voice, LevelChunks?.Invoke(level),
             host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots, Loading, FrontEnd.Career.SetSlot)
             {
                 Career = FrontEnd.Career,
