@@ -30,6 +30,27 @@ public sealed class StraightAimTests
         { "00000000 00000000 40a00000", "80000000", "3fc90fdb", "3f800000 80000000 00000000", "00000000 b33bbd2e bf800000", "00000000 3f800000 b33bbd2e" },
     };
 
+    /// <summary>
+    /// SpawnRound's tracking aim (00506c6a..00506ccc) run as retail's own block on the same terms: the first five vectors
+    /// are seeded draws where the former FVector::Azimuth/Elevation models gave a different yaw or pitch.
+    /// </summary>
+    public static TheoryData<string, string, string, string, string, string> TrackingCases => new()
+    {
+        { "c386de02 435a84d2 42233947", "3f63d13e", "3defa3b8", "3f2125a7 bf458e50 3db9c775", "3f46ea86 3f200b8f bd968125", "80000000 3def17d2 3f7e3fdd" },
+        { "c33fa66a 433cebcb 421a86d6", "3f4ae5ca", "3e120026", "3f33b778 bf347676 3dcf3f55", "3f36500d 3f31e49f bdcc4bdb", "80000000 3e1181a4 3f7d66ff" },
+        { "433c7402 40fae598 42d12576", "bfc3bd57", "3f019878", "3d2a43e4 3f5fb2c4 bef80c09", "bf7fc75b 3d14e8fc bca51e50", "80000000 3ef842f8 3f5fe44e" },
+        { "c328f853 c221ec7b 421d5208", "3fe72903", "3e63f318", "be6e92c9 bf72cfef 3e5bd9b1", "3f78f485 be68afc7 3d52aeab", "80000000 3e621255 3f79aeea" },
+        { "c320405b c35cb036 c27d1f37", "4020ddc3", "be6975da", "bf4f25cc bf1286cb be07fd6d", "3f166b3f bf49c98b be3b46e5", "80000000 be677170 3f796020" },
+        { "00000000 00000000 40a00000", "80000000", "3fc90fdb", "3f800000 80000000 00000000", "00000000 b33bbd2e bf800000", "00000000 3f800000 b33bbd2e" },
+        { "00000000 00000000 00000000", "80000000", "00000000", "3f800000 00000000 00000000", "00000000 3f800000 80000000", "80000000 00000000 3f800000" },
+        { "40400000 00000000 00000000", "bfc90fdb", "00000000", "b33bbd2e 3f800000 80000000", "bf800000 b33bbd2e 00000000", "80000000 00000000 3f800000" },
+    };
+
+    [Theory]
+    [MemberData(nameof(TrackingCases))]
+    public void TheTrackingAimTakesTheSameSequence(string d, string yaw, string pitch, string row0, string row1, string row2) =>
+        TheStraightAimTakesRetailsSequenceAndTheOutOfLineConstructor(d, yaw, pitch, row0, row1, row2);
+
     [Theory]
     [MemberData(nameof(Cases))]
     public void TheStraightAimTakesRetailsSequenceAndTheOutOfLineConstructor(string d, string yaw, string pitch, string row0, string row1, string row2)

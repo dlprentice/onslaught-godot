@@ -158,7 +158,11 @@ public static class WeaponMaths
         return (-(float)X87.Atan2(d.X, d.Y), pitch);
     }
 
-    /// <summary>The straight aim's orientation: <see cref="StraightAimAngles"/> through the out-of-line constructor.</summary>
+    /// <summary>
+    /// The straight aim's orientation: <see cref="StraightAimAngles"/> through the out-of-line constructor. SpawnRound's
+    /// tracking aim (00506c2d..00506ce0: the out-of-line FVector::Magnitude 004026b0, the quotient stored before the
+    /// asin) gives the same yaw, pitch and matrix: retail's two blocks agree on 5,006 vectors.
+    /// </summary>
     public static FMatrix StraightAimOrientation(FVector d)
     {
         (float yaw, float pitch) = StraightAimAngles(d);
@@ -605,7 +609,7 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
                 if (mode.Track != 0 && !WeaponMaths.IsBallistic(mode.Round!) && Target.ToRead is { } tracked)
                 {
                     FVector delta = tracked.GetCentrePos() - pos;
-                    AimOrientation = FMatrix.FromYawPitchRoll(WeaponMaths.Azimuth(Context, delta), WeaponMaths.Elevation(Context, delta), 0);
+                    AimOrientation = WeaponMaths.StraightAimOrientation(delta);
                 }
 
                 orientation = AimOrientation;
