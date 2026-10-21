@@ -127,7 +127,7 @@ public sealed class FrontEndTiming
 /// process with its filtered frame step, and the run loop of one process and one Present per iteration
 /// (<c>CFrontEnd::Run</c> 0x004684d0). Pages not yet ported are <see cref="InertPage"/>.
 /// </summary>
-public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
+public sealed partial class FrontEnd : IButtonReceiver, Menus.IMenuHost
 {
     /// <summary><c>NUM_CONTROLLER_PORTS</c>.</summary>
     public const int ControllerPorts = 2;
@@ -903,6 +903,10 @@ public sealed class FrontEnd : IButtonReceiver, Menus.IMenuHost
         float ofs = (float)X87.Sub(1f, transition);
         ofs = (float)X87.Mul(X87.Mul(ofs, ofs), 3000f);
         float x = back ? (float)X87.Add(X87.Sub(6f, ofs), 16f) : (float)X87.Add(ofs, 618f);
+        // The arrow (the help text itself is only measured, never drawn).
+        if (Draw is { } draw && X87.Fist(Counter) % 64 < 50)
+            draw.DrawColouredSprite(x, 455f, 0.1f, Flow.Draw.FrontEndTexture.HelpArrow, 0xffffffff, 1f, 1f, Flow.Draw.SpriteAlign.Centre,
+                Flow.Draw.SpriteType.None, 1f, back ? 3.14159265358979f : 0f);
         ProcessMouseClickInRect((float)X87.Sub(x, 40f), 415f, (float)X87.Add(x, 40f), 495f,
             back ? FrontEndButtons.MenuBack : FrontEndButtons.MenuSelect);
     }

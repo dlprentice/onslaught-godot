@@ -25,15 +25,16 @@ public sealed class FrontEndView
         uniform sampler2D tex_clamped : filter_linear, repeat_disable;
         uniform bool clamped = false;
         uniform bool alpha_from_colour = false;
+        uniform bool keep = false;
 
         void fragment() {
             vec4 t = clamped ? texture(tex_clamped, UV) : texture(tex, UV);
             float a = (alpha_from_colour ? 1.0 : t.a) * COLOR.a;
-            if (a < 7.5 / 255.0) {
+            if (!alpha_from_colour && a < 7.5 / 255.0) {
                 discard;
             }
-            ALBEDO = t.rgb * COLOR.rgb;
-            ALPHA = a;
+            ALBEDO = keep ? vec3(0.0) : t.rgb * COLOR.rgb;
+            ALPHA = keep ? 0.0 : a;
         }
         """;
 
@@ -56,7 +57,7 @@ public sealed class FrontEndView
     private readonly Dictionary<(QuadTexture, int), ShaderMaterial> _depthMaterials = [];
     private readonly Dictionary<(bool Additive, bool NoDepthTest), Shader> _shaders = [];
     private readonly Dictionary<QuadTexture, ImageTexture> _textures = [];
-    private readonly Dictionary<(QuadTexture, bool, bool, bool, int), ShaderMaterial> _materials = [];
+    private readonly Dictionary<(QuadTexture, bool, bool, bool, bool, int), ShaderMaterial> _materials = [];
     private readonly List<MeshInstance3D> _pool = [];
     private readonly Node3D _root;
     private readonly Godot.Environment _environment;
@@ -184,9 +185,10 @@ public sealed class FrontEndView
     {
         bool noDepthTest = !quad.ZEnable || quad.ZAlways;
         bool additive = quad.Blend == CanvasBlend.Additive;
+        bool keep = quad.Blend == CanvasBlend.Keep;
         // Render priority keeps the frame's order: the transparent pass sorts by it before distance.
         int priority = Math.Min(order, 255) - 128;
-        var key = (quad.Texture, additive, noDepthTest, quad.Clamp, priority);
+        var key = (quad.Texture, additive, noDepthTest, quad.Clamp, keep, priority);
         if (!_materials.TryGetValue(key, out ShaderMaterial? material))
         {
             if (!_shaders.TryGetValue((additive, noDepthTest), out Shader? shader))
@@ -202,6 +204,7 @@ public sealed class FrontEndView
             material.SetShaderParameter("tex", Texture(quad.Texture));
             material.SetShaderParameter("tex_clamped", Texture(quad.Texture));
             material.SetShaderParameter("clamped", quad.Clamp);
+            material.SetShaderParameter("keep", keep);
             material.SetShaderParameter("alpha_from_colour", quad.Texture.Kind == CanvasTextureKind.Default);
             _materials[key] = material;
         }

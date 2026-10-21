@@ -20,11 +20,15 @@ public readonly record struct QuadTexture(CanvasTextureKind Kind, int Index = 0)
     public static QuadTexture Fed(FrontEndTexture texture) => new(CanvasTextureKind.FrontEnd, (int)texture);
 }
 
-/// <summary>The blend the quad draws with: the front end's modulate (source alpha over) or additive (one, one).</summary>
+/// <summary>
+/// The blend the quad draws with: the front end's modulate (source alpha over), additive (one, one), or keep (zero, one:
+/// the colour stays and only depth is written, as the bracket masks draw).
+/// </summary>
 public enum CanvasBlend : byte
 {
     Modulate,
     Additive,
+    Keep,
 }
 
 /// <summary>

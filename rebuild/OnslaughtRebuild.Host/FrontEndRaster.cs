@@ -89,7 +89,8 @@ public sealed class FrontEndRaster(Func<QuadTexture, RasterTexture?> textures)
                 uint t = Sample(texture, u, v, quad.Clamp);
                 float ta = alphaFromColour ? 1f : (t >> 24) / 255f;
                 float sa = ta * ca;
-                if (sa * 255f < 7.5f)
+                // The video quad draws with the alpha test off (CDXFrontEndVideo::Render).
+                if (!alphaFromColour && sa * 255f < 7.5f)
                 {
                     continue;
                 }
@@ -98,7 +99,13 @@ public sealed class FrontEndRaster(Func<QuadTexture, RasterTexture?> textures)
                 uint d = Pixels[i];
                 float dr = ((d >> 16) & 0xff) / 255f, dg = ((d >> 8) & 0xff) / 255f, db = (d & 0xff) / 255f;
                 float r, g, bl;
-                if (quad.Blend == CanvasBlend.Additive)
+                if (quad.Blend == CanvasBlend.Keep)
+                {
+                    r = dr;
+                    g = dg;
+                    bl = db;
+                }
+                else if (quad.Blend == CanvasBlend.Additive)
                 {
                     r = sr + dr;
                     g = sg + dg;

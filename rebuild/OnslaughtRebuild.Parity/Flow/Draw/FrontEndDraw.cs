@@ -60,6 +60,18 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     /// <summary><c>BlendAlpha2</c>: the colour with its alpha scaled by alpha / 256.</summary>
     public static uint BlendAlpha2(uint col, int alpha) => (col & 0x00ffffff) | (unchecked((col >> 24) * (uint)alpha << 16) & 0xff000000);
 
+    /// <summary><c>Range</c>: between a and b as t goes from 0 to 1.</summary>
+    public static float Range(float t, float a, float b) => a + (b - a) * t;
+
+    /// <summary><c>CosResize</c>: a cosine ease between a (t = 0) and b (t = 1).</summary>
+    public static float CosResize(float t, float a, float b)
+    {
+        float c = MathF.Cos(t * 3.14159265358979f);
+        float sq = MathF.Abs(c) is var m && m != 0f ? MathF.Sqrt(m) : 0f;
+        float f = (c < 0f ? -1f : 1f) * sq / 2f + 0.5f;
+        return (1f - f) * b + f * a;
+    }
+
     /// <summary><c>FO(x)</c>: a front-end depth from thousandths.</summary>
     public static float FO(int x) => (float)X87.Div(x, 1000f);
 
@@ -305,6 +317,29 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     public void DrawPanel(float tlx, float tly, float brx, float bry, float z, uint col) =>
         DrawColouredSprite(tlx, tly, z, FrontEndTexture.Blank, col, (brx - tlx) / 16f, (bry - tly) / 16f, clamp: true);
 
+    /// <summary><c>CFrontEnd::DrawBarGraph</c> (0x004670b0): the background panel, and the filled part over it.</summary>
+    public void DrawBarGraph(float tlx, float tly, float brx, float bry, float num, float max, float z, uint backcol, uint forecol)
+    {
+        DrawPanel(tlx, tly, brx, bry, z, backcol);
+        if (num != 0f) DrawPanel(tlx, tly, tlx + (brx - tlx) * (num / max), bry, z, forecol);
+    }
+
+    /// <summary>
+    /// <c>CFrontEnd::DrawBar</c> (0x00467ae0): a left end, <paramref name="segs"/> middles and a right end, 64 pixels each
+    /// at the scale, centred on (sx, sy), edges clamped.
+    /// </summary>
+    public void DrawBar(float sx, float sy, float z, int segs, uint col, float scale)
+    {
+        float y = sy - 32f * scale;
+        float x = sx - 32f * (segs + 2) * scale;
+        for (int c0 = 0; c0 < segs + 2; c0++)
+        {
+            FrontEndTexture tex = c0 == 0 ? FrontEndTexture.Barl : c0 == segs + 1 ? FrontEndTexture.Barr : FrontEndTexture.Barc;
+            DrawColouredSprite(x, y, z, tex, col, scale, scale, clamp: true);
+            x += 64f * scale;
+        }
+    }
+
     /// <summary><c>CFrontEnd::DrawBox</c> (0x00466e70): four lines round the rectangle.</summary>
     public void DrawBox(float tlx, float tly, float brx, float bry, uint col, float width, float depth)
     {
@@ -323,6 +358,7 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     public void VideoWithoutFilm(float x, float y, float z, float xscale, float yscale, uint colour, bool centred, int width = 128, int height = 128)
     {
         if (z == 0f) z = 0.0001f;
+        // DrawPrimitiveUP with the current blend (the front end's modulate), alpha test off.
         colour &= 0xff000000;
         float w = width * xscale, h = height * yscale;
         if (centred)
