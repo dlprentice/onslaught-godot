@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Adapted from bea-decomp src/FEPLevelSelect.cpp and src/FEPLevelSelect.h (reconstructed from the retail program; not
-// in Stuart's release). FEMouseEdgeSlide, from Stuart's FEPGoodies.cpp, is in MouseEdgeSlide.cs.
+// in Stuart's release). FEMouseEdgeSlide, from Stuart's FEPGoodies.cpp, is in MouseEdgeSlide.cs. The level and episode
+// names are from src/FrontEndText.cpp (CFrontEndText::GetLevelName 00469550, GetEpisodeName 00469c20, GetBriefingTextId
+// 00469cf0, GetBriefingText 0046a1f0) and src/text.cpp (CText::GetFollowingString 004f2500).
 
 using OnslaughtRebuild.Parity.Career;
+using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Text;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
 
@@ -13,8 +17,10 @@ namespace OnslaughtRebuild.Parity.Flow.Pages;
 /// hovering and clicking, and scrolls the grid at the screen's edges.
 /// </summary>
 /// <remarks>
-/// Not modelled: the auto-configuration test's two automatic selections (the switch is off), and the render's drawing
-/// (grades, links, glows, names). Its two clock reads (the name and episode text's ages) are drawing inputs.
+/// Not modelled: the auto-configuration test's two automatic selections (the switch is off). The render's two clock
+/// reads (the name and episode text's ages) and its two <c>FET.GetText</c> calls (the locked level's name and the title,
+/// each of which reads the X key) are left out; the drawing takes the clock from <see cref="FrontEnd.LastRenderTime"/>
+/// (the same value within one render) and the texts by id.
 /// </remarks>
 public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
 {
@@ -29,6 +35,7 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
     private readonly int[] _columnLength = new int[Columns];
     private readonly int[,] _levels = new int[Columns, Rows];
     private readonly float[,] _transition = new float[Columns, Rows];
+    private readonly List<(int Column, int Row)>[,] _links = new List<(int Column, int Row)>[Columns, Rows];
 
     /// <summary>The constructor (0x00460140): the grid from the campaign's level structure.</summary>
     public LevelSelectPage(FrontEnd frontEnd)
@@ -43,7 +50,39 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
             _columnLength[column]++;
         }
         NumColumns = column + 1;
-        // The links between levels (mLinks) are drawn, never read, so they are left out.
+
+        // The lines from each level to the ones it opens (mLinks), which only the render draws.
+        for (int i = 0; i < Columns; i++)
+            for (int j = 0; j < Rows; j++)
+                _links[i, j] = [];
+        for (int i = 0; i < CareerTables.LevelStructure.GetLength(0); i++)
+        {
+            (int c, int r) = Find(CareerTables.LevelStructure[i, 0]);
+            if (c == -1 || r == -1) continue;
+            for (int k = 1; k <= 2; k++)
+            {
+                int next = CareerTables.LevelStructure[i, k];
+                if (next == -1) continue;
+                (int c2, int r2) = Find(CareerTables.LevelStructure[next, 0]);
+                if (c2 != -1 && r2 != -1) _links[c, r].Add((c2, r2));
+            }
+        }
+    }
+
+    /// <summary>The grid cell holding a level (the last match, as the constructor's full scan finds it), or (-1, -1).</summary>
+    private (int Column, int Row) Find(int level)
+    {
+        int c = -1, r = -1;
+        for (int a = 0; a < Columns; a++)
+        {
+            for (int b = 0; b < Rows; b++)
+            {
+                if (_levels[a, b] != level) continue;
+                c = a;
+                r = b;
+            }
+        }
+        return (c, r);
     }
 
     public int NumColumns { get; }
@@ -255,14 +294,27 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
         return false;
     }
 
+    /// <summary><c>CFEPLevelSelect::RenderPreCommon</c> (folded with CFEPDirectory's, 0x0051ae50): the standard video background.</summary>
+    public override void RenderPreCommon(float transition, FrontEndPage dest) =>
+        _frontEnd.DrawStandardVideoBackground(transition, 0x3fffffff, dest);
+
     /// <summary>
-    /// The state-changing part of <c>CFEPLevelSelect::Render</c> (0x00460b40): walking the columns from x 148 - pos in
-    /// steps of 60, a cursor column that has left the scroll band moves back into it; on screen, a click on an unlocked
-    /// world (once the transition is complete) selects it, and hovering over one moves the cursor to it. Then the help
-    /// line's select and back arrows.
+    /// <c>CFEPLevelSelect::Render</c> (0x00460b40). Its state-changing part: walking the columns from x 148 - pos in steps
+    /// of 60, a cursor column that has left the scroll band moves back into it; on screen, a click on an unlocked world
+    /// (once the transition is complete) selects it, and hovering over one moves the cursor to it. Then the help line's
+    /// select and back arrows. With <see cref="FrontEnd.Draw"/> it also draws: the sliding borders, the episode numbers
+    /// and curves over each episode's first column, each world's mask (its grade's once it has one), blue glow (orange
+    /// under the cursor), rings (growing into the briefing's ring for the chosen world as the briefing arrives) and lines
+    /// to the worlds it opens, the small logo, the cursor world's name and episode, and the title bar.
     /// </summary>
     public override void Render(float transition, FrontEndPage dest)
     {
+        FrontEndDraw? draw = _frontEnd.Draw;
+        float t4 = transition * 4f;
+        if (draw is not null) RenderEpisodes(draw, transition, dest, t4);
+
+        // SINT under /QIfist rounds to nearest.
+        int alpha = X87.Fist(X87.Mul(FrontEndDraw.RangeTransition(transition, 0.75f, 1f), 255f));
         float gx = (float)X87.Sub(148f, Pos);
         for (int x = 0; x < NumColumns; x++)
         {
@@ -295,6 +347,7 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
                             Row = y;
                             ButtonPressed(FrontEndButtons.MenuSelect, 1f);
                         }
+                        if (draw is not null) DrawWorld(draw, x, y, gx, gy, alpha);
                     }
                     bool unlocked = IsWorldUnlocked(_levels[x, y]);
                     if (onscreen && _frontEnd.GetCursorStateInRect(left, top, right, bottom) && unlocked)
@@ -302,12 +355,211 @@ public sealed class LevelSelectPage : FrontEndPageBase, ILevelSelect
                         Column = x;
                         Row = y;
                     }
+                    if (draw is not null) DrawRingsAndLinks(draw, transition, dest, x, y, gx, gy, alpha, unlocked);
                     gy = (float)X87.Sub(gy, 60f);
                 }
             }
             gx = (float)X87.Add(gx, 60f);
         }
+
+        if (draw is not null) RenderNames(draw, transition, dest, t4);
         _frontEnd.RenderHelpArrow(5, transition);
         _frontEnd.RenderHelpArrow(1, transition);
+        if (draw is not null && _frontEnd.Texts is { } texts) _frontEnd.DrawTitleBar(LevelText.ByName(_frontEnd, texts, "FETX_SELECT_LEVEL"), transition, dest);
     }
+
+    /// <summary>
+    /// The render's first part: the sliding borders, then over each episode's first column (a level ending in 00) its
+    /// curve (additive, bright for the cursor's episode) and its number, fading in over the transition's last quarter.
+    /// </summary>
+    private void RenderEpisodes(FrontEndDraw draw, float transition, FrontEndPage dest, float t4)
+    {
+        _frontEnd.DrawSlidingTextBordersAndMask(transition, dest);
+        float gx = (float)X87.Sub(148f, Pos);
+        int ea = X87.Fist(X87.Mul(X87.Sub(t4, 3f), 255f));
+        if (ea < 0) ea = 0;
+        int episode = _levels[Column, ClampedRow()] / 100;
+        for (int x = 0; x < NumColumns && gx < 610f; x++, gx = (float)X87.Add(gx, 60f))
+        {
+            if (gx < 0f || _levels[x, 0] % 100 != 0) continue;
+            uint c = episode != _levels[x, 0] / 100 ? 0xff2f2f2fu : 0xff8f8f8fu;
+            draw.Blend = CanvasBlend.Additive;
+            draw.DrawColouredSprite(gx - 10f, 322f, 0.955f, FrontEndTexture.SelectLevelEpisodeCurve, Scale(c, (uint)ea), 1f, 1f,
+                SpriteAlign.Centre, SpriteType.None, 1f, 0f);
+            draw.Blend = CanvasBlend.Modulate;
+
+            c = episode != _levels[x, 0] / 100 ? 0x3e1f4f7fu : 0xff1f4f7fu;
+            if (_frontEnd.NormalFont is { } font)
+            {
+                draw.DrawTextDynamic(font, CanvasTextureKind.NormalFont, gx + 15f, 179f, 0.345f, 1f, 1f, FrontEndDraw.BlendAlpha2(c, ea),
+                    (_levels[x, 0] / 100).ToString(System.Globalization.CultureInfo.InvariantCulture), 1000f, false, 8);
+            }
+        }
+        draw.Blend = CanvasBlend.Modulate;
+    }
+
+    /// <summary>Each channel of the colour scaled by a / 256, the alpha kept (retail's inline at 00460c88; name ours).</summary>
+    private static uint Scale(uint c, uint a) =>
+        ((((((c >> 16) & 0xff) * a / 256 * 256) + (((c >> 8) & 0xff) * a / 256)) * 256) + ((c & 0xff) * a / 256)) + (c & 0xff000000);
+
+    /// <summary>
+    /// An unlocked world's mask, drawn into depth only with its edges clamped (its grade's mask once it has a ranking),
+    /// then its blue glow scrolling with the counter, and the orange glow while its transition is above 0.
+    /// </summary>
+    private void DrawWorld(FrontEndDraw draw, int x, int y, float gx, float gy, int alpha)
+    {
+        uint white = FrontEndDraw.BlendAlpha2(0xffffffff, alpha);
+        draw.Blend = CanvasBlend.Keep;
+        float ranking = -1f;
+        OnslaughtRebuild.Parity.Career.Career career = _frontEnd.Career;
+        int node = career.GetNodeFromWorldNo(_levels[x, y]);
+        if (node != -1) ranking = career.Record.NodeRanking(node);
+        FrontEndTexture mask = FrontEndTexture.LevelSelectMask;
+        if (ranking != -1f)
+        {
+            mask = (char)OnslaughtRebuild.Parity.Career.Career.GradeFromRanking(ranking) switch
+            {
+                'S' => FrontEndTexture.RankingSmallMaskS,
+                'A' => FrontEndTexture.RankingSmallMaskA,
+                'B' => FrontEndTexture.RankingSmallMaskB,
+                'C' => FrontEndTexture.RankingSmallMaskC,
+                'D' => FrontEndTexture.RankingSmallMaskD,
+                _ => FrontEndTexture.RankingSmallMaskE,
+            };
+        }
+        draw.DrawColouredSprite(gx, gy, 0.31f, mask, white, 1f, 1f, SpriteAlign.Centre, clamp: true);
+        draw.Blend = CanvasBlend.Modulate;
+
+        // x87: the sum and products are kept wide and stored once, as the call's argument.
+        float spin = (float)((x * 11 + (double)(y * 7)) * 0.114f + (double)_frontEnd.Counter * 0.02f);
+        draw.DrawColouredSprite(gx, gy, 0.335f, FrontEndTexture.LevelSelectGlowBlue, white, 1f, 1f, SpriteAlign.Centre, SpriteType.ScrollRight, spin);
+        if (_transition[x, y] > 0f)
+        {
+            int a = X87.Fist(X87.Mul(FrontEndDraw.RangeTransition(_transition[x, y], 0f, 0.5f), 255f));
+            draw.DrawColouredSprite(gx, gy, 0.335f, FrontEndTexture.LevelSelectGlowOrange, FrontEndDraw.BlendAlpha2(0xffffffff, a * alpha / 255),
+                1f, 1f, SpriteAlign.Centre, SpriteType.ScrollRight, spin);
+        }
+    }
+
+    /// <summary>
+    /// A world's two ring brackets (faint while locked; turned and grown by its transition), or, for the cursor's world as
+    /// the briefing or debriefing arrives, the briefing's two metal rings flying from it to (285, 225); then the lines to
+    /// the worlds it opens, bright where both ends are open.
+    /// </summary>
+    private void DrawRingsAndLinks(FrontEndDraw draw, float transition, FrontEndPage dest, int x, int y, float gx, float gy, int alpha, bool unlocked)
+    {
+        uint ring = unlocked ? 0xffffffffu : 0x1fffffffu;
+        if (transition != 1f && Column == x && ClampedRow() == y && dest is FrontEndPage.Briefing or FrontEndPage.Debriefing)
+        {
+            if (transition > 0f)
+            {
+                float inv = 1f - transition;
+                float yaw = Pi * 0.67f * transition;
+                float sc = inv * 1.5f + 0.1f;
+                float px = (285f - gx) * inv + gx;
+                float py = (225f - gy) * inv + gy;
+                draw.DrawColouredSprite(px, py, 0.305f, FrontEndTexture.MetalRingTransFromLevsel2, ring, sc, sc, SpriteAlign.Centre, SpriteType.None, 1f, -yaw);
+                draw.DrawColouredSprite(px, py, 0.305f, FrontEndTexture.MetalRingTransFromLevsel1, ring, sc * 1.75f, sc * 1.75f, SpriteAlign.Centre,
+                    SpriteType.None, 1f, yaw);
+            }
+        }
+        else if (alpha > 0)
+        {
+            uint col = FrontEndDraw.BlendAlpha2(ring, alpha);
+            float yaw = _transition[x, y] * Pi * 0.25f;
+            float sc = 1f + _transition[x, y] * 0.25f;
+            draw.DrawColouredSprite(gx, gy, 0.305f, FrontEndTexture.SelectLevelRingBracket02, col, 1f, 1f, SpriteAlign.Centre, SpriteType.None, 1f, yaw);
+            draw.DrawColouredSprite(gx, gy, 0.305f, FrontEndTexture.SelectLevelRingBracket01, col, sc, sc, SpriteAlign.Centre, SpriteType.None, 1f, -yaw);
+        }
+
+        foreach ((int lx, int ly) in _links[x, y])
+        {
+            float ex = (lx - x) * 60f + gx;
+            float ey = (float)((_columnLength[lx] - 1) * 60.0 * 0.5 + 320.0 - ly * 60.0);
+            uint lc = unlocked && IsWorldUnlocked(_levels[lx, ly]) ? 0xafffffffu : 0x1fffffffu;
+            if (alpha > 0) draw.DrawLine(gx, gy, ex, ey, FrontEndDraw.BlendAlpha2(lc, alpha), 10f, 0.308f, 0.4f);
+        }
+    }
+
+    /// <summary>
+    /// The render's last drawing: the small logo (whole while the briefing or debriefing is arriving), then the cursor
+    /// world's name (the unknown text while it is locked; narrower when over 450 wide) and its episode's name, sliding in
+    /// from the left and revealed from when the cursor and the episode last changed.
+    /// </summary>
+    private void RenderNames(FrontEndDraw draw, float transition, FrontEndPage dest, float t4)
+    {
+        _frontEnd.RenderSmallBEALogo(dest is FrontEndPage.Briefing or FrontEndPage.Debriefing ? 1f : FrontEndDraw.RangeTransition(transition, 0.75f, 1f));
+        if (_frontEnd.NormalFont is not { } font || _frontEnd.Texts is not { } texts) return;
+        uint ta = (uint)FrontEndDraw.MakeAlpha(t4 - 2f);
+        float d = 1f - transition - 0.25f;
+        if (d < 0f) d = 0f;
+        float off = d * d * 3000f;
+        int level = _levels[Column, ClampedRow()];
+        string name = IsWorldUnlocked(level) ? LevelText.LevelName(_frontEnd, texts, level) : LevelText.ByName(_frontEnd, texts, "FETX_GOODY_UNKNOWN");
+        float sx = font.GetTextExtent(name).Width > 450f ? 0.8f : 1f;
+        float lx = 130f - off;
+        // The clock as the render started: retail's reads here return the same value within one render.
+        float now = _frontEnd.LastRenderTime;
+        draw.DrawTextDynamic(font, CanvasTextureKind.NormalFont, lx, 153f, 0.305f, sx, 1f, (ta << 24) | 0x7f6f3f, name, now - CursorTime);
+        draw.DrawTextDynamic(font, CanvasTextureKind.NormalFont, lx, 125f, 0.305f, 1f, 1f, (ta << 24) | 0x7f7f7f,
+            LevelText.EpisodeName(_frontEnd, texts, level / 100), now - EpisodeTime);
+    }
+
+    private const float Pi = 3.14159265358979f;
+}
+
+/// <summary>
+/// The level select's and briefing's texts by level number (<c>CFrontEndText::GetLevelName</c>, <c>GetEpisodeName</c>,
+/// <c>GetBriefingText</c>), read from the language file by id: none reads the X key as <c>FET.GetText</c> does.
+/// </summary>
+internal static class LevelText
+{
+    /// <summary>The levels GetLevelName and GetBriefingTextId name (201 shares 200's texts).</summary>
+    private static readonly HashSet<int> Named =
+    [
+        100, 110, 200, 201, 211, 212, 221, 222, 231, 232, 300, 311, 312, 321, 322, 331, 332, 400, 411, 412, 421, 422, 431,
+        432, 500, 511, 512, 521, 522, 523, 524, 600, 611, 612, 621, 622, 700, 710, 720, 731, 732, 741, 742, 800,
+    ];
+
+    // text.stf's names with negative ids (FETX_MISSION_BRIEFING's is), which TextIds.Read does not keep, by text table.
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<TextIds, Dictionary<string, uint>> NegativeIds = new();
+
+    /// <summary>A text by its name in text.stf (a negative id, as the header's <c>#define</c> gives it, is read as unsigned).</summary>
+    public static string ByName(FrontEnd frontEnd, FrontEndTexts texts, string name)
+    {
+        Dictionary<string, uint> negative = NegativeIds.GetValue(texts.Ids, _ => ReadNegativeIds(frontEnd));
+        return texts.ById(negative.TryGetValue(name, out uint id) ? id : texts.Ids[name]);
+    }
+
+    private static Dictionary<string, uint> ReadNegativeIds(FrontEnd frontEnd)
+    {
+        Dictionary<string, uint> ids = new(StringComparer.Ordinal);
+        if (frontEnd.ReadDataFile?.Invoke(TextIds.FileName) is not { } file) return ids;
+        foreach (string line in System.Text.Encoding.Latin1.GetString(file).Split('\n'))
+        {
+            string[] parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 3 && parts[0] == "#define" && parts[2].StartsWith('-') && int.TryParse(parts[2], out int id))
+                ids.TryAdd(parts[1], unchecked((uint)id));
+        }
+        return ids;
+    }
+
+    /// <summary><c>CFrontEndText::GetLevelName</c> (0x00469550).</summary>
+    public static string LevelName(FrontEnd frontEnd, FrontEndTexts texts, int level) =>
+        Named.Contains(level) ? ByName(frontEnd, texts, $"FETX_LEVEL_NAME_{(level == 201 ? 200 : level)}") : "Unnamed Level";
+
+    /// <summary><c>CFrontEndText::GetEpisodeName</c> (0x00469c20).</summary>
+    public static string EpisodeName(FrontEnd frontEnd, FrontEndTexts texts, int episode) =>
+        episode is >= 1 and <= 8 ? ByName(frontEnd, texts, $"FETX_EPISODE_{episode}") : "Unnamed Episode";
+
+    /// <summary>
+    /// <c>CFrontEndText::GetBriefingText</c> (0x0046a1f0): <c>GetFollowingString(BRIEFING_level_1, n)</c>, the n-th entry
+    /// after the first. Every shipped language file stores each level's nine entries in order, so that entry is
+    /// <c>BRIEFING_level_(n + 1)</c>. A level without a briefing (id -1) finds no entry: the pool's first string.
+    /// </summary>
+    public static string BriefingText(FrontEnd frontEnd, FrontEndTexts texts, int level, int n) =>
+        Named.Contains(level) ? ByName(frontEnd, texts, $"BRIEFING_{(level == 201 ? 200 : level)}_{n + 1}") : texts.ById(0xffffffff);
+
+    /// <summary><c>CFrontEndText::GetBriefingTextColour</c> (0x0046a210).</summary>
+    public const uint BriefingTextColour = 0xffffdf5f;
 }
