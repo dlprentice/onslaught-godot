@@ -415,7 +415,13 @@ public partial class Host
 
         if (_flowLevelShown)
         {
-            _flowRun!.Inspect(_ => UpdateLivePresentation());
+            // As the live host does after each Present: the frame length's cloud and water drift and the smoothed
+            // landscape view that chooses the terrain's texture levels, then the views.
+            _flowRun!.Inspect(_ =>
+            {
+                AccumulateCloudDrift(_liveSession!);
+                UpdateLivePresentation();
+            });
             if (Interlocked.Exchange(ref _flowLevelFrame, null) is { } overlay && overlay.Present == snapshot.Present)
             {
                 _flowOverlay?.Show(overlay);
