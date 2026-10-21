@@ -129,10 +129,10 @@ public sealed class PauseMenu : IButtonReceiver
     }
 
     /// <summary>
-    /// CPCSoundManager::GetDeviceName: the sound devices' names (CSoundDeviceSelect's choices), drawing only. The harness's
-    /// are not recorded.
+    /// CPCSoundManager::GetDeviceName: the sound devices' names (CSoundDeviceSelect's choices), drawing only; by default
+    /// the harness's one device, DirectSound's primary driver as the port's options page shows it.
     /// </summary>
-    public static Func<int, string> SoundDeviceName { get; set; } = _ => "";
+    public static Func<int, string> SoundDeviceName { get; set; } = _ => "Primary Sound Driver";
 
     /// <summary>mLists.</summary>
     public List<MenuOptionsList> Lists { get; } = [];
