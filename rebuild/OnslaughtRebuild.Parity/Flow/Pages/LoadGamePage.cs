@@ -137,10 +137,14 @@ public sealed class LoadGamePage(FrontEnd frontEnd) : FrontEndPageBase
 
     private void Show(uint timeout, MessageBoxOption option, Text text)
     {
-        // The continue boxes get their layout (FEPLoadGame.cpp's Create calls); the timed "loaded" box has none.
-        if (text == Text.LoadDone) frontEnd.MessageBox.Create(timeout, 10, false, option, 0);
-        else frontEnd.ShowMessage(320f, 240f, 400f,
-            t => t.GetText(text == Text.BadSaveVersion ? Fet.BadSaveVersion : Fet.LoadInvalid), timeout, 10, option, 0);
+        // Each box gets its layout from its text (FEPLoadGame.cpp's Create calls), the timed "loaded" box included: its
+        // text is read (checking the X key) as the others' are.
+        frontEnd.ShowMessage(320f, 240f, 400f, t => text switch
+        {
+            Text.LoadDone => t.GetTextByName("FETX_LOADDONE"),
+            Text.BadSaveVersion => t.GetText(Fet.BadSaveVersion),
+            _ => t.GetText(Fet.LoadInvalid),
+        }, timeout, 10, option, 0);
         LastText = text;
     }
 }
