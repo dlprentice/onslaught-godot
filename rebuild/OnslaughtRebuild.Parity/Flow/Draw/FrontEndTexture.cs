@@ -287,6 +287,7 @@ public sealed class FrontEndTextures
     /// </summary>
     public FrontEndTextures(Func<string, (string Name, byte[] Bytes)> read)
     {
+        _read = read;
         for (int i = 0; i < Names.Length; i++)
         {
             _sizes[i] = SizeOf(read, Names[i]);
@@ -315,6 +316,21 @@ public sealed class FrontEndTextures
 
     /// <summary>The cursor texture's size, or null without its file.</summary>
     public (int Width, int Height)? CursorSize { get; private set; }
+
+    private readonly Func<string, (string Name, byte[] Bytes)> _read = null!;
+    private readonly Dictionary<string, (int Width, int Height)?> _named = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>A texture found by name (<c>CDXTexture::FindTexture</c>)'s size, read on first use; null without its file.</summary>
+    public (int Width, int Height)? NamedSize(string name)
+    {
+        if (!_named.TryGetValue(name, out (int Width, int Height)? size))
+        {
+            size = SizeOf(_read, name);
+            _named[name] = size;
+        }
+
+        return size;
+    }
 
     /// <summary>The texture's real size, or null when the installation has no file for it.</summary>
     public (int Width, int Height)? Size(FrontEndTexture texture) => _sizes[(int)texture];

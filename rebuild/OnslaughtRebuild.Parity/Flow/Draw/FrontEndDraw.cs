@@ -110,6 +110,18 @@ public sealed class FrontEndDraw(FrontEndTextures textures)
     }
 
     /// <summary>
+    /// <c>CDXSpriteRenderer::DrawSprite</c> with a texture found by name (the pause menus' and message log's); nothing
+    /// when the installation lacks it.
+    /// </summary>
+    public void DrawNamedSprite(string name, float x, float y, float z, uint col, float xscale = 1f, float yscale = 1f,
+        SpriteAlign align = SpriteAlign.TopLeft, SpriteType type = SpriteType.None, float a = 1f, float yaw = 0f,
+        float u0 = 0f, float u1 = 1f, float v0 = 0f, float v1 = 1f, bool clamp = false)
+    {
+        if (Textures.NamedSize(name) is not { } size) return;
+        DrawSprite(QuadTexture.Find(name), size, x, y, z, col, xscale, yscale, align, type, a, yaw, u0, u1, v0, v1, clamp);
+    }
+
+    /// <summary>
     /// <c>RenderMouseCursor</c> (0x00523a70), at the end of every front-end render: the cursor texture at a quarter size
     /// from (MOUSE_X, MOUSE_Y), its last texel row and column left out, in white at <c>MOUSE_CURSOR_ALPHA</c>.
     /// </summary>

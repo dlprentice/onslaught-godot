@@ -28,6 +28,7 @@ public sealed class FrontEndImages(Func<string, (string Name, byte[] Bytes)> rea
                 CanvasTextureKind.SmallFont => FirstOf([SmallFontFile]),
                 CanvasTextureKind.NormalFont => FirstOf([NormalFontFile]),
                 CanvasTextureKind.Cursor => FirstOf(FrontEndTextures.FramePaths(FrontEndTextures.CursorName)),
+                CanvasTextureKind.Named => FirstOf(FrontEndTextures.FramePaths(texture.Name!)),
                 _ => RasterTexture.White,
             };
             _cache[texture] = image;

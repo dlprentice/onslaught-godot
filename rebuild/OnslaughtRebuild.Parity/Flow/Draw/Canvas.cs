@@ -12,12 +12,19 @@ public enum CanvasTextureKind : byte
     Default,
     /// <summary>The mouse cursor (<c>mouse.tga</c>).</summary>
     Cursor,
+    /// <summary>A texture found by its name (<c>CDXTexture::FindTexture</c>), named in <see cref="QuadTexture.Name"/>.</summary>
+    Named,
 }
 
-/// <summary>A quad's texture: its kind and, for a front-end texture, its <see cref="FrontEndTexture"/> index.</summary>
-public readonly record struct QuadTexture(CanvasTextureKind Kind, int Index = 0)
+/// <summary>
+/// A quad's texture: its kind and, for a front-end texture, its <see cref="FrontEndTexture"/> index, or for a named one its
+/// name as the game finds it.
+/// </summary>
+public readonly record struct QuadTexture(CanvasTextureKind Kind, int Index = 0, string? Name = null)
 {
     public static QuadTexture Fed(FrontEndTexture texture) => new(CanvasTextureKind.FrontEnd, (int)texture);
+
+    public static QuadTexture Find(string name) => new(CanvasTextureKind.Named, 0, name);
 }
 
 /// <summary>
