@@ -340,7 +340,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
                     targetPos = unit.GetTargetablePos();
                     FVector diffU = targetPos - Pos;
                     distSq = diffU.MagnitudeSq();
-                    tempMaxRange = maxRange * (1.0f - (unit.GetStealth() / 100.0f));
+                    // Retail multiplies by its 0.01f constant (005d85fc), not a division by 100.
+                    tempMaxRange = maxRange * (1.0f - (unit.GetStealth() * 0.01f));
                 }
                 else if (thing.IsA(ThingType.Feature) && thing is Feature feature)
                 {

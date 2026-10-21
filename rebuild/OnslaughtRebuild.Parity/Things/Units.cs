@@ -784,7 +784,7 @@ public abstract class AirUnit(ThingContext context) : Unit(context)
             Unknown170 = Unknown174;
         }
 
-        Unknown170 *= 1.0f - (GetStealth() / 100.0f);
+        Unknown170 *= 1.0f - (GetStealth() * 0.01f); // retail multiplies by its 0.01f constant (005d85fc)
         // The trails (each wide as Unknown170) and, while it moves, the engines.
         if (Context.Particles is { } particles)
         {
