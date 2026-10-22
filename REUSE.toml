@@ -14,6 +14,7 @@ path = [
     "tools/**",
     "tests_shared/fixtures/README.md",
     "*.md",
+    ".github/**",
     ".editorconfig",
     ".gitattributes",
     ".gitignore",

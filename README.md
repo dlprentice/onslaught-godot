@@ -3,7 +3,7 @@
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: level 100
 equals the native port on every probe field through P27650 of the tutorial win route; the win, end-level data and save
 are open.
-Last updated: 2026-10-22 (public; the repository family linked; the Host's run script)
+Last updated: 2026-10-22 (contributing and security guides linked; public; the repository family linked; the Host's run script)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, measured against the
 original game Present by Present.
 
@@ -63,6 +63,11 @@ The code is free software under the GNU General Public License, version 3 only (
 GPL source release ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)). The original game is by Lost Toys.
 *Battle Engine Aquila* is a trademark of its owners; this is an unofficial project, not affiliated with or endorsed by
 the game's developer, publisher or rights holders.
+
+## Contributing and security
+
+[CONTRIBUTING.md](CONTRIBUTING.md) gives the gate a change has to pass and the licence of contributions;
+[SECURITY.md](SECURITY.md) says how to report a security problem privately.
 
 ## Related projects
 
