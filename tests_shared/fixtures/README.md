@@ -1,5 +1,9 @@
 # Shared Test Fixtures
 
+Status: active — the one tracked save fixture and its rules
+Last updated: 2026-10-21 (header added)
+Summary: what `gold_career_save.bin` is, why it is the one tracked save, and how tests must use it.
+
 - `gold_career_save.bin` is the immutable 10,004-byte baseline used by C# and
   Python regression tests.
 - It is copied from a real game-generated 10,004-byte save so tests can validate retail save semantics without depending on the private `save-attempts/` tree.
