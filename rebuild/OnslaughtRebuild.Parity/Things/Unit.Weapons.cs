@@ -779,9 +779,40 @@ public abstract partial class Unit
                 else Context.Skip("SOUND.PlayEffect (CUnit::Unknown86's pre-fire sound)");
             }
 
+            // The charge effect at each "Charge" emitter (type 29) in turn, the first falling back to the weapon's primary
+            // position; every one is created on the one firing-effect link, which is moved to that emitter after each.
             if (CurrentWeapon.Mode.PreFireEffectName is not null)
             {
-                Context.Skip("PARTICLE_MANAGER.CreateEffect (CUnit::Unknown86's charge effects at the Charge emitters)");
+                if (Context.Particles is { } particles)
+                {
+                    Particles.ParticleDescriptor? pd = Context.FindParticle(CurrentWeapon.Mode.PreFireEffectName);
+                    var zero = new FVector(0, 0, 0);
+                    int i = 1;
+                    FVector pos;
+                    do
+                    {
+                        GetEmitter(29, i, out pos, out FMatrix ori);
+                        if (pos.Equals(zero) && i == 1)
+                        {
+                            pos = CurrentWeapon.GetPrimaryPosition();
+                            ori = CurrentWeapon.GetPrimaryOrientation();
+                        }
+
+                        if (!pos.Equals(zero))
+                        {
+                            particles.Manager.CreateEffect(pd, Unknown1AC, zero, false, false);
+                            Unknown1AC!.SetPos(pos);
+                            Unknown1AC.SetOrientation(ori);
+                        }
+
+                        i++;
+                    }
+                    while (!pos.Equals(zero));
+                }
+                else
+                {
+                    Context.Skip("PARTICLE_MANAGER.CreateEffect (CUnit::Unknown86's charge effects at the Charge emitters)");
+                }
             }
 
             if (Unknown16C <= Context.Events.Time)

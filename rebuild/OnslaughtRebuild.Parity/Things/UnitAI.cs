@@ -659,6 +659,10 @@ public sealed class DropshipAI : UnitAI
 /// <summary>CRepairPadAI: its target is the battle engine standing on the pad that needs repair or rearming.</summary>
 public sealed class RepairPadAI(Unit unit, InitThing init) : UnitAI(unit, init)
 {
+    /// <summary>
+    /// Unknown11 (004d6d10): each battle engine within 8 of the pad that it can service and that stands within 3 across
+    /// and up to 5 below it becomes the target, which it can fire at and reach (the last one found wins).
+    /// </summary>
     public override Unit? Unknown11()
     {
         Target.SetReader(null);
@@ -667,9 +671,12 @@ public sealed class RepairPadAI(Unit unit, InitThing init) : UnitAI(unit, init)
         MapWho map = Context.MapWho;
         for (MapWhoEntry? e = map.GetFirstEntryWithinRadius(ForUnit.Pos, 8.0f); e is not null; e = map.GetNextEntryWithinRadius())
         {
-            if (e.Thing is BattleEngine be && CanService(be))
+            if (e.Thing is BattleEngine be && CanService(be)
+                && (ForUnit.Pos - be.Pos).MagnitudeXY() < 3.0f && ForUnit.Pos.Z > be.Pos.Z && be.Pos.Z + 5.0f > ForUnit.Pos.Z)
             {
-                throw new NotSupportedException("CRepairPadAI: servicing a battle engine is not ported yet");
+                Target.SetReader(be);
+                CanFireAtTarget = true;
+                TargetInReach = true;
             }
         }
 

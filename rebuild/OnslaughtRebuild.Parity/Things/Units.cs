@@ -497,12 +497,43 @@ public sealed class Building(ThingContext context) : Unit(context)
         }
     }
 
-    /// <summary>CBuilding::Move (004178a0): not ported yet (counted; the unit does not move).</summary>
-    public override void Move() => Context.Skip("CBuilding::Move (004178a0) (the movement is not ported yet)");
+    /// <summary>
+    /// CBuilding::Move (004178a0): the shot timer (a prepared shot becomes ready, which is how a repair pad fires), the
+    /// spawner doors (an open door closes 8 seconds after its spawners fall idle; a busy spawner opens it), and a shut
+    /// door reopening 15 seconds after the building was last hit. Spawning is not ported (it throws where it would start),
+    /// so no spawner is ever busy here.
+    /// </summary>
+    public override void Move()
+    {
+        UpdateTimer();
+
+        // With no spawner busy: an open door closes once its time has passed (a busy one would push the time 8 seconds
+        // on, and with the door shut a busy spawner would open it, Unknown115).
+        if (Unknown254 == 2 && Unknown25C < Context.Events.Time)
+        {
+            int anim = AnimModeByName("closing");
+            if (anim == -1)
+            {
+                Unknown254 = 3;
+            }
+            else
+            {
+                Unknown254 = 1;
+                SetAnimMode(anim, true, false);
+            }
+        }
+
+        if (Unknown260 && Unknown264 == 1 && Unknown268 + 15.0f < Context.Events.Time)
+        {
+            SetAnimMode(AnimModeByName("unshutting"), true, false);
+            Unknown264 = 2;
+        }
+    }
 
     public float Unknown258 = -1.0f;
     public int Unknown254;
-    public int Unknown25C;
+    /// <summary>mUnknown25C: when an open spawner door may close.</summary>
+    public float Unknown25C;
     public bool Unknown260;
     public int Unknown264;
     public float Unknown268;

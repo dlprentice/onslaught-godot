@@ -72,8 +72,9 @@ public abstract partial class Unit
 
     /// <summary>
     /// CUnit::Move: the guide steers (or the unit stops), the shot timer, CActor's move, the turn towards the target
-    /// orientation, shields, the ramp, the turret and barrel slews towards the AI's target, and the deploy states. The
-    /// particle links (vents, firing effect, dust) and the spawner's sound are presentation (counted).
+    /// orientation, shields, the ramp, the turret and barrel slews towards the AI's target, the deploy states, and the
+    /// particle links following their emitters (vents, the firing effect, dust). The spawner's sound is presentation
+    /// (counted).
     /// </summary>
     public override void Move()
     {
@@ -124,6 +125,26 @@ public abstract partial class Unit
         else
         {
             Unknown170 = Unknown174;
+        }
+
+        // The vents follow their emitters (type 21), and the firing effect follows the weapon while a shot is prepared.
+        int vent = 1;
+        foreach (ParticleEffectLink link in VentLinks)
+        {
+            if (link.Full)
+            {
+                GetEmitter(21, vent, out FVector pos, out FMatrix ori);
+                link.SetPos(pos);
+                link.SetOrientation(ori);
+            }
+
+            vent++;
+        }
+
+        if (Unknown168 == 1 && Unknown1AC is { Full: true } firing && CurrentWeapon is not null)
+        {
+            firing.SetPos(CurrentWeapon.GetPrimaryPosition());
+            firing.SetOrientation(CurrentWeapon.GetPrimaryOrientation());
         }
 
         // Dust, while it is on the ground: each link without an effect gets one, and each with one follows its emitter.
