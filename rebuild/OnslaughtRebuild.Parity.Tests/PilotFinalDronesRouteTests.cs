@@ -7,9 +7,10 @@ namespace OnslaughtRebuild.Parity.Tests;
 
 /// <summary>
 /// Level 100's tutorial pilot route through the final drones, each tape extending the last exactly (k11: p22-fire's input
-/// to P26720, then on to P27240; k13: k11's to P27240, then on to P27341), against the native port with patches 0029 and
-/// 0030: "Airborne Target 2 Destroyed" posts at P25977, P27055, P27304 and (k13) P27324. Every probe field every Present to
-/// each reference's end, with the route's measured sound-pool profile.
+/// to P26720, then on to P27240; k13: k11's to P27240, then on to P27341; j4: k13's to P27341, then the jet transform and
+/// the sixth drone, on to P27569), against the native port with patches 0029 and 0030: "Airborne Target 2 Destroyed" posts
+/// at P25977, P27055, P27304, (k13) P27324 and (j4) P27511. Every probe field every Present to each reference's end, with
+/// the route's measured sound-pool profile.
 /// </summary>
 public sealed class PilotFinalDronesRouteTests(ITestOutputHelper output)
 {
@@ -20,6 +21,9 @@ public sealed class PilotFinalDronesRouteTests(ITestOutputHelper output)
 
     [RetailGoldenFact("portrefs/l100-k13-port-20261022/port-probes-every1.txt", "portrefs/l100-k13-port-20261022/k13.tape", Sounds)]
     public void TheK13RouteMatchesThePortEveryPresent() => Check("portrefs/l100-k13-port-20261022", "k13.tape", 27450);
+
+    [RetailGoldenFact("portrefs/l100-j4-port-20261022/port-probes-every1.txt", "portrefs/l100-j4-port-20261022/j4.tape", Sounds)]
+    public void TheJ4RouteMatchesThePortEveryPresent() => Check("portrefs/l100-j4-port-20261022", "j4.tape", 27650);
 
     /// <summary>Every field matches the port every Present through <paramref name="matchedThrough"/> (never lowered).</summary>
     private void Check(string dir, string tape, int matchedThrough)

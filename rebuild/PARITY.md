@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (the pilot's k13 route matches to P27450; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -567,8 +567,8 @@ readies the shot, and repairs the engine to full life at P23367. At P25290 the w
 C runtime draw there (the port's call chain, logged under gdb, against ours). "Airborne Target 2 Destroyed" posts at
 P25977. The planner's k11 tape (p22-fire's input to P26720, then on through the final drones) matches the
 port's every-Present probes (`l100-k11-port-20261022`) on every field through P27400, with the kills at P27055 and
-P27304, and k13 (k11's input to P27240, then on) through P27450, with the fifth at P27324
-(`PilotFinalDronesRouteTests`).
+P27304, k13 (k11's input to P27240, then on) through P27450, with the fifth at P27324, and j4 (k13's input to
+P27341, then the jet transform) through P27650, with the sixth and last at P27511 (`PilotFinalDronesRouteTests`).
 
 Measured (the HUD's text, 2026-10-22): the core's HUD render writes the text of `Render00485d50` (the weapon's name,
 fading in from a change and out after three seconds, and the warnings: two centred rows, each showing the first of its
