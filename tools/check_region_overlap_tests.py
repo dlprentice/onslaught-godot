@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Self-tests for check_region_overlap.py and for union regions in compare_capture.
 
 The defect this gate closes is that `rebuild/tools/gameplay-regions-level100.json`

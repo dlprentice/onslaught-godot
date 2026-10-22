@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Read and re-encode BEA ``battle engine configurations.dat`` in memory.
 
 This tool is deliberately read-only: it has no output-file or install-mutation

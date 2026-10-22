@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Focused public-safe tests for battle_engine_config_decode.py."""
 
 from __future__ import annotations

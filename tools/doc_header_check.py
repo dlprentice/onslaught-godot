@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Enforce the tracked documentation header standard (``DOCUMENTATION.md``).
 
 Why this exists

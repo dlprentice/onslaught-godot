@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Run every host-supported tools/ test suite and report one summary.
 
 Every supported suite runs, even after a failure. Windows-dependent suites

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Read-only whole-image scan for direct CALL/JMP rel32 references to a VA.
 
 Every `E8`/`E9` byte in the image whose rel32 resolves to the target is

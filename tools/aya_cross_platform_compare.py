@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Deterministically compare PC and Xbox Battle Engine Aquila AYA resources.
 
 The PC side is decoded only as ``pc-chunked-zlib`` and the Xbox side only as a

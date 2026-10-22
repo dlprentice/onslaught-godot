@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Read-only PE virtual-address reader.
 
 Maps a virtual address to a file offset through the section table and prints the

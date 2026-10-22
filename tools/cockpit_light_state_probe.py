@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Print the light state retail's cockpit draw sees, from the shipped bytes.
 
 Read-only. Reproduces sections 3 and 6 of

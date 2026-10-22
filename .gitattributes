@@ -4,6 +4,8 @@
 .gitignore text eol=lf
 .gitmodules text eol=lf
 LICENSE text eol=lf
+# Licence texts stay byte-identical to their published sources (CC BY-SA ends with a blank line).
+LICENSES/*.txt text eol=lf -whitespace
 
 # Source/docs/scripts: keep LF
 *.c text eol=lf

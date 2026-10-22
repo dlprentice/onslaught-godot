@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Filesystem guards for generated local tooling output.
 
 The helpers in this module are intentionally narrow: callers declare one local

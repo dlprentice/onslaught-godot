@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Characterise the SPATIAL STRUCTURE of the terrain difference, not its magnitude.
 
 `terrain_gain_dispersion_probe.py` reports that retail's per-pixel terrain gain

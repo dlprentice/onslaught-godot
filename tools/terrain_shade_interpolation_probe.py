@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Measure retail's 8.8 fixed-point shade interpolation in the landscape blit.
 
 Re-implements `CLandscapeTexture__BlitTileRegionWithLightingMask` @ 0x0047eff0

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Measure the terrain colour transfer function of two renders against a common macro input.
 
 Method. The reconstruction's terrain shader is temporarily reduced to two probe

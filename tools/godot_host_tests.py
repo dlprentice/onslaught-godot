@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-only
 """Engine discovery and owned-process handling with fake tools; no window or retail data is used."""
 from __future__ import annotations
 

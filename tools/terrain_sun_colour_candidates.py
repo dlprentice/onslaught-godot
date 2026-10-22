@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Re-derive, from shipped Level 100 HFLD bytes only, every per-channel factor
 the retail sun/ambient colours can produce, and compare each one's chromaticity
 against the measured terrain factor.

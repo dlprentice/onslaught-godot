@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Print mean RGB of named boxes for one or two frames, plus the per-channel ratio.
 
 Read-only. Boxes are given as name=x0,y0,x1,y1 so a probe is reproducible from

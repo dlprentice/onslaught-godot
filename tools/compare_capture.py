@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Pixel comparison between a retail reference frame and a reconstruction frame.
 
 Parity claims in this project have historically cited code paths. This tool exists

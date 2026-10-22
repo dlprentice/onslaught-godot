@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Compare a retail frame against a reconstruction frame over the cockpit's
 *intersection mask* — the pixels where the same cockpit surface point is the
 visible one in both images — instead of over a rectangular region box.

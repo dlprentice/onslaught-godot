@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Score a frontend capture against the retail reference set, and FAIL on regression.
 
 Why this exists

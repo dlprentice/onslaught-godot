@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Invert retail's rendered terrain to its IMPLIED macro cache, and compare it
 texel by texel against the reconstruction's macro cache.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Report the DISPERSION of the per-pixel terrain gain, not just its mean.
 
 `terrain_transfer_probe.py` reports the mean and median of

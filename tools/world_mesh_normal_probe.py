@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Carry shipped static-world OBJ bytes through BOTH lighting chains and compare.
 
 Chain A (retail): the mesh normal in BEA model space, yawed about the BEA Z

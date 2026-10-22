@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Hard-payload safety check for the public-primary repo.
 
 The public repository is now the working repository. This check rejects exact

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Geometry gate for parity region files: report every overlap, and enforce the
 attribution-clean declaration.
 

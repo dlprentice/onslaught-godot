@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Fail if anything still promises the installed game is never changed.
 
 The app can patch an installed game after an explicit choice and a verified

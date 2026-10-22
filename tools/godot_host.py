@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-only
 """Shared installed-Godot engine discovery and owned-process support.
 
 The companion launches through companion_godot.py and the rebuild through

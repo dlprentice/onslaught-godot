@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Report whether two renders of the same scene are looking at the same world.
 
 Colour comparison between a retail frame and a reconstruction frame is only

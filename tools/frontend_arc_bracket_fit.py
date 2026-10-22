@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Fit the retail FE_select_level_bracket01 arc alpha mask to a retail frontend capture.
 
 Pure image analysis. Reads a 640x480 retail reference PNG and the AYA-wrapped

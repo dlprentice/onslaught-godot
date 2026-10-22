@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Measure retail's rendered-vs-source gain on a NON-TERRAIN surface.
 
 Retail's terrain renders at a measured per-channel gain of about

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Self-tests for score_frontend_capture.py.
 
 The point of task #113 was that the frontend gate could not fail for the reason

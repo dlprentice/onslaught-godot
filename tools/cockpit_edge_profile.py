@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Measure cockpit placement error between a retail frame and a candidate.
 
 The cockpit interior is the dark part of the frame; the world is not. Reducing

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Predict retail's flat terrain factor from the D3D9 fixed-function ambient term.
 
 `CDXLandscape::Render` draws the terrain with:
