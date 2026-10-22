@@ -102,10 +102,8 @@ public sealed partial class Level100Audio : Node3D
     //   (local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256
     //   74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750),
     //   in CCareer::StaticInitDefaults 0x0041B6A0:
-    //       [retail instruction listing removed]
-    //                      mov dword [0x00662AAC], 0.8f   <- sound
-    //       [retail instruction listing removed]
-    //                      mov dword [0x00662AB0], 0.9f   <- music
+    //       VA 0x0041B70D stores 0.8f at 0x00662AAC (sound), and
+    //       VA 0x0041B717 stores 0.9f at 0x00662AB0 (music).
     //
     // A fresh career therefore reads 8/10 and 9/10 on the Options bars, not
     // 10/10.

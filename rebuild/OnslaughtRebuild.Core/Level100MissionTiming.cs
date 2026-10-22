@@ -124,18 +124,12 @@ public static class Level100MissionTiming
     /// executable rather than inferred.
     /// </summary>
     /// <remarks>
-    /// The registered handler at <c>0x005380f0</c> is nine instructions:
-    /// <code>
-    ///   [retail instruction listing removed]
-    ///   [retail instruction listing removed]
-    ///   [retail instruction listing removed]
-    ///   74 0E             JZ   done                        ; anything else is never in jet mode
-    ///   [retail instruction listing removed]
-    ///   [retail instruction listing removed]
-    ///   [retail instruction listing removed]
-    /// </code>
-    /// and <c>0x00408120</c> returns true when
-    /// <c>*(int*)(this+0x260) == 2 &amp;&amp; 0x00672fd0 - *(float*)(this+0xcc) &lt; _DAT_005d85ec</c>.
+    /// The registered handler at <c>0x005380f0</c> is nine instructions: it loads the thing from the event's
+    /// <c>+0x10</c>, starts with the result false, and returns false for anything whose type flags at <c>+0x34</c> lack
+    /// THING_TYPE_BATTLE_ENGINE (8: nothing else is ever in jet mode); for a battle engine it calls <c>0x00408120</c>
+    /// and sets the result true only when that call returns false. <c>0x00408120</c> returns true when the battle
+    /// engine's state at <c>+0x260</c> is 2 and the game time (<c>0x00672fd0</c>) less its time at <c>+0xcc</c> is
+    /// below the constant at <c>0x005d85ec</c>.
     /// <para>
     /// So <c>InJetMode()</c> is the <em>negation</em> of "is a walker that
     /// touched the ground recently". <c>+0x260 == 2</c> is the walker state —

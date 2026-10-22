@@ -145,13 +145,9 @@ public static class Level100AudioCatalog
     // literal 0x3f000000 = 0.5f into PlayEffect's `volume` slot in BOTH of its
     // branches, at 0x00506a6b and 0x00506a8a.
     //
-    //   0x00506a6a  57                 PUSH EDI            ; track = ST_NOTRACKING
-    //   [retail instruction listing removed]
-    //   0x00506a70  57                 PUSH EDI            ; thing = NULL
-    //   ...
-    //   0x00506a88  6a 03              PUSH 3              ; track = ST_FOLLOWDONTDIE
-    //   [retail instruction listing removed]
-    //   0x00506a8f  50                 PUSH EAX            ; thing = the unit
+    //   the first branch pushes the track ST_NOTRACKING (0x00506a6a), the volume 0.5f (0x00506a6b) and no thing
+    //   (0x00506a70); the second pushes ST_FOLLOWDONTDIE (0x00506a88), the volume 0.5f (0x00506a8a) and the unit
+    //   (0x00506a8f).
     //
     // EDI is zeroed at the function head (0x00506a12 `33 ff`) and is
     // callee-saved across the intervening call, so the first branch really does
