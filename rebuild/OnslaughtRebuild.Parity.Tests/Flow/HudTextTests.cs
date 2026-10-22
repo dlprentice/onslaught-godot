@@ -6,6 +6,7 @@ using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Render;
+using OnslaughtRebuild.Parity.Tests;
 using OnslaughtRebuild.Parity.Things;
 using Xunit;
 
@@ -120,6 +121,43 @@ public sealed class HudTextTests
         Assert.Equal((1668L, 1883L), flashing[HudParts.Compass]);
         Assert.Equal((1884L, 2073L), flashing[HudParts.Radar]);
         Assert.Equal((3424L, 3690L), flashing[HudParts.CurrentWeapon]);
+    }
+
+    /// <summary>
+    /// On the tutorial pilot's c17 route (the Core equals the port on every probe field through P22150) the walker's
+    /// current weapon becomes the twin vulcan cannon, a store weapon, at P8533, and the HUD writes its store's count from
+    /// then on, plain (not doubled). The frozen port's back buffers (ae04185f, every 25 Presents) show none at P8500 and
+    /// P8525 and exactly these counts at these Presents.
+    /// </summary>
+    [RetailGoldenFact("portrefs/l100-c17-port-20261021/c17-fire-port-delivered.tape",
+        "portrefs/l100-trainer-port-20261021/sound-seeds-admission-root-c.json")]
+    public void TheAmmunitionCountIsThePortsOnTheC17Route()
+    {
+        LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read),
+            soundOptions: TrainerRouteTests.SoundProfile(
+                RetailGolden.File("portrefs/l100-trainer-port-20261021/sound-seeds-admission-root-c.json")!));
+        session.Tape = RetailTape.Load(RetailGolden.File("portrefs/l100-c17-port-20261021/c17-fire-port-delivered.tape")!);
+        var port = new Dictionary<long, string?>
+        {
+            [8500] = null, [8525] = null, [8550] = "2000", [8600] = "2000", [9000] = "2000", [9300] = "2000", [9325] = "1988",
+            [9350] = "1968", [9375] = "1946", [9400] = "1928", [9425] = "1908", [9450] = "1886", [9475] = "1868", [9500] = "1854",
+        };
+        var ours = new Dictionary<long, string?>();
+        while (session.Clock.PresentCount < 9500)
+        {
+            session.AdvanceToNextPresent();
+            if (port.ContainsKey(session.Clock.PresentCount))
+            {
+                HudText? count = session.Context.Particles!.World.HudTexts.SingleOrDefault(t => t.Literal is not null);
+                ours[session.Clock.PresentCount] = count?.Literal;
+                if (count is not null)
+                {
+                    Assert.Equal((567f, 340f, 0xff30ff30u, 5f, false), (count.X, count.Y, count.Colour, count.Reveal, count.Modulate2x));
+                }
+            }
+        }
+
+        Assert.Equal(port, ours);
     }
 
     [Fact]

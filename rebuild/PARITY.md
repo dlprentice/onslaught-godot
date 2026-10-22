@@ -568,6 +568,13 @@ P1500 to P6200: the warning ("weapon overheating", P5200 to P6200) shows at the 
 difference of 1.5 to 7.3 on its pixels (no pixel off by more than 40), no more than the level beneath it differs; neither
 shows a weapon name (no weapon change on the route) or an ammunition count (an energy weapon). `HudTextTests` holds the
 warning's place, colour and quads.
+The ammunition count was compared on the tutorial pilot's c17 route (the Core equals the port on every probe field there
+through P22150), where the walker's current weapon becomes the twin vulcan cannon, a store weapon, at P8533. Against
+the frozen port's back buffers (ae04185f, every 25 Presents, P8500 to P9500), the count appears at the same Presents
+(none at P8500 and P8525) and reads the same at every one (2000 to 1854 while firing). Its left edge matches to the
+pixel, including the one-pixel shifts as the digits' widths change, and its colour is the plain one, not doubled
+(`HudTextTests`). No tape presses the weapon-change button, so the weapon's name (shown only after a change) has no
+port reference yet.
 
 Measured (the HUD's parts, 2026-10-22): the host draws each HUD part only while the core's `HudParts` shows it
 (`IsComponentVisible`): the compass's outer ring, the health and energy halves of its inner ring and their bar lines,
