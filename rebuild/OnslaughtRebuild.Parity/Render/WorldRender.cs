@@ -7,9 +7,11 @@
 // UpdateRenderLists 004dd0c0), MeshRenderer.cpp (Render's pose update 004b6260, RenderPart's effect emitters, 004b6350) and
 // Hud.cpp (the reads of RenderWorldTargets 00486e00, RenderTargetIndicator 00482590 and RenderTargetMarkers 00484340).
 
+using System.Globalization;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Particles;
 using OnslaughtRebuild.Parity.Things;
 using ParityCamera = OnslaughtRebuild.Parity.Game.Camera;
@@ -398,7 +400,8 @@ public sealed class WorldRender(ThingContext context)
     /// TestDanger while the game is no further than playing and no radar threat is newer than 5 seconds. The radar
     /// warning receiver is not ported; its threats are rounds homing on the battle engine, and rounds are not ported
     /// either (spawning one throws), so its list is empty and the test always runs. The points are kept for the host to
-    /// draw (<see cref="HudObjectivePoints"/>, <see cref="HudSpeakerPoint"/>); the other HUD passes draw only.
+    /// draw (<see cref="HudObjectivePoints"/>, <see cref="HudSpeakerPoint"/>), and the text the HUD writes is kept for the
+    /// overlay (<see cref="HudTexts"/>, <see cref="DrawHudText"/>); the other HUD passes draw only.
     /// </summary>
     /// <summary>The objectives and the points RenderWorldTargets marks them at, from the last HUD render.</summary>
     public IReadOnlyList<(Thing Thing, FVector Pos)> HudObjectivePoints { get; private set; } = [];
@@ -408,6 +411,21 @@ public sealed class WorldRender(ThingContext context)
 
     /// <summary>The target RenderTargetIndicator shows, from the last HUD render (null without one).</summary>
     public HudIndicator? HudTarget { get; private set; }
+
+    /// <summary>The text the last HUD render writes, in its order, until the overlay draws it (<see cref="DrawHudText"/>).</summary>
+    public IReadOnlyList<HudText> HudTexts { get; private set; } = [];
+
+    // The HUD viewport: the whole 640 x 480 window (ViewportWidth above).
+    private const float ViewportX = 0f, ViewportY = 0f, ViewportHeight = 480f, WindowWidth = 640f;
+
+    // HUD_OFFSET_X and HUD_OFFSET_Y (0067a628, 0067a62c): 0 on the PC.
+    private const float HudOffsetX = 0f, HudOffsetY = 0f;
+
+    // CHud's warning texts (CHud::Init 00481450): mText0b4 (the radar warning receiver's threat), mText0b8 (danger),
+    // mText0bc (augmented), mText0c4 (low armour), mText0c8 (low energy), mText0c0 (stall), mText0cc (ammunition
+    // depleted), mText0d0 (weapon overheating).
+    private const uint TextThreat = 0x072a0936, TextDanger = 0x06b91062, TextAugmented = 0x085574fc, TextLowArmour = 0x002b617f,
+        TextLowEnergy = 0x002b4ce2, TextStall = 0x000396c8, TextAmmoDepleted = 0x31e12896, TextOverheated = 0x227a52ff;
 
     // CHud's mUnknown09c / mUnknown0a4 for the first player: the target last shown and the clock when it was last chosen
     // (Reset's -10000 at the level's start, as this render is made per level).
@@ -466,6 +484,8 @@ public sealed class WorldRender(ThingContext context)
     {
         HudObjectivePoints = [];
         HudSpeakerPoint = null;
+        HudTexts = [];
+        context.HudParts.Update(context.Events.Time, Script.ScriptRuntime.Of(context).MessageBox?.Current is not null);
         if (context.Game is not { } game || game.GetPlayer(0)?.BattleEngine is not BattleEngine be
             || game.GetCurrentCamera(0)?.GetShowHud() != true || be.IsDying)
         {
@@ -487,10 +507,134 @@ public sealed class WorldRender(ThingContext context)
                 : speaker is IRenderSubject subject ? subject.RenderPos : speaker.Pos;
         }
 
-        if (game.State <= Game.GameState.Playing)
+        // Render00483530, the objective panel, opens only while a world text slot is in use; level 100's script never fills
+        // one (InitVariable), so it stays shut and draws nothing.
+        var texts = new List<HudText>();
+        RenderWeaponAndWarnings(game, be, texts);
+        RenderAmmunition(be, texts);
+        HudTexts = texts;
+    }
+
+    /// <summary>
+    /// Render00485d50's text: with an active weapon, its name (fading in from a change and out after three seconds); then,
+    /// while the game is no further than playing, the battle engine's warnings in two centred rows, each row showing the
+    /// first of its lines still within its five seconds. The weapon panel's sprites, drawn just before while the current
+    /// weapon part shows, leave the stage modulating 2x; otherwise the HUD's states leave it plain.
+    /// </summary>
+    private void RenderWeaponAndWarnings(Game.Game game, BattleEngine be, List<HudText> texts)
+    {
+        float now = context.Events.Time;
+        bool modulate2x = false;
+        if (be.CountActiveWeapons() > 0)
+        {
+            modulate2x = context.HudParts.IsComponentVisible(HudParts.CurrentWeapon);
+            float changed = (now - be.ChangedWeaponTime) * 5f;
+            if (be.GetCurrentWeapon() is { } weapon)
+            {
+                float y = ViewportY + ViewportHeight + -35f - HudOffsetY;
+                texts.Add(new HudText(unchecked((uint)weapon.Data.LanguageName), null, ViewportX + HudOffsetX + 165f, false, y, 0.6f,
+                    0xffff6040, changed, modulate2x));
+            }
+        }
+
+        if (game.State > Game.GameState.Playing)
+        {
+            return;
+        }
+
+        static bool Out(float t) => t > 15f || t < 0f;
+        float centre = ViewportWidth * 0.5f + ViewportX;
+        float row1 = ViewportY + ViewportHeight - 142f, row2 = ViewportY + ViewportHeight - 120f;
+
+        // The radar warning receiver is not ported (its threats are homing rounds), so its line never shows: t0 stays 999.
+        float t0 = 999f;
+        float t1 = 999f;
+        if (Out(t0))
         {
             be.TestDanger();
+            t1 = (now - be.DangerStartTime) * 3f;
+            texts.Add(new HudText(TextDanger, null, centre, true, row1, 1f, 0xffff3020, t1, modulate2x));
         }
+
+        if (Out(t0) && Out(t1))
+        {
+            texts.Add(new HudText(TextAugmented, null, centre, true, row1, 1f, 0xff30ff20, (now - be.AugmentedTime) * 3f, modulate2x));
+        }
+
+        float a = (now - be.LowArmourStartTime) * 3f;
+        texts.Add(new HudText(TextLowArmour, null, centre, true, row2, 1f, 0xffff3020, a, modulate2x));
+        float b = 999f;
+        if (Out(a))
+        {
+            b = (now - be.LowEnergyStartTime) * 3f;
+            texts.Add(new HudText(TextLowEnergy, null, centre, true, row2, 1f, 0xff30ff20, b, modulate2x));
+        }
+
+        float c = 999f;
+        if (Out(a) && Out(b))
+        {
+            c = (now - be.StallTime) * 3f;
+            texts.Add(new HudText(TextStall, null, centre, true, row2, 1f, 0xffff3020, c, modulate2x));
+        }
+
+        float d = 999f;
+        if (Out(a) && Out(b) && Out(c))
+        {
+            d = (now - be.AmmoDepletedTime) * 3f;
+            texts.Add(new HudText(TextAmmoDepleted, null, centre, true, row2, 1f, 0xffff3020, d, modulate2x));
+        }
+
+        if (Out(a) && Out(b) && Out(c) && Out(d))
+        {
+            texts.Add(new HudText(TextOverheated, null, centre, true, row2, 1f, 0xffff3020, (now - be.WeaponOverheatedTime) * 3f,
+                modulate2x));
+        }
+    }
+
+    /// <summary>
+    /// Render00486940's text: a weapon that is not an energy weapon shows its store's count (the conversion rounds, as
+    /// /QIfist's fistp does), centred 73 pixels in from the right, at a constant fade (reveal 5). An energy weapon draws its
+    /// charge bar instead, which the host draws.
+    /// </summary>
+    private static void RenderAmmunition(BattleEngine be, List<HudText> texts)
+    {
+        int count = 0;
+        if (be.GetCurrentWeapon() is { } weapon)
+        {
+            int store = weapon.Data.AmmoStore;
+            if (be.StoreHeat[store])
+            {
+                return;
+            }
+
+            count = X87.Fist(be.StoreValue[store]);
+        }
+
+        float y = ViewportHeight - HudOffsetY - 140f;
+        texts.Add(new HudText(null, count.ToString(CultureInfo.InvariantCulture), WindowWidth - HudOffsetX - 73f, true, y, 1f,
+            0xff30ff30, 5f, false));
+    }
+
+    /// <summary>
+    /// The text the last HUD render kept, drawn through the overlay's canvas in the normal font (DrawTextDynamic, fading out,
+    /// depth off), each line's text from the game's texts unless it is literal; a centred line's x is less half its width.
+    /// Drawn once: the list is then empty until the next HUD render. The stage is left modulating 2x, as the overlay starts.
+    /// </summary>
+    public void DrawHudText(Flow.Draw.FrontEndDraw draw, Text.BitmapFont normal, Text.FrontEndTexts gameTexts)
+    {
+        draw.Blend = Flow.Draw.CanvasBlend.Modulate;
+        draw.ZAlways = false;
+        foreach (HudText line in HudTexts)
+        {
+            string text = line.Literal ?? gameTexts.ById(line.TextId!.Value);
+            float x = line.Centred ? line.X - normal.GetTextExtent(text).Width * 0.5f : line.X;
+            draw.Modulate2x = line.Modulate2x;
+            draw.DrawTextDynamic(normal, Flow.Draw.CanvasTextureKind.NormalFont, x, line.Y, 0.008f, line.Scale, line.Scale, line.Colour,
+                text, line.Reveal, fadeOut: true);
+        }
+
+        draw.Modulate2x = true;
+        HudTexts = [];
     }
 
     /// <summary>CBattleEngine::Render's test: drawn unless its player (viewpoint 0's) is in first-person view.</summary>
@@ -796,4 +940,11 @@ public sealed class WorldRender(ThingContext context)
 }
 
 /// <summary>What RenderTargetIndicator shows: the target, its mesh, its side (0 red, 1 blue, 2 grey, 3 green) and its health (null when it has no maximum).</summary>
+/// <summary>
+/// A line of HUD text: the game's text <paramref name="TextId"/> (or <paramref name="Literal"/>), at x (its centre when
+/// <paramref name="Centred"/>) and y, scaled, in its colour, revealed by <paramref name="Reveal"/>, under a 2x or plain stage.
+/// </summary>
+public sealed record HudText(uint? TextId, string? Literal, float X, bool Centred, float Y, float Scale, uint Colour, float Reveal,
+    bool Modulate2x);
+
 public sealed record HudIndicator(Unit Target, MeshData Mesh, int Side, float? Health);

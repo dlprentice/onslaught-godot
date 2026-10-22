@@ -71,6 +71,12 @@ public sealed partial class BattleEngine
     public float Vibration;
     public float AmmoDepletedTime;
     public float WeaponOverheatedTime;
+
+    /// <summary>
+    /// mAugmentedTime: when the weapon was last augmented (-99999 from the constructor). AugmentWeapon is not ported, so it
+    /// keeps that value; the HUD's "augmented" line reads it.
+    /// </summary>
+    public float AugmentedTime = -99999.0f;
     public int EngineState;
     public int OldEngineState;
     public bool ThrustersOn;

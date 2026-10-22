@@ -90,6 +90,9 @@ public sealed class ThingContext(
 
     public void Skip(string what) => NotPorted[what] = NotPorted.GetValueOrDefault(what) + 1;
 
+    /// <summary>The HUD's part states for this level (HUD.mPartState, reset with the level).</summary>
+    public Render.HudParts HudParts { get; } = new();
+
     /// <summary>CONTROL_BINDINGS: the defaults, or what the boot's options file loaded.</summary>
     public Platform.ControlBindings Bindings { get; set; } = Platform.ControlBindings.Defaults();
 

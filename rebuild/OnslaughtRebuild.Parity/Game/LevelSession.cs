@@ -462,6 +462,13 @@ public sealed class LevelSession
             // end's fonts and mouse tests when the level runs in the whole game), then CGame::DrawGameStuff's end screen.
             Flow.Draw.FrontEndDraw? draw = made?.Draw;
             draw?.BeginOverlay();
+            // HUD.Render (CDXEngine::PostRender 0053ed01) first: the text its render wrote (the weapon's name, the warnings,
+            // the ammunition count), over the HUD's sprites, which the host draws.
+            if (draw is not null && frontEnd is { NormalFont: { } normal, Texts: { } texts })
+            {
+                context.Particles.World.DrawHudText(draw, normal, texts);
+            }
+
             // HUD.RenderBattleline (00487d10) while the player's camera shows the HUD: the message box's panel and text,
             // then its portrait in the battle line's circle (HUD.mViewportRight - 137, the viewport's bottom). Before the
             // portrait the circle's mask writes depth alone (blend zero/one, depth ALWAYS, clamped, z 0.005), so the

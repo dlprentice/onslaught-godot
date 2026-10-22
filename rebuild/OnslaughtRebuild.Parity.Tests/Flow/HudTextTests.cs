@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// CHud::Render00485d50 00485d50 (the weapon's name and the warnings) and Render00486940 00486940 (the ammunition count),
+// bea-decomp src/Hud.cpp; the native port's fe-lose back buffers show the same warning at the same Presents (PARITY.md).
+
+using OnslaughtRebuild.Parity.Flow;
+using OnslaughtRebuild.Parity.Flow.Draw;
+using OnslaughtRebuild.Parity.Game;
+using OnslaughtRebuild.Parity.Render;
+using OnslaughtRebuild.Parity.Things;
+using Xunit;
+
+namespace OnslaughtRebuild.Parity.Tests.Flow;
+
+/// <summary>
+/// The HUD's text through the level's canvas: on the front-end loss route the walker overheats its weapon from about
+/// Present 5100, and the HUD writes "weapon overheating" centred on the second warning row, a shadow then the text, fading
+/// out over the five seconds after each overheat; before the first one it writes nothing (the weapon is an energy weapon, so no
+/// ammunition count, and no weapon change, so no name).
+/// </summary>
+public sealed class HudTextTests
+{
+    private const string Tape = "portrefs/tapes/fe-level100-lose-quit-7300f.tape";
+
+    private sealed class StopRun : Exception;
+
+    [RetailGoldenFact(Tape)]
+    public void TheOverheatingWarningIsWrittenCentredOnTheSecondRow()
+    {
+        var textures = new FrontEndTextures(GameData.Read);
+        var run = new GameRun(GameData.Read, id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id],
+            new RetailChainTests.InstalledFilms(), true, LevelSession.VirtualVoiceFor(GameData.Read))
+        {
+            Tape = RetailTape.Load(RetailGolden.File(Tape)!),
+        };
+        var frames = new Dictionary<long, CanvasFrame>();
+        run.LevelDraw = () => new FrontEndDraw(textures) { Canvas = new RecordingCanvas(f => frames[f.Present] = f) };
+        float overheated = 0;
+        run.OnPresented = () =>
+        {
+            if (run.Clock.PresentCount == 5300 && run.Level?.Game.GetPlayer(0)?.BattleEngine is BattleEngine be)
+            {
+                overheated = be.WeaponOverheatedTime;
+                Assert.Equal(0, be.ChangedWeaponTime.CompareTo(-20.0f));
+                Assert.True(be.StoreHeat[be.GetCurrentWeapon()!.Data.AmmoStore]);
+            }
+
+            if (run.Clock.PresentCount >= 5300)
+            {
+                throw new StopRun();
+            }
+        };
+        try
+        {
+            run.Run();
+        }
+        catch (StopRun)
+        {
+        }
+
+        static CanvasQuad[] Text(CanvasFrame frame) => [.. frame.Quads.Where(q => q.Texture.Kind == CanvasTextureKind.NormalFont)];
+        Assert.Empty(Text(frames[4900]));
+        Assert.True(overheated > 0);
+
+        string warning = run.FrontEnd.Texts!.ById(0x227a52ff);
+        int width = run.FrontEnd.NormalFont!.GetTextExtent(warning).Width;
+        CanvasQuad[] quads = Text(frames[5300]);
+        Assert.Equal(2 * warning.Length, quads.Length);
+        CanvasQuad shadow = quads[0], text = quads[warning.Length];
+        Assert.Equal(MathF.Floor(320f - width * 0.5f) - 0.5f, text.V0.X);
+        Assert.Equal(360f - 0.5f, text.V0.Y);
+        Assert.Equal(text.V0.X + 1f, shadow.V0.X);
+        // 0xff3020 doubled: the guns panel's sprites, drawn just before while the weapon part shows, leave the stage at 2x.
+        Assert.Equal(0xff6040u, text.V0.Colour & 0xffffff);
+        Assert.InRange(text.V0.Colour >> 24, 1u, 0xfeu);
+        Assert.False(text.ZEnable);
+    }
+
+    [Fact]
+    public void PartsFlashOnTheSecondAndFourthQuarterOfEachSecond()
+    {
+        var parts = new HudParts();
+        Assert.True(parts.IsComponentVisible(HudParts.CurrentWeapon));
+        parts.State[HudParts.CurrentWeapon] = HudParts.Flashing;
+        parts.Update(10.10f, false);
+        Assert.False(parts.IsComponentVisible(HudParts.CurrentWeapon));
+        parts.Update(10.30f, false);
+        Assert.True(parts.IsComponentVisible(HudParts.CurrentWeapon));
+        parts.Update(10.55f, false);
+        Assert.False(parts.IsComponentVisible(HudParts.CurrentWeapon));
+        parts.Update(10.80f, true);
+        Assert.True(parts.IsComponentVisible(HudParts.CurrentWeapon));
+        Assert.False(parts.IsComponentVisible(HudParts.BattleLineMap));
+        parts.Update(10.80f, false);
+        Assert.True(parts.IsComponentVisible(HudParts.BattleLineMap));
+    }
+}

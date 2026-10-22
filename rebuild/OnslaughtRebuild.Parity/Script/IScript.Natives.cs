@@ -303,11 +303,11 @@ public sealed partial class IScript
 
     /// <summary>HighlightHudPart 00535e60: HUD.mPartState[part] = 2.</summary>
     public void HighlightHudPart(ScriptData?[] args, int numArgs, ref ScriptData? result) =>
-        _runtime.Context.Skip("IScript::HighlightHudPart: HUD.mPartState");
+        _runtime.Context.HudParts.State[args[0]!.GetInt()] = Render.HudParts.Flashing;
 
     /// <summary>UnHighlightHudPart 00535e80: HUD.mPartState[part] = 1.</summary>
     public void UnHighlightHudPart(ScriptData?[] args, int numArgs, ref ScriptData? result) =>
-        _runtime.Context.Skip("IScript::UnHighlightHudPart: HUD.mPartState");
+        _runtime.Context.HudParts.State[args[0]!.GetInt()] = Render.HudParts.On;
 
     /// <summary>SetObjective 00535ed0.</summary>
     public void SetObjective(ScriptData?[] args, int numArgs, ref ScriptData? result) =>

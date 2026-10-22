@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -553,9 +553,21 @@ oracle):
 - Open:
   - At P5000 the target's health bar ends about a pixel short of the port's full bar, on a route whose reference is
     known to drift from P4280.
-  - Not drawn yet: the HUD's text (the weapon name and warning lines, the objective panel), the lock-on pieces and
-    warning-receiver threats (neither is ported), the Thunderhead's imposter frame, the terrain's detail texture, and
+  - Not drawn yet: the lock-on pieces and warning-receiver threats (neither is ported), the Thunderhead's imposter frame, the terrain's detail texture, and
     P2800's dome.
+
+Measured (the HUD's text, 2026-10-22): the core's HUD render writes the text of `Render00485d50` (the weapon's name,
+fading in from a change and out after three seconds, and the warnings: two centred rows, each showing the first of its
+lines still within five seconds) and `Render00486940` (a non-energy weapon's ammunition count), and the overlay draws it
+through the canvas before the battle line, as `CDXEngine::PostRender` does. The HUD's part states (`mPartState`, the
+script's `HighlightHudPart`/`UnHighlightHudPart`, the flash) are ported; the guns panel's sprites leave the stage at 2x,
+so the name and warnings draw doubled while the weapon part shows. The objective panel (`Render00483530`) opens only for
+a world text slot, which level 100's script never fills (it never calls `InitVariable`), so it draws nothing; the warning
+receiver's line needs the receiver, which is not ported. Against the port's fe-lose back buffers every 100 Presents from
+P1500 to P6200: the warning ("weapon overheating", P5200 to P6200) shows at the same Presents on both, with a mean
+difference of 1.5 to 7.3 on its pixels (no pixel off by more than 40), no more than the level beneath it differs; neither
+shows a weapon name (no weapon change on the route) or an ammunition count (an energy weapon). `HudTextTests` holds the
+warning's place, colour and quads.
 
 Measured (the pan camera's orientation, 2026-10-22): `PanCamera.Facing` follows retail's inline block in
 `CPanCamera::Update` (00419bb0..00419d07, the block the native port's patch 0036 reproduces): the magnitude summed
