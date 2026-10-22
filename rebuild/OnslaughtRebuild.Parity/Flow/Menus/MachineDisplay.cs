@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Parity.Flow.Menus;
 /// <summary>
 /// What the display list reads from the machine: CD3DApplication's adapters, the current device's modes and caps, the
 /// tweaks the hardware sets (LANDSCAPE_MAXLEVELS, TEXTURE_ALLOW_32_BIT, ...) and the joysticks. The defaults are the
-/// port's harness at a level-100 pause (offscreen, <c>-forcewindowed -res 640 480</c>; the lead's read of 2026-10-16):
+/// port's harness at a level-100 pause (offscreen, <c>-forcewindowed -res 640 480</c>; a read of 2026-10-16):
 /// one adapter, three 4:3 modes with flags 0x2bf, pixel shader 3.0, no joysticks. The mode list is the harness's: a
 /// real display lists others, so references through these lists hold for that configuration only.
 /// </summary>

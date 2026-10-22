@@ -6638,7 +6638,7 @@ def _default_startup_media_root() -> Path:
     if os.name == "nt":
         local = os.environ.get("LOCALAPPDATA")
         if local:
-            return Path(local) / "OnslaughtToolkit" / "startup-media"
+            return Path(local) / "OnslaughtRebuild" / "startup-media"
         return ROOT / "local-lab/startup-media"
 
     # A linked worktree does not own a second ignored lab. Route the implicit
@@ -7213,7 +7213,7 @@ def main() -> int:
         help=(
             "where to write the cold-start media cache (default: "
             "ONSLAUGHT_STARTUP_MEDIA when set; otherwise %%LOCALAPPDATA%%/"
-            "OnslaughtToolkit/startup-media on Windows or the canonical "
+            "OnslaughtRebuild/startup-media on Windows or the canonical "
             "checkout's local-lab/startup-media on Linux)"
         ),
     )

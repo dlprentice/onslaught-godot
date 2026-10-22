@@ -35,7 +35,7 @@ public interface IFilmPacing
 }
 
 /// <summary>
-/// The pacing of a contributor's retail replay harness: retail's binkw32 follows each film's sound track, which plays on Wine's
+/// The pacing of the retail replay harness: retail's binkw32 follows each film's sound track, which plays on Wine's
 /// real-time mixer, so every frame comes due by real time and the virtual clock moves only with the Presents (no spin
 /// escape fired during the boot films). Modelled as every frame due at once: exact for the Presents, which a wait never
 /// makes; the waits themselves are not modelled.

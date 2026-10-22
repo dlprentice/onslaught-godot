@@ -25,6 +25,7 @@ export ONSLAUGHT_RETAIL_ORACLE="$PWD/local-data/test-runs/death-integration-2026
 export ONSLAUGHT_RETAIL_GOLDEN=$SCRATCH
 export ONSLAUGHT_GOLDEN_VDS=$SCRATCH
 export ONSLAUGHT_BEOBJ_VDS=$SCRATCH
+export ONSLAUGHT_PORT_OCCUPANCY=$SCRATCH
 dotnet test rebuild/OnslaughtRebuild.Parity.Tests --logger 'console;verbosity=normal'
 dotnet build rebuild/OnslaughtRebuild.Host
 npm run -s test:docs && npm run -s test:safety
@@ -80,9 +81,10 @@ box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
 ### The Godot host (M7)
 
 `OnslaughtRebuild.Host` is the successor host: a Godot 4.8 .NET project, built in code, that runs the parity core and
-draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which retires (with Core and Client's
-earlier simulation, if nothing else needs them) in one cleanup commit once this host carries level 100 and the front
-end; until then pieces are copied over only as needed, noting their origin. By default it renders one level-100
+draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which is **reference only**: it is not built,
+gated or extended, and it stays (with Core and Client's earlier simulation) because the asset materializer, the
+first-flight launcher, the static-mesh preview and several measurement probes still read its sources and recipes;
+pieces are copied into the Host only as needed, noting their origin. By default it renders one level-100
 Present; an experimental live mode (`HOST_LIVE=1`, with `HOST_TAPE` and `HOST_TRACE`) runs level 100 from the parity
 core with ordinary input, and the whole-game mode (`HOST_LIVE=flow`) runs the game from boot to quit, front end and
 level, as [PARITY.md](PARITY.md) records (M7). A single Present:
@@ -131,7 +133,7 @@ below describe that state, not current work.
   the presentation-only frontend lifecycle state.
 - `OnslaughtRebuild.Headless` replays command tapes and verifies versioned final
   state and rolling trace hashes.
-- `OnslaughtRebuild.Godot` renders Core snapshots and supplies player input.
+- `OnslaughtRebuild.Godot` (reference only) renders Core snapshots and supplies player input.
 
 The rebuild is C# only and built in code (David, 2026-09-25; see the repository
 `AGENTS.md`): no GDScript, no editor-authored scenes or resources, shader source

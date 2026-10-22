@@ -6,7 +6,8 @@
     python rebuild/tools/x87_oracle/x87_oracle.py generate [--count N] [--ops a,b]   inputs + oracle outputs
 
 The pinned VC6 SP5 toolchain comes from the canonical checkout's local-lab/third-party/msvc6-sp5-toolchain; Wine runs
-in this tool's own prefix ($WINEPREFIX, a copy of $WINEPREFIX) with no DISPLAY. Everything
+in this tool's own prefix (X87_ORACLE_WINEPREFIX, made once as a copy of the prefix X87_ORACLE_BASE_PREFIX names, which
+has the toolchain's Wine set-up) with no DISPLAY. Everything
 it writes (the harness executable, inputs, outputs, manifest.json) goes to X87_ORACLE_OUT, by default the canonical
 checkout's ignored local-data/parity-oracle/x87/ (set it to an internal-disk folder while archive I/O is limited).
 The tables are results of our own compiled program, not bytes of the game. The parity tests read the same folder
@@ -30,8 +31,10 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 CANONICAL = ROOT.parents[1] if ROOT.parent.name == ".worktrees" else ROOT
 VC6 = CANONICAL / "local-lab/third-party/msvc6-sp5-toolchain"
-BASE_PREFIX = Path("$WINEPREFIX")
-PREFIX = Path(os.environ.get("PEERI_X87_WINEPREFIX", "$WINEPREFIX"))
+BASE_PREFIX_ENV = os.environ.get("X87_ORACLE_BASE_PREFIX", "")
+PREFIX_ENV = os.environ.get("X87_ORACLE_WINEPREFIX", "")
+BASE_PREFIX = Path(BASE_PREFIX_ENV)
+PREFIX = Path(PREFIX_ENV)
 OUT = Path(os.environ.get("X87_ORACLE_OUT", str(CANONICAL / "local-data/parity-oracle/x87")))
 OPS = ("add_d", "sub_d", "mul_d", "div_d", "sqrt_d", "sin_d", "cos_d", "atan2_d",
        "add_f", "sub_f", "mul_f", "div_f", "sqrt_f", "sin_f", "cos_f", "atan2_f", "d2f", "fist", "trunc")
@@ -42,6 +45,8 @@ def winpath(p: Path) -> str:
 
 
 def prefix() -> Path:
+    if not PREFIX_ENV or not BASE_PREFIX_ENV:
+        raise SystemExit("set X87_ORACLE_WINEPREFIX (this tool's Wine prefix) and X87_ORACLE_BASE_PREFIX (the prefix to copy)")
     if not PREFIX.exists():
         staging = PREFIX.with_name(PREFIX.name + ".partial")
         shutil.rmtree(staging, ignore_errors=True)

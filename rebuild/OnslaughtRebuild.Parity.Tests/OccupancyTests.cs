@@ -179,21 +179,14 @@ public sealed class OccupancyTests(ITestOutputHelper output)
         Assert.NotEqual(0, g.TestCell(4, 0));
     }
 
-    /// <summary>a contributor's native-port occupancy data for level 100 (a local file of this machine; skipped where absent).</summary>
+    /// <summary>
+    /// The native port's occupancy data for level 100, in the folder ONSLAUGHT_PORT_OCCUPANCY names (skipped when it is
+    /// unset or has no paths.txt).
+    /// </summary>
     private static string? PortData()
     {
-        foreach (string dir in new[]
-        {
-            "$SCRATCH",
-        })
-        {
-            if (File.Exists(Path.Combine(dir, "paths.txt")))
-            {
-                return dir;
-            }
-        }
-
-        return null;
+        string? dir = Environment.GetEnvironmentVariable("ONSLAUGHT_PORT_OCCUPANCY");
+        return dir is not null && File.Exists(Path.Combine(dir, "paths.txt")) ? dir : null;
     }
 
     [GameDataFact]

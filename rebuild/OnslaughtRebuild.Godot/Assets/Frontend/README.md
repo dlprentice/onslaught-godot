@@ -119,7 +119,7 @@ did not produce the former. Both are now ordinary hash-pinned frontend inputs.
 Retail's splash and intro FMV — `data/video/LTLogo.vid`,
 `data/video/OpeningFMV.vid` and `data/textures/splash.tga` — are decoded by
 `materialize_retail_assets.py --startup-media` into a cache **outside**
-`res://`, defaulting to `%LOCALAPPDATA%/OnslaughtToolkit/startup-media` and
+`res://`, defaulting to `%LOCALAPPDATA%/OnslaughtRebuild/startup-media` and
 overridable with `--startup-media-root` or `ONSLAUGHT_STARTUP_MEDIA`.
 
 They are deliberately not staged here. Everything in this directory is inside

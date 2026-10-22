@@ -136,7 +136,7 @@ public sealed class RetailChainTests
         byte[] saved = frontEnd.MemoryCard.Folder.Read("BEA 1");
         Assert.Equal(CareerSaveGame.Size, saved.Length);
 
-        // Retail's own save from the same new-career chain (a contributor's -skipfmv run, the autosave at the configuration
+        // Retail's own save from the same new-career chain (a -skipfmv retail run, the autosave at the configuration
         // step): byte for byte, career, bindings and options alike. A retail recording, read where present.
         if (RetailGolden.File("career/after-level-taken-a.bes") is { } retailSave)
         {

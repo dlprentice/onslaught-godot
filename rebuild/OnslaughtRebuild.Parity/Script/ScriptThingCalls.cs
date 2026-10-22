@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The thing calls the script natives make whose owners (Things/, a contributor and a contributor) have not ported them yet, in one
+// The thing calls the script natives make whose owners (Things/) have not ported them yet, in one
 // place: src/unit.h CUnit::Unknown94
 // (00405e60: 2; CPlane 5, CDropship 8), EnableWeapon 004fe2b0, DisableWeapon 004fe310, GetLife
 // 004f99f0, Unknown100 004fdd00; src/BattleEngine.cpp EnableFlightMode 0040dcb0, DisableFlightMode 0040dcc0,

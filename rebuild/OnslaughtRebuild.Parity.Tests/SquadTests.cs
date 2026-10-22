@@ -143,7 +143,7 @@ public sealed class SquadTests
         var squad = new NormalSquad(context) { SpawnUnit = _ => { var u = new FakeUnit(context); units.Add(u); return u; } };
         squad.Init(SquadInit(DryLand.Value, 1, 1));
 
-        // The three draws of a Target Tank squad's Init (a contributor's port log, draws 1525-1527): event 4000, 4001, 4002.
+        // The three draws of a Target Tank squad's Init (the port's log, draws 1525-1527): event 4000, 4001, 4002.
         Assert.Equal(new[] { "Squad.Unknown4e8100", "Squad.Unknown4e83b0", "Squad.Unknown66" },
             context.Random.Log!.Select(d => d.Site));
         FakeUnit unit = Assert.Single(units);

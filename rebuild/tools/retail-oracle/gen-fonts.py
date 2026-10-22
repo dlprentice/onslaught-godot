@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Cases for the fonts' GetTextExtent and WordWrap (seeded): the dumped fonts and language-file texts (DIR, from
 RetailOracleTests.DumpFrontEndFontsForTheOracle); each text measured in each font, and wrapped at assorted widths."""
 import os, random, struct, sys

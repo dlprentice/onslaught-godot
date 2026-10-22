@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Cases for the poly bucket searches: per dumped bucket (in order), lines through and around its grid and spheres in it."""
 import os, random, struct, sys
 d = sys.argv[1]; rnd = random.Random(int(sys.argv[2])); per = int(sys.argv[3])
