@@ -171,7 +171,7 @@ read control word `0x007f`; the live constructor/Euler bodies matched pristine
 bytes. The native oracle also reproduced eleven consecutive live Euler/basis
 transitions. This is a bounded backend observation, not Steam-default, Windows,
 cold-start acceptance or a whole-simulation precision claim. See the existing
-[Unit function evidence](../reverse-engineering/binary-analysis/functions/CComplexThing.cpp.md).
+[Unit function evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/functions/CComplexThing.cpp.md).
 
 ## What Core may not do
 

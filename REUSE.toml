@@ -1,0 +1,28 @@
+# Licence map for this repository (REUSE specification 3.3). Per-file SPDX lines take precedence where a file has
+# one; the last matching annotation below wins for files without one.
+#
+# tests_shared/fixtures/gold_career_save.bin is deliberately unannotated: it is a real career save written by the
+# retail game and contributed as the one tracked test baseline (tests_shared/fixtures/README.md). It is game-format
+# data, not project work, and no licence was granted with it, so the project's licence is not claimed for it.
+# references/Onslaught is a submodule under its own licence.
+version = 1
+
+[[annotations]]
+path = [
+    "rebuild/**",
+    "tools/**",
+    "tests_shared/fixtures/README.md",
+    "*.md",
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    ".gitmodules",
+    ".node-version",
+    ".nvmrc",
+    "global.json",
+    "package.json",
+    "package-lock.json",
+    "REUSE.toml",
+]
+SPDX-FileCopyrightText = "David Prentice and onslaught-godot contributors"
+SPDX-License-Identifier = "GPL-3.0-only"

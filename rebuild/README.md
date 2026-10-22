@@ -152,9 +152,9 @@ evidenced retail law changes the run; the smoke report contract in
 `rebuild/tools/first_flight.py` holds the current value), and two refusals of
 impossible input (an emitter `Life` of Int32.MaxValue, whose Int32 turn loop
 cannot end, and an invalid terrain-compositor level, refused before its shifted
-block is allocated). [VALIDATION.md](../VALIDATION.md) records the proof. The
+block is allocated). [VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md) records the proof. The
 September 25 measurement
-([VALIDATION.md](../VALIDATION.md#simulation-language-measurement--september-25))
+([VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md#simulation-language-measurement--september-25))
 measured projectile launch and flight at up to about 100 ms per tick in Release
 C#. That was the terrain contact sweep, now pruned exactly (`Level100TerrainSweepPruningTests`):
 the smoke replay has no tick over 1 ms and the same hashes.
@@ -388,7 +388,7 @@ Keep the previous installed version and a recoverable source commit, verify the
 new engine/templates, then update the resolver, SDK lock, feature version and
 retained Windows manifest together. Run the affected launcher, build, headless
 scene, deterministic replay and presentation checks selected by
-[VALIDATION.md](../VALIDATION.md); input/audio or GPU claims still require their
+[VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md); input/audio or GPU claims still require their
 actual environment. Do not defer a compatible update solely because it is a
 development build. No monitoring automation is implied.
 
@@ -429,9 +429,9 @@ An earlier, separate World 110 construction stage
 (`RetailWorld110InitialConstruction` with its own admission, player-start and
 construction-prefix owners) was retired on 2026-09-26 in favour of this one
 owner; it never ran in the product. Its retail evidence stays in
-[`world-110-initial-constructor-seeds.md`](../reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md)
+[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md)
 and
-[`world-110-player-start-admission.md`](../reverse-engineering/game-mechanics/world-110-player-start-admission.md),
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-player-start-admission.md),
 and its code in Git history.
 
 The frontend owns click-to-start, Main Menu, the Quit confirmation, DevSelect
@@ -755,7 +755,7 @@ second sensitivity.
 > (VA `0x005D8CC0`) = `3.0f`, `0x1D97C8` (VA `0x005D97C8`) = `0.004333333f`.
 > The pointer scalar moved from `13/2000` to `91/3000` in `fed5829b` — aiming
 > had been 4.67× too slow at equal hand motion. See
-> [`../CURRENT_CAPABILITIES.md`](../CURRENT_CAPABILITIES.md) for the withdrawal
+> [`../CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) for the withdrawal
 > in full. **Unchanged:** mouse inversion really is still absent, and it stays in
 > the list above.
 

@@ -641,9 +641,9 @@ Since September 26 `Simulation` constructs World 110 from its materialized
 static world through its start state, with Level 100's surviving base world
 (the World 110 rows below). The earlier, separate World 110 construction stage
 was retired that day in favour of that one owner; its retail evidence stays in
-[`world-110-initial-constructor-seeds.md`](../reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md)
+[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md)
 and
-[`world-110-player-start-admission.md`](../reverse-engineering/game-mechanics/world-110-player-start-admission.md).
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-player-start-admission.md).
 
 RE commit `d34f565d` (now in this branch) supplies the September 19
 projectile-readiness queue and maximum-speed-provider contracts in
@@ -685,7 +685,7 @@ spawned controller's exit and scheduled Ready handoff, including separate
 monitored/collision-ignore ownership and both altitude clamps. Original-code
 experiments and in-process restore/ordering tests support this prefix; normal
 control still resumes the older approximate script/weapon bridge. The
-[Unit evidence](../reverse-engineering/binary-analysis/functions/CComplexThing.cpp.md)
+[Unit evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/functions/CComplexThing.cpp.md)
 separates those boundaries from the measured arithmetic.
 
 ## Carried retail contracts — entity, owner, implementation, test
@@ -1001,7 +1001,7 @@ mission callbacks, in the shipped order. Enable/disable and morph-completion
 regressions prevent a later callback from changing an earlier button result;
 combined movement/fire uses the retained launch pose. Full axis/event dispatch,
 spatial blasts and float motion/expiry remain
-open in the [round owner](../reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md).
+open in the [round owner](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md).
 ReadyToCharge is pinned by
 `SimulationTests.AfterPulseFire_ChargeWaitsUntilReloadStrictlyElapses`;
 Charged-2 / Large fire is pinned by

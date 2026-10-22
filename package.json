@@ -1,17 +1,15 @@
 {
-  "name": "onslaught-career-editor-workspace",
+  "name": "onslaught-godot",
   "private": true,
-  "version": "1.0.12",
-  "description": "Onslaught preservation workspace: retail RE, Godot rebuild, and Godot toolkit companion.",
+  "version": "0.1.0",
+  "description": "The Battle Engine Aquila rebuild in C# on Godot 4.8 .NET: the parity core and its host.",
   "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=26 <27",
     "npm": ">=11.19 <12"
   },
   "scripts": {
-    "test": "npm run test:companion-godot && npm run test:companion-tools",
-    "dev": "npm run run:companion-godot",
-    "build": "npm run build:companion-godot",
+    "test": "npm run test:rebuild-parity",
     "test:docs": "python tools/md_link_check.py --self-test && python tools/md_link_check.py --check-only && npm run test:doc-headers",
     "test:doc-headers": "python tools/doc_header_check.py --self-test && python tools/doc_header_check.py",
     "test:safety": "python tools/public_allowlist_safety_check.py --self-test && python tools/public_allowlist_safety_check.py --include-submodules",
@@ -25,16 +23,10 @@
     "run:rebuild-headless": "npm run prepare:rebuild-assets && dotnet run --project ./rebuild/OnslaughtRebuild.Headless/OnslaughtRebuild.Headless.csproj --",
     "run:rebuild-godot": "python ./rebuild/tools/first_flight.py run",
     "test:rebuild-godot-smoke": "python ./rebuild/tools/first_flight.py smoke",
-    "test:appcore": "dotnet test ./OnslaughtCareerEditor.AppCore.Tests/OnslaughtCareerEditor.AppCore.Tests.csproj --nologo",
     "test:godot-host": "python ./tools/godot_host_tests.py && python ./rebuild/tools/first_flight_tests.py",
-    "build:companion-godot": "python ./tools/companion_godot.py build",
-    "run:companion-godot": "python ./tools/companion_godot.py run",
-    "test:companion-godot": "python ./tools/companion_godot.py test",
-    "test:companion-tools": "python ./tools/companion_godot_tests.py",
-    "export:companion-godot": "python ./tools/companion_godot.py export",
-    "capture:companion-godot": "python ./tools/companion_godot.py capture",
     "build:rebuild-godot": "python ./rebuild/tools/first_flight.py build",
     "check:rebuild": "python ./rebuild/tools/rebuild_gate.py",
-    "capture:rebuild-godot": "python ./rebuild/tools/first_flight.py capture"
+    "capture:rebuild-godot": "python ./rebuild/tools/first_flight.py capture",
+    "build": "dotnet build ./rebuild/OnslaughtRebuild.Host"
   }
 }

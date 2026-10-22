@@ -34,20 +34,13 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SUITES: tuple[tuple[str, ...], ...] = (
     ("tools/check_installed_game_claims.py", "--self-test"),
     ("tools/check_installed_game_claims.py", "--check"),
-    ("tools/check_registered_screenshots.py", "--self-test"),
-    ("tools/check_registered_screenshots.py", "--check"),
     ("tools/aya_archive_inventory_tests.py",),
-    ("tools/cmsh_animation_usage_census_tests.py",),
-    ("tools/cmsh_grammar_walk_tests.py",),
-    ("tools/aya_texture_fidelity_census_tests.py",),
-    ("tools/export_game_assets_tests.py",),
     ("rebuild/tools/materialize_retail_assets_tests.py",),
     ("rebuild/tools/cmsh_static_preview_tests.py",),
     ("tools/score_frontend_capture_tests.py",),
     ("tools/check_region_overlap_tests.py",),
     ("tools/check_region_overlap.py",),
     # Name-align plates (Gen34–38): keep regression guards in the sweep (Opus).
-    ("tools/worldheaders_decode.py", "--self-test"),
 )
 
 # Suites that need a Windows host, by path, with the reason. None remain since the

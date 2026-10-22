@@ -409,8 +409,8 @@ the product: the definition, seed and player-start admissions, the tree,
 Building, SAT and Feature prefix, the player-start list resolution and
 assignment sequence, and the `CStart::Init` height prefix. Its retail
 evidence stays with the RE lane
-([`world-110-initial-constructor-seeds.md`](../reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md),
-[`world-110-player-start-admission.md`](../reverse-engineering/game-mechanics/world-110-player-start-admission.md)),
+([`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md),
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-player-start-admission.md)),
 and its code, tests and mutation receipts stay in Git history and the ignored
 `local-lab/rebuild-world110-*` receipts.
 
@@ -473,7 +473,7 @@ the integrating audio owner remains singular.
 >    Five further screens — quit confirmation, DevSelect, Options, mission
 >    briefing and select configuration — were already declared and shipping.
 >    Nothing was withdrawn; the list was simply short, and
->    [`../CURRENT_CAPABILITIES.md`](../CURRENT_CAPABILITIES.md) already listed
+>    [`../CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) already listed
 >    briefing and configuration select on the run path, so the two governance
 >    documents disagreed with each other.
 >
@@ -788,7 +788,7 @@ with null source and false shield flag, then retains the complete velocity by
 `1-cos(surface)^2`; and a non-damaging jet contact retains `0.90` while a
 non-damaging walker or morph contact does not alter velocity in this override.
 The static identity/shape receipt is
-[`../reverse-engineering/binary-analysis/cbattleengine-vtable-semantics-2026-08-11.md`](../reverse-engineering/binary-analysis/cbattleengine-vtable-semantics-2026-08-11.md),
+[`../reverse-engineering/binary-analysis/cbattleengine-vtable-semantics-2026-08-11.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cbattleengine-vtable-semantics-2026-08-11.md),
 whose machine-readable table has SHA-256
 `1bf959a26bc390b8b6d3dfb44eef543b64d2d93839dfc5efe2356314fc429e4e`.
 Millimetres-to-released-units and released-life-to-milli-life cancel, as in the
@@ -1026,7 +1026,7 @@ The 159-byte PC UnitAI destructor independently orders outbound detachments as
 `+0x28`, `+0x24`, `+0x0C` before invalidating inbound readers. PC demo closes
 the same lifecycle, Xbox closes target-death behavior, and all three PS2
 setters close rebind order under the narrower limits recorded in
-[`CMonitor.cpp.md`](../reverse-engineering/binary-analysis/functions/CMonitor.cpp.md).
+[`CMonitor.cpp.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/functions/CMonitor.cpp.md).
 `RetailActiveReaderGraph` carries that ordinary protocol with stable cell
 identities and safe unique membership. Target shutdown nulls the registered
 UnitAI `+0x0C` cell only; `+0x10/+0x18/+0x1C` remain unchanged until a later AI
@@ -1095,7 +1095,7 @@ attachment, and final reader/busy/time order. It does not own factories,
 virtual init, world-list or reader mutation, transforms/clearance, attachment,
 or event delivery; those remain explicit adapter effects. Full evidence and
 open runtime reach are recorded in
-[`spawner-squad-cycle.md`](../reverse-engineering/game-mechanics/spawner-squad-cycle.md).
+[`spawner-squad-cycle.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/spawner-squad-cycle.md).
 
 The transcript's former `SupportMinimum`/`SupportMaximum` names are corrected
 to selected attack-provider range results. Exact PC bodies show that
@@ -1410,7 +1410,7 @@ without dispatching death twice.
 
 The contact catalog preserves raw global BBOX origin/radius, mesh render-radius
 and class scale words. The
-[serialized geometry evidence](../reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md#serialized-geometry-and-terminal-target-tank-behavior)
+[serialized geometry evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md#serialized-geometry-and-terminal-target-tank-behavior)
 corrects the former alternate-loader estimates: they were static recomputations,
 not measured normal-live radii. The serialized loader copies the original
 words, and GroundUnit separately applies stored `0.8f` to its primary sphere.
@@ -1433,7 +1433,7 @@ geometry now carried by the existing materializer, the next boundary is a
 distinct synchronous explosion at the resolved round position minus
 `normalize(velocity)*0.1` can then apply primary-volume admission and
 per-candidate falloff. The
-[Warehouse report evidence](../reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md#warehouse-segmented-explosion-report)
+[Warehouse report evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md#warehouse-segmented-explosion-report)
 now establishes up to six ordered part contacts, each using its own signed
 bounds distance and falloff. Its damage override forwards each part to the
 segment controller; part `-1` does not apply aggregate segment damage.

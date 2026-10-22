@@ -529,7 +529,7 @@ fixed-function/Godot sampler equivalence remain outside this slice.
 >    `../../../OnslaughtRebuild.Client.Tests/Level100PineRepresentationTests.cs`
 >    asserts the manifest's bits equal `0x41F00000`, which is `30.0f`. The
 >    sentence stated the reconstruction's own cutoff and stated it wrongly; this
->    is exactly the lab value that [`GOAL.md`](../../../../GOAL.md)'s defaults
+>    is exactly the lab value that [`GOAL.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md)'s defaults
 >    rule exists to keep out of authored behaviour.
 > 2. It previously read "**Manifest v7** explicitly pins fast-standing-view
 >    reconstruction phase `0`". There is no manifest v7 — it existed briefly and
