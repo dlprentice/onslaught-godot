@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-21 (whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -41,8 +41,7 @@ captured inputs, separate three causes:
 
 Both rebuild corrections leave every existing Parity test's outcome and output unchanged. The trainer
 route is compared again with the native port once the port's wiggle correction is in; until then the
-remaining LIFE differences are the port's. Evidence (private): the Track B packet under
-`bea-decomp/local-data/scratch/claude-20261020/peer-a/` (seek and launch captures, oracle receipts).
+remaining LIFE differences are the port's. Evidence (private): the Track B packet in the maintainers' private evidence store (seek and launch captures, oracle receipts).
 
 Death, landing and render-lifetime integration (2026-10-19): hard ground contact now executes
 BattleEngine damage with the retail cap, component spills and shield-bypass rules. The BE has its
@@ -324,8 +323,8 @@ their constructors, first-ID lookup 0042db10 and ApplyControlPreset 00453780, wi
 stubs. Ten original cases and 27 additional signed-selector/device cases were independently reproduced
 with native x86; bounded Unicorn agrees on 36 of the 37 cases. The 32767/no-pad repetition case ran
 natively only. Enabled-pad cases demonstrate the omitted device-dependent behavior. Private inputs,
-outputs and root reproduction receipts are in bea-decomp's
-`local-data/scratch/codex-onslaught-20261017/control-preset/`. `KeyboardPresetTests` binds complete
+outputs and root reproduction receipts are in the maintainers' private evidence store
+(`control-preset/`). `KeyboardPresetTests` binds complete
 record outputs to those observations and tests menu confirmation, saved selectors from -32768 to
 32767, campaign reset and original-fixture preservation. `ControllerTests` checks the restored Up/W
 alternate binding. These are code and isolated-execution checks, not a retail UI playthrough.
@@ -362,7 +361,7 @@ rebuilt the oracle and reproduced all output words, then ran the C# Parity suite
 9 existing optional-reference skips, 0 failed**, including all nine new controller tests. The consumer
 test uses a real Level-100 cannon to check cached and uncached emitter dispatch and pose refresh.
 No reference expectation was changed. Private inputs, oracle, hashes and root receipt are under
-`bea-decomp/local-data/scratch/codex-onslaught-20261017/cannon-controller/`; the suite receipt is
+the maintainers' private evidence store (`cannon-controller/`); the suite receipt is
 `local-data/test-runs/cannon-controller-20261017/root-full.trx` in the internal rebuild clone.
 These are bounded original-code and reconstruction checks, not a live retail playthrough or Godot
 visual acceptance. BattleEngine and Buggy controllers remain separate work.
@@ -383,7 +382,7 @@ The real Level-100 U-17 uses `f_lifter.msh`, whose 21 parts contain no door-pref
 proves controller wiring and unchanged non-door behavior, not a visible tutorial door correction.
 Active door animation uses an authored mesh fixture through the existing mesh reader and emitter path.
 Landing behavior remains separate. Private original-code inputs, hashes and root reproduction are in
-`bea-decomp/local-data/scratch/codex-onslaught-20261017/dropship-controller/`; the integrated suite is
+the maintainers' private evidence store (`dropship-controller/`); the integrated suite is
 `local-data/test-runs/dropship-controller-20261017/root-full.trx` in the internal rebuild clone.
 These are bounded original-code and reconstruction checks, not live Godot or retail visual acceptance.
 
@@ -403,7 +402,7 @@ Only Win32 TLS/last-error imports are adapted. The integrated Parity suite passe
 and all twelve dropship cases. Shipped goodie/firework closures load real resource meshes, create
 particles and expire; tests also cover link positions, shutdown, reconnect timing, failed BeginScene
 and process-state isolation. No golden expectations changed. Private original-code evidence is in
-`bea-decomp/local-data/scratch/codex-onslaught-20261017/frontend-particles/`; root suite/command
+the maintainers' private evidence store (`frontend-particles/`); root suite/command
 receipts are in `local-data/test-runs/frontend-particles-20261017/` in the internal rebuild clone.
 
 This completes this front-end simulation/lifecycle slice, not its Godot drawing or full particle
@@ -434,7 +433,7 @@ The real-LevelSession adapter checks cover same-batch pause/resume and focus los
 Intro skipping was unsupported at that checkpoint; the preserved correction is integrated below.
 
 Private runs and comparisons are under
-`bea-decomp/local-data/scratch/codex-onslaught-20261017/live-host/`; headless trace, build and suite
+the maintainers' private evidence store (`live-host/`); headless trace, build and suite
 records are in `local-data/test-runs/live-host-20261017/` of the internal rebuild clone. This is an
 opt-in experimental implementation and safe resume point, not completed M7 or full tutorial acceptance.
 
@@ -464,7 +463,7 @@ comparison negative controls reject alterations. This exercises tape delivery in
 Godot host, not physical input-event delivery, audio, or the complete tutorial.
 
 Private capture/trace commands, hashes and root comparisons are in
-`bea-decomp/local-data/scratch/codex-onslaught-20261017/live-host/resume-20261019/`;
+the maintainers' private evidence store (`live-host/resume-20261019/`);
 suite/build receipts are `local-data/test-runs/resume-20261019/` in the internal rebuild clone.
 
 Whole-game host, slices 1 and 2 (2026-10-21, M7 in progress):

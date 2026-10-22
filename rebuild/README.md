@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
-Last updated: 2026-10-21 (working lane section; the earlier fixed-point rebuild relabelled as history; what the Host draws after M7 slice 4)
+Last updated: 2026-10-22 (the reference environment as a table of variables, values kept outside the repository; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -11,28 +11,33 @@ thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 ## Working lane
 
 - Integration branch: `codex/rebuild-takeover-20261017` (merged into `main` when its gate passes).
-- Work in the internal-disk clone `$SCRATCH`, or in a worktree of it. The familiar
-  checkout `~/Projects/game-dev/Onslaught-Career-Editor` lives on Archive B (a USB drive): builds, test runs and
-  captures never run there.
-- The Parity suite compares the simulation with recorded retail and native-port references. Set the reference
-  environment, then run the suite and build the Host from the clone root:
+- Builds, test runs and captures happen in a clone on an internal disk (or a worktree of it), never in a checkout on
+  slow or removable storage. Which clone and folders this machine uses is kept in an ignored local file
+  (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.
+- The Parity suite compares the simulation with recorded retail and native-port references, which live outside the
+  repository. Set these variables (for example in `local-data/rebuild-env.sh`, then `source` it), then run the suite and
+  build the Host from the clone root:
+
+| Variable | Names | Used by |
+| --- | --- | --- |
+| `ONSLAUGHT_PORT_REFS` | the folder of recorded native-port references (one subfolder per route, each with its `README.json` and hashes) | `RetailGoldenTests` (the native-port routes) |
+| `ONSLAUGHT_PORT_CRT` | the native port's per-Present C runtime `rand` call records for level 100 | `RetailGoldenTests` |
+| `ONSLAUGHT_PORT_LOGS` | the native port's draw logs of the level-100 load | tests marked `[PortLogFact]` |
+| `ONSLAUGHT_RETAIL_ORACLE` | the retail oracle's view folder (results of retail's own code run on captured inputs) | `RetailOracleTests` |
+| `ONSLAUGHT_RETAIL_GOLDEN` | the retail replay harness's golden recordings (tapes and probe traces at 640 x 480) | `RetailGoldenTests` |
+| `ONSLAUGHT_GOLDEN_VDS` | the golden recordings' value dumps | `RetailGoldenTests` |
+| `ONSLAUGHT_BEOBJ_VDS` | the battle engine's object dumps to Present 6000 | `RetailGoldenTests` |
+| `ONSLAUGHT_PORT_OCCUPANCY` | the native port's level-100 occupancy data (`paths.txt`) | `OccupancyTests` |
 
 ```bash
-export ONSLAUGHT_PORT_REFS=$SCRATCH
-export ONSLAUGHT_PORT_CRT=$SCRATCH
-export ONSLAUGHT_PORT_LOGS=$SCRATCH
-export ONSLAUGHT_RETAIL_ORACLE="$PWD/local-data/test-runs/death-integration-20261019/oracle-view"
-export ONSLAUGHT_RETAIL_GOLDEN=$SCRATCH
-export ONSLAUGHT_GOLDEN_VDS=$SCRATCH
-export ONSLAUGHT_BEOBJ_VDS=$SCRATCH
-export ONSLAUGHT_PORT_OCCUPANCY=$SCRATCH
+source local-data/rebuild-env.sh          # the variables above, with this machine's folders
 dotnet test rebuild/OnslaughtRebuild.Parity.Tests --logger 'console;verbosity=normal'
 dotnet build rebuild/OnslaughtRebuild.Host
 npm run -s test:docs && npm run -s test:safety
 ```
 
 A missing reference, an empty selection or a new skip is not a pass; plain `npm test` is not this suite. The
-references live in machine-local scratch, not in the repository; [PARITY.md](PARITY.md) records what each
+references are not in the repository; [PARITY.md](PARITY.md) records what each
 measurement covers and what remains open.
 
 ## Proof of concept (2026-10-15)

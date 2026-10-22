@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-21 (all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-22 (private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -190,7 +190,7 @@ a live retail playthrough. The admitted Level 100 fixture separately exercises a
 construction, cached pose and uncached emitter consumers. The retail pose caller at 004b4d6f
 discards the comparison's return value; it does not invalidate a same-frame pose or bypass the
 existing 30-frame/force gates. Private inputs, original-code harness and outputs remain under
-bea-decomp's ignored `local-data/scratch/codex-onslaught-20261017/cannon-controller/`.
+the maintainers' private evidence store (`cannon-controller/`).
 
 The dropship slice uses the same pristine specimen. `DropshipMotionControllerTests` compares
 1,800 complete isolated executions of unchanged 00496100 and its actual ASCII comparison
@@ -204,8 +204,8 @@ remainder, as 004b5103..004b511d does. Authored animated-door tests distinguish 
 interpolated cached poses and preserve same-frame refusal. The admitted Level 100 U-17 fixture
 confirms construction/dispatch and real emitter queries, but its `f_lifter.msh` has no
 Door-prefixed parts: it does not prove visible door movement. No live landing or graphics
-acceptance was run. Private harness, generator, inputs and results remain under bea-decomp's
-ignored `local-data/scratch/codex-onslaught-20261017/dropship-controller/`.
+acceptance was run. Private harness, generator, inputs and results remain under the maintainers' private evidence store
+(`dropship-controller/`).
 
 ## Authority
 

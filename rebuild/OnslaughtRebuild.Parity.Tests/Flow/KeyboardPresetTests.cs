@@ -20,7 +20,7 @@ public sealed class KeyboardPresetTests
     // runners; the 32767/no-pad case runs natively only. Enabled pads bound the current keyboard-only host;
     // preset >= 2 with enabled pads has additional joystick effects not implemented here.
     // These hashes cover the first sixteen records, including their padding.
-    // Private reproducer: bea-decomp/local-data/scratch/codex-onslaught-20261017/control-preset/{oracle.py,native.c,extended.py}.
+    // Private reproducer, in the maintainers' evidence store: control-preset/{oracle.py,native.c,extended.py}.
     private const string PresetHash = "53f7bfbb170190465f3cdda664a2858bb10bb2736264e8f75dadd3bdc6d1c0cf";
 
     private static FrontEnd Host()
