@@ -13,7 +13,7 @@ using ParityGame = OnslaughtRebuild.Parity.Game.Game;
 namespace OnslaughtRebuild.Parity.Tests;
 
 /// <summary>
-/// A test against a contributor's retail goldens: retail BEA.exe recorded under the replay harness (golden-640: virtual time
+/// A test against the retail goldens: retail BEA.exe recorded under the replay harness (golden-640: virtual time
 /// 1/30 s per Present, probes read after each Present returns; two retail processes identical). They are retail
 /// recordings kept out of Git, found through ONSLAUGHT_RETAIL_GOLDEN; skipped, visibly, without them or the game data.
 /// </summary>
@@ -98,7 +98,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     /// </summary>
     private const int TankKillTapeMatchedThrough = 8000;
 
-    /// <summary>The Present through which David's recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).</summary>
+    /// <summary>The Present through which the player-recorded level 100 (a loss, a retry, a quit) matches the port (never lowered).</summary>
     private const int DavidTapeMatchedThrough = 8882;
 
     /// <summary>The Presents through which the pause and restart tapes match the port (never lowered).</summary>
@@ -278,7 +278,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// Level 100 as David played it (tapes/level100-david-win1-loss-retry.tape, a human recording: jumps and landing jets,
+    /// Level 100 as a player played it (tapes/level100-david-win1-loss-retry.tape, a human recording: jumps and landing jets,
     /// fire, a loss by friendly fire, the level-end menu's Retry, a quit) against the port's every-Present reference of a
     /// replay (l100-david-win1-port: the port with patch 0022, equal to his live recording on every probe), as the firing
     /// tape's test. Floor: <see cref="DavidTapeMatchedThrough"/>.

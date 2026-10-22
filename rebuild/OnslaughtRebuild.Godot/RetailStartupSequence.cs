@@ -146,7 +146,7 @@ public sealed partial class RetailStartupSequence : Control
         string? local = System.Environment.GetEnvironmentVariable("LOCALAPPDATA");
         return string.IsNullOrWhiteSpace(local)
             ? string.Empty
-            : Path.Combine(local, "OnslaughtToolkit", "startup-media");
+            : Path.Combine(local, "OnslaughtRebuild", "startup-media");
     }
 
     /// <summary>The cold-start chain: Lost Toys logo, opening montage, splash.</summary>

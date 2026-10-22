@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Per retail function: each x87 instruction reading a constant in memory (width, address, value). Reads the oracle
 image (retail-derived, scratch only). Function ends: the first ret followed by int3/nop padding.
 

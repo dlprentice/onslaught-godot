@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Compare a `-Plan options` capture against the retail FEP_OPTIONS frames.
 
 Why this is not `tools/compare_capture.py`

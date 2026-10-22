@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Fail-closed, path-free structural analyzer for held AYA CMSH inputs.
 
 This tool reports source-informed identity evidence.  It deliberately does not

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The films the lead's rebuild/tools/materialize_films.py writes (films.json and one BFA1 archive per film), read for
+// The films rebuild/tools/materialize_films.py writes (films.json and one BFA1 archive per film), read for
 // the parity core's FilmPlayer and drawn by the host. The archives hold retail-derived frames and stay local.
 
 using System.Buffers.Binary;

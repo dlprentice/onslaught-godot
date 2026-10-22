@@ -18,7 +18,7 @@ namespace OnslaughtRebuild.Parity.Tests;
 public sealed class LevelLoadTests(ITestOutputHelper output)
 {
     /// <summary>
-    /// TEST STAND-IN for classes another owner is porting (the safe side, a contributor): a complex thing whose Init is
+    /// TEST STAND-IN for classes another owner is porting (the safe side): a complex thing whose Init is
     /// CComplexThing's. Retail's safe-side Init draws nothing (the native port's draw log), so the stand-in cannot hide a
     /// draw; it is used only where the real class has not landed.
     /// </summary>
@@ -66,7 +66,7 @@ public sealed class LevelLoadTests(ITestOutputHelper output)
         return context;
     }
 
-    /// <summary>a contributor's native-port log of the level-100 load: (draw number, retail function) for every non-tree draw.</summary>
+    /// <summary>The native port's log of the level-100 load: (draw number, retail function) for every non-tree draw.</summary>
     private static List<(long Draw, string Site)> PortLog()
     {
         string path = PortLogs.File("draws-l100-load.txt");

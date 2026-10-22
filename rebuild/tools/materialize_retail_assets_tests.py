@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Focused regressions for the local retail-asset materializer."""
 
 from __future__ import annotations

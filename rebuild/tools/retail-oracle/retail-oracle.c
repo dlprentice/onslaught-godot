@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 // retail-oracle.c: runs retail BEA.exe maths functions natively (32-bit Linux) as an oracle for the parity core.
 // The memory image (mkimage.py) is mapped at the image base 0x400000 (no relocation needed), the FPU control word
 // is set to 0x007F (24-bit precision, as the game runs), and each case calls the retail function by address.

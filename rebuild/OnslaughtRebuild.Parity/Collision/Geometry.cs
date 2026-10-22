@@ -5,7 +5,7 @@
 // 0040d180, Magnitude 004026b0, MagnitudeSq 00477ba0, Normalise 00406d50), reconstructed; not in Stuart's release.
 // Every float operation rounds to 24 bits; the order of each sum of three terms is the one compiled at its site, read
 // from the Steam BEA.exe (= the pristine specimen 74154bfa) and checked by running the retail functions (the retail
-// oracle, $SCRATCH).
+// oracle, rebuild/tools/retail-oracle).
 
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Numerics;

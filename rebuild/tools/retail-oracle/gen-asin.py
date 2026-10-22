@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Cases for the runtime's asin and acos (seeded): float arguments in [-1, 1] (as the game passes Z / |v| and dot
 products), the ends and just past them, and some doubles."""
 import random, struct, sys

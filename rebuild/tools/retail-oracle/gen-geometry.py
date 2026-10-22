@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Cases for the retail oracle's Geometry functions (seeded): mostly constructed hits and near misses, some random."""
 import random, struct, sys
 

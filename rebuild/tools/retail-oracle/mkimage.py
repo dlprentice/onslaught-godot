@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Flatten a PE file's sections into a memory image (SizeOfImage bytes, sections at their RVAs).
 Usage: mkimage.py BEA.exe OUT. The output is retail-derived: keep it in scratch, never commit it."""
 import sys, hashlib, pefile

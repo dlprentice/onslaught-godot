@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Cases for CMeshCollisionVolume's tests (seeded): ResolveContact, the swept sphere against a part's box and against
 its poly bucket (bucket dumps in DIR, loaded first, as gen-buckets.py)."""
 import math, os, random, struct, sys

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
 """Cases for CMeshCollisionVolume::CollideWithLine and CollideWithSphere on level 100's meshes (seeded). DIR holds the
 bucket dumps and meshes.txt (RetailOracleTests' dump); each part gets a transform (identity or a rotation, and an
 offset), and the line or sphere is aimed at a point inside a collision part's grid, or placed as BuildStatic does."""
