@@ -56,4 +56,65 @@ public sealed partial class BattleEngine
         };
         if (sample is not null) PlayHudSample(sample);
     }
+
+    /// <summary>LoseWeaponCharge: the current part's weapon loses its charge.</summary>
+    public void LoseWeaponCharge()
+    {
+        if (State == BattleEngineState.Walker)
+        {
+            WalkerPart!.LoseWeaponCharge();
+        }
+        else if (State == BattleEngineState.Jet)
+        {
+            JetPart!.LoseWeaponCharge();
+        }
+    }
+
+    /// <summary>
+    /// AugmentWeapon (0040de40): with the primary weapon's store holding heat or ammunition, the weapon is augmented (a
+    /// current primary weapon losing its charge first, zooming out if its zoom mode changed), the augmentation full, and
+    /// the HUD's "weapon augmented" sample played.
+    /// </summary>
+    public void AugmentWeapon()
+    {
+        Weapon primary = WalkerPart!.PrimaryWeapon!;
+        int store = primary.Data.AmmoStore;
+        if (StoreHeat[store] || StoreValue[store] > 0)
+        {
+            if (ReferenceEquals(primary, GetCurrentWeapon()))
+            {
+                int oldZoomMode = GetCurrentWeapon()!.Data.ZoomMode;
+                SlowMovement = false;
+                LoseWeaponCharge();
+                if (oldZoomMode != GetCurrentWeapon()!.Data.ZoomMode)
+                {
+                    DesiredZoom = 1.0f;
+                }
+            }
+
+            AugActiveTime = Context.Events.Time;
+            AugValue = MaxAugValue;
+            AugActive = true;
+            PlayHudSample("hud_weapon_augmented");
+            AugmentedTime = Context.Events.Time;
+        }
+    }
+
+    /// <summary>UnaugmentWeapon: the augmented weapon, if current, loses its charge (zooming out on a mode change); the augmentation ends.</summary>
+    public void UnaugmentWeapon()
+    {
+        if (ReferenceEquals(WalkerPart!.AugWeapon, GetCurrentWeapon()))
+        {
+            int oldZoomMode = GetCurrentWeapon()!.Data.ZoomMode;
+            SlowMovement = false;
+            LoseWeaponCharge();
+            if (oldZoomMode != GetCurrentWeapon()!.Data.ZoomMode)
+            {
+                DesiredZoom = 1.0f;
+            }
+        }
+
+        AugValue = 0.0f;
+        AugActive = false;
+    }
 }

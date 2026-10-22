@@ -72,11 +72,17 @@ public sealed partial class BattleEngine
     public float AmmoDepletedTime;
     public float WeaponOverheatedTime;
 
-    /// <summary>
-    /// mAugmentedTime: when the weapon was last augmented (-99999 from the constructor). AugmentWeapon is not ported, so it
-    /// keeps that value; the HUD's "augmented" line reads it.
-    /// </summary>
+    /// <summary>mAugmentedTime: when the weapon was last augmented (-99999 from the constructor); the HUD's "augmented" line reads it.</summary>
     public float AugmentedTime = -99999.0f;
+
+    /// <summary>mAugActiveTime: when the augmentation last started (-20 from the constructor).</summary>
+    public float AugActiveTime;
+
+    /// <summary>MAX_AUG_VALUE: the augmentation value that augments the weapon, and its value while augmented.</summary>
+    public const float MaxAugValue = 10.0f;
+
+    /// <summary>AUG_DECREASE_RATE: the augmentation drained each Move while augmented.</summary>
+    public const float AugDecreaseRate = 0.01f;
     public int EngineState;
     public int OldEngineState;
     public bool ThrustersOn;
@@ -366,6 +372,7 @@ public sealed partial class BattleEngine
         LowArmourStartTime = -20.0f;
         LowEnergyStartTime = -20.0f;
         DangerStartTime = -20.0f;
+        AugActiveTime = -20.0f;
         PlayedAmmunitionDepletedSound = -20.0f;
         PlayedIncomingWarheadSound = -20.0f;
         PlayedWeaponOverheatedSound = -20.0f;
@@ -456,9 +463,18 @@ public sealed partial class BattleEngine
                 }
             }
 
+            // The augmentation: drained while active and dropped when spent; full, it augments the weapon.
             if (AugActive)
             {
-                throw new NotSupportedException("CBattleEngine::Move: the aug weapon (not ported yet)");
+                AugValue -= AugDecreaseRate;
+                if (AugValue <= 0)
+                {
+                    UnaugmentWeapon();
+                }
+            }
+            else if (AugValue >= MaxAugValue)
+            {
+                AugmentWeapon();
             }
 
             if (Cloaked)

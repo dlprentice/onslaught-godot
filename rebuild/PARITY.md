@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (the repair pad route matches to P25289; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (the pilot's p22 route matches to P26720; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -558,13 +558,14 @@ oracle):
 
 Measured (the repair pad route, 2026-10-22): on the tutorial pilot's p22-fire tape (c17-fire's input to P22150, then
 the return to the Forseti repair pad and the flight out), against the native port's every-Present probes
-(`l100-p22-port-20261022`, the frozen 0029+0030 build), the Core matches every probe field through P25289, past the
-earlier floor at P22150 (`RepairPadRouteTests`). The pad takes the landed battle engine as its target at P23333
+(`l100-p22-port-20261022`, the frozen 0029+0030 build), the Core matches every probe field through P26720, the
+reference's end, past the earlier floor at P22150 (`PilotP22RouteTests`). The pad takes the landed battle engine as its target at P23333
 (`CRepairPadAI::Unknown11`: within 3 across and up to 5 below), creates its weapon's charge effects at the Charge
 emitters (`CUnit::Unknown86`, the port's 18 extra C runtime draws there), fires once `CBuilding::Move`'s shot timer
-readies the shot, and repairs the engine to full life at P23367. Next: at P25290 the port draws one more C runtime
-random number, with nothing skipped on our side; the music's track end (`CMusic::PlaySelection`, not modelled) is the
-candidate, to be proved by the port's call chain.
+readies the shot, and repairs the engine to full life at P23367. At P25290 the walker's augmentation is full and
+`CBattleEngine::AugmentWeapon` (0040de40) augments its weapon; its "weapon augmented" HUD sample is the port's one extra
+C runtime draw there (the port's call chain, logged under gdb, against ours). "Airborne Target 2 Destroyed" posts at
+P25977.
 
 Measured (the HUD's text, 2026-10-22): the core's HUD render writes the text of `Render00485d50` (the weapon's name,
 fading in from a change and out after three seconds, and the warnings: two centred rows, each showing the first of its
