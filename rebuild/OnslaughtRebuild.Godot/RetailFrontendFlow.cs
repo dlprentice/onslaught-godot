@@ -544,14 +544,9 @@ public sealed partial class RetailFrontendFlow : Control
     /// (sha256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750;
     /// the installed Steam BEA.exe is deliberately patched and is not a valid
     /// specimen). At VA 0x0051B660 / file 0x11B660, the click page's action
-    /// handler:
-    /// <code>
-    ///   [retail instruction listing removed]
-    ///   0051b686  6a 32             push  0x32                  ; time  = 50
-    ///   0051b690  6a 00             push  0                     ; page  = 0 = FEP_MAIN
-    ///   [retail instruction listing removed]
-    ///   [retail instruction listing removed]
-    /// </code>
+    /// handler checks for click action 0x2C at 0x0051B660, pushes a time of 50 (0x0051B686) and page 0,
+    /// FEP_MAIN (0x0051B690), and calls CFrontEnd::SetPage (0x00466AE0) on FRONTEND (0x0089D758) at
+    /// 0x0051B69D.
     /// So the released cold-start reveal is 50 frames, and FEP_MAIN's ordinal is 0.
     ///
     /// <para><b>The rate is the unresolved part, and it is not papered over.</b>
