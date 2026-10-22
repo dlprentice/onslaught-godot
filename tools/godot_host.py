@@ -17,8 +17,8 @@ import tempfile
 import time
 from pathlib import Path
 
-ENGINE_VERSION = "4.8.dev6.mono.official.8898c2b3d"
-ENGINE_SDK_VERSION = "4.8.0-dev.6"
+ENGINE_VERSION = "4.8.beta1.mono.official.4d10419ca"
+ENGINE_SDK_VERSION = "4.8.0-beta.1"
 DEFAULT_ENGINE = "godot48-mono"
 ROOT = Path(__file__).resolve().parents[1]
 

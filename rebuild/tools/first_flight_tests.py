@@ -77,7 +77,7 @@ class LauncherTests(unittest.TestCase):
         self.engine.chmod(0o700)
         packages = self.engine.parent / "GodotSharp/Tools/nupkgs"
         packages.mkdir(parents=True)
-        (packages / "Godot.NET.Sdk.4.8.0-dev.6.nupkg").touch()
+        (packages / "Godot.NET.Sdk.4.8.0-beta.1.nupkg").touch()
         dotnet = self.engine.parent / "dotnet"
         dotnet.write_text(fake, encoding="utf-8")
         dotnet.chmod(0o700)
@@ -93,7 +93,7 @@ class LauncherTests(unittest.TestCase):
             "width, height = (int(part) for part in values['capture-size'].split('x'))\n"
             "shot = {'width': width, 'height': height, 'screenMatched': True, 'saveError': None}\n"
             "manifest = {'plan': values['capture-plan'], 'plannedShots': 2, 'shots': [shot, dict(shot)],\n"
-            "            'engineVersion': '4.8.dev6.mono.official'}\n"
+            "            'engineVersion': '4.8.beta1.mono.official'}\n"
             "manifest.update(json.loads(os.environ.get('FAKE_MANIFEST_CHANGES', '{}')))\n"
             "if 'FAKE_NO_MANIFEST' not in os.environ:\n"
             "    pathlib.Path(values['capture-dir'], 'capture-manifest.json').write_text(json.dumps(manifest))\n"

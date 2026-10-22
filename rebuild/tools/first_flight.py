@@ -251,7 +251,7 @@ SMOKE_DELIVERED_MESSAGE_IDS = (
     175347826, 4458134, 4493438, 295858, 1339691000, 669198996)
 SMOKE_VALUES: dict[str, object] = {
     "schemaVersion": "onslaught-first-flight-smoke.v17",
-    "engineVersion": "4.8-dev6 (official)",
+    "engineVersion": "4.8-beta1 (official)",
     "exitReason": "smoke-complete",
     "tick": 2148,
     # The scenario's final state, shared with InteractiveSessionTests and the

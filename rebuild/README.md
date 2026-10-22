@@ -290,9 +290,9 @@ live with the [`Frontend`](OnslaughtRebuild.Godot/Assets/Frontend/README.md),
 
 ## Run on Linux
 
-Use the installed pinned Godot 4.8 dev6 .NET engine (`godot48-mono`) and its
-bundled `Godot.NET.Sdk/4.8.0-dev.6` packages. The launcher requires the exact
-identity `4.8.dev6.mono.official.8898c2b3d`; the project remains `net8.0`.
+Use the installed pinned Godot 4.8 beta1 .NET engine (`godot48-mono`) and its
+bundled `Godot.NET.Sdk/4.8.0-beta.1` packages. The launcher requires the exact
+identity `4.8.beta1.mono.official.4d10419ca`; the projects target `net10.0` (SDK 10.0.402, `global.json`).
 Only the .NET edition runs this C# rebuild.
 
 ```bash

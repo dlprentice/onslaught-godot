@@ -1,26 +1,26 @@
 {
   "version": 1,
   "dependencies": {
-    "net8.0": {
+    "net10.0": {
       "Godot.SourceGenerators": {
         "type": "Direct",
-        "requested": "[4.8.0-dev.6, )",
-        "resolved": "4.8.0-dev.6",
-        "contentHash": "kb6QZaXiPYume0xtCVJQErsEuGZeEM+Zr6vmulYvuUsYsDoVFWenCxjz3DnsOY1ZTYDKm+FLNcimxYImOEiaIg=="
+        "requested": "[4.8.0-beta.1, )",
+        "resolved": "4.8.0-beta.1",
+        "contentHash": "kw1NrQF/vwI0hgBpta0v/VmWAtCfzqrDdgFj6dS5lsrgj1NavbhjsddDMnFelQVTgIU/LJpQdBJxsn+F0VK9lA=="
       },
       "GodotSharp": {
         "type": "Direct",
-        "requested": "[4.8.0-dev.6, )",
-        "resolved": "4.8.0-dev.6",
-        "contentHash": "GSQl05YRYISNrqjc0BUqjFX+zQL55IKEty3Rs688GVIFoz94f0f5W3JmEv7g4ux928SIsCse+7XSggLFS7byDw=="
+        "requested": "[4.8.0-beta.1, )",
+        "resolved": "4.8.0-beta.1",
+        "contentHash": "3VAxMLwDQdg7YCHZ4Doy5E+5gEtzgIyoc41iVViesDOCYN0C42pO8S/Wrvi2Fw3XK0AbJUYNHIFIaeYkzXLXRA=="
       },
       "GodotSharpEditor": {
         "type": "Direct",
-        "requested": "[4.8.0-dev.6, )",
-        "resolved": "4.8.0-dev.6",
-        "contentHash": "9O9gkzxh0u+M2tHHLcUNnTt+M1pwfMnTiCH7MG29FFEvXZ5eu6WjbKjg7Q1rmp0QxMkx06T0fLNXhDZodJKk+A==",
+        "requested": "[4.8.0-beta.1, )",
+        "resolved": "4.8.0-beta.1",
+        "contentHash": "KdTHPgb/T0/W+8Inf9YU99qOKyd0UKi7V+cKGmMmVAGC874V7wbPro+8r5gqf7TieTK09B/1duhazPsFliLVXg==",
         "dependencies": {
-          "GodotSharp": "4.8.0-dev.6"
+          "GodotSharp": "4.8.0-beta.1"
         }
       },
       "onslaughtrebuild.client": {

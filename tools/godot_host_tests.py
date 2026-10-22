@@ -24,9 +24,9 @@ class EnginePathTests(unittest.TestCase):
             (packages / "Godot.NET.Sdk.4.7.2.nupkg").touch()
             engine.write_text("#!/bin/sh\n", encoding="utf-8")
             engine.chmod(0o700)
-            with self.assertRaisesRegex(RuntimeError, "4.8.0-dev.6 bundled SDK package is missing"):
+            with self.assertRaisesRegex(RuntimeError, "4.8.0-beta.1 bundled SDK package is missing"):
                 host.engine_path(str(engine))
-            (packages / "Godot.NET.Sdk.4.8.0-dev.6.nupkg").touch()
+            (packages / "Godot.NET.Sdk.4.8.0-beta.1.nupkg").touch()
             self.assertEqual(engine, host.engine_path(str(engine)))
 
 
