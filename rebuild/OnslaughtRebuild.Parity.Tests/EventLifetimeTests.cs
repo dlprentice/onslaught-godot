@@ -15,7 +15,7 @@ public sealed class EventLifetimeTests
     [GameDataFact]
     public void LoadingPresentMatchesNativeRadarCountAndPreNoiseRandomBoundary()
     {
-        // Frozen native e55cb2d8bf87: codex-l100-route-moving-forward-over-ridge-20261017/probes.txt, P3.
+        // Frozen native e55cb2d8bf87: a private route-run probe file (moving forward over the ridge), P3.
         // Original pre-run ends before the loading Present. Nine unit-noise draws occur only after it returns.
         var session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         session.AdvanceToNextPresent();
