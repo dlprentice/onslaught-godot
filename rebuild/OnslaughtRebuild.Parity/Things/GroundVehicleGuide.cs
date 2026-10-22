@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/GroundVehicleGuide.cpp and GroundVehicleGuide.h (CGroundVehicleGuide: the constructor
+// Adapted from onslaught-decomp src/GroundVehicleGuide.cpp and GroundVehicleGuide.h (CGroundVehicleGuide: the constructor
 // 0047d590, Unknown3 0047d750, GetPath 0048a4b0) and src/maths.h (FVector::Azimuth, Elevation, AngleDifference as
 // compiled there). Reconstructed; not in Stuart's release.
 

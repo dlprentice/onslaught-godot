@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/InitThing.h (CInitThing::Load 0040e280 and the derived Loads, CMEMBUFFER versions),
+// Adapted from onslaught-decomp src/InitThing.h (CInitThing::Load 0040e280 and the derived Loads, CMEMBUFFER versions),
 // src/InitThing.cpp (SpawnInitThing 0048c650) and src/oids.h.
 
 using System.Text;

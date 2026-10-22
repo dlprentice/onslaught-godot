@@ -1,7 +1,9 @@
 # onslaught-godot
 
-Status: active, a proof of concept: startup to exit 1:1 with retail, with level 100 playable to completion
-Last updated: 2026-10-22 (Godot 4.8 beta1 and .NET 10; the repository split from Onslaught-Career-Editor)
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: level 100
+equals the native port on every probe field through P27650 of the tutorial win route; the win, end-level data and save
+are open.
+Last updated: 2026-10-22 (public; the repository family linked; the Host's run script)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, measured against the
 original game Present by Present.
 
@@ -47,10 +49,12 @@ submodule (`git clone --recurse-submodules`), then:
 ```sh
 dotnet test rebuild/OnslaughtRebuild.Parity.Tests       # the parity suite; set the reference variables first
 dotnet build rebuild/OnslaughtRebuild.Host              # the host
+npm run run:host                                        # build and run the host: the whole game, with your own game data
 npm run test:tools && npm run test:docs && npm run test:safety
 ```
 
-[rebuild/README.md](rebuild/README.md) lists the reference variables, the host's run modes and the tools.
+[rebuild/README.md](rebuild/README.md#running-the-host) says what the host needs (the engine, `ONSLAUGHT_GAME_DIR`)
+and lists the reference variables, the host's run modes and the tools.
 
 ## Licence and credits
 
@@ -60,6 +64,13 @@ GPL source release ([stuart73/Onslaught](https://github.com/stuart73/Onslaught))
 *Battle Engine Aquila* is a trademark of its owners; this is an unofficial project, not affiliated with or endorsed by
 the game's developer, publisher or rights holders.
 
-Related: [Onslaught CE](https://github.com/dlprentice/onslaught-ce) (the native port, to play the game) and
-[Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor) (the companion app and the game's
-documentation).
+## Related projects
+
+- [Onslaught CE](https://github.com/dlprentice/onslaught-ce): the native port, to play the game.
+- [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp): the byte-matching decompilation the parity core is
+  ported from.
+- [onslaught-preservation](https://github.com/dlprentice/onslaught-preservation): the game's documentation (formats,
+  mechanics, levels).
+- [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor): the companion app for saves,
+  settings and lore (to be renamed onslaught-companion).
+- [stuart73/Onslaught](https://github.com/stuart73/Onslaught): Stuart Gillam's GPL source release of the game.

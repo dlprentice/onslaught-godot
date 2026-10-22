@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from matched bea-decomp BattleEngine.cpp CanBeLocked0040e7d0 and
+// Adapted from matched onslaught-decomp BattleEngine.cpp CanBeLocked0040e7d0 and
 // BattleEngineWalkerPart.cpp GetIsDoingSpecialWalkerMove004135d0; pristine PC SHA-256
 // 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 namespace OnslaughtRebuild.Parity.Things;

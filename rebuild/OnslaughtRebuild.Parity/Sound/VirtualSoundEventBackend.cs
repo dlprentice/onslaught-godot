@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Pristine PC 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750:
 // CPCSoundManager Play00517790, Resume00517960, Pause00517990, Stop005179b0, Update00517ae0.
-// The concrete device contract is bea-decomp port/dsound/dsound.cpp, not arbitrary retail sound hardware.
+// The concrete device contract is onslaught-ce port/dsound/dsound.cpp, not arbitrary retail sound hardware.
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Numerics;
 

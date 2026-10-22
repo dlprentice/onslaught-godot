@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/WorldPhysicsManager.h (CUnitData: the constructor, Init 0042efd0, the setters, CopyFrom
+// Adapted from onslaught-decomp src/WorldPhysicsManager.h (CUnitData: the constructor, Init 0042efd0, the setters, CopyFrom
 // 00433390, EUnitBehaviour) and src/WorldPhysicsManager.cpp (SetExplosion 00511720, SetSmallExplosion 005117c0,
 // SetStompExplosion 00511860, AddComponent 00511900, AddWeapon 005119e0, AddSpawner 00511ad0, MapMountName 005115b0).
 // Not in Stuart's release.

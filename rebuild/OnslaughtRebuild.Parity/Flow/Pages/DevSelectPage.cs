@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/FEPDevSelect.cpp (reconstructed from the retail program; not in Stuart's release):
+// Adapted from onslaught-decomp src/FEPDevSelect.cpp (reconstructed from the retail program; not in Stuart's release):
 // RenderPreCommon (folded with CFEPDirectory's, 0051ae50), Render 00458ee0 and RenderDevice 004595b0.
 
 using OnslaughtRebuild.Parity.Flow.Draw;

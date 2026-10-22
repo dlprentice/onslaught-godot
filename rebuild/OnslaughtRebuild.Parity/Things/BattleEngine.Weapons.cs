@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/BattleEngine.cpp: ChangeWeapon 00409f70 and CountActiveWeapons 0040dc90,
+// Adapted from onslaught-decomp src/BattleEngine.cpp: ChangeWeapon 00409f70 and CountActiveWeapons 0040dc90,
 // plus BattleEngineWalkerPart.cpp: CountActiveWeapons 00414b70 and GetWeaponIconName 004145f0.
 
 using System.Text;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The loaded particle descriptors. Adapted from bea-decomp src/ParticleSet.cpp (Create 004cc020, FindByName 004cd7a0,
+// The loaded particle descriptors. Adapted from onslaught-decomp src/ParticleSet.cpp (Create 004cc020, FindByName 004cd7a0,
 // ReadData 004cd7f0, LoadAllFromDisk 004cda60, LinkNode 004cdba0, UnlinkNode 004cdbe0) and DXParticleTexture.cpp (Get
 // 0054fbc0).
 

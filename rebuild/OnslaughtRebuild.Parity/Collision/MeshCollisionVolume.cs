@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MeshCollisionVolume.cpp and MeshCollisionVolume.h (CMeshCollisionVolume: CollideWithCylinder
+// Adapted from onslaught-decomp src/MeshCollisionVolume.cpp and MeshCollisionVolume.h (CMeshCollisionVolume: CollideWithCylinder
 // 004abe50, InitBoxTriangles 004ac000, TestSweptSphereAgainstBox 004ac140, TestSweptSphereAgainstPart 004ac4a0,
 // CollideWithSphere 004ac6e0, ResolveContact 004acf30, CachePartTransform 004ad600, CollideWithLine 004ad830) and
 // src/MeshPart.cpp (GetFirstPoly 004ae110 and its siblings), reconstructed; not in Stuart's release.

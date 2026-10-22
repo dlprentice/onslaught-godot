@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -15,8 +15,26 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
+## Where it stands (2026-10-22)
+
+The milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones-2026-10-15);
+the dated entries below record each measurement.
+
+| # | Status |
+| --- | --- |
+| M0 | Met (2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its change counts. |
+| M1 | Met for every operation measured, with one measured ceiling: `fsin`, `fcos` and `fpatan` stored to a double differ in the last bits for some arguments (M1 entry below). |
+| M2-M4 | Met on the keyboard-and-mouse tape: the sampled probes (EVT, FT, RNG, SC, LVL, POS, LIFE) equal retail's virtual-DirectSound golden through Present 10000 (`RetailGoldenTests.Level100RunMatchesTheVirtualDsGolden`). |
+| M5 | Open. On the tutorial pilot's win route level 100 equals the native port on every probe field through P27650 (`PilotFinalDronesRouteTests`); the win itself, its end-level data and the career save are not yet compared. The losing routes' end-level data equal the port's (`RetailGoldenTests`). |
+| M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
+| M7 | In progress: the Host runs the whole game from boot to quit (`HOST_LIVE=flow`), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
+
+The Parity suite gates each route at its stated floor against references kept outside the repository
+([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in
+the dated entries below are the counts on their dates.
+
 CGameInterface on PC (2026-10-21): the in-game menu rises only at a lost or drawn level's end, after
-`CGame::Update` has made continue, message log, level briefing and options unavailable (bea-decomp
+`CGame::Update` has made continue, message log, level briefing and options unavailable (onslaught-decomp
 `src/game.cpp:2105..2129`); its other toggles are commented out and nothing sets the joypad picture. Those
 items are unreachable on PC and stay unported; the PC pause menu (`CPauseMenu`) carries continue, the
 message log and the briefing.
@@ -41,7 +59,7 @@ captured inputs, separate three causes:
 
 Both rebuild corrections leave every existing Parity test's outcome and output unchanged. The trainer
 route is compared again with the native port once the port's wiggle correction is in; until then the
-remaining LIFE differences are the port's. Evidence (private): the Track B packet in the maintainers' private evidence store (seek and launch captures, oracle receipts).
+remaining LIFE differences are the port's. Evidence (private): the maintainers' private evidence store (seek and launch captures, oracle receipts).
 
 Death, landing and render-lifetime integration (2026-10-19): hard ground contact now executes
 BattleEngine damage with the retail cap, component spills and shield-bypass rules. The BE has its
@@ -50,18 +68,18 @@ and fade state. Destruction releases modeled parts, controllers, weapon targets/
 owned repeating sounds. Generic render teardown unlinks the mesh and emitter links; actual mesh
 render queries refresh the unit hit countdown even when host drawing is disabled.
 
-The integrating lead rebuilt and reran 1,024 original dying-movement cases, 1,036 camera cases,
+The maintainers rebuilt and reran 1,024 original dying-movement cases, 1,036 camera cases,
 569 hit-countdown cases and 1,028 original hard-landing cases under two precision modes and two
 negative variants (6,168 calls). The managed cosine check uses only the 1,015 original rows that
 actually evaluated it; 13 branch-skipped scratch values are not treated as evidence. All 85 joint
 focused tests pass without skips, including actual shutdown and landing paths. The complete integrated
-Parity suite passes **537 tests, 9 unchanged optional-reference skips, 0 failures**. The retail camera
+Parity suite passed **537 tests, 9 unchanged optional-reference skips, 0 failures**. The retail camera
 constructor leaves two timestamp words uninitialized: four heap-seed controls show its ambiguous
 first-use cache. The reconstruction explicitly starts with an invalid cache, not an invented claim
 of universal retail heap equality. Device rumble, visible damage-flash pixels and audible fade remain open.
 
 The frozen native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
-targets**. Root replayed it in Parity through Present 15,130 and observed all 18 real script posts
+targets**. A Parity replay ran it through Present 15,130 and observed all 18 real script posts
 at the same completed Present; the observer forwards each original call once and leaves the whole
 trace unchanged. After the stopped-round query correction below, **all nine probes agree at
 every Present 3..15,130**, across all 136,152 comparisons. This is selected-state agreement with
@@ -70,14 +88,13 @@ not a fresh retail whole-route comparison. The tape SHA-256 is
 `b083d308cc29bb108d2d4a15bc8ee7a1c17d7086ae386682fb2f9425b9d69919`.
 The native route starts with `-level100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
 flight/refuelling/later combat/win/save remain separate. Its later evasion attempt takes hits;
-it is not a perfect-score or no-hit run. Root receipts: internal clone
-`local-data/test-runs/death-integration-20261019/` (focused tests, independently executed original
-code, full ground probe comparison and 18-post admission).
+it is not a perfect-score or no-hit run. Receipts (focused tests, independently executed original code, full ground
+probe comparison and 18-post admission) are in the maintainers' private evidence store.
 
 The frozen native route subsequently reaches the first flight zone and genuinely destroys its first
 airborne target at Present 19,821. At 20,800 it has landed on the island and is recharging, with health
 19.8097916 and energy 4.4644375. Its required target groups stand at **4/4, 3/3, 6/6, 1/3 and 0/6**;
-all 26 recorded script posts and the ordinary-input prefix are preserved. Root inspected the fresh
+all 26 recorded script posts and the ordinary-input prefix are preserved. The maintainers inspected the fresh
 landing image and admission receipt. This is native-port progress, not a managed-rebuild run or full
 retail acceptance. The first airborne group, final combat group, completion and save remain open.
 The private tape is `fire3-airborne-recharge-land-20261019.tape`, SHA-256
@@ -86,34 +103,34 @@ The private tape is `fire3-airborne-recharge-land-20261019.tape`, SHA-256
 Stopped-round and plane follow-up (2026-10-19): retail's final straight-projectile query comparison
 rejects unordered results. The previous greater-than check admitted the NaN produced by zero velocity,
 scheduling three extra tree collisions at Present 9,365 that survived as null events at 9,372.
-The fix changes that comparison alone. Root executed 12 original query cases and all 12 focused tests;
+The fix changes that comparison alone. The maintainers executed 12 original query cases and all 12 focused tests;
 the full ground replay above now has no EVN differences. The bounded native dispatch observer retained
 all 84,600 ordinary probe values through Present 9,400 while recording 1,708 contiguous dispatches.
 
 The Plane attack/escort handler, distinct waypoint handler and wing animation transitions now preserve
 target-reader order, 25/70 approach/retreat hysteresis, 30/120 escort thresholds and conditional random
-draws. Root reproduced 1,024 cases executing five unchanged retail arithmetic blocks; the PC53 negative
+draws. An independent reproduction ran 1,024 cases executing five unchanged retail arithmetic blocks; the PC53 negative
 control differs in 765 cases. All 21 focused tests pass without skips. Radius callbacks and RNG returns
 are authored oracle boundaries; that oracle does not execute targeting, animation or the scheduler.
 The script Attack now routes through Unit/squad target ownership, preserving monitored readers and
 the native target-selection rules. Aircraft launch thrusters use their actual afterburner descriptors,
 emitter transforms and cleanup. The missing CRT draw at 15,669 comes from the afterburner timeline's
-emitter child, not effect allocation; no compensating random call was added. Root's integrated replay
+emitter child, not effect allocation; no compensating random call was added. The integrated replay
 now agrees on **all nine fields at every Present 3..16,066: 144,576 comparisons, zero differences**.
 The nonballistic weapon reach/firing queries now execute through the trainer's first missile launch;
-root reproduced 2,073 original cases (20,730 output words), with 600 cases distinguished by the
+an independent reproduction ran 2,073 original cases (20,730 output words), with 600 cases distinguished by the
 PC53 negative control, and all 13 focused cases pass. Subsequent missile seeking and BattleEngine
 lock-loss integration reproduces 2,320 original cases (39,440 words); PC53 changes 1,056 cases.
 The configured replay now completes the trainer's attack-and-cease sequence through Present 17,300.
 Its previously missing event 4002 plays the spoken missile warning, independently of the radar beep,
-with the original strict two-second deadline. Root reproduced 14 original-handler boundary cases and
+with the original strict two-second deadline. An independent reproduction ran 14 original-handler boundary cases and
 19 focused tests; restoring this actual call removes every CRT difference from Present 16,067 onward.
 Across **155,682 comparisons**, eight of nine fields agree at every Present 3..17,300. LIFE differs at
 283 Presents, first at 16,206: health agrees at that hit, while energy differs by 11 float ULPs.
 A noninterfering private collector and eight original Damage executions reproduce the managed results
 exactly on the captured inputs; the explosion's incoming damage/trajectory needs investigation rather
 than an adjustment to Damage. This does not yet establish full trainer parity or tutorial completion.
-The complete integrated suite passes **748 tests, 9 unchanged optional-reference skips, 0 failures**;
+The complete integrated suite passed **748 tests, 9 unchanged optional-reference skips, 0 failures**;
 all 749 outcomes from the spoken-warning integration are unchanged and eight new cases execute.
 Private evidence remains in the existing death-integration owner, including
 `trainer-reach-fixed-admission.json`, `weapon-reach-root/`, `weapon-reach-full.trx` and
@@ -124,7 +141,7 @@ Private evidence remains in the existing death-integration owner, including
 Explosion falloff correction (2026-10-19): pristine `CExplosion::Hit` at `0044bf65..0044bf9b`
 sums squared displacement as `(Z² + Y²) + X²`, retaining the x87 exponent range until the
 magnitude store. The previous generic vector norm used a different order and float intermediates.
-Root reproduced 5,347 isolated original Hit cases; 521 distinguish the former order. Eight managed
+An independent reproduction ran 5,347 isolated original Hit cases; 521 distinguish the former order. Eight managed
 counterexamples cover summation order and intermediate overflow/underflow, and all eight fail with
 the former implementation. The configured trainer trace remains byte-identical after this correction.
 Its first explosion still gives `3ecf1334` in both Core and original code on the captured Core inputs,
@@ -141,18 +158,17 @@ at the direct Round.Damage boundary, before explosion placement. A separate mana
 preserves its entire16204-record trace and confirms unchanged position/velocity from Round.Hit
 through GoOff. Original placement on those managed inputs reproduces the managed explosion.
 Native velocity at that boundary was not observed, so it is not assumed equal. The next collision
-observer is a private, unexecuted draft, not another accepted fix. Root receipts are in the
-`parity-flight-20261019` worktree's `local-data/test-runs/flight-energy-20261019/native-first-hit/`
-and `placement-seam/root-reproduction/`. The full suite count above is unchanged.
+observer is a private, unexecuted draft, not another accepted fix. Receipts are in the maintainers' private evidence
+store. The full suite count above was unchanged.
 
 Sound primitives are prerequisites only: 1,060 original format/length cases and 512 sequences
 against the actual native port's virtual mixer were independently reproduced. Converted byte
 length, block-clock progress, cursor, pause/resume and completion boundaries now have tested
 owners. A shared sound-event kernel now implements pool admission, channel retention, ordered ranking,
-pause/stop, deferred deletion and owner callbacks. Root independently rebuilt and reran 328 original
+pause/stop, deferred deletion and owner callbacks. An independent reproduction rebuilt and reran 328 original
 kernel cases, 640 effect-admission cases and 64 platform PlaySound controls, including controls that
 distinguish clock reads, retained channels and stopped-event revival; all 26 focused tests execute.
-The concrete spatial/buffer adapter and explicit process binding are now integrated. Root reproduced
+The concrete spatial/buffer adapter and explicit process binding are now integrated. An independent reproduction ran
 184,576 original gain outputs and 512 actual-port buffer sequences, plus bounded spatial checks.
 Voices, cockpit warnings, engine loops, dashes, weapon/impact/explosion and initial unit sounds use
 the same event owner. Once/repeat, fade identity, pause, menu gain and restart callbacks have focused
@@ -160,7 +176,7 @@ coverage; 99 joint checks pass without skips. No independent warning/voice durat
 channel admission. A private harness can select the measured 256-node e55 startup pool and an
 explicit native-device profile; these are not universal retail defaults. The normal host does not
 silently select that private profile. Feature loops and unit post-fire sound now retain their original
-owner/cleanup ordering; root reproduced 23 original feature/post-fire cases and 100 related tests.
+owner/cleanup ordering; an independent reproduction ran 23 original feature/post-fire cases and 100 related tests.
 Complete world/device teardown, unimplemented component effects/shadows, full-route comparison beyond
 the trainer and audible acceptance remain open. Original-code outputs stay
 private under the existing death-integration owner's `sound-events/`, `sound-adapter-root/` and
@@ -169,9 +185,9 @@ private under the existing death-integration owner's `sound-events/`, `sound-ada
 Flight and damage integration (2026-10-19): ordinary jet controls now reach the measured jet
 movement, ground-effect, friction and maneuver paths. BattleEngine damage uses its own shield,
 repair, augmentation, statistics and shake rules rather than inherited Unit damage. Damage flashes
-expire through scheduled movement. The lead reproduced 5,000 yaw and 7,000 movement cases, plus
+expire through scheduled movement. The maintainers reproduced 5,000 yaw and 7,000 movement cases, plus
 1,035 damage/shake and 1,006 flash cases, against isolated original code. Precision-negative
-controls change 75 yaw, 1,179 movement and 257 damage results. The integrated suite passes
+controls change 75 yaw, 1,179 movement and 257 damage results. The integrated suite passed
 **462 tests, 9 unchanged optional-reference skips, 0 failures**.
 
 The extended native ordinary-input tape destroys two of six moving targets at Presents 14,184
@@ -181,8 +197,7 @@ probes plus CRT agree for every Present 3..14,350, across 129,132 total nine-pro
 EVN alone still first differs at 6,017 (8,334 differing later records). This is selected-state
 agreement with the native port, not a fresh retail whole-route comparison or a complete tutorial.
 The tape SHA-256 is `84fbc81038f43117bf49584d2d3808c2e069cccbd7668b751eb2cb2f2f52ad81`.
-Receipts: internal clone `local-data/test-runs/flight-damage-integrated-20261019/`, and private
-`live-host/resume-20261019/flight-damage-comparison-14350.json`.
+Receipts are in the maintainers' private evidence store.
 
 The Space-input flight fixture explicitly enables flight permission before exercising real input
 and scheduled takeoff/landing/refill; it does not establish the tutorial's permission route.
@@ -192,12 +207,12 @@ Damage-flash drawing, device audio and player acceptance remain open.
 
 Water skimming follow-up: `HandleSkimming00411500` now retains the original x87 speed/product
 precision and calls the BattleEngine damage owner with a null attacker and shields disabled,
-then reports the hostile environment. Root rebuilt the private oracle and reproduced all **4,151**
+then reports the hostile environment. An independent reproduction rebuilt the private oracle and reproduced all **4,151**
 original-code cases, including guard boundaries, large finite velocities and invulnerability;
 the PC53 negative changes **710** outputs. All **26** focused flight, skimming and damage tests
 pass without skips. Terrain, sound lookup and authored objects remain explicit oracle boundaries;
-this does not establish a tutorial water-skimming playthrough. Private receipt:
-`local-data/test-runs/flight-damage-integrated-20261019/skim-root/receipt.json`.
+this does not establish a tutorial water-skimming playthrough. The receipt is in the maintainers' private evidence
+store.
 
 Weapon-change input (2026-10-19): the native tutorial tape now runs through Present 13,000 in
 headless Parity. Previously its right-mouse release reached an unsupported `MechChangeWeapon`
@@ -206,14 +221,13 @@ active-count guard, selection/ammunition distinction, movement reset, change tim
 sound's shared random draw. Four focused tests execute, including ordinary right-mouse release,
 held-button non-repetition and the empty-secondary case. The old prefix through 11,612 is unchanged.
 
-Root compared all seven primary probes for every Present 3..13,000 with the frozen native port:
+A Parity replay compared all seven primary probes for every Present 3..13,000 with the frozen native port:
 all 90,986 values equal. CRT count/state also equals from Present 4 through 13,000; its first
 recorded sample differs. The additional EVN event-count probe differs on 12,997 records and is
 under investigation. These limits are explicit: this is not nine-probe parity or complete tutorial
 acceptance. The private tape SHA-256 is
 `eff3538300257457779df55692c3c67b59a82db4e169d485307f8089ef949ae4`;
-receipts are in the existing private `live-host/resume-20261019/` owner and the internal rebuild
-clone's `local-data/test-runs/change-weapon-20261019/`. No physical device or audio acceptance is claimed.
+receipts are in the maintainers' private evidence store. No physical device or audio acceptance is claimed.
 
 Following event-lifetime repair (2026-10-19): the real radar receiver now scans the ordered
 round set, retains monitored threats and schedules its next update; it is initialized after the
@@ -226,10 +240,9 @@ matching the native probe boundary; the draws still occur before the first gamep
 The same tape now matches **all nine probes at every Present 3..6,016**. The seven primary
 probes and CRT state/count match through 13,000. EVN first differs by one at Present 6,017
 and differs on 6,984 later records; this is still an open event-lifecycle question, not full-state
-parity. All 116,982 comparisons were performed. Root's integrated suite passes **443 tests,
-9 existing optional-reference skips, 0 failures**. Private receipts are
-`live-host/resume-20261019/event-lifetime-comparison.json` and the internal clone's
-`local-data/test-runs/event-lifetime-20261019/`. Radar bearing retains the existing explicit
+parity. All 116,982 comparisons were performed. The integrated suite passed **443 tests,
+9 existing optional-reference skips, 0 failures** on that date. Private receipts are in the maintainers' private
+evidence store. Radar bearing retains the existing explicit
 atan2 approximation; missile lock admission, nonloop warning playback and complete battle-engine
 teardown are not established by this slice.
 
@@ -242,9 +255,9 @@ auto-level controls. Morph admission preserves permission, energy and special-mo
 mesh/controller ownership and scheduled transitions. These are prerequisites: ordinary jet input,
 the complete jet movement loop, damaging landings and full flight acceptance remain unfinished.
 
-The integrating lead independently compiled and ran the original-code fixtures: **1,864 dash cases**
+The maintainers independently compiled and ran the original-code fixtures: **1,864 dash cases**
 and **10,000 jet-control cases**, with all recorded output words equal. Changing x87 precision to
-53 bits changes 364 dash and 106 jet-control cases, respectively. The integrated Parity suite passes
+53 bits changes 364 dash and 106 jet-control cases, respectively. The integrated Parity suite passed
 **428 tests, 9 existing optional-reference skips, 0 failures**; no reference expectation was changed.
 The host builds with zero warnings/errors. The existing ordinary-input tutorial tape still reaches
 Present 13,000 and all 12,998 selected-state records equal the preceding weapon-change build.
@@ -254,9 +267,7 @@ Repeating sound state is logical and silent: its fade now advances once at MainL
 `SOUND.UpdateStatus` boundary (0046eff6), after the pause transition and before repeated renders.
 A real LevelSession test drives ordinary Escape pause/resume and distinguishes update from render
 cadence. Device channels, audibility and nonloop duration are not established by this model.
-Private original-code fixtures and lead reproduction are in the internal clone's existing
-`local-data/test-runs/walker-dodge-20261019/`, `flight-20261019/` and
-`flight-integrated-20261019/` owners. These are isolated execution and reconstruction checks,
+Private original-code fixtures and their reproduction are in the maintainers' private evidence store. These are isolated execution and reconstruction checks,
 not a complete retail or Godot tutorial playthrough.
 
 The target is retail under the retail replay harness's shim: `BEA.exe -level 100 -skipfmv -forcewindowed -res 640 480`
@@ -270,7 +281,7 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M1 | Exact x87 numerics (24-bit precision control): mixed float/double arithmetic, conversions, transcendentals | 0 mismatches against oracle tables from a VC6 `/O2 /QIfist` harness under Wine at `_PC_24`, at least 10^6 random inputs per operation plus edge cases |
 | M2 | Clock and main loop: virtual clock, render-repeat loop, base-time adjustment, event-manager time, CGame frame time | EVT, FT and LVL equal the golden at every sample of the level-100 run |
 | M3 | The game's random stream and level-start draws | RNG equal at the level-start sample |
-| M4 | Level-100 parity core ported from bea-decomp | EVT, FT, SC, LVL, RNG, POS and LIFE equal at all 200 samples over 10,000 frames on the keyboard-and-mouse tape |
+| M4 | Level-100 parity core ported from the decompilation (onslaught-decomp) | EVT, FT, SC, LVL, RNG, POS and LIFE equal at all 200 samples over 10,000 frames on the keyboard-and-mouse tape |
 | M5 | Win and loss, end-level data and the career save | Probes equal through the win; the career after the win byte-identical to retail's from the same starting career |
 | M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
@@ -279,11 +290,11 @@ Observed and modelled Present schedules (M6 and M7). The boot films (`Flow/BootF
 CDXFMV::Play) follow retail's default PAL path: logo then opening film; the vendor tweak is off and the PC release
 has no NTSC films. A film makes one Present before its loop, one for each frame but the last, and one after. The
 logo's 229 frames cost 230 Presents; the opening's 2,054 cost 2,055. Waiting for the next video frame never presents.
-Under C's retail harness the films are paced by their sound tracks on Wine's real-time mixer (C logged every Present
+Under the retail replay harness the films are paced by their sound tracks on Wine's real-time mixer (its log of every Present
 from 2190 to 2300: one flip site, 0x00512644, and no spin escape). `HarnessFilmPacing` models each frame as due,
 without those real-time waits; the port's virtual-clock rule (`BEA_SLEEP_VIRTUAL`, sleeps moving the clock) plugs in
 as another `IFilmPacing`. The opening film's copyright splash starts at film frame 1,934, fading in 7 steps per frame.
-C's earlier capture at 2204 showed that splash, and Present 2220 was inspected at full opacity: the Lost Toys
+An earlier capture at 2204 showed that splash, and Present 2220 was inspected at full opacity: the Lost Toys
 copyright screen, not a loading screen. Those visual observations are retained independently of the corrected boot
 boundary interpretation below.
 
@@ -294,8 +305,8 @@ Present count was right, it gave the wrong filtered front-end step from Present 
 origin after the device Present, before either film; no clock offset or numerical formula was changed.
 
 Evidence: two offscreen processes of port commit `89a8b037` (binary SHA-256
-`e42adf1f30770d9254bdc52a2605c7a7333646e6acfee71615c25e89690f27a8`), private runs
-`bea-decomp/local-data/port/runs/codex-r5-clock-{a,b}-20261017`, showed `first_seen = gQpcBase + 333333` and identical
+`e42adf1f30770d9254bdc52a2605c7a7333646e6acfee71615c25e89690f27a8`), private runs in the maintainers' private
+evidence store, showed `first_seen = gQpcBase + 333333` and identical
 clock/step values at every front-end Process observed from completed Present 2287 to 2300, with no spin escapes or
 virtual sleeps. Their first breakpoint was after the first Present sampled its QPC base. The existing R5 call trace
 independently places the logo and opening entries at completed Presents 1 and 231. This is new port evidence; the
@@ -323,7 +334,7 @@ their constructors, first-ID lookup 0042db10 and ApplyControlPreset 00453780, wi
 stubs. Ten original cases and 27 additional signed-selector/device cases were independently reproduced
 with native x86; bounded Unicorn agrees on 36 of the 37 cases. The 32767/no-pad repetition case ran
 natively only. Enabled-pad cases demonstrate the omitted device-dependent behavior. Private inputs,
-outputs and root reproduction receipts are in the maintainers' private evidence store
+outputs and reproduction receipts are in the maintainers' private evidence store
 (`control-preset/`). `KeyboardPresetTests` binds complete
 record outputs to those observations and tests menu confirmation, saved selectors from -32768 to
 32767, campaign reset and original-fixture preservation. `ControllerTests` checks the restored Up/W
@@ -356,13 +367,12 @@ same-render-frame refusal and the 30-frame/force gates instead of adding angle-d
 Evidence: 1,200 isolated executions of the pristine original function and its dependencies at x87
 control word 007f, each with 25 authored input words. Cases vary nine part names, root/non-root,
 world/local, old/current angles, noncommuting matrices and interpolation timing. Global render
-fraction is zero; varying LastMoveTime covers the tested interpolation/clamp paths. Root independently
+fraction is zero; varying LastMoveTime covers the tested interpolation/clamp paths. An independent reproduction
 rebuilt the oracle and reproduced all output words, then ran the C# Parity suite: **376 passed,
 9 existing optional-reference skips, 0 failed**, including all nine new controller tests. The consumer
 test uses a real Level-100 cannon to check cached and uncached emitter dispatch and pose refresh.
-No reference expectation was changed. Private inputs, oracle, hashes and root receipt are under
-the maintainers' private evidence store (`cannon-controller/`); the suite receipt is
-`local-data/test-runs/cannon-controller-20261017/root-full.trx` in the internal rebuild clone.
+No reference expectation was changed. Private inputs, oracle, hashes and receipt are in
+the maintainers' private evidence store (`cannon-controller/`), with the suite receipt.
 These are bounded original-code and reconstruction checks, not a live retail playthrough or Godot
 visual acceptance. BattleEngine and Buggy controllers remain separate work.
 
@@ -374,16 +384,15 @@ mode leaves the frame untouched but updates the saved door state. `ResolveFrameN
 the adjustment hook in both its animated and fallback branches, as retail does at 004b2534/004b2591.
 Existing same-frame and 30-frame pose-cache gates remain intact.
 
-Root independently rebuilt the original-code oracle and reproduced **1,800 cases**, each comparing
+An independent reproduction rebuilt the original-code oracle and reproduced **1,800 cases**, each comparing
 19 output words, then ran the integrated Parity suite: **388 passed, 9 existing optional-reference
 skips, 0 failed**. All 12 added cases executed. Tests exercise opening/closing, missing modes,
 non-door parts, integer frame parameters, global interpolation, cache behavior and emitter consumers.
 The real Level-100 U-17 uses `f_lifter.msh`, whose 21 parts contain no door-prefix names: that fixture
 proves controller wiring and unchanged non-door behavior, not a visible tutorial door correction.
 Active door animation uses an authored mesh fixture through the existing mesh reader and emitter path.
-Landing behavior remains separate. Private original-code inputs, hashes and root reproduction are in
-the maintainers' private evidence store (`dropship-controller/`); the integrated suite is
-`local-data/test-runs/dropship-controller-20261017/root-full.trx` in the internal rebuild clone.
+Landing behavior remains separate. Private original-code inputs, hashes and reproduction are in
+the maintainers' private evidence store (`dropship-controller/`), with the integrated suite's receipt.
 These are bounded original-code and reconstruction checks, not live Godot or retail visual acceptance.
 
 Front-end particles (2026-10-17): the front end now loads its shipped particle descriptors and
@@ -395,15 +404,14 @@ name and the original Z-then-X random draw order (00462640). Noise, frame/alloca
 sprite numbering belong to one simulated process and survive front-end/level/restart transitions;
 separate simulated runs no longer share the CLR-static sprite counter.
 
-Root rebuilt the pristine InitNoiseTable oracle (004c7db0, unchanged rand), reproducing eight seeds
+An independent reproduction rebuilt the pristine InitNoiseTable oracle (004c7db0, unchanged rand), reproducing eight seeds
 and all 1,024 float words per seed, with 1,023 draws on first initialization and none on the second.
-Only Win32 TLS/last-error imports are adapted. The integrated Parity suite passes **394 tests,
+Only Win32 TLS/last-error imports are adapted. The integrated Parity suite passed **394 tests,
 9 existing optional-reference skips, 0 failures**, including all six new front-end particle cases
 and all twelve dropship cases. Shipped goodie/firework closures load real resource meshes, create
 particles and expire; tests also cover link positions, shutdown, reconnect timing, failed BeginScene
 and process-state isolation. No golden expectations changed. Private original-code evidence is in
-the maintainers' private evidence store (`frontend-particles/`); root suite/command
-receipts are in `local-data/test-runs/frontend-particles-20261017/` in the internal rebuild clone.
+the maintainers' private evidence store (`frontend-particles/`), with the suite and command receipts.
 
 This completes this front-end simulation/lifecycle slice, not its Godot drawing or full particle
 numerical parity. General particle-motion arithmetic and retail heap values for not-yet-shown
@@ -416,8 +424,8 @@ exclusively owns input; untaped focus loss suspends pacing and discards held/pen
 limited pause view permits resume and blocks hidden settings navigation. Default snapshot mode
 remains the default. Front-end navigation, debrief/retry and actual audio are not in this host slice.
 
-The integrated closeout suite passes **397 tests, 9 existing optional-reference skips, 0 failures**.
-Root reproduced 19 adapter checks and the retained-terrain comparison (1,572,864 level selections,
+The integrated closeout suite passed **397 tests, 9 existing optional-reference skips, 0 failures**.
+An independent reproduction ran 19 adapter checks and the retained-terrain comparison (1,572,864 level selections,
 6,291,456 expanded indices, 1,048,576 cache texels, four reversed-order negative controls). Six GPU
 runs exited zero offscreen. Default snapshots at Presents 30 and 3900 are pixel-identical to the
 prior snapshot implementation. Drawing on/off and a standalone headless session agree on every
@@ -433,8 +441,7 @@ The real-LevelSession adapter checks cover same-batch pause/resume and focus los
 Intro skipping was unsupported at that checkpoint; the preserved correction is integrated below.
 
 Private runs and comparisons are under
-the maintainers' private evidence store (`live-host/`); headless trace, build and suite
-records are in `local-data/test-runs/live-host-20261017/` of the internal rebuild clone. This is an
+the maintainers' private evidence store (`live-host/`), with the headless trace, build and suite records. This is an
 opt-in experimental implementation and safe resume point, not completed M7 or full tutorial acceptance.
 
 Live host corrections (2026-10-19): `MeshView.LiveSet` now places each tree from its own Thing
@@ -448,13 +455,13 @@ retail visual parity are not claimed.
 
 `Player.ReceiveButtonAction` now restores the preferred control camera and starts play when
 SkipPanning is admitted, preserving the guards, fall-through and original scheduled deadlines.
-The integrating lead rechecked pristine instructions 004d3160..004d3199 and 0046fec0..0046ff0b,
+The maintainers rechecked pristine instructions 004d3160..004d3199 and 0046fec0..0046ff0b,
 then reproduced all four installed-data tests: Space, Return, keypad Enter, and Escape (which
 skips then pauses in the same controller flush). The old camera's monitored readers clear; the
 scheduled callbacks still run without replacing the control camera or repeating message admission.
 Third-person view remains unsupported. The host now advertises Enter to skip the intro.
 
-The integrated suite passes **401 tests, the same 9 optional-reference skips, and zero failures**;
+The integrated suite passed **401 tests, the same 9 optional-reference skips, and zero failures**;
 all earlier outcomes are preserved. Host build has zero warnings/errors. Three fresh offscreen
 Godot runs exit zero. Live traces agree with the retained headless trace on all selected fields
 through Present 3900 (3,898 records). A new ordinary Return-key tape skips at Present 31 and
@@ -462,9 +469,8 @@ agrees with a fresh independent headless session through Present 600 (598 record
 comparison negative controls reject alterations. This exercises tape delivery in the running
 Godot host, not physical input-event delivery, audio, or the complete tutorial.
 
-Private capture/trace commands, hashes and root comparisons are in
-the maintainers' private evidence store (`live-host/resume-20261019/`);
-suite/build receipts are `local-data/test-runs/resume-20261019/` in the internal rebuild clone.
+Private capture/trace commands, hashes and comparisons are in
+the maintainers' private evidence store (`live-host/resume-20261019/`), with the suite and build receipts.
 
 Whole-game host, slices 1 and 2 (2026-10-21, M7 in progress):
 - Slice 1: `HOST_LIVE=flow` runs the whole game (`GameRun`, boot to quit) on its own thread through `SteppedGameRun`. Godot's
@@ -605,7 +611,7 @@ for the out-of-line constructor. Against retail's own block run natively at cont
 pairs (the retail oracle's `pan-camera-orientation-20261022` group, `PanCameraOracleTests`), all nine elements match on
 every case; the earlier form missed 16,251 of them by a last bit or more.
 
-The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
+The observed constants, from captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
 
 | Constant | Present | What retail shows |
@@ -613,21 +619,21 @@ identical at every captured Present):
 | `FrontEndInitPresents` | 2287 | completed Presents when `CFrontEnd::Init` starts; this total is unchanged. The earlier assignment of both preceding Presents to loading is superseded by the clock/call evidence above. |
 | `TitleLastPresent` | 3188 | the title page's last frame with no input; the attract videos follow at 3189 |
 
-Measured (M6 boot, 2026-10-15; C's code breakpoints logging completed Presents, two retail processes identical):
+Measured (M6 boot, 2026-10-15; code breakpoints logging completed Presents, two retail processes identical):
 `CFrontEnd::Init` starts at 2287 completed Presents. Both of its `CFEPIntro::TransitionNotification` calls and its
 first `CFrontEnd::Process` run at 2287, then one `Process` per Present. The title page's 30 s timeout quits in the
 `Process` at 3188 = 2287 + 901, as the flow models it (`ThirtySecondsIdleOnTheTitleQuitsToTheAttractVideos`): from
 the front end's first `Process` on, retail and the model agree to the Present.
 
-Measured (M6 front end, 2026-10-15): C's click tape from the title page to level 100 (fe-explore4: the title,
+Measured (M6 front end, 2026-10-15): a click tape from the title page to level 100 (fe-explore4: the title,
 New Game, the name keyboard's forward arrow, a miss beside the level node, then forward through the level select,
 briefing and configuration) replayed into the flow from `FrontEndInitPresents`. Every page change lands on retail's
-Present (C's breakpoints on `CFrontEnd::SetPage`): Intro 2287, Main 2596, the name keyboard 2704, the save 2804,
+Present (breakpoints on `CFrontEnd::SetPage`): Intro 2287, Main 2596, the name keyboard 2704, the save 2804,
 the level select 2817 (13 Presents later, after the autosave), the briefing 3104 and the configuration 3304. The
 front end's last `Process` is at 3504 with the level set to 100, as in retail
 (`RetailChainTests.TheTitleToLevel100ClickChainSetsEachPageAtRetailsPresent`, which reads the player's own
 installation for the fonts, texts and data). The front end's float expressions (frame-step filter, counters,
-transitions, cursor and layout maths) still need D's per-function oracle before they count as exact (J's rule).
+transitions, cursor and layout maths) still need a per-function oracle before they count as exact (the project's rule).
 
 Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its
 138 / 94 / 0 / 0 / 138 changes (EVT / POS / LIFE / SC / RNG); no parity simulation exists yet, so every probe is
@@ -655,7 +661,7 @@ Porting notes for the parity core:
 - Float expressions keep the decompilation's association order. With float operands at 24-bit precision control,
   C# float arithmetic in the same order gives retail's bits; double operands go through `X87`.
 - The C runtime's `rand()` does not reach the probes in level 100: retail's callers over the 10,000-Present
-  golden-640 run (C's detour on `rand`, 348,459 calls) are the particle descriptors (render-paced, about 342,000),
+  golden-640 run (a detour on `rand`, 348,459 calls) are the particle descriptors (render-paced, about 342,000),
   `CSnow::Init` at load (4,100) and `CSoundManager::PlayEffect` (26, sound parameters only). `CrtRand` must still be
   exact, in per-Present order, for render captures and sound. This holds per level: rerun the detour on each new
   level before relying on it.
@@ -663,9 +669,9 @@ Porting notes for the parity core:
   files), not `CMesh::InitFromMem` (loose `.msh` files, versions 2.01-2.07, with its inline quaternion helper). A
   complete level resource file never takes that path; if a later milestone needs it, check its quaternion helper's
   compiled evaluation on the real FPU first.
-- Loading-screen Present counts are observed constants from the retail runs (lead's rule, 2026-10-15): the Present
+- Loading-screen Present counts are observed constants from the retail runs (the project's rule, 2026-10-15): the Present
   numbers of screen boundaries repeat between retail runs while the timer reads per loading Present differ, and every
-  Present comes from the frame flip (0x00512644) with no spin escape (C's logs). What paces the loading screen is an
+  Present comes from the frame flip (0x00512644) with no spin escape (the harness's logs). What paces the loading screen is an
   open question; exact modelling starts at the first front-end Process or the first MainLoop. No draw comes from the
   loading screen, so the RNG is unaffected.
 - `.aya` positions such as the world's resource offset are positions in the decompressed stream (a packed file
@@ -689,9 +695,9 @@ Since September 26 `Simulation` constructs World 110 from its materialized
 static world through its start state, with Level 100's surviving base world
 (the World 110 rows below). The earlier, separate World 110 construction stage
 was retired that day in favour of that one owner; its retail evidence stays in
-[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md)
+[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md)
 and
-[`world-110-player-start-admission.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-player-start-admission.md).
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md).
 
 RE commit `d34f565d` (now in this branch) supplies the September 19
 projectile-readiness queue and maximum-speed-provider contracts in
@@ -732,9 +738,8 @@ effects and dying flight remain open. The September 12 update adds the
 spawned controller's exit and scheduled Ready handoff, including separate
 monitored/collision-ignore ownership and both altitude clamps. Original-code
 experiments and in-process restore/ordering tests support this prefix; normal
-control still resumes the older approximate script/weapon bridge. The
-[Unit evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/functions/CComplexThing.cpp.md)
-separates those boundaries from the measured arithmetic.
+control still resumes the older approximate script/weapon bridge. The unit's
+evidence (kept in the private RE archive) separates those boundaries from the measured arithmetic.
 
 ## Carried retail contracts — entity, owner, implementation, test
 
@@ -1049,7 +1054,7 @@ mission callbacks, in the shipped order. Enable/disable and morph-completion
 regressions prevent a later callback from changing an earlier button result;
 combined movement/fire uses the retained launch pose. Full axis/event dispatch,
 spatial blasts and float motion/expiry remain
-open in the [round owner](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md).
+open in the [round owner](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/cround-hit-damage-path.md).
 ReadyToCharge is pinned by
 `SimulationTests.AfterPulseFire_ChargeWaitsUntilReloadStrictlyElapses`;
 Charged-2 / Large fire is pinned by
@@ -1397,7 +1402,7 @@ framework remain open.
 | Dimension | What it means | Current gate | What the gate does / does not prove |
 |---|---|---|---|
 | **Deterministic sim state** | Identical tick-by-tick simulation given identical inputs | Core cold-start + full-chain tests, `--expect` trace hashes | Proves determinism and self-consistency. Does NOT prove retail equality — retail has no tape to replay against |
-| **Visual frame** | Rendered output matches retail within tolerance | `npm run capture:rebuild-godot -- --plan mainmenu` (through `godot-offscreen`) + `score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
+| **Visual frame** | Rendered output matches retail within tolerance | `npm run ref:godot-capture -- --plan mainmenu` (through `godot-offscreen`) + `score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
 | **Audio** | Playback behavior matches retail | None (no automated audio gate) | Not gradeable today |
 | **Timing / feel** | Response latency, animation cadence feel equivalent | None dedicated | Not gradeable today; 20 Hz step + floor semantics are the strongest proxy |
 | **Content completeness** | All retail content reachable/present | Materializer hash checks (200+ pinned inputs), level-100 slice | Proves the retail inputs consumed are byte-exact. Does NOT prove every level plays |

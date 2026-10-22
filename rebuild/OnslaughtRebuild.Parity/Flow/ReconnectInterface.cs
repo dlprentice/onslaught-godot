@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/reconnectinterface.cpp and src/reconnectinterface.h (reconstructed from the retail
+// Adapted from onslaught-decomp src/reconnectinterface.cpp and src/reconnectinterface.h (reconstructed from the retail
 // program; not in Stuart's release).
 
 namespace OnslaughtRebuild.Parity.Flow;

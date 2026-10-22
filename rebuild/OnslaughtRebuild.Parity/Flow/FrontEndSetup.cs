@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The front end's construction as WinMain and CFrontEnd's resources make it (bea-decomp src/FrontEnd.cpp, src/Career.cpp):
+// The front end's construction as WinMain and CFrontEnd's resources make it (onslaught-decomp src/FrontEnd.cpp, src/Career.cpp):
 // the shipped options, the fonts, the texts and every page a player reaches on the way to a level.
 
 using OnslaughtRebuild.Parity.Career;

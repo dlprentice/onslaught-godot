@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/WorldPhysicsManager.h (UPhysicsManager's registries, Add*/Get* lookups, CFeatureData,
+// Adapted from onslaught-decomp src/WorldPhysicsManager.h (UPhysicsManager's registries, Add*/Get* lookups, CFeatureData,
 // CHazardData), src/CPhysicsScript.cpp (CPhysicsScript::Process 0042ea60) and src/CPhysicsScriptStatements.h (each
 // statement's Execute and the unit, feature and hazard values' Load and Apply). Not in Stuart's release.
 

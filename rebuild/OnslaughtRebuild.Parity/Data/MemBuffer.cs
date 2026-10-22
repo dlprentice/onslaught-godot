@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/DXMemBuffer.{h,cpp} (CDXMemBuffer: InitFromFile 00547ec0, Skip 005482d0, Read 00548570,
+// Adapted from onslaught-decomp src/DXMemBuffer.{h,cpp} (CDXMemBuffer: InitFromFile 00547ec0, Skip 005482d0, Read 00548570,
 // ReadString 00548820, EndOfFile 00548d30).
 
 using System.Buffers.Binary;

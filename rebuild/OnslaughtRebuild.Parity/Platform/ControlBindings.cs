@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/PCController.cpp (CONTROL_BINDINGS), src/Controller.cpp (SControlBinding's constructors)
+// Adapted from onslaught-decomp src/PCController.cpp (CONTROL_BINDINGS), src/Controller.cpp (SControlBinding's constructors)
 // and src/Controller.h (SControlBinding, SControlInput, EJoyButtonPushType, the button ids), plus src/FEPControls.cpp
 // (the keyboard/mouse preset and ApplyControlPreset 00453780).
 

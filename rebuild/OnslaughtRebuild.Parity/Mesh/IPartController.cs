@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// A motion controller's part hooks, as CMotionController declares them (bea-decomp src/Motioncontroller.h). The base
+// A motion controller's part hooks, as CMotionController declares them (onslaught-decomp src/Motioncontroller.h). The base
 // class's bodies do nothing (MotionController.cpp: Unknown3 004bae60, AdjustFrame, Unknown6 00452da0, Unknown7 004d6b20).
 
 using OnslaughtRebuild.Parity.Maths;

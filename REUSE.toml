@@ -1,9 +1,10 @@
 # Licence map for this repository (REUSE specification 3.3). Per-file SPDX lines take precedence where a file has
 # one; the last matching annotation below wins for files without one.
 #
-# tests_shared/fixtures/gold_career_save.bin is deliberately unannotated: it is a real career save written by the
-# retail game and contributed as the one tracked test baseline (tests_shared/fixtures/README.md). It is game-format
-# data, not project work, and no licence was granted with it, so the project's licence is not claimed for it.
+# tests_shared/fixtures/gold_career_save.bin is a real career save written by the retail game and contributed as the
+# one tracked test baseline (tests_shared/fixtures/README.md). It is game-format data, not project work, and no licence
+# was granted with it, so the project's licence is not claimed for it: it carries LicenseRef-retail-save-fixture
+# (LICENSES/LicenseRef-retail-save-fixture.txt), which states exactly that.
 # references/Onslaught is a submodule under its own licence.
 version = 1
 
@@ -26,3 +27,8 @@ path = [
 ]
 SPDX-FileCopyrightText = "David Prentice and onslaught-godot contributors"
 SPDX-License-Identifier = "GPL-3.0-only"
+
+[[annotations]]
+path = "tests_shared/fixtures/gold_career_save.bin"
+SPDX-FileCopyrightText = "Written by the retail game Battle Engine Aquila; no copyright is claimed by this project"
+SPDX-License-Identifier = "LicenseRef-retail-save-fixture"

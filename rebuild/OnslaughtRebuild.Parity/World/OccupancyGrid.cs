@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/world.h (COccupancyGrid's layout, UnknownCell, TestCell, ClearCross, the CanStep*
+// Adapted from onslaught-decomp src/world.h (COccupancyGrid's layout, UnknownCell, TestCell, ClearCross, the CanStep*
 // helpers and the search statics) and src/NavigationMap.cpp (COccupancyGrid: the constructor 004bc260, the destructor
 // 004bc2d0, Unknown4bc2e0, IsBlocked 004bc510, FindNearest 004bc6d0, SetCell 004bdf70, SkipLegacy 004bdff0, Load
 // 004be050, SkipHeader 004be170, BuildPath 004be1d0, Flood 004be420, FindNearestVisited 004beb30, StepDown 004bed30;
@@ -97,7 +97,7 @@ public sealed class OccupancyState
 
     /// <summary>
     /// sCost[x][y] for a row past the table, as FindNearestVisited's retail bug reads it. Retail's .bss order (the
-    /// addresses bea-decomp's world.h records for the matched build, specimen 74154bfa…): sCost[256][256] at 00809dc0
+    /// addresses onslaught-decomp's world.h records for the matched build, specimen 74154bfa…): sCost[256][256] at 00809dc0
     /// (0x20000 bytes, so it ends at 00829dc0), then sX at 00829dc0, sMinX at 00829dc4, sMinY at 00829dc8. The words
     /// after those are not modelled; a read there throws. In the pristine exe the ring tests compare
     /// [edx*2+0x809dc0] (004bec45, 004bec6d) and Flood stores sX at 0x829dc0.

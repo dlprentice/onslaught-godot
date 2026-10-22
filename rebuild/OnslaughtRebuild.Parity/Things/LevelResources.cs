@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/ResourceAccumulator.cpp (CResourceAccumulator::ReadResources 004d7200: the chunk loop and
+// Adapted from onslaught-decomp src/ResourceAccumulator.cpp (CResourceAccumulator::ReadResources 004d7200: the chunk loop and
 // its MESH, ERES and WRES cases), in Stuart's release.
 
 using OnslaughtRebuild.Parity.Data;

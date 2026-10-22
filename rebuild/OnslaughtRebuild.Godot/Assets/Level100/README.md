@@ -1,7 +1,7 @@
 # Level 100 opening assets
 
 Status: active
-Last updated: 2026-09-08
+Last updated: 2026-10-22 (a link to another repository's goal document stated inline; content otherwise as of 2026-09-08)
 Summary: locally materialized training assets, their identities and provenance.
 
 This directory owns the ignored local released heightfield,
@@ -529,8 +529,8 @@ fixed-function/Godot sampler equivalence remain outside this slice.
 >    `../../../OnslaughtRebuild.Client.Tests/Level100PineRepresentationTests.cs`
 >    asserts the manifest's bits equal `0x41F00000`, which is `30.0f`. The
 >    sentence stated the reconstruction's own cutoff and stated it wrongly; this
->    is exactly the lab value that [`GOAL.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md)'s defaults
->    rule exists to keep out of authored behaviour.
+>    is exactly the lab value that the project's defaults rule (no lab-derived
+>    value becomes an authored default) exists to keep out of authored behaviour.
 > 2. It previously read "**Manifest v7** explicitly pins fast-standing-view
 >    reconstruction phase `0`". There is no manifest v7 — it existed briefly and
 >    was superseded seven revisions ago. The claim itself is unchanged and still

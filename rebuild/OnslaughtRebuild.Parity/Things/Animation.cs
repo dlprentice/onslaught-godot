@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/animation.cpp and src/animation.h (CAnimation: AnimModeLoops 004048f0, the constructor
+// Adapted from onslaught-decomp src/animation.cpp and src/animation.h (CAnimation: AnimModeLoops 004048f0, the constructor
 // 004046d0, HandleEvent 00404750, Process 00404790, SetAnimMode 00404860, GetRenderFrame 004048c0) and src/thing.cpp
 // (CComplexThing::SetAnimMode 004f44a0, GetRenderFrame 004f45c0, FinishedPlayingCurrentAnimation 004f45a0;
 // CThing::GetRenderThingFrameIncrement 004f3c80). Reconstructed; not in Stuart's release.

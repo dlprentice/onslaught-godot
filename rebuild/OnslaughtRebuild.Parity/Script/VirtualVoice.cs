@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The voice's path from bea-decomp src/MessageBox.cpp (COggLoader::Run 004b6d90, VOICE_BUFFER_SIZE, PlayPendingSamples
+// The voice's path from onslaught-decomp src/MessageBox.cpp (COggLoader::Run 004b6d90, VOICE_BUFFER_SIZE, PlayPendingSamples
 // 004b7d90), src/pcsoundmanager.cpp (CreateSampleFromData 005176d0, CreateSoundBuffer 00517440: (size + 1) / 2 bytes of
 // mono at 22050 Hz for sound rate 1; ConvertAudioFormat 00517600) and src/SoundManager.cpp (UpdateStatus 004e1b20,
-// StopSoundEvent 004e0f70); the mixer is the port's virtual-clock DirectSound (bea-decomp port/dsound/dsound.cpp:
+// StopSoundEvent 004e0f70); the mixer is the port's virtual-clock DirectSound (onslaught-ce port/dsound/dsound.cpp:
 // Mixer::CatchUp and Mix at 385809a2), which C's retail harness's virtual DirectSound matches (golden-640
 // level100.ds-virtual.ds.log).
 

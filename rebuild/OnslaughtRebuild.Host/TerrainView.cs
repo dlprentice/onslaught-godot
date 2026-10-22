@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The landscape's texture stages from bea-decomp src/DXLandscape.cpp (CDXLandscape::RenderTerrain 00545590, method 2),
+// The landscape's texture stages from onslaught-decomp src/DXLandscape.cpp (CDXLandscape::RenderTerrain 00545590, method 2),
 // its vertex format from src/LandscapeVB.cpp (XYZ and one texture coordinate) and the material from
 // src/engine.cpp (CEngine::SetupLights: the ambient render state is the map's ambient).
 

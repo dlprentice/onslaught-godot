@@ -1,0 +1,8 @@
+tests_shared/fixtures/gold_career_save.bin is a real career save written by the
+retail game Battle Engine Aquila (Lost Toys, 2003) and contributed as this
+repository's one tracked test baseline (see tests_shared/fixtures/README.md).
+
+It is game-format data produced by the game, not work of this project. No
+licence was granted with it, and the project's licence (GPL-3.0-only) is not
+claimed for it. It is included only so that the tests can check save handling
+against a real save; do not reuse it outside this repository's tests.

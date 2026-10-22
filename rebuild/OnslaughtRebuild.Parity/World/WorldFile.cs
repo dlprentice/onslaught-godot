@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/world.cpp (CWorld::LoadWorld 0050b9c0, LoadHeader 0050d4c0, LoadScripts 0050ac70,
+// Adapted from onslaught-decomp src/world.cpp (CWorld::LoadWorld 0050b9c0, LoadHeader 0050d4c0, LoadScripts 0050ac70,
 // Deserialize 0050b780), src/engine.cpp (CEngine::LoadAllNamedMeshes 00449dc0), src/InfluenceMap.cpp
 // (CInfluenceMap::Load), src/WaypointManager.cpp (CWaypointManager::Load 00505ae0, CWaypointPath::Load 00505960) and
 // src/NavigationMap.cpp (COccupancyGrid::Load 004be050, SkipLegacy 004bdff0, SkipHeader 004be170). engine.cpp is in

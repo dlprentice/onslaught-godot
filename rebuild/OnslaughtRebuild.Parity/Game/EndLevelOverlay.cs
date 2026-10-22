@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/game.cpp (CGame::DrawGameStuff 004714c0: the end-of-level screen, and
+// Adapted from onslaught-decomp src/game.cpp (CGame::DrawGameStuff 004714c0: the end-of-level screen, and
 // draw_end_level_darkener) and src/MissionObjective.h.
 
 using OnslaughtRebuild.Parity.Flow.Draw;

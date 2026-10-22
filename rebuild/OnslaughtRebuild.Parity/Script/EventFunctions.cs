@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MissionScript/EventFunction.cpp (~CEventFunction 0052f9a0, Clone 0052fbb0, Execute
+// Adapted from onslaught-decomp src/MissionScript/EventFunction.cpp (~CEventFunction 0052f9a0, Clone 0052fbb0, Execute
 // 0052fda0), ScriptEventNB.cpp (SScriptEvent, ~SScriptEvent 005387b0; CScriptEventNB::Init 00538860, Shutdown 005388d0,
 // RegisterEventListener 00538960, PostEvent 00538b70, HandleEvent 00538c70) and IScript.cpp (CPostEventData,
 // ~CPostEventData 005386d0), reconstructed from the retail executable; not in Stuart's release.

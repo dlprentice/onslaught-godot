@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/game.h and src/game.cpp (CGame: InitRestartLoop 0046c430, the level start's base time
+// Adapted from onslaught-decomp src/game.h and src/game.cpp (CGame: InitRestartLoop 0046c430, the level start's base time
 // read at game.cpp:1294, PreRun, StartPanState, StartPlayingState 0046fec0, HandleEvent 0046ff10), in Stuart's
 // release.
 

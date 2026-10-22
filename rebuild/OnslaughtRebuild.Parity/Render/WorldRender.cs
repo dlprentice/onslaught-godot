@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // What drawing the world does to the game: which meshes are drawn each render, and so which of their effect emitters run.
-// Adapted from bea-decomp src/DXEngine.cpp (CDXEngine::Render's view, gamut and world passes, 0053e2e0), engine.cpp
+// Adapted from onslaught-decomp src/DXEngine.cpp (CDXEngine::Render's view, gamut and world passes, 0053e2e0), engine.cpp
 // (GetViewMatrixFromCamera 00449ef0), renderinfo.cpp (SetProjection 00550b10, SetView 00550be0), gcgamut.cpp
 // (RenderThings 00476fe0), thing.cpp (CThing::Render 004f36d0), Building.cpp (CBuilding::Render 00417540),
 // BattleEngine.cpp (CBattleEngine::Render 0040d530), rtmesh.cpp (CRTMesh::Init's effect tables, Render 004dcba0,

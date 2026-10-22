@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/actor.h and src/actor.cpp (CActor::Init 004011e0, LowFidelityMove (inlined into
+// Adapted from onslaught-decomp src/actor.h and src/actor.cpp (CActor::Init 004011e0, LowFidelityMove (inlined into
 // HandleEvent), Move 004015e0, AddMoveEvent, HandleEvent 004019e0, IsOnGround 00401f70, IsInWater 00401fa0, IsOnObject
 // 00401fd0, DeclareOnGround 00402000, DeclareInWater 00402010), in Stuart's release.
 

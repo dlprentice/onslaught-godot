@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Expectations from pristine PC SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750:
 // CPlayer::ReceiveButtonAction 004d3160..004d3199 and CGame::StartPlayingState 0046fec0. The matched source is
-// bea-decomp src/Player.cpp:311..315, game.cpp:3102..3108; PCController.cpp:44..59 gives the input ordering.
+// onslaught-decomp src/Player.cpp:311..315, game.cpp:3102..3108; PCController.cpp:44..59 gives the input ordering.
 // These execute the reconstruction against installed data; they are not a native runtime comparison.
 
 using OnslaughtRebuild.Parity.Events;

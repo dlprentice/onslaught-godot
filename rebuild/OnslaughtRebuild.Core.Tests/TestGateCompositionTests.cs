@@ -36,8 +36,8 @@ public class TestGateCompositionTests
     [Fact]
     public void TheDefaultCoreGateExcludesOnlyTheFerrySweep()
     {
-        string defaultScript = ReadScript("test:rebuild-core");
-        string sweepScript = ReadScript("test:rebuild-ferry-sweep");
+        string defaultScript = ReadScript("ref:core-tests");
+        string sweepScript = ReadScript("ref:core-ferry-sweep");
 
         Assert.Equal(
             "FullyQualifiedName!~Level100FerryLandingTests",
@@ -80,13 +80,13 @@ public class TestGateCompositionTests
 
     /// <summary>
     /// The opt-in sweep is not orphaned: the lane's one gate,
-    /// <c>npm run check:rebuild</c> (<c>rebuild/tools/rebuild_gate.py</c>),
+    /// <c>npm run ref:gate</c> (<c>rebuild/tools/rebuild_gate.py</c>),
     /// runs it after the default Core suite and before the Client suite.
     /// </summary>
     [Fact]
     public void TheRebuildGateRunsTheFerrySweepBetweenCoreAndClient()
     {
-        Assert.Contains("rebuild/tools/rebuild_gate.py", ReadScript("check:rebuild"), StringComparison.Ordinal);
+        Assert.Contains("rebuild/tools/rebuild_gate.py", ReadScript("ref:gate"), StringComparison.Ordinal);
         string gate = File.ReadAllText(Path.Combine(FindRepoRoot(), "rebuild", "tools", "rebuild_gate.py"));
         string steps = gate.Split('\n').Single(line => line.StartsWith("STEPS = (", StringComparison.Ordinal));
         string[] names = Regex.Matches(steps, "\"([a-z]+)\"").Select(match => match.Groups[1].Value).ToArray();
@@ -94,10 +94,10 @@ public class TestGateCompositionTests
         int ferry = Array.IndexOf(names, "ferry");
         int client = Array.IndexOf(names, "client");
 
-        Assert.True(core >= 0, "check:rebuild no longer runs the Core suite.");
-        Assert.True(ferry > core, "check:rebuild must run the ferry sweep after the default Core suite.");
-        Assert.True(client > ferry, "check:rebuild must run the Client suite after the ferry sweep.");
-        Assert.Contains("step(\"ferry\", [\"npm\", \"run\", \"test:rebuild-ferry-sweep\"])", gate,
+        Assert.True(core >= 0, "ref:gate no longer runs the Core suite.");
+        Assert.True(ferry > core, "ref:gate must run the ferry sweep after the default Core suite.");
+        Assert.True(client > ferry, "ref:gate must run the Client suite after the ferry sweep.");
+        Assert.Contains("step(\"ferry\", [\"npm\", \"run\", \"ref:core-ferry-sweep\"])", gate,
             StringComparison.Ordinal);
     }
 

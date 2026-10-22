@@ -70,7 +70,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para><b>Scope.</b> This gate needs a locally produced gameplay capture,
 /// which lives on an ignored path:</para>
 /// <code>
-///   npm run capture:rebuild-godot -- --plan gameplay --purpose production \
+///   npm run ref:godot-capture -- --plan gameplay --purpose production \
 ///       --retail-offset-manifest local-lab/retail-reference-pristine/level100-gameplay/manifest.json
 /// </code>
 /// <para>The launcher writes it under <c>local-data/first-flight/</c>; point

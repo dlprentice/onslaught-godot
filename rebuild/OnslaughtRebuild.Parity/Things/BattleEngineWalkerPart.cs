@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/BattleEngineWalkerPart.cpp and its header (CBattleEngineWalkerPart: UpdateWalkCycle
+// Adapted from onslaught-decomp src/BattleEngineWalkerPart.cpp and its header (CBattleEngineWalkerPart: UpdateWalkCycle
 // 00412ad0, the constructor 00412bc0, Move 00413760, GoingIntoWater 00413a70, ShouldSlide, Slide 00413b90,
 // GetCurrentWeapon 00414030, ResetConfiguration 004146b0). Reconstructed; not in Stuart's release.
 

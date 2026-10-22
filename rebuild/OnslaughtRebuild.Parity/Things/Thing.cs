@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/thing.h and src/thing.cpp (CThing: the constructor 004f33e0, Init 004f34a0, Shutdown
+// Adapted from onslaught-decomp src/thing.h and src/thing.cpp (CThing: the constructor 004f33e0, Init 004f34a0, Shutdown
 // 004f3600, HandleEvent 004f3730, AddShutdownEvent 004f3760, StartDieProcess 004f37a0, SetObjective 004f3970,
 // GetCentrePos 004f3ac0, StickToGround 004f3c50, GetRenderThingFrameIncrement 004f3c80, MoveTo 004f3cb0, Teleport
 // 004f3ce0; CComplexThing: GetOrientation, SetAnimMode 004f44a0, GetRenderFrame 004f45c0, GetRealAnimIndex 004014d0,

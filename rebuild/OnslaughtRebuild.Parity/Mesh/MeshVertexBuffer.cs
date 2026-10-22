@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/DXMeshVB.cpp (CDXMeshVB::Load 0054e160) and src/DXMeshVB.h (the CDXMeshVB layout:
+// Adapted from onslaught-decomp src/DXMeshVB.cpp (CDXMeshVB::Load 0054e160) and src/DXMeshVB.h (the CDXMeshVB layout:
 // 0x128 bytes, mNumPieces +0x108, mStride +0x114). DXMeshVB.cpp is in Stuart's release.
 
 using System.Buffers.Binary;

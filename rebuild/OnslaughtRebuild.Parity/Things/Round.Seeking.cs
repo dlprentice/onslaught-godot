@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from matched bea-decomp Round.cpp CRound::Move004d8e40, seeking block004d92c7..004d983a.
+// Adapted from matched onslaught-decomp Round.cpp CRound::Move004d8e40, seeking block004d92c7..004d983a.
 // Instruction order read from pristine PC SHA-256
 // 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 using OnslaughtRebuild.Parity.Maths;

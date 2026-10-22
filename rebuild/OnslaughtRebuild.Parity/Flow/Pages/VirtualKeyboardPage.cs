@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/FEPVirtualKeyboard.cpp and src/FEPVirtualKeyboard.h (reconstructed from the retail
+// Adapted from onslaught-decomp src/FEPVirtualKeyboard.cpp and src/FEPVirtualKeyboard.h (reconstructed from the retail
 // program; not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Numerics;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Unit.cpp (CUnit::Unknown77 004fa4b0, UpdateTimer 004fa800, Move 004fa8d0, Unknown92
+// Adapted from onslaught-decomp src/Unit.cpp (CUnit::Unknown77 004fa4b0, UpdateTimer 004fa800, Move 004fa8d0, Unknown92
 // 004fb270, ObeyGravity 004fdc90, IsDeploying 004fde10) and src/unit.h (Unknown72 00405dc0, Unknown73 00405dd0,
 // Unknown76 00405de0, Unknown109 00405e70), reconstructed; and src/maths.h (AngleDifference,
 // Stuart's). Read from the Steam BEA.exe (= the pristine specimen 74154bfa): the constants are float (PI 0x40490fdb,

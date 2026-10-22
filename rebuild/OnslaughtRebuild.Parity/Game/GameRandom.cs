@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/game.h (CGame::Random and CGame::FloatRandom), in Stuart's release.
+// Adapted from onslaught-decomp src/game.h (CGame::Random and CGame::FloatRandom), in Stuart's release.
 
 using System.Runtime.CompilerServices;
 

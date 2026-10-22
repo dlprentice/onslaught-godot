@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/FEPOptions.cpp (CFEPOptions: Init 0051f4b0, ButtonPressed 0051f4e0, SaveDefaultOptions
+// Adapted from onslaught-decomp src/FEPOptions.cpp (CFEPOptions: Init 0051f4b0, ButtonPressed 0051f4e0, SaveDefaultOptions
 // 0051f500, Process 0051f600, RenderPreCommon 0051f6d0, Render 0051f700, TransitionNotification 0051f7e0; reconstructed from the retail program, not in Stuart's
 // release).
 

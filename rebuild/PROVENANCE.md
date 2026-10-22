@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-22 (stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-22 (the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -27,9 +27,11 @@ not a clean-room lane. The root licences do not relicense the pinned `references
 - Controlled copied-runtime observations establish measured behavior.
 - Original design work, deterministic tests, public standards, and engine APIs
   may fill gaps that are clearly labelled provisional.
-- The byte-matching decompilation (bea-decomp, the project's own source, to be published under GPL-3.0 as
-  Onslaught CE; David approved its use here on 2026-10-15) may be ported into the parity core
-  (`OnslaughtRebuild.Parity`). Every ported unit is listed under *Adapted from bea-decomp* with its source file. This
+- The project's own byte-matching decompilation, published under GPL-3.0 as
+  [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp) (its native port is
+  [onslaught-ce](https://github.com/dlprentice/onslaught-ce)), may be ported into the parity core
+  (`OnslaughtRebuild.Parity`). Every ported unit is listed under *Adapted from the decompilation* with its source file
+  (a `src/` path in onslaught-decomp; a `port/` path in onslaught-ce). This
   is our reconstructed source, not decompiler output; tables or bytes extracted from the executable stay out.
 - Retail assets are user-supplied local inputs. The source tree retains exact
   hashes and bounded extraction/conversion recipes, while the materialized
@@ -40,9 +42,9 @@ decompiler output, user saves, raw runtime captures, or separately licensed
 third-party code/media into this subtree.
 Never describe synthetic or source-only behavior as observed Steam behavior.
 
-## Adapted from bea-decomp
+## Adapted from the decompilation
 
-Each row names a C# unit of `OnslaughtRebuild.Parity` and the bea-decomp source it adapts. Units built only from
+Each row names a C# unit of `OnslaughtRebuild.Parity` and the decompilation source it adapts. Units built only from
 the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed. Neither is
 `Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
 from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source. Nor is
@@ -51,8 +53,8 @@ measured from the pinned VC6 SP5 LIBCMT's `rand.obj` and `tidtable.obj`, with no
 
 Licence identifiers (checked 2026-10-15): Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`) ships the GPL version 3 text
 in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
-source, directly or through bea-decomp, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Since 2026-10-21
-(David's decision for every project's code) the rest of the rebuild is GPL-3.0-only too: units adapted from bea-decomp
+source, directly or through the decompilation, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Since 2026-10-21
+(the project's decision for all its code) the rest of the rebuild is GPL-3.0-only too: units adapted from decompilation
 code that is not in his release (reconstructed from the retail program, such as the random stream) and original
 rebuild code, which were `GPL-3.0-or-later` before. The table's licence column notes which units are in his release.
 
@@ -63,7 +65,7 @@ superset (a test that only cites his code for an expected value is marked too), 
 and combined with the or-later code of the time; the 2026-10-21 decision moved the rest to `GPL-3.0-only`. Every
 rebuild project's package licence expression is `GPL-3.0-only`.
 
-| C# unit | Adapted from bea-decomp | Licence |
+| C# unit | Adapted from the decompilation | Licence |
 | --- | --- | --- |
 | `Career/Career.cs` (career logic: blank, lookups, end-of-level update, links, goodie states, grades, slots, screen position) | `src/Career.cpp` (`CCareer`) | GPL-3.0-only (in Stuart's release) |
 | `Career/CareerRecord.cs` (the 9,404-byte `CCareer` memory layout) | `src/Career.h` (`CCareer`, `CCareerNode`, `CCareerNodeLink`, `CGoodie`) | GPL-3.0-only (in Stuart's release) |
@@ -160,7 +162,7 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
-| `Platform/DisplayReset.cs`, `Clock/PlatformClock.cs` (deferred reset after platform Flip; state 2 saves only after success), `Flow/Menus/MachineDisplay.cs` (Apply queues a reset; current mode key) | `src/Platform.cpp` (`CPlatform::Flip` 004d2580), `src/Career.cpp` (`ReadOptions` 00420d70, `CDisplayModeKey::Set` 00420d10), `src/PauseMenu.cpp` (`DisplaySettingChanged`) | GPL-3.0-only (Platform.cpp/Career.cpp adapt Stuart's release; retail additions reconstructed in bea-decomp). Only the transaction is implemented: host device/resource/input reset and live ReadOptions integration remain unsupported. |
+| `Platform/DisplayReset.cs`, `Clock/PlatformClock.cs` (deferred reset after platform Flip; state 2 saves only after success), `Flow/Menus/MachineDisplay.cs` (Apply queues a reset; current mode key) | `src/Platform.cpp` (`CPlatform::Flip` 004d2580), `src/Career.cpp` (`ReadOptions` 00420d70, `CDisplayModeKey::Set` 00420d10), `src/PauseMenu.cpp` (`DisplaySettingChanged`) | GPL-3.0-only (Platform.cpp/Career.cpp adapt Stuart's release; retail additions reconstructed in the decompilation). Only the transaction is implemented: host device/resource/input reset and live ReadOptions integration remain unsupported. |
 | `Events/EventManager.cs` (the scheduler: pool, buffers, overflow, AddEvent, AdvanceTime, Flush; CScheduledEvent) | `src/eventmanager.cpp`, `src/eventmanager.h`, `src/scheduledevent.cpp`, `src/scheduledevent.h` | GPL-3.0-only (in Stuart's release) |
 | `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only (in Stuart's release) |
 | `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent; CFearGrid creation in InitRestartLoop, game.cpp:505; SFrontEndSettings fields) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |
@@ -251,8 +253,10 @@ Work the partition:
   `Weapon`, the mission-script VM (`MissionScript/vm.h`, `scripteventnb.h`), and
   the core math types `FVector` / `FMatrix`.
 
-That last bullet is why the Ghidra lane is not optional: the subsystems carrying
-most of the open render and tutorial defects have no source at all.
+That last bullet is why these subsystems are ported from the decompilation
+(onslaught-decomp): Stuart's release has no source for most of the subsystems
+carrying the open render and tutorial defects. (This was written as the case
+for a Ghidra lane, which is now retired as an authority.)
 
 > **`FVector::operator^` is now PROVEN, 2026-07-27. This paragraph previously
 > barred a class of derivations and no longer does.**
@@ -409,8 +413,8 @@ the product: the definition, seed and player-start admissions, the tree,
 Building, SAT and Feature prefix, the player-start list resolution and
 assignment sequence, and the `CStart::Init` height prefix. Its retail
 evidence stays with the RE lane
-([`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md),
-[`world-110-player-start-admission.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-player-start-admission.md)),
+([`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md),
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md)),
 and its code, tests and mutation receipts stay in Git history and the ignored
 `local-lab/rebuild-world110-*` receipts.
 
@@ -454,7 +458,9 @@ session each time. The frontend and in-game menus therefore share
 initializer/widget behavior but are distinct runtime instances. **Those bytes
 and positive calls establish the branch/session shape;
 the names `CFEPOptions`, `PauseMenu__Init`, and the FEP page id `0x11` come from
-the reviewed Ghidra/source mapping rather than from this byte sequence alone.**
+the reviewed Ghidra/source mapping of the time (historical: Ghidra is retired
+as an authority; the decompilation now names them) rather than from this byte
+sequence alone.**
 **Thirty-two** exact AYA textures —
 `rebuild/tools/materialize_retail_assets.py`'s `FRONTEND_ASSETS` is
 authoritative for that count and should be re-read rather than quoted from
@@ -473,7 +479,7 @@ the integrating audio owner remains singular.
 >    Five further screens — quit confirmation, DevSelect, Options, mission
 >    briefing and select configuration — were already declared and shipping.
 >    Nothing was withdrawn; the list was simply short, and
->    [`../CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) already listed
+>    Onslaught-Career-Editor's capability list already listed
 >    briefing and configuration select on the run path, so the two governance
 >    documents disagreed with each other.
 >
@@ -788,7 +794,7 @@ with null source and false shield flag, then retains the complete velocity by
 `1-cos(surface)^2`; and a non-damaging jet contact retains `0.90` while a
 non-damaging walker or morph contact does not alter velocity in this override.
 The static identity/shape receipt is
-[`../reverse-engineering/binary-analysis/cbattleengine-vtable-semantics-2026-08-11.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cbattleengine-vtable-semantics-2026-08-11.md),
+`cbattleengine-vtable-semantics-2026-08-11.md` in the private RE archive,
 whose machine-readable table has SHA-256
 `1bf959a26bc390b8b6d3dfb44eef543b64d2d93839dfc5efe2356314fc429e4e`.
 Millimetres-to-released-units and released-life-to-milli-life cancel, as in the
@@ -1026,7 +1032,7 @@ The 159-byte PC UnitAI destructor independently orders outbound detachments as
 `+0x28`, `+0x24`, `+0x0C` before invalidating inbound readers. PC demo closes
 the same lifecycle, Xbox closes target-death behavior, and all three PS2
 setters close rebind order under the narrower limits recorded in
-[`CMonitor.cpp.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/functions/CMonitor.cpp.md).
+`CMonitor.cpp.md` (private RE archive).
 `RetailActiveReaderGraph` carries that ordinary protocol with stable cell
 identities and safe unique membership. Target shutdown nulls the registered
 UnitAI `+0x0C` cell only; `+0x10/+0x18/+0x1C` remain unchanged until a later AI
@@ -1095,7 +1101,7 @@ attachment, and final reader/busy/time order. It does not own factories,
 virtual init, world-list or reader mutation, transforms/clearance, attachment,
 or event delivery; those remain explicit adapter effects. Full evidence and
 open runtime reach are recorded in
-[`spawner-squad-cycle.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/spawner-squad-cycle.md).
+[`spawner-squad-cycle.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/spawner-squad-cycle.md).
 
 The transcript's former `SupportMinimum`/`SupportMaximum` names are corrected
 to selected attack-provider range results. Exact PC bodies show that
@@ -1410,7 +1416,7 @@ without dispatching death twice.
 
 The contact catalog preserves raw global BBOX origin/radius, mesh render-radius
 and class scale words. The
-[serialized geometry evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md#serialized-geometry-and-terminal-target-tank-behavior)
+[serialized geometry evidence](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/cround-hit-damage-path.md#serialized-geometry-and-terminal-target-tank-behavior)
 corrects the former alternate-loader estimates: they were static recomputations,
 not measured normal-live radii. The serialized loader copies the original
 words, and GroundUnit separately applies stored `0.8f` to its primary sphere.
@@ -1433,7 +1439,7 @@ geometry now carried by the existing materializer, the next boundary is a
 distinct synchronous explosion at the resolved round position minus
 `normalize(velocity)*0.1` can then apply primary-volume admission and
 per-candidate falloff. The
-[Warehouse report evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/cround-hit-damage-path-2026-08-10.md#warehouse-segmented-explosion-report)
+[Warehouse report evidence](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/cround-hit-damage-path.md#warehouse-segmented-explosion-report)
 now establishes up to six ordered part contacts, each using its own signed
 bounds distance and falloff. Its damage override forwards each part to the
 segment controller; part `-1` does not apply aggregate segment damage.

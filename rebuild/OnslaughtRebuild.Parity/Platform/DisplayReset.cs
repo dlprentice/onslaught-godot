@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Platform.cpp, CPlatform::Flip (004d2580), and src/Career.cpp,
+// Adapted from onslaught-decomp src/Platform.cpp, CPlatform::Flip (004d2580), and src/Career.cpp,
 // ReadOptions (00420d70). The retail reset releases/recreates device resources; that host work is not implemented.
 
 namespace OnslaughtRebuild.Parity.Platform;

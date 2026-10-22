@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/console.cpp (CConsole::SetLoading, SetLoadingRange 0042cf40, SetLoadingFraction,
+// Adapted from onslaught-decomp src/console.cpp (CConsole::SetLoading, SetLoadingRange 0042cf40, SetLoadingFraction,
 // RenderLoadingScreen): the loading screen's state and when it presents.
 
 using OnslaughtRebuild.Parity.Clock;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Damage0040a890 and shake00407940/004247a0, pristine PC SHA-256
-// 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750; matched bea-decomp BattleEngine.cpp.
+// 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750; matched onslaught-decomp BattleEngine.cpp.
 // The private oracle executes unchanged original bodies on authored objects. Death and CRT TLS are intercepted;
 // the main damage fixture has null attackers; the flash fixture intercepts position/allocation/list boundaries.
 // These are isolated arithmetic/state checks, not gameplay acceptance.

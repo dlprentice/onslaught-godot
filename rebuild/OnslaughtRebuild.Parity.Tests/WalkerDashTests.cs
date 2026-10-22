@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Pristine PC 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750:
 // Forward 00412d80, Backward 00412f70, StrafeLeft 00413160, StrafeRight 00413360, Move 00413760.
-// Matched source: bea-decomp src/BattleEngineWalkerPart.cpp. The optional oracle executes those directional
+// Matched source: onslaught-decomp src/BattleEngineWalkerPart.cpp. The optional oracle executes those directional
 // routines and native IsOnGround/AddVelocity/GetCurrentWeapon/FMatrix; logging and sound playback are intercepted.
 // Synthetic unit fixtures are not tutorial acceptance. The final four tests use ordinary keys in a real session.
 

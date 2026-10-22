@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MenuItem.cpp (CMenuItem::IsMouseInRect 004a3100, MouseClickedInRect 004a3120; the statics
+// Adapted from onslaught-decomp src/MenuItem.cpp (CMenuItem::IsMouseInRect 004a3100, MouseClickedInRect 004a3120; the statics
 // CMenuMenuItem::mRenderOnTop/X/Y 0070486c..00704874 and gMenuChangesPending 00704a88), src/MessageLog.cpp
 // (CMessageLog::RenderPanel 004b9010) and src/PauseMenu.cpp (the render states CPauseMenu::Render 004d11d0 sets).
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/BattleEngine.cpp (CBattleEngine: Gravity 004074d0, UpdateMouseLookAngles 00407540,
+// Adapted from onslaught-decomp src/BattleEngine.cpp (CBattleEngine: Gravity 004074d0, UpdateMouseLookAngles 00407540,
 // UpdateRotation 00407a50, IsWalkerOnGroundOrObject 004080f0, IsWalking 00408120, DeclareInWater 00408150, Move
 // 004081c0, DeclareOnObject 0040c720, DeclareOnGround 0040c750, GetRadius 0040df80, COfGHeight 0040dfa0,
 // ProcessDamageFlashes, HandleEngines 0040ebf0), in Stuart's release.

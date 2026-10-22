@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MeshPart.cpp (CMeshPart::Deserialize 004b27a0, ReadBoundingBox 004b3180, GetTransforms
+// Adapted from onslaught-decomp src/MeshPart.cpp (CMeshPart::Deserialize 004b27a0, ReadBoundingBox 004b3180, GetTransforms
 // 004b0d00, GetWorldTransforms 004b0fb0, ResolveFrameNumber 004b24d0, GetMeshDataPart 004b0cd0) and src/mesh.h (the
 // CMeshPart, CBoundingBox, CMeshDVertex layouts). MeshPart.cpp is in Stuart's release.
 

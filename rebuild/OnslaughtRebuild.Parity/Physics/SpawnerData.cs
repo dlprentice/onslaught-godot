@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/WorldPhysicsManager.h (CSpawnerData: the fields, the physics script's constructor,
+// Adapted from onslaught-decomp src/WorldPhysicsManager.h (CSpawnerData: the fields, the physics script's constructor,
 // SetThingName and CopyFrom). Not in Stuart's release.
 
 using System.Text;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Monitor.h, src/Monitor.cpp (CMonitor, 004bac40 and 004bacb0), src/activereader.h and
+// Adapted from onslaught-decomp src/Monitor.h, src/Monitor.cpp (CMonitor, 004bac40 and 004bacb0), src/activereader.h and
 // src/activereader.cpp (CGenericActiveReader, CActiveReader, 00401000), src/Event.h (CEvent), in Stuart's release
 // (Monitor.cpp is reconstructed, the rest is his).
 

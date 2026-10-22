@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// IScript::Attack00535fa0 and CUnit::SetSquadTarget004fda20, matched bea-decomp source and pristine instructions.
+// IScript::Attack00535fa0 and CUnit::SetSquadTarget004fda20, matched onslaught-decomp source and pristine instructions.
 // Specimen SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 // Authored unit/squad fixtures validate reconstruction branches; the ordinary tutorial replay is a separate gate.
 using OnslaughtRebuild.Parity.Containers;

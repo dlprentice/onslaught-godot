@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// GetSysTimeFloat adapted from bea-decomp src/PCPlatform.cpp (CPCPlatform::GetSysTimeFloat, 005159e0), in Stuart's
+// GetSysTimeFloat adapted from onslaught-decomp src/PCPlatform.cpp (CPCPlatform::GetSysTimeFloat, 005159e0), in Stuart's
 // release. The virtual timer models the project's replay shim (local-data/link-runtime/20261015-f/shim/replay_shim.cpp,
 // Present clock), which is our own tool.
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/maths.h (FVector). Not in Stuart's release.
+// Adapted from onslaught-decomp src/maths.h (FVector). Not in Stuart's release.
 
 namespace OnslaughtRebuild.Parity.Maths;
 

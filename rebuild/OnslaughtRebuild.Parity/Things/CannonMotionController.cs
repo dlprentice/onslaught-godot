@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MCCannon.cpp: CMCCannon::GetPartTransform (004952a0), in pristine PC specimen
+// Adapted from onslaught-decomp src/MCCannon.cpp: CMCCannon::GetPartTransform (004952a0), in pristine PC specimen
 // SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750. Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Maths;

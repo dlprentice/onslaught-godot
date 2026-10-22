@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/BSpline.cpp (CBSpline: the constructor 00416d10, the destructor, BasisFunction 00416e30,
+// Adapted from onslaught-decomp src/BSpline.cpp (CBSpline: the constructor 00416d10, the destructor, BasisFunction 00416e30,
 // GetPoint 00416fc0; reconstructed, not in Stuart's release) and src/Camera.cpp (CPanCamera: the constructor 004198d0,
 // the destructor 00419a60, Update 00419b00, GetPos 00419d40, HandleEvent 00419de0; in Stuart's release). Read from the
 // Steam BEA.exe (= the pristine specimen 74154bfa): every operation is one 24-bit rounding of two operands (the

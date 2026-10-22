@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Career.cpp (CCareer::Save, Load, SaveAndMarkInProgress, SizeOfSaveGame, WriteOptions,
+// Adapted from onslaught-decomp src/Career.cpp (CCareer::Save, Load, SaveAndMarkInProgress, SizeOfSaveGame, WriteOptions,
 // ReadOptions).
 
 using System.Buffers.Binary;

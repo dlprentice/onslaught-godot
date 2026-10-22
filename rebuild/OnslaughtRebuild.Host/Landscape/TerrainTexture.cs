@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/engine.cpp (CEngine::Deserialize 0044a6e0), src/maptex.cpp (CMapTex::Deserialize
+// Adapted from onslaught-decomp src/engine.cpp (CEngine::Deserialize 0044a6e0), src/maptex.cpp (CMapTex::Deserialize
 // 004916c0), src/Map.cpp (CMap::Deserialize 00491060), src/HeightField.cpp (CHeightField::Load 0047f750, the colour ramp
 // Unknown47e8e0 and the tile texels Unknown47eff0) and src/mixermap.cpp (CMixerMap::Init 005232b0, SMixerSlot::Init
 // 00523190). Reconstructed; not in Stuart's release.

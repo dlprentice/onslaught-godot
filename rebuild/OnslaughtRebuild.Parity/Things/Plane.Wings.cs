@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from matched bea-decomp Plane.cpp: OpenWings004d1f90, CloseWings004d1fd0, FinishedPlayingCurrentAnimation004d2010.
+// Adapted from matched onslaught-decomp Plane.cpp: OpenWings004d1f90, CloseWings004d1fd0, FinishedPlayingCurrentAnimation004d2010.
 // Pristine PC SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 namespace OnslaughtRebuild.Parity.Things;
 

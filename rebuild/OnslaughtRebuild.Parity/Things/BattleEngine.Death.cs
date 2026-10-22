@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from matched bea-decomp BattleEngine.cpp: StartDieProcess0040bfd0, Explode0040dfb0,
+// Adapted from matched onslaught-decomp BattleEngine.cpp: StartDieProcess0040bfd0, Explode0040dfb0,
 // dying Move00408416, Shutdown00405f80 and destructor00405a40. Pristine PC SHA-256:
 // 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 using OnslaughtRebuild.Parity.Maths;

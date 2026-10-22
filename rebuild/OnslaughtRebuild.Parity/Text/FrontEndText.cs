@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/FrontEndText.cpp (CFrontEndText::GetText; reconstructed from the retail program, not in
+// Adapted from onslaught-decomp src/FrontEndText.cpp (CFrontEndText::GetText; reconstructed from the retail program, not in
 // Stuart's release).
 
 using OnslaughtRebuild.Parity.Platform;

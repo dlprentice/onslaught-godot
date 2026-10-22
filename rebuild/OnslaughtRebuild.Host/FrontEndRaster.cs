@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The Direct3D 9 fixed-function state the front end draws under, from bea-decomp src/State.cpp (CState::UseDefault
+// The Direct3D 9 fixed-function state the front end draws under, from onslaught-decomp src/State.cpp (CState::UseDefault
 // 004eb1e0: alpha blend on, source alpha over; alpha test on, GREATEREQUAL 8; depth test LESSEQUAL with writes),
 // src/DXFrontend.cpp (CDXFrontEnd::RenderStart's clear) and src/DXFrontEndVideo.cpp (the video quad's alpha from its
 // colour alone).

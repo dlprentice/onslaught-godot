@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The HUD's compass, as retail draws it. Adapted from bea-decomp src/DXCompass.cpp (BuildRing 0053c1d0, the inner ring's
+// The HUD's compass, as retail draws it. Adapted from onslaught-decomp src/DXCompass.cpp (BuildRing 0053c1d0, the inner ring's
 // texture Unknown53c510 0053c510, Render 0053cd30) and Compass.cpp (CCompass::Render 00427210: the bar lines and
 // objective markers). The values are the parity core's battle engine.
 

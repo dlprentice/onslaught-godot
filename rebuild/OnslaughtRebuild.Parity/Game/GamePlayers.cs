@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Player.cpp and src/player.h (CPlayer: the constructor 004d2780, Init 004d28a0, GotoFPView
+// Adapted from onslaught-decomp src/Player.cpp and src/player.h (CPlayer: the constructor 004d2780, Init 004d28a0, GotoFPView
 // 004d28c0, GotoControlView 004d2a50, GotoPanView 004d2c10, HandleEvent 004d2fe0, AssignBattleEngine 004d3080),
 // src/Camera.cpp and src/Camera.h (CCamera, CThingCamera::GetPos 00418cd0) and
 // src/game.cpp (CGame::LoadLevel 0046cdf0's players, PostLoadProcess 0046d040's start positions, SetCurrentCamera
@@ -189,7 +189,7 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
 
         if (button == Platform.Buttons.SkipPanning && CurrentView == PlayerView.Pan && game.State == GameState.Panning)
         {
-            // Pristine PC 74154bfa, 004d3160..004d3199; bea-decomp src/Player.cpp:311..315.
+            // Pristine PC 74154bfa, 004d3160..004d3199; onslaught-decomp src/Player.cpp:311..315.
             // Restore the preferred camera before posting "game playing". Fall through: later mappings in this
             // controller flush can still pause (Escape maps to SkipPanning before Pause). The scheduled pan-end
             // and player-view events remain queued; their existing guards make them harmless after this transition.

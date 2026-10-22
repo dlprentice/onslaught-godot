@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Process-lifetime particle state from bea-decomp ParticleManager.cpp, ParticleDescriptor.cpp and PDSimpleSprite.cpp.
+// Process-lifetime particle state from onslaught-decomp ParticleManager.cpp, ParticleDescriptor.cpp and PDSimpleSprite.cpp.
 using OnslaughtRebuild.Parity.Crt;
 
 namespace OnslaughtRebuild.Parity.Particles;

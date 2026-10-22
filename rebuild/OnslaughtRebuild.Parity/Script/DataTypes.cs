@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MissionScript/DataType.h and DataType.cpp (CDataType::Create 0052ec60; CIntDataType
+// Adapted from onslaught-decomp src/MissionScript/DataType.h and DataType.cpp (CDataType::Create 0052ec60; CIntDataType
 // 0052d0a0..0052d380 and CBoolDataType 0052e420..0052e490, emitted in AsmInstruction.obj; CFloatDataType,
 // CStringDataType 0052f690..0052f790, CThingPtrDataType and CPositionDataType 0052f820..0052f920), reconstructed from
 // the retail executable; not in Stuart's release.

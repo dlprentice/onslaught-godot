@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // The water as retail draws it without the GeForce FX shader path (GEFORCE_FX_POWER defaults to 0, and CSystem::Init
 // then clears EXTRA_GEFORCE_FX_FEATURES, so no mirror texture exists): CDXWater::Render's water_method 2 grid. Adapted
-// from bea-decomp src/DXWater.cpp (Load 0055b230, BuildGrid 0055b440, Render 0055b6c0, WATER_ADVANCE); the stage states,
+// from onslaught-decomp src/DXWater.cpp (Load 0055b230, BuildGrid 0055b440, Render 0055b6c0, WATER_ADVANCE); the stage states,
 // matrices and textures were checked against the port's D3D log of Present 30 (draw 223).
 
 using Godot;

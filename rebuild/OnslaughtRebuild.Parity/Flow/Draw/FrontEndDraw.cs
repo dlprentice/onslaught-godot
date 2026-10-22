@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/DXSpriteRenderer.cpp (CDXSpriteRenderer::DrawSprite 00555be0, DrawColouredSprite 005563d0),
+// Adapted from onslaught-decomp src/DXSpriteRenderer.cpp (CDXSpriteRenderer::DrawSprite 00555be0, DrawColouredSprite 005563d0),
 // src/DXFont.cpp (CDXBitmapFont::DrawTextScaled 00540010, ModulateColour), src/Font.cpp (DrawTextDynamic 00465710),
 // src/FrontEnd.cpp (CFrontEnd::DrawLine 00466de0, GetShadowOffsetX/Y 00468730/00468750, EnableAdditiveAlpha 004681c0,
 // EnableModulateAlpha 004681e0), src/DXFrontEndVideo.cpp (CDXFrontEndVideo::Render 00541790, with no video open) and

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Guide.h and src/Guide.cpp (CGuide: the constructor 0047e290, GoToPoint 0047e2d0, Unknown5
+// Adapted from onslaught-decomp src/Guide.h and src/Guide.cpp (CGuide: the constructor 0047e290, GoToPoint 0047e2d0, Unknown5
 // 0047e310, Unknown6 0047e340, Unknown7 0047e370, Stop 0047e3d0) and src/AirGuide.cpp (CAirGuide: the constructor
 // 00402150, HandleEvent 004026e0, FindNearest 004027c0, UpdateClearance 004028e0). Not in Stuart's release.
 

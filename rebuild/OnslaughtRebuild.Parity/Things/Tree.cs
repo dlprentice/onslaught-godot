@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/tree.h and src/tree.cpp (CTree::Init 004f6080, SetThingType, CFallingTree's constructor
+// Adapted from onslaught-decomp src/tree.h and src/tree.cpp (CTree::Init 004f6080, SetThingType, CFallingTree's constructor
 // 004f5f60, Damage 004f68e0, CreateFallingTree 004f69b0, Hit 004f6aa0, UpdateFallingTree 004f6b80, HandleEvent 004f7050). Float forms read
 // from the pristine executable (74154bfa...). Not in Stuart's release.
 

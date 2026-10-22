@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Controller.cpp, src/Controller.h and src/PCController.cpp (CController, CPCController,
+// Adapted from onslaught-decomp src/Controller.cpp, src/Controller.h and src/PCController.cpp (CController, CPCController,
 // UpdateMouseCentre).
 
 using OnslaughtRebuild.Parity.Numerics;

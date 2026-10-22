@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/ltshell.cpp (WinMain's options load, after CLIPARAMS.GetParams; DEFAULT_OPTIONS_NAME
+// Adapted from onslaught-decomp src/ltshell.cpp (WinMain's options load, after CLIPARAMS.GetParams; DEFAULT_OPTIONS_NAME
 // 0063db18), in Stuart's release.
 
 using OnslaughtRebuild.Parity.Platform;

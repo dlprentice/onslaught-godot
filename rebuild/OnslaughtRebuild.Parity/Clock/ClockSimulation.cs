@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // The level-start order (InitRestartLoop, the base time read, CGame::PreRun, then CGame::MainLoop until quit) follows
-// bea-decomp src/game.cpp (CGame::RunLevel, RestartLoopRunLevel), in Stuart's release.
+// onslaught-decomp src/game.cpp (CGame::RunLevel, RestartLoopRunLevel), in Stuart's release.
 
 using System.Buffers.Binary;
 using OnslaughtRebuild.Parity.Events;

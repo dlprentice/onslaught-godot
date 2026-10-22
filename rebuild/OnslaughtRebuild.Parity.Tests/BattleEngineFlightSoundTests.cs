@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Pristine PC 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750:
 // Morph0040a580, Forward00412d80, Backward00412f70, StrafeLeft00413160 and StrafeRight00413360.
-// Matched source: bea-decomp src/BattleEngine.cpp and BattleEngineWalkerPart.cpp. These caller tests use the
+// Matched source: onslaught-decomp src/BattleEngine.cpp and BattleEngineWalkerPart.cpp. These caller tests use the
 // actual shared kernel and virtual backend with authored sample metadata/seeds. They are not audio acceptance.
 using System.Buffers.Binary;
 using System.Text;

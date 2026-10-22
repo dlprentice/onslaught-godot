@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Unit.cpp (CUnit: Init's weapon loop at 004f86d0, Unknown4fb3d0 004fb3d0, CanFireAt
+// Adapted from onslaught-decomp src/Unit.cpp (CUnit: Init's weapon loop at 004f86d0, Unknown4fb3d0 004fb3d0, CanFireAt
 // 004fb500, Unknown4fb5a0 004fb5a0, WeaponUnknown509140 004fb650, Unknown4fb670 004fb670, GetMinRange 004fb780,
 // GetMaxRange 004fb7e0, Unknown4fb840 004fb840, GetWeaponUnknownA0_88 004fbc90, Unknown86 004fbcb0, Unknown84
 // 004fc000, GetEmitter 004fc4e0, Unknown4fc6e0 004fc6e0, GetTargetablePos 004fd4d0, AnyWeaponUnknown94 004fd570,

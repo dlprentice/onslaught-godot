@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/FEPDebriefing.cpp (reconstructed from the retail program; not in Stuart's release):
+// Adapted from onslaught-decomp src/FEPDebriefing.cpp (reconstructed from the retail program; not in Stuart's release):
 // RenderPreCommon 00456d40 and Render 00456dd0, and src/FrontEndText.cpp (CFrontEndText::GetLevelName 00469550).
 
 using OnslaughtRebuild.Parity.Flow.Draw;

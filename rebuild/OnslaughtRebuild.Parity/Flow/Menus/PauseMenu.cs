@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/PauseMenu.cpp and src/PauseMenu.h (CPauseMenu: the constructor 004cde60, Resume 004d06e0,
+// Adapted from onslaught-decomp src/PauseMenu.cpp and src/PauseMenu.h (CPauseMenu: the constructor 004cde60, Resume 004d06e0,
 // ButtonPressed 004d0810, GetBindingWarning 004d0de0, HandleEvent 004d0e50, Activate 004d0ff0, DeActivate 004d10b0,
 // MenuItemChanged 004d1110, Render 004d11d0, ReceiveButtonAction 004d15d0; CSimpleGameMenu: ReceiveButtonAction 004d1810, AddItem; reconstructed from the
 // retail program, not in Stuart's release).

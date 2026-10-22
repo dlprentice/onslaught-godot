@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
-Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
-Last updated: 2026-10-22 (development moves to onslaught-godot; the reference environment as a table of variables, values kept outside the repository; earlier entries keep their dates)
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: level 100 equals the native port on every probe field through P27650 of the tutorial win route; the win, end-level data and save are open.
+Last updated: 2026-10-22 (public: running the Host, the beta1 engine, the earlier rebuild's scripts marked reference; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -53,16 +53,10 @@ criteria are in [PARITY.md](PARITY.md#proof-of-concept-milestones-2026-10-15).
 The earlier Core below simulates in integer fixed point (millimetres, microradians) and cannot reproduce retail's
 float state, so the parity path is a new assembly, `OnslaughtRebuild.Parity`: a float-exact C# port of the
 decompilation's simulation with exact x87 24-bit numerics, independent of the earlier Core. `OnslaughtRebuild.Parity`
-holds the retail tape harness today:
-
-```bash
-npm run test:rebuild-parity
-npm run run:rebuild-parity -- --tape <retail tape> --golden <retail probes> [--frames 10000] [--every 50]
-```
-
-The tape and probe formats are those of the retail replay harness (tapes and golden traces under the canonical
-checkout's ignored `local-data/link-runtime/`); the command exits 0 only when every probe matches at every golden
-sample with no frame offset.
+holds the retail tape harness today, run by the Parity suite (`npm run test:rebuild-parity`) against the references
+named by the variables above (`ONSLAUGHT_RETAIL_GOLDEN` holds the retail replay harness's tapes and golden probe
+traces). A route passes only when every probe matches at every sample with no frame offset. The earlier Headless
+replay (`npm run ref:headless-parity -- --tape <retail tape> --golden <retail probes>`) is reference only.
 
 ### The front end's host contract
 
@@ -94,14 +88,28 @@ first-flight launcher, the static-mesh preview and several measurement probes st
 pieces are copied into the Host only as needed, noting their origin. By default it renders one level-100
 Present; an experimental live mode (`HOST_LIVE=1`, with `HOST_TAPE` and `HOST_TRACE`) runs level 100 from the parity
 core with ordinary input, and the whole-game mode (`HOST_LIVE=flow`) runs the game from boot to quit, front end and
-level, as [PARITY.md](PARITY.md) records (M7). A single Present:
+level, as [PARITY.md](PARITY.md) records (M7).
+
+#### Running the Host
+
+You need Godot 4.8 beta1 .NET (the "Godot Engine - .NET" download of 4.8 beta1 from
+[godotengine.org](https://godotengine.org/download/archive/), identity `4.8.beta1.mono.official.4d10419ca`), the
+.NET 10 SDK, and your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
+from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
+(`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The films are drawn from a library you decode from
+your installation with `python3 rebuild/tools/materialize_films.py <folder>` (FFmpeg required), named by
+`ONSLAUGHT_FILMS`. Nothing from the game is copied into the repository.
 
 ```bash
-cd rebuild/OnslaughtRebuild.Host
-HOST_PRESENT=150 HOST_CAPTURE=/var/tmp/host-present150.png godot-offscreen --path . --qa local-data/qa/run \
-  --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 -- --audio-driver Dummy
-python3 tools/side_by_side.py /var/tmp/host-present150.png <retail capture> /var/tmp/sbs.png
+export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"   # if it is not in the Steam default
+export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # if `godot` on PATH is not that engine
+npm run run:host                                            # builds the Host, then runs the whole game (HOST_LIVE=flow)
 ```
+
+`run:host` opens a window and runs the game from boot to quit with ordinary input. Set `HOST_LIVE=1` for level 100
+alone, or `HOST_LIVE=` (empty) to draw a single Present (`HOST_PRESENT=150`, optionally `HOST_CAPTURE=<file.png>`);
+`python3 rebuild/OnslaughtRebuild.Host/tools/side_by_side.py <capture> <retail capture> <out.png>` compares a capture
+with a retail one.
 
 It draws the landscape (the lit caches ported from `CHeightField`: the whole map at 512 x 512 and retail's four
 wrapping finer levels near the camera, each 8-metre tile's level chosen as CalcLODs does from the lagged view; the four
@@ -124,7 +132,7 @@ ported), and the front end's particles and battle-engine model. Diagnostics:
 ## The earlier rebuild (history)
 
 History: on 2026-10-15 David first parked the fixed-point rebuild in favour of the native source port of the
-byte-matching decompilation (private bea-decomp), then reactivated the lane the same day as the parity-core proof of
+byte-matching decompilation (now [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp)), then reactivated the lane the same day as the parity-core proof of
 concept above. The fixed-point code described from here on is the state
 at the old tag archive/godot-rebuild-20260926 (kept in the private RE archive since the history flatten): C# only and built in code, Level 100 winnable through the player-input
 surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in the Godot
@@ -154,9 +162,8 @@ evidenced retail law changes the run; the smoke report contract in
 `rebuild/tools/first_flight.py` holds the current value), and two refusals of
 impossible input (an emitter `Life` of Int32.MaxValue, whose Int32 turn loop
 cannot end, and an invalid terrain-compositor level, refused before its shifted
-block is allocated). [VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md) records the proof. The
+block is allocated). The proof was recorded in Onslaught-Career-Editor's validation notes at the time. The
 September 25 measurement
-([VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md#simulation-language-measurement--september-25))
 measured projectile launch and flight at up to about 100 ms per tick in Release
 C#. That was the terrain contact sweep, now pruned exactly (`Level100TerrainSweepPruningTests`):
 the smoke replay has no tick over 1 ms and the same hashes.
@@ -288,19 +295,20 @@ live with the [`Frontend`](OnslaughtRebuild.Godot/Assets/Frontend/README.md),
 [`Aquila`](OnslaughtRebuild.Godot/Assets/Aquila/README.md), and
 [`Level 100`](OnslaughtRebuild.Godot/Assets/Level100/README.md) recipes.
 
-## Run on Linux
+## Running the earlier rebuild (history)
 
-Use the installed pinned Godot 4.8 beta1 .NET engine (`godot48-mono`) and its
-bundled `Godot.NET.Sdk/4.8.0-beta.1` packages. The launcher requires the exact
-identity `4.8.beta1.mono.official.4d10419ca`; the projects target `net10.0` (SDK 10.0.402, `global.json`).
-Only the .NET edition runs this C# rebuild.
+This section describes the earlier fixed-point rebuild's launcher (`rebuild/tools/first_flight.py`, which runs
+`OnslaughtRebuild.Godot`), kept for reference; to run the current rebuild, see
+[Running the Host](#running-the-host). The launcher looks for a Godot 4.8 beta1 .NET engine named `godot48-mono` (or
+the path it is given) and its bundled `Godot.NET.Sdk/4.8.0-beta.1` packages, and requires the exact identity
+`4.8.beta1.mono.official.4d10419ca`; the projects target `net10.0` (SDK 10.0.402, `global.json`).
 
 ```bash
-npm run build:rebuild-godot
-npm run run:rebuild-godot
+npm run ref:godot-build
+npm run ref:godot-run
 ```
 
-`npm run check:rebuild` (`rebuild/tools/rebuild_gate.py`) runs the lane's whole
+`npm run ref:gate` (`rebuild/tools/rebuild_gate.py`) runs the lane's whole
 gate: the build, the Core suite (the cold-start test writes its won tape), the
 Core ferry-landing sweep, the Client suite, the pause and AYA checks in headless Godot, the headless smoke with its
 recorded tape, and two C# replays of each tape. Its summary prints the suite
@@ -309,17 +317,12 @@ counts and the tapes' trace and state hashes; logs go to a fresh
 subset.
 
 `rebuild/tools/first_flight.py` discovers the user's Linux Steam libraries or
-accepts `--game-root "/absolute/game/root"`. In the canonical checkout it prepares
-the supported retail inputs through `local-lab/rebuild-godot/` and startup media
-under `local-lab/startup-media/`. A child worktree verifies the current exact
-canonical asset files and links individual inputs into its ignored asset paths;
-it reads existing startup media without regenerating it. Set `BEA_LOCAL_LAB` to
-the canonical absolute lab path. Missing or stale inputs fail explicitly.
+accepts `--game-root "/absolute/game/root"`, and prepares the supported retail
+inputs into ignored paths (`BEA_LOCAL_LAB` names the folder that holds them).
+Missing or stale inputs fail explicitly.
 The launcher restores against bundled Godot packages with the lock file and
 launches from this checkout. Required non-Godot NuGet dependencies must
 already be available in the package cache. It never downloads or installs an engine.
-A genuinely fresh canonical clone needs its private `local-lab/` owner first;
-child worktrees reuse that canonical owner instead of creating a second corpus.
 
 The launcher owns scratch, user data/config/cache and fresh run logs under this
 checkout's `local-data/first-flight/`; every invocation has its own profile.
@@ -332,10 +335,10 @@ arguments follow a separate `--`. The launcher stops only its own process group
 on exit, interruption or timeout.
 
 ```bash
-npm run test:rebuild-godot-smoke
-npm run capture:rebuild-godot -- --plan mainmenu
-npm run run:rebuild-godot -- -- --record-tape="$PWD/local-data/first-flight/my-session.json"
-npm run run:rebuild-headless -- --tape "$PWD/local-data/first-flight/my-session.json" --repeat 2
+npm run ref:godot-smoke
+npm run ref:godot-capture -- --plan mainmenu
+npm run ref:godot-run -- -- --record-tape="$PWD/local-data/first-flight/my-session.json"
+npm run ref:headless -- --tape "$PWD/local-data/first-flight/my-session.json" --repeat 2
 ```
 
 Use a new tape filename and close the game normally to finalize it. The recorder
@@ -346,10 +349,8 @@ session passed two replays on September 6. A substantial tutorial playthrough is
 still required; synthetic smoke and captured screenshots do not meet that acceptance.
 
 `prepare:rebuild-assets`, Core/Client tests and headless replay do not open a
-window, and neither does a smoke given `--engine-arg=--headless`. A capture draws
-through `godot-offscreen` on a hidden output behind the machine-wide GPU lock.
-`run` opens a window, so it needs a desktop David has released; never fall back
-to the physical desktop. Software rendering establishes bounded visual observations,
+window, and neither does a smoke given `--engine-arg=--headless`; a capture and
+`run` do. Software rendering establishes bounded visual observations,
 not GPU performance, physical input or audible playback. The September 6 native
 smoke and live startup into Level 100 establish Linux runtime execution; complete
 controls/audio/tutorial parity remains unverified.
@@ -362,26 +363,11 @@ acceptance needs a separately provided Windows environment and a launcher for it
 
 ### Engine updates and recovery
 
-The shared pinned toolchain owns installed engines and matching export templates;
-Onslaught owns its exact runtime resolver, managed SDK/lock and project feature
-version. On September 19 both installed 4.8 dev6 editions and both template trees
-passed the shared toolchain's payload hash verification. Only 4.8 dev6 is installed
-now; the earlier 4.7.2 SDK/project pins remain recoverable from Git. Downgrading would
-need that matching source baseline, the older engine and a fresh checkout-local import
-cache, not pointing current 4.8 managed assemblies at an older executable.
-
-The official development notes identify relevant cumulative changes: the
-[dev1](https://godotengine.org/article/dev-snapshot-godot-4-8-dev-1/) and
-[dev2](https://godotengine.org/article/dev-snapshot-godot-4-8-dev-2/) editor/game
-view and resource workflows; [dev3](https://godotengine.org/article/dev-snapshot-godot-4-8-dev-3/)
-editor resource defaults and Windows mouse processing;
-[dev4](https://godotengine.org/article/dev-snapshot-godot-4-8-dev-4/) dock changes
-and Compatibility-renderer decals;
-[dev5](https://godotengine.org/article/dev-snapshot-godot-4-8-dev-5/) texture import
-options and automatic Control focus;
-[dev6](https://godotengine.org/article/dev-snapshot-godot-4-8-dev-6/) Linux touchpad
-scrolling fixes. These changes select compatibility checks; they do not authorize
-new visuals, altered imported retail defaults or replacement simulation physics.
+The engine pin is Godot 4.8 beta1 .NET (`4.8.beta1.mono.official.4d10419ca`, `Godot.NET.Sdk/4.8.0-beta.1`, .NET SDK
+10.0.402); 4.8 dev6, the previous pin, is retired, and it and the earlier 4.7.2 SDK/project pins remain recoverable
+from Git. Downgrading would need that matching source baseline, the older engine and a fresh checkout-local import
+cache, not pointing current 4.8 managed assemblies at an older executable. Engine changes select compatibility checks;
+they do not authorize new visuals, altered imported retail defaults or replacement simulation physics.
 
 Subsequent official 4.8 development and beta releases are eligible after reviewing
 the cumulative [official changelog](https://godotengine.github.io/godot-interactive-changelog/)
@@ -389,8 +375,8 @@ from the current pin, including intermediate releases and known regressions.
 Keep the previous installed version and a recoverable source commit, verify the
 new engine/templates, then update the resolver, SDK lock, feature version and
 retained Windows manifest together. Run the affected launcher, build, headless
-scene, deterministic replay and presentation checks selected by
-[VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md); input/audio or GPU claims still require their
+scene, deterministic replay and presentation checks (for the current rebuild: the Parity suite and the Host build and
+run); input/audio or GPU claims still require their
 actual environment. Do not defer a compatible update solely because it is a
 development build. No monitoring automation is implied.
 
@@ -431,9 +417,9 @@ An earlier, separate World 110 construction stage
 (`RetailWorld110InitialConstruction` with its own admission, player-start and
 construction-prefix owners) was retired on 2026-09-26 in favour of this one
 owner; it never ran in the product. Its retail evidence stays in
-[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-initial-constructor-seeds.md)
+[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md)
 and
-[`world-110-player-start-admission.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/game-mechanics/world-110-player-start-admission.md),
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md),
 and its code in Git history.
 
 The frontend owns click-to-start, Main Menu, the Quit confirmation, DevSelect
@@ -757,8 +743,8 @@ second sensitivity.
 > (VA `0x005D8CC0`) = `3.0f`, `0x1D97C8` (VA `0x005D97C8`) = `0.004333333f`.
 > The pointer scalar moved from `13/2000` to `91/3000` in `fed5829b` — aiming
 > had been 4.67× too slow at equal hand motion. See
-> [`../CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) for the withdrawal
-> in full. **Unchanged:** mouse inversion really is still absent, and it stays in
+> Onslaught-Career-Editor's capability list of that time for the
+> withdrawal in full. **Unchanged:** mouse inversion really is still absent, and it stays in
 > the list above.
 
 The client switches between the released walker's and jet's exact part
@@ -851,16 +837,16 @@ the shipped objective marker without adding world-space beacons.
 On Omarchy, choose the smallest Linux-native command:
 
 ```bash
-npm run test:rebuild-core
-npm run test:rebuild-client
-npm run run:rebuild-headless
+npm run ref:core-tests
+npm run ref:client-tests
+npm run ref:headless
 ```
 
 On an available Linux desktop, add the native Godot smoke when the
 rendering/runtime path changed:
 
 ```bash
-npm run test:rebuild-godot-smoke
+npm run ref:godot-smoke
 ```
 
 The headless host loads the checked-in `first-flight.v1.json`, repeats it, and
@@ -875,7 +861,7 @@ checks focus/cursor policy, a fresh retry, and return to the same Main Menu with
 the Level 100 world released. It writes structured report and log evidence
 only; it has no screenshot or visual-parity machinery.
 
-Visual regression is a separate gate. `npm run capture:rebuild-godot -- --plan
+Visual regression is a separate gate. `npm run ref:godot-capture -- --plan
 PLAN` (`startup`, `gameplay`, `mainmenu` or `options`; `--size`, default
 640x480, retail's frontend) draws the rig's shots through `godot-offscreen`,
 stamps the manifest's provenance (`--purpose production` holds only for committed

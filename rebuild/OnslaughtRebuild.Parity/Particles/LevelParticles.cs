@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// What each render does to the particles. Adapted from bea-decomp src/game.cpp (CGame::Render's frame length,
+// What each render does to the particles. Adapted from onslaught-decomp src/game.cpp (CGame::Render's frame length,
 // 0046e460) and DXEngine.cpp (CDXEngine::Render's particle steps and sun, 0053e86d..0053eb6a), DXParticleManager.cpp
 // (RenderOther 0054f7e0) and PDSimpleSprite.cpp (InitNoiseTable 004c7db0, CPDSimpleSprite::Unknown23 004c8040,
 // CPDPMesh::Unknown11 004c9000).

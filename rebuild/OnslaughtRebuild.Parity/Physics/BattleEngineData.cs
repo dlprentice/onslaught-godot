@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/BattleEngineDataManager.h and src/BattleEngineDataManager.cpp (CBattleEngineData: the
+// Adapted from onslaught-decomp src/BattleEngineDataManager.h and src/BattleEngineDataManager.cpp (CBattleEngineData: the
 // constructor 0040f520, Initialise 0040f590, Shutdown 0040f890, Load 0040f980; UBattleEngineDataManager: Initialise,
 // Load, GetConfiguration) and src/BattleEngineConfigurations.cpp (UBattleEngineConfigurations::GetConfiguration
 // 0040f2f0), in Stuart's release.

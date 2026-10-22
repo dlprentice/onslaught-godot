@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/InitThing.h (CInitCSThing, CInitThing and its subclasses' runtime fields; Copy), in
+// Adapted from onslaught-decomp src/InitThing.h (CInitCSThing, CInitThing and its subclasses' runtime fields; Copy), in
 // Stuart's release.
 
 using OnslaughtRebuild.Parity.Maths;

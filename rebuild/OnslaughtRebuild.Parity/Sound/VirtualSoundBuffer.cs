@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp port/dsound/dsound.cpp: Buffer::{Play,Stop,SetFrequency,SetCurrentPosition,GetStatus,
+// Adapted from onslaught-ce port/dsound/dsound.cpp: Buffer::{Play,Stop,SetFrequency,SetCurrentPosition,GetStatus,
 // GetCurrentPosition}, Mixer::{CatchUp,Mix}. This is the port/retail-harness virtual backend, not retail hardware.
 namespace OnslaughtRebuild.Parity.Sound;
 

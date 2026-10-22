@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/text.cpp and src/text.h (CText: GetLanguageName 004f2190, Load 004f21f0, GetSoundName
+// Adapted from onslaught-decomp src/text.cpp and src/text.h (CText: GetLanguageName 004f2190, Load 004f21f0, GetSoundName
 // 004f24b0, GetStringById 004f2580; reconstructed from the retail program, not in Stuart's release).
 
 using System.Buffers.Binary;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// CSystem::Run's parts on one process (bea-decomp src/System.cpp, src/FrontEnd.cpp, src/game.cpp): the boot films, the
+// CSystem::Run's parts on one process (onslaught-decomp src/System.cpp, src/FrontEnd.cpp, src/game.cpp): the boot films, the
 // front end and the levels it starts share the platform clock, the window's input, the bindings, the C runtime's rand()
 // and END_LEVEL_DATA.
 

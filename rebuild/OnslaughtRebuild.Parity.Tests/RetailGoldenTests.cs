@@ -92,7 +92,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
     /// <summary>
     /// The Present through which the tank-kill tape matches the port (never lowered). The reference is the port with its
-    /// call arguments evaluated in VC6's order (bea-decomp 12d023ca): before that, clang drew
+    /// call arguments evaluated in VC6's order (the port's fix for VC6 argument order): before that, clang drew
     /// FVector(RandomScaled, RandomScaled, RandomScaled) X first where VC6 draws Z first (CPDEmitter::Unknown10, 004c1a90),
     /// and the tank's shrapnel flew differently from P6016.
     /// </summary>
@@ -118,7 +118,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
     /// <summary>
     /// Level 100 run Present by Present against the source port's main-thread rand() (crt-per-present.txt: after each
-    /// Present, the C runtime's call count and holdrand, from bea-decomp's port under the same tape and virtual clock;
+    /// Present, the C runtime's call count and holdrand, from onslaught-ce's port under the same tape and virtual clock;
     /// ONSLAUGHT_PORT_CRT names its directory). Particles, snow, sounds, the cockpit shake and the simulation share
     /// that stream, so its count and state at each Present check every draw's existence and order. Both are compared
     /// as the Present returns; they must equal the port's at every Present from 3 through

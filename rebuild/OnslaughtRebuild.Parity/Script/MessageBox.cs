@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MessageBox.cpp and MessageBox.h (CMessage 004b6e50, ~CMessage 004b7160,
+// Adapted from onslaught-decomp src/MessageBox.cpp and MessageBox.h (CMessage 004b6e50, ~CMessage 004b7160,
 // SampleFinishedPlaying 004b71d0; CMessageBox 004b71e0, ~CMessageBox 004b7930, SwitchMessagesOn 004b7b60,
 // SwitchMessagesOff 004b7b70, TryAdvance 004b7b80, AddMessage 004b7ca0, PlayPendingSamples 004b7d90, StartMessage
 // 004b7ea0, AdvanceReveal 004b8020, HandleEvent 004b81d0, StopCurrentPlayingSound 004b8800, InitResources 004b7320,

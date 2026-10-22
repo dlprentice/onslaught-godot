@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/SeedUniformRandomNumberStream.{h,cpp} (CSeedUniformRandomNumberStream, 004de8c0 and
+// Adapted from onslaught-decomp src/SeedUniformRandomNumberStream.{h,cpp} (CSeedUniformRandomNumberStream, 004de8c0 and
 // 004de8d0).
 
 namespace OnslaughtRebuild.Parity.Game;

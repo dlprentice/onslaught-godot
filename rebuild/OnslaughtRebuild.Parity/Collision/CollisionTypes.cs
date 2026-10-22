@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/GeneralVolume.h (CCollisionMove, CCollisionReport), reconstructed; not in Stuart's release.
+// Adapted from onslaught-decomp src/GeneralVolume.h (CCollisionMove, CCollisionReport), reconstructed; not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Mesh;

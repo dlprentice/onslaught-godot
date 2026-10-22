@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/game.h and src/game.cpp (CGame: SetSlot 0046d3a0, GetSlot 0046d410, DeclareLevelWon
+// Adapted from onslaught-decomp src/game.h and src/game.cpp (CGame: SetSlot 0046d3a0, GetSlot 0046d410, DeclareLevelWon
 // 0046f2f0, DeclareLevelLost 0046f430, Pause 0046fb00; the objective, score and help-text accessors) and
 // src/MissionObjective.h (CMissionObjective), in Stuart's release.
 

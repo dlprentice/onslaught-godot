@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Controller.cpp (InitMouse, ShutdownMouse, PollMouseMotion, PollMouseState).
+// Adapted from onslaught-decomp src/Controller.cpp (InitMouse, ShutdownMouse, PollMouseMotion, PollMouseState).
 
 namespace OnslaughtRebuild.Parity.Platform;
 

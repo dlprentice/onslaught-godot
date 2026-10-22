@@ -11,9 +11,9 @@ so any frame can be read directly. OUT/<...>.ogg holds the film's sound, when it
 film: archive and sound paths, width, height, frames and rate, all from the Bink header the core's FilmPlayer reads.
 
 Pixels: FFmpeg decodes Bink to YUV 4:2:0 (its Bink decoder reproduces the planes); the conversion to BGRA is retail
-binkw32's own, as measured for the native port (adapted from bea-decomp port/bink/bink.cpp, Tables and
+binkw32's own, as measured for the native port (adapted from onslaught-ce port/bink/bink.cpp, Tables and
 BinkCopyToBuffer): nearest-neighbour chroma, one table per term, each a 16.16 product truncated toward zero, summed
-and clamped, luma below 16 taken as 0. There the port matches retail's frames on 48,294 of 48,627 (port/bink/PARITY.md).
+and clamped, luma below 16 taken as 0. There the port matches retail's frames on 48,294 of 48,627 (the port's own measurement).
 
 Archive format (little-endian): b"BFA1", then u32 width, height, frames, rate numerator, rate denominator,
 bytes per pixel (4); then frames x (u64 offset, u32 length) from the start of the file; then the zlib streams.

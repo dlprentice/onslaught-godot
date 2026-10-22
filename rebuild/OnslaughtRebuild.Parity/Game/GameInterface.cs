@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/GameInterface.cpp and src/GameInterface.h (CGameInterface: Reset 004729e0,
+// Adapted from onslaught-decomp src/GameInterface.cpp and src/GameInterface.h (CGameInterface: Reset 004729e0,
 // ToggleMenuDisplay 00472a90, MenuDown 00472ad0, SelectItem 00472b40, ReceiveButtonAction 00472d50, DrawBackground
 // 00472e50, Render 00472f10; reconstructed from the retail program, not in Stuart's release).
 
@@ -169,7 +169,7 @@ public sealed class GameInterface : IButtonReceiver
 
     /// <summary>
     /// SelectItem (00472b40): restart and quit set the game's quit. On PC the menu comes up only at a lost or drawn level's
-    /// end, after CGame::Update has made continue, message log, level briefing and options unavailable (bea-decomp
+    /// end, after CGame::Update has made continue, message log, level briefing and options unavailable (onslaught-decomp
     /// src/game.cpp:2105..2129; the Player.cpp:297/306 toggles are commented out and nothing else sets mShowJoypad), so
     /// those items and the joypad picture's close are unreachable and stay unported. The PC pause menu is CPauseMenu.
     /// </summary>

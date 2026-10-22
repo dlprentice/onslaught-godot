@@ -8,7 +8,7 @@ namespace OnslaughtRebuild.Parity.Tests.Career;
 
 /// <summary>
 /// <c>CCareer::UpdateGoodieStates</c> checked against an independent transcription of its rules: one row per line of
-/// the C++ (bea-decomp src/Career.cpp, thresholds from src/FEPGoodies.cpp), applied in order by a small oracle to
+/// the C++ (onslaught-decomp src/Career.cpp, thresholds from src/FEPGoodies.cpp), applied in order by a small oracle to
 /// seeded random careers. Order matters because goodies 2 to 7 each require the one before.
 /// </summary>
 public sealed class CareerGoodieRulesTests

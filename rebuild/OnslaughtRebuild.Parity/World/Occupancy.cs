@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Occupancy.h and src/NavigationMap.cpp (COccupancy: RemoveUnit 004bc3e0, AddUnit 004bc480,
+// Adapted from onslaught-decomp src/Occupancy.h and src/NavigationMap.cpp (COccupancy: RemoveUnit 004bc3e0, AddUnit 004bc480,
 // ClearSteep 004bc8d0, ApplyStatic 004bcbf0, BuildStatic 004bcd60, Rasterize 004bd5c0, BuildStaticShadows 004bd9e0)
 // and src/maths.h (FVector::Elevation, through VC6's runtime asin). Not in Stuart's release.
 

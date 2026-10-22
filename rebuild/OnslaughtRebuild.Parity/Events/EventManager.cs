@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/eventmanager.h, src/eventmanager.cpp (CEventManager: Init 0044b060, AddEvent 0044b2d0,
+// Adapted from onslaught-decomp src/eventmanager.h, src/eventmanager.cpp (CEventManager: Init 0044b060, AddEvent 0044b2d0,
 // 0044b310, 0044b370, Update 0044b5c0, AdvanceTime 0044b600, Flush 0044b640), src/scheduledevent.h and
 // src/scheduledevent.cpp (CScheduledEvent::Set 004de1f0), in Stuart's release (scheduledevent.cpp is reconstructed).
 

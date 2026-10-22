@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/Round.cpp and round.h (CRound: GetMaxVelocity 004d82a0, BounceFactor 004d82d0,
+// Adapted from onslaught-decomp src/Round.cpp and round.h (CRound: GetMaxVelocity 004d82a0, BounceFactor 004d82d0,
 // ClipToGround 004d82e0, SetThingType 004d8320, CanGoUnderWater 004d8330, the constructor 004d81e0, Init 004d8410,
 // GetRadius 004d8ac0, Hit 004d8ae0, Shutdown 004d8dc0, Move 004d8e40, HandleEvent 004d9910, DeclareOnGround 004d9dd0,
 // DeclareInWater 004d9ef0, Unknown4d9f30 004d9f30, SetTarget 004daab0, ReleaseTarget 004dab50, Unknown4dac90 004dac90,

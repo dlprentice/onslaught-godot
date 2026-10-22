@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/PCMemoryCard.cpp (CPCMemoryCard).
+// Adapted from onslaught-decomp src/PCMemoryCard.cpp (CPCMemoryCard).
 
 namespace OnslaughtRebuild.Parity.Flow;
 

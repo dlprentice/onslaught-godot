@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/engine.cpp (CEngine::Deserialize 0044a6e0; engine.cpp is in Stuart's release, hence
+// Adapted from onslaught-decomp src/engine.cpp (CEngine::Deserialize 0044a6e0; engine.cpp is in Stuart's release, hence
 // GPL-3.0-only), src/maptex.cpp (CMapTex::Deserialize 004916c0) and src/Map.cpp (CMap::Deserialize 00491060).
 
 using System.Buffers.Binary;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // The particle descriptors: the particle system editor's building blocks, each read from the set file. Adapted from
-// bea-decomp src/ParticleDescriptor.h, ParticleDescriptor.cpp (each class's Load, 004c05c0 onwards) and ParticleSet.cpp
+// onslaught-decomp src/ParticleDescriptor.h, ParticleDescriptor.cpp (each class's Load, 004c05c0 onwards) and ParticleSet.cpp
 // (the constructors). The behaviours are in ParticleBehaviours.cs.
 
 namespace OnslaughtRebuild.Parity.Particles;

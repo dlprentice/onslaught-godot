@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/FEPBriefing.cpp (reconstructed from the retail program; not in Stuart's release).
+// Adapted from onslaught-decomp src/FEPBriefing.cpp (reconstructed from the retail program; not in Stuart's release).
 
 using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Numerics;

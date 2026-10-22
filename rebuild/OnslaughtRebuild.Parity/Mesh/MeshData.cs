@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/mesh.cpp (CMesh::Deserialize 004aab90, GetNumEmitters 004aa4e0, GetEmitterNameByID
+// Adapted from onslaught-decomp src/mesh.cpp (CMesh::Deserialize 004aab90, GetNumEmitters 004aa4e0, GetEmitterNameByID
 // 004aa500, GetEmitterSubpartByID 004aa5a0, GetMovieCameraSubpart 004aa5e0, GetAnimModeByName 004aa630,
 // GetAnimModePtr 004aa680, GetFrameIncrement 004aa7e0, GetEmitterSubpart 004aa820, GetMeshSubpart 004aa8a0) and
 // src/mesh.h (the CMesh, CMeshTexture, CAnimMode, CCutsceneSequence and CEmitter layouts). mesh.cpp is in Stuart's

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/SPtrSet.h and src/SPtrSet.cpp (GenericSPtrSet: Init 004e59f0, Add 004e5a80, Append
+// Adapted from onslaught-decomp src/SPtrSet.h and src/SPtrSet.cpp (GenericSPtrSet: Init 004e59f0, Add 004e5a80, Append
 // 004e5b20, Remove 004e5bd0, Contains 004e5c30, RemoveAll 004e5c60, At 004e5c90, Shutdown 004e5910,
 // ClearAnyDynamicCreatedNodes 004e5990; GenericListIterator), in Stuart's release.
 

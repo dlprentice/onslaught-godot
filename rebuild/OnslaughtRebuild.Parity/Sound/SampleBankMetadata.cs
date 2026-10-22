@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Pristine PC SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750:
 // LoadSampleBank00517d00, LoadSampleFromBuffer005172a0, CreateSoundBuffer00517440, GetSampleLength00517c60.
-// Buffer alignment/admission comes from bea-decomp port/dsound/dsound.cpp, not a claim about every audio driver.
+// Buffer alignment/admission comes from onslaught-ce port/dsound/dsound.cpp, not a claim about every audio driver.
 using System.Buffers.Binary;
 using System.Text;
 using OnslaughtRebuild.Parity.Numerics;

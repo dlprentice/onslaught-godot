@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/BattleEngine.cpp: Morph0040a580, HandleEvent0040c180, mesh switch00406460,
+// Adapted from onslaught-decomp src/BattleEngine.cpp: Morph0040a580, HandleEvent0040c180, mesh switch00406460,
 // EnableFlightMode0040dcb0, DisableFlightMode0040dcc0 and ZoomIn/Out00409e90..00409ec0.
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Sound;

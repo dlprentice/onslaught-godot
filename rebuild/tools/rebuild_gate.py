@@ -81,15 +81,15 @@ def main(argv: list[str]) -> int:
 
     try:
         if "build" in steps:
-            step("build", ["npm", "run", "build:rebuild-godot"])
+            step("build", ["npm", "run", "ref:godot-build"])
         if "parity" in steps:
             summary["parity"] = dotnet_counts(step("parity", ["npm", "run", "test:rebuild-parity"]))
         if "core" in steps:
-            summary["core"] = dotnet_counts(step("core", ["npm", "run", "test:rebuild-core"]))
+            summary["core"] = dotnet_counts(step("core", ["npm", "run", "ref:core-tests"]))
         if "ferry" in steps:
-            summary["ferry"] = dotnet_counts(step("ferry", ["npm", "run", "test:rebuild-ferry-sweep"]))
+            summary["ferry"] = dotnet_counts(step("ferry", ["npm", "run", "ref:core-ferry-sweep"]))
         if "client" in steps:
-            summary["client"] = dotnet_counts(step("client", ["npm", "run", "test:rebuild-client"]))
+            summary["client"] = dotnet_counts(step("client", ["npm", "run", "ref:client-tests"]))
         if "pause" in steps:
             step("pause", [*GODOT_CHECK, "--engine-arg=res://Scenes/Pause/Tests/PauseSceneChecks.tscn"])
         if "aya" in steps:
@@ -103,7 +103,7 @@ def main(argv: list[str]) -> int:
             for name, tape in (("smoke-replay", smoke_tape), ("won-replay", won_tape)):
                 if tape.exists():
                     summary[name] = replay_hashes(step(name, [
-                        "npm", "run", "run:rebuild-headless", "--", "--tape", str(tape), "--repeat", "2"]))
+                        "npm", "run", "ref:headless", "--", "--tape", str(tape), "--repeat", "2"]))
         return_code = 0
     except RuntimeError as error:
         print(error, file=sys.stderr)

@@ -1,7 +1,7 @@
 # Rebuild determinism contract
 
 Status: reference — the earlier fixed-point Core's contract; the parity core's is the short section at the top
-Last updated: 2026-10-21 (the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
+Last updated: 2026-10-22 (a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
 Headless sources named at the bottom; the retail 20 Hz step was MEASURED in
@@ -170,8 +170,8 @@ desktop control. One constructor, twelve cache and twelve Plane Euler samples
 read control word `0x007f`; the live constructor/Euler bodies matched pristine
 bytes. The native oracle also reproduced eleven consecutive live Euler/basis
 transitions. This is a bounded backend observation, not Steam-default, Windows,
-cold-start acceptance or a whole-simulation precision claim. See the existing
-[Unit function evidence](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/reverse-engineering/binary-analysis/functions/CComplexThing.cpp.md).
+cold-start acceptance or a whole-simulation precision claim. The unit's function evidence is kept in the
+private RE archive.
 
 ## What Core may not do
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// The descriptors' per-particle steps (their virtual slots 9..22). Adapted from bea-decomp src/ParticleDescriptor.cpp,
+// The descriptors' per-particle steps (their virtual slots 9..22). Adapted from onslaught-decomp src/ParticleDescriptor.cpp,
 // ParticleDescriptor.h (CPDFunction::Evaluate 004c0c70, CFloatRef::GetValue 004c10c0) and ParticleSet.cpp (the inline
 // slots). Slot names follow retail's numbering where the purpose is not certain.
 //

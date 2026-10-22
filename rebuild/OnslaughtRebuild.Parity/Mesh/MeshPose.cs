@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MeshPose.cpp (CMeshPose::Build 004b4ba0, Update 004b4cd0, CMeshPart::EvaluatePose
+// Adapted from onslaught-decomp src/MeshPose.cpp (CMeshPose::Build 004b4ba0, Update 004b4cd0, CMeshPart::EvaluatePose
 // 004b4de0), src/meshpose.h (CMeshPose, Init), src/MeshRenderer.cpp (CMeshPart::EvaluateAnimatedTransform 004b5330)
 // and src/rtmesh.cpp (CRTMesh::GetRTEmitter 004dd160). MeshPose.cpp and MeshRenderer.cpp are in Stuart's release;
 // rtmesh.cpp is not.

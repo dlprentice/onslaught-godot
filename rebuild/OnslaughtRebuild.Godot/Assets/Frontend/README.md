@@ -137,10 +137,13 @@ them, because every retail reference frame in this repository was captured with
 
 ## Evidence boundary
 
-- Steam Ghidra: startup handlers `0x0051B660`/`0x0051B6B0`, prompt render
-  entry `0x0051B840`, main page vtable `0x005DBAE4`, level-select input/render
-  `0x004606B0`/`0x00460B40`, loading renderer `0x0042C810`, and debrief
-  vtable `0x005DB9C0` (`Initialize` `0x00456780`, `ButtonPressed`
+- Retail addresses (first identified in the retired Ghidra project; the
+  decompilation, onslaught-decomp, now names them): `CFEPIntro::ButtonPressed`
+  `0x0051B660` and `Process` `0x0051B6B0`, `CFEPIntro::Render`
+  `0x0051B840` (`src/FEPIntro.cpp`), the main page's vtable `0x005DBAE4`
+  (`src/FEPMain.h`), `CFEPLevelSelect::ButtonPressed`/`Render`
+  `0x004606B0`/`0x00460B40`, `CConsole::RenderLoadingScreen` `0x0042C810`, and
+  `CFEPDebriefing`'s vtable `0x005DB9C0` (`Init` `0x00456780`, `ButtonPressed`
   `0x004568A0`, `Process` `0x00456930`, `Render` `0x00456DD0`).
 - Stuart source: `FrontEnd.cpp` establishes first-run intro, title return,
   debrief return, and initial selected world 100; `PCFrontend.cpp` names the

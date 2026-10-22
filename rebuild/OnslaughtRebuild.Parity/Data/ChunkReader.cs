@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/chunker.{h,cpp} (CChunkReader: GetNext 00423910, Read 00423960, Skip 00423990).
+// Adapted from onslaught-decomp src/chunker.{h,cpp} (CChunkReader: GetNext 00423910, Read 00423960, Skip 00423990).
 
 using System.Buffers.Binary;
 

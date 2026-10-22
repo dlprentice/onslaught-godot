@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/DXKempyCube.cpp (CDXKempyCube: the faces' vertices 006508f0, Load 005440a0, Render
+// Adapted from onslaught-decomp src/DXKempyCube.cpp (CDXKempyCube: the faces' vertices 006508f0, Load 005440a0, Render
 // 005441b0) and src/landscape.cpp (GetCubeTextureName 0048de30). Reconstructed; not in Stuart's release.
 
 using Godot;

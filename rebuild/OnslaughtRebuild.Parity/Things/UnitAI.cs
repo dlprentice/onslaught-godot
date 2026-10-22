@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/UnitAI.h and src/UnitAI.cpp (CUnitAI: the constructor 004fe710, Unknown5 004fea30, Unknown8
+// Adapted from onslaught-decomp src/UnitAI.h and src/UnitAI.cpp (CUnitAI: the constructor 004fe710, Unknown5 004fea30, Unknown8
 // 004feac0, Unknown6 004febe0, Unknown9 004fec60, Unknown3 004fef40, HandleEvent 004ff330, Unknown4 004ff4f0, Unknown11
 // 004ff710, Unknown7 004ffb60, Unknown10 004ffbb0, Unknown4ffdd0, NewSweep 004ffe00), src/PlaneAI.h and src/PlaneAI.cpp
 // (CPlaneAI::Unknown9 004d21c0), src/DropshipAI.cpp (CDropshipAI: Unknown8 00448490, Unknown9 00448580, Unknown3 004487e0)

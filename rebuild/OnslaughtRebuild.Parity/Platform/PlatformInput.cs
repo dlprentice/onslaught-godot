@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/ltshell.cpp and src/ltshell.h (PCLTShell's message handling and key state) and
+// Adapted from onslaught-decomp src/ltshell.cpp and src/ltshell.h (PCLTShell's message handling and key state) and
 // src/PCPlatform.cpp (CPCPlatform::Process, KeyOn, KeyOnce).
 
 namespace OnslaughtRebuild.Parity.Platform;

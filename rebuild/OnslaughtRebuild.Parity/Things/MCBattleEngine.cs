@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MCMech.cpp (CMCMech: the constructor 004983b0, HandleEvent 00498870, ProcessMovement
+// Adapted from onslaught-decomp src/MCMech.cpp (CMCMech: the constructor 004983b0, HandleEvent 00498870, ProcessMovement
 // 004988b0, SetMechParameters 00498bf0, Init 00498c40, GetFootHeight 00499bc0, AddMovement 00499d60, UpdateBone 00499e30,
 // UpdateBoneHierarchyRecursive 0049bd50, GetPartTransform 0049be00, AdjustFrame 0049c1d0) and src/MCBattleEngine.h and
 // MCBattleEngine.cpp (CMCBattleEngine: slot 10 FALSE, slot 11 the engine's CalculatePitch, slot 13 90, slot 14 the

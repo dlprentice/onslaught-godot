@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/MessageLog.cpp (CMessageLog: the constructor 004b8dd0, Render 004b93f0, RenderMessageCard
+// Adapted from onslaught-decomp src/MessageLog.cpp (CMessageLog: the constructor 004b8dd0, Render 004b93f0, RenderMessageCard
 // 004b9a80, Activate 004b9ea0, ReceiveButtonAction 004b9ec0; reconstructed from the retail program, not in Stuart's
 // release).
 

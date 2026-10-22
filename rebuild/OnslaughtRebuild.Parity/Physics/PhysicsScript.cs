@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/CPhysicsScript.cpp (CPhysicsScript::Load 0042e950) and src/CPhysicsScriptStatements.h
+// Adapted from onslaught-decomp src/CPhysicsScript.cpp (CPhysicsScript::Load 0042e950) and src/CPhysicsScriptStatements.h
 // (the statements' Load and the value lists' Load). Not in Stuart's release.
 
 using System.Text;

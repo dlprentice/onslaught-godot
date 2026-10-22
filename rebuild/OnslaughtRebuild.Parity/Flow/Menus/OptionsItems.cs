@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/PauseMenu.cpp (the controls and display items: CShadowDetail 004ceef0, CTreeDetail 004cef50,
+// Adapted from onslaught-decomp src/PauseMenu.cpp (the controls and display items: CShadowDetail 004ceef0, CTreeDetail 004cef50,
 // CMouseSensitivityMenuItem 004cefe0/004cf000, CVideoDeviceSelect 004cf2c0, CSCModeMenuItem 004cf370, CVSync 004cf500,
 // CLandscapeRes 004cf5e0, CTrilinear 004cf6c0, CTextureRes 004cf770, CEnable32Bit 004cf820, CMultiSample 004cfa70,
 // CnVidia 004cfd00, CVideoDetailLevel 004cfdb0, CConfigName 004d01d0, CControllerBackMenuItem 004d0220,

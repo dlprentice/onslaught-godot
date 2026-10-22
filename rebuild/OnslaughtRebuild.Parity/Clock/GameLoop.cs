@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/game.cpp (CGame::MainLoop, 0046eee0; the mBaseTime read in the level start, 0046df.. at
+// Adapted from onslaught-decomp src/game.cpp (CGame::MainLoop, 0046eee0; the mBaseTime read in the level start, 0046df.. at
 // game.cpp:1294; CGame::PreRun) and src/game.h (CGame::CalcRenderFrameFraction, inline), in Stuart's release.
 
 namespace OnslaughtRebuild.Parity.Clock;

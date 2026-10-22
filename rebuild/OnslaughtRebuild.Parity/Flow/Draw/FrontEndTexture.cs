@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/frontend.h (EFrontEndTexture) and src/FrontEndData.cpp (CFrontEndData::Init 004687e0).
+// Adapted from onslaught-decomp src/frontend.h (EFrontEndTexture) and src/FrontEndData.cpp (CFrontEndData::Init 004687e0).
 
 namespace OnslaughtRebuild.Parity.Flow.Draw;
 

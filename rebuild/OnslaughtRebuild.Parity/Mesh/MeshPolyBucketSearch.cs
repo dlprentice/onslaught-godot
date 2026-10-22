@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Adapted from bea-decomp src/PolyBucket.cpp and PolyBucket.h (CPolyBucket::IntersectsCell 004d3b10, StartSearch 004d4c00,
+// Adapted from onslaught-decomp src/PolyBucket.cpp and PolyBucket.h (CPolyBucket::IntersectsCell 004d3b10, StartSearch 004d4c00,
 // GetNextPoly 004d4f00, StartLineSearch 004d50d0, AdvanceLineSearch 004d5650, GetNextPolyLine 004d57c0, GetZMask,
 // IsSearchCellValid, BucketFloor; CPolyBucketIndexList::First/Next; CPolyBucketPacking::Unpack) and src/MeshPart.cpp
 // (CMeshPart::GetFirstPoly 004ae110, GetNextPoly 004ae1a0, GetFirstPolyLine 004ae220, GetNextPolyLine 004ae430),

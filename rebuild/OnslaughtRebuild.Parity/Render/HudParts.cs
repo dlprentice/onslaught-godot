@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// CHud's part states (bea-decomp src/Hud.h, mPartState and mFlash; CHud::Reset 004815c0, CHud::Render 00487bc0,
+// CHud's part states (onslaught-decomp src/Hud.h, mPartState and mFlash; CHud::Reset 004815c0, CHud::Render 00487bc0,
 // IsComponentVisible 004881e0) and the script's HighlightHudPart 00535e60 / UnHighlightHudPart 00535e80.
 
 using OnslaughtRebuild.Parity.Numerics;

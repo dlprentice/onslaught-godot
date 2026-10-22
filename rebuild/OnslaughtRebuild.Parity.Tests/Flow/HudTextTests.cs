@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // CHud::Render00485d50 00485d50 (the weapon's name and the warnings) and Render00486940 00486940 (the ammunition count),
-// bea-decomp src/Hud.cpp; the native port's fe-lose back buffers show the same warning at the same Presents (PARITY.md).
+// onslaught-decomp src/Hud.cpp; the native port's fe-lose back buffers show the same warning at the same Presents (PARITY.md).
 
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Draw;
