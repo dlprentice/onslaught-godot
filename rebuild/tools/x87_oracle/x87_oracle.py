@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Oracle tables for the parity core's x87 numerics: VC6-compiled results at 24-bit precision control.
 
     python rebuild/tools/x87_oracle/x87_oracle.py build             compile harness.c and trunc.c (VC6 SP5, /O2 /QIfist)

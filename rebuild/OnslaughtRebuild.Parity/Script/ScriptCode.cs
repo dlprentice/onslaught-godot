@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MissionScript/ScriptObjectCode.cpp (CMissionScriptObjectCode::Clone 00539040,
 // ~CMissionScriptObjectCode 005391a0), Symtab.cpp (CSymbol::Clone, CSymbolTable::Find, Add, ~CSymbolTable 00539510,
 // Clone 005395b0, GetSymbol 00539760) and EventFunction.cpp (the file constructor 0052fa70, Clone 0052fbb0), reconstructed

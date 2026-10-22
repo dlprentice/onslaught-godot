@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/RadarWarningReceiver.cpp and .h: Init 004d65a0, destructor 004d6600, Update
 // 004d66b0, HandleEvent 004d6a10; Equipment.cpp GetPrimaryPosition 0044a850 and BattleEngine.h's alarm flag.
 // The scan's arithmetic/order was checked at 004d672b..004d69f0 in the pristine BEA.exe.original.backup:

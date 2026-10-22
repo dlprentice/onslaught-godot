@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CGame's calls into the mission scripts and the message box (bea-decomp src/game.cpp: SCRIPT_EVENT_NB.PostEvent("game
 // playing") 3106, ALLOWED_TO_PLAY_MESSAGES to mMessageBox 3107, mMessageBox->PlayPendingSamples 1912), on top of another
 // set of services for everything else.

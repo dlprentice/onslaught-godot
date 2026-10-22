@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/ThingType.h and src/waypoint.h (THING_TYPE_WAYPOINT). Not in Stuart's release.
 
 namespace OnslaughtRebuild.Parity.Things;

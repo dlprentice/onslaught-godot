@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/heightfield.h and src/HeightField.cpp (CHeightField: GetHeightSample 0047ea20,
 // Unknown47eb00 0047eb00, Collide 0047eb80, Normal 0047ec60, Load 0047f750). Not in Stuart's release.
 

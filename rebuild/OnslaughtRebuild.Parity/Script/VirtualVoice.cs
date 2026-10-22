@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The voice's path from bea-decomp src/MessageBox.cpp (COggLoader::Run 004b6d90, VOICE_BUFFER_SIZE, PlayPendingSamples
 // 004b7d90), src/pcsoundmanager.cpp (CreateSampleFromData 005176d0, CreateSoundBuffer 00517440: (size + 1) / 2 bytes of
 // mono at 22050 Hz for sound rate 1; ConvertAudioFormat 00517600) and src/SoundManager.cpp (UpdateStatus 004e1b20,

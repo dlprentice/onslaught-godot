@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // A segmented unit's destructable segments and their motion controller. Adapted from bea-decomp
 // src/DestructableSegmentsController.cpp (the constructor 00443fc0, Init 00444660, CreateSegment 004449c0, ProcessNode
 // 00444c10, GetDamageStage 00444f00, CanUse 00444f20, GetCoreFall 00445010, GetCentre 00445070), DestroyableSegment.cpp/.h (the segments'

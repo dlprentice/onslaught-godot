@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/DXFMV.cpp (CDXFMV::Play 0053f190), src/DXFrontEndVideo.cpp (CDXFrontEndVideo: Open
 // 005412e0 and InitVideo 00541430 as Play calls them, synchronously; NextFrame 00541d30; Render 00541790's frame copy),
 // src/fmv.cpp (CFMV::PlayFullscreen 00465640, ReceiveButtonAction 004656e0) and src/System.cpp (CSystem::Init 004efb10,

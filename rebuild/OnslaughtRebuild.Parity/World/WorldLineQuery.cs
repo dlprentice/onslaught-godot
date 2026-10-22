@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CWorld::FindFirstThingToHitLine, adapted from bea-decomp src/world.cpp (0050b030).
 
 using OnslaughtRebuild.Parity.Collision;

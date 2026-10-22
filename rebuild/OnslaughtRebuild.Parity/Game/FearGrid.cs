@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FearGrid.h and src/FearGrid.cpp (CFearGrid: the constructor 0044c3d0, HandleEvent
 // 0044c420, Rebuild 0044c440, InDanger 0044c720, Unknown44c780, Unknown44c810). Not in Stuart's release.
 

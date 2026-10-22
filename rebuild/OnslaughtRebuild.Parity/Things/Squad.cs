@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/squad.h, src/squad.cpp (CSquad: the constructor 004e5da0, SetAIState 004e5e00, Init
 // 004e5e70, IncreaseThingCounter 004e6200, Shutdown 004e65b0, HandleEvent 004e65e0, Unknown4e6610, Unknown4e6640,
 // Unknown4e6660, Unknown4e6680), src/SquadNormal.cpp (CNormalSquad 004e6870..004e9800 and CNormalSquadMember),

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Check the live Host's whole-game flow (HOST_LIVE=flow) against its straight reference.
 
 For each route (the tapes the Parity route tests prove against the port), run the Host twice under godot-headless:

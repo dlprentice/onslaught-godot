@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/maths.h (FMatrix operator+, operator- and operator*(float), row by row); the 16-byte
 // FVector and 48-byte FMatrix memory layouts (maths.h: X, Y, Z and an unset fourth dword per row). Not in Stuart's
 // release.

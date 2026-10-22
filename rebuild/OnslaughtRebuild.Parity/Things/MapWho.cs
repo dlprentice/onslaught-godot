@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/mapwho.h and src/mapwho.cpp (CMapWho: Create 004919b0, Clear 00491930, GetLevelForRadius
 // 00491c50, AddEntry 00491cd0, RemoveEntry 00491d20, GetFirstEntry 00491d80, GetNextEntry 00491d90, IsValidSector
 // 00491da0, SetupNextRadiusLayer 00491df0, GetFirstEntryWithinRadius 00491ea0, GetNextEntryWithinRadius 00492020,

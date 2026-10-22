@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The physics script's weapon, weapon mode, round, spawner, explosion and component statements. Adapted from bea-decomp
 // src/CPhysicsScriptStatements.h (each family's value classes: Load and Apply), src/CPhysicsScriptStatements.cpp
 // (CreateWeaponValue 00434300, CreateWeaponModeValue 00435010, CreateRoundValue 00437490, CreateSpawnerValue 00439b40,

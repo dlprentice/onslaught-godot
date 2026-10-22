@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Unit.cpp, CUnit::GetShouldDoHitEffect (004fd5e0).
 
 using OnslaughtRebuild.Parity.Numerics;

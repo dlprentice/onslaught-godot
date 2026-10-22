@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MenuOptionsList.cpp (CMenuOptionsList: Reset 004a4630, SelectNext 004a4790, Render
 // 004a4810, PassToSelected 004a4cd0, ReceiveButtonAction 004a4d20, SetItemEnabled 004a4dd0; reconstructed from the
 // retail program, not in Stuart's release).

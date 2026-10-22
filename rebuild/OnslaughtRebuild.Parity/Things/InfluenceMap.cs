@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/InfluenceMap.h and src/InfluenceMap.cpp (CInfluenceMap: Clear 0048afb0, Load 0048b010,
 // Skip 0048b660, Update 0048b7d0, Build 0048b8e0, Decay 0048bf70, AddResidual 0048c000, HandleEvent 0048c120, IsEmpty
 // 0048c2d0; CInfluenceNode: ResetInfluence 0048b620, Shutdown 0048c350, Init 0048c390, CalculateInfluence 0048c3b0).

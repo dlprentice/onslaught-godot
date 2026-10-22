@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MCGroundVehicle.cpp (CMCGroundVehicle: GetPartTransform 00496ac0; reconstructed from the
 // retail program, not in Stuart's release).
 

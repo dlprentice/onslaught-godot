@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/waypoint.h and src/Waypoint.cpp (CWaypoint: Init 005057b0, Shutdown 00505810),
 // src/LevelScriptThing.cpp (CLevelScriptThing::Init 004900d0), src/SafeSide.cpp (CSafeSide: Init 004de190, Shutdown
 // 004de1d0), src/SphereTrigger.cpp (CSphereTrigger: Init 004e5500, Activate 004e5540, Deactivate 004e5680, Shutdown

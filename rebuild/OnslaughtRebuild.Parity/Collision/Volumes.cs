@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/GeneralVolume.h (the volumes' double dispatch), src/Sphere.cpp and Sphere.h (CSphere:
 // CollideWithCylinder 004e4d70, CollideWithSphere 004e4e00, Collide 00426320), src/Cylinder.cpp and cylinder.h
 // (CCylinder: CollideWithCylinder 0043fe20, the folded slots 004059a0) and src/MeshCollisionVolume.h (Collide 004262e0,

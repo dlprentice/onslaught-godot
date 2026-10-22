@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // What the shadow textures do to the game: which units are drawn into them each render, and so which of their effect
 // emitters run. Adapted from bea-decomp src/DXShadows.cpp (CShadows::ResetShads 00552660, AddShadow 005526c0,
 // UpdateTextures 00552740, AssignTextures 00552800, RenderTextures 005528b0) and shadows.h (RequestShadow 00477b70).

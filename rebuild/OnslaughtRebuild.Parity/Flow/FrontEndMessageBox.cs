@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FEMessBox.cpp and src/FEMessBox.h (reconstructed from the retail program; not in
 // Stuart's release).
 

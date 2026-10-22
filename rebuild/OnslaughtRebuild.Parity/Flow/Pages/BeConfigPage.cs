@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FEPBEConfig.cpp (reconstructed from the retail program; not in Stuart's release):
 // GetConfigDescription 0044eb30, GetNumJetWeapons 0044ed40, GetNumWalkerWeapons 0044eea0, GetWalkerWeaponRating 0044f030,
 // GetJetWeaponRating 0044f300, GetWalkerWeaponName 0044f530, GetJetWeaponName 0044f830, RenderPreCommon 00450390,

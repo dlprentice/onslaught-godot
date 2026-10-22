@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The behaviour of the C runtime's rand and srand as retail links them (VC6 SP5 LIBCMT), measured from the pinned
 // toolchain's rand.obj and tidtable.obj; no runtime code is copied.
 

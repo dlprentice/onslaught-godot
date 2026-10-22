@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MessageBox.cpp and MessageBox.h (CMessage 004b6e50, ~CMessage 004b7160,
 // SampleFinishedPlaying 004b71d0; CMessageBox 004b71e0, ~CMessageBox 004b7930, SwitchMessagesOn 004b7b60,
 // SwitchMessagesOff 004b7b70, TryAdvance 004b7b80, AddMessage 004b7ca0, PlayPendingSamples 004b7d90, StartMessage

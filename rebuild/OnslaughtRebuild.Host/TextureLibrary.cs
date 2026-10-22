@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The texture chunk as CDXTexture::Deserialize (bea-decomp src/DXTexture.cpp, 00559be0) reads it from a resource file
 // outside the build tool, and the frame files CDXTexture::LoadFrame (00557300) loads, with the record's fields from
 // src/Texture.h (CTexture and CDXTexture).

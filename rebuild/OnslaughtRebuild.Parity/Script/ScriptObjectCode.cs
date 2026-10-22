@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MissionScript/ScriptObjectCode.cpp (the file constructor 00538ec0), AsmInstruction.cpp
 // (CAsmInstruction::Spawn 0052d3d0), Symtab.cpp (CSymbolTable 00539770, CSymbol), DataType.cpp (CDataType::Create
 // 0052ec60, CStringDataType) and EventFunction.cpp (CEventFunction 0052fa70). Not in Stuart's release.

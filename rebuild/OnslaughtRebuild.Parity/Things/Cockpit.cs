@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The battle engine's cockpit. Adapted from bea-decomp src/Cockpit.cpp (CCockpit: the constructor 004244b0,
 // AddShockShake 004247a0, MorphIntoWalkerCockpit 00424920, MorphIntoJetCockpit 00424990, HandleEvent 00424a00, Process
 // 00424a20, ProcessAnimation 00424be0, ProcessWalker 00424ca0, ProcessJet 004250f0, GetRenderFrame 00425410,

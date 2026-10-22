@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/WorldPhysicsManager.h (CWeaponData, CLaunchAngle, CWeaponModeData: the fields, the physics
 // script's constructors and setters) and src/WorldPhysicsManager.cpp (CWeaponModeData::SetRound 005113f0). Not in
 // Stuart's release.

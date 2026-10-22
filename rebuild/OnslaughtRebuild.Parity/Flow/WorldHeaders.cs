@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FEPBEConfig.cpp (CFEPBEConfig::Init and Load, GetCurrentLevel) and src/FEPWingmen.cpp
 // (GetNumWingmen) (reconstructed from the retail program; not in Stuart's release).
 

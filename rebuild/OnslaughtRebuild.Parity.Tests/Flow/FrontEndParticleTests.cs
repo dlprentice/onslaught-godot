@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 using OnslaughtRebuild.Parity.Crt;
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Pages;

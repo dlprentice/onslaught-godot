@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/unit.h and src/Unit.cpp (CUnit: GoToPoint 004fce00, GuideUnknown5 004fce40, GuideUnknown6
 // 004fce80, GuideUnknown7 004fcec0, Stop 004fcf00, Unknown74 004fc080, Unknown87 004fc170, Unknown98 004fda90,
 // StartUndeploying 004fde70, Unknown82, GetVulnerable, Unknown97) and src/actor.h (CActor::Stop). Not in Stuart's release.

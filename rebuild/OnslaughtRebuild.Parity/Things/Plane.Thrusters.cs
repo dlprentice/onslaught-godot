@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Matched Plane.cpp Init004d19d0 and Move004d1cd0. Launch effects precede CAirUnit::Move.
 using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Particles;

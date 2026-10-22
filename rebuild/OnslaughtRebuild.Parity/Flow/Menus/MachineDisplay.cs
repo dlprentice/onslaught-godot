@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The machine state the options' controls and display lists read (bea-decomp src/PauseMenu.cpp: LT's adapters, devices
 // and modes, the display tweaks that the options file does not keep, the joysticks).
 

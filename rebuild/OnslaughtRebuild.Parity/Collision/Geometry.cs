@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Geometry.cpp (ClipSegmentAgainstAABB3D 00478160, TestSweptSphereAgainstTriangle 00478510,
 // TestSegmentAgainstTriangle 00478c20, PointInsideTrianglePrism 00479020, SelectClosestPointOnTriangleEdges 00479200,
 // RaySphereEntryDistance 00479630, DistanceOutsideBox 00479770) and src/maths.h (FVector's out-of-line members: dot

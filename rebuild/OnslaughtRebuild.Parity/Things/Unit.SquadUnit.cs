@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/unit.h and src/Unit.cpp (CUnit: SetSquad 004fe500, GetOccupancyGrid 004fd380, Unknown111
 // 004fe5c0, IsAThreat 004fd440, Unknown4fb3d0 004fb3d0, IsLiveUnit 004fd5b0, IsTargetAlligence 004fd3d0, GetThreat and
 // GetImportance (slots 79/80), GetCurrentTarget (81), GetStealth (004bfc60), Unknown108). Not in Stuart's release.

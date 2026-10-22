@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MenuItem.cpp and src/MenuItem.h (CMenuItem, CScaleMenuItem, CMenuMenuItem, CBOOLMenuItem,
 // CApplyMenuItem; reconstructed from the retail program, not in Stuart's release): the items' decisions, and their Render
 // (CMenuItem::Render 004a3260/004a32c0, GetText 004a3190, GetWidth 004a3420; CScaleMenuItem::Render 004a37c0;

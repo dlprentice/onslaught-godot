@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The HUD's passes at the world's targets, as retail draws them. Adapted from bea-decomp src/Hud.cpp (RenderWorldTargets
 // 00486e00, RenderTargetMarkers 00484340 with its Ease and LerpColour, Render00485d50 00485d50's guns panel, DimColour)
 // and BattleEngine.cpp (GetInterpolatedAutoAimPos 0040d7c0, GetInterpolatedTrackingPos 0040da30). The values are the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // A particle, a frame of reference and a thing's link to an effect. Adapted from bea-decomp src/ParticleManager.h
 // (CParticle, CFoR, CParticleEffectLink) and ParticleManager.cpp.
 

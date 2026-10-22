@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The level's input as bea-decomp src/game.cpp drives it: InitRestartLoop's InitMouse (0046c44e) and
 // UpdateMouseCentre(true) (0046c96f), LoadLevel's controllers (game.cpp:736: one per player, the player as receiver),
 // and CGame::Update's tick: PollMouseState (0046eb62), gMouseAxisLocked from IsWalkerOnGroundOrObject (0046eb83), each

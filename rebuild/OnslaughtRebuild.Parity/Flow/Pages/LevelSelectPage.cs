@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FEPLevelSelect.cpp and src/FEPLevelSelect.h (reconstructed from the retail program; not
 // in Stuart's release). FEMouseEdgeSlide, from Stuart's FEPGoodies.cpp, is in MouseEdgeSlide.cs. The level and episode
 // names are from src/FrontEndText.cpp (CFrontEndText::GetLevelName 00469550, GetEpisodeName 00469c20, GetBriefingTextId

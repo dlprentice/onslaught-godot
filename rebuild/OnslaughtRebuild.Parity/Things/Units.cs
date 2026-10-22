@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/unit.h (the unit classes' SetThingType and GetMoveMultiplier), src/GroundUnit.cpp
 // (CGroundUnit::Init 0047c730, Move 0047c970), src/GroundVehicle.cpp (CGroundVehicle::Init 0047cfd0, Move 0047d1c0),
 // src/Cannon.cpp (CCannon::Init 0041b1a0, Move 0041b370), src/Building.cpp (CBuilding::Init 00417190, InitRenderThing 004176c0, SetThingType 00417660),

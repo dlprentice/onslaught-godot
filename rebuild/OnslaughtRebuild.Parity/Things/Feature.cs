@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/feature.h and src/feature.cpp (CFeature::Init 0044ca30, Shutdown 0044cbe0, Move 0044cc10, ClipToGround 0044d1d0,
 // CanGoUnderWater 00415a90, SetThingType). Not in Stuart's release.
 

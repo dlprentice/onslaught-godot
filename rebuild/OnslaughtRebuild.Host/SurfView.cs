@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The surf along the shores, as retail draws it in the water's fixed-function path. Adapted from bea-decomp
 // src/DXSurf.cpp (CDXSurf::Deserialize 00556490, SSurfStrip::Create 005565d0, Render 00556a30) and src/DXWater.cpp
 // (CDXWater::Render's first matrices); the stage states were checked against the port's D3D log of Present 30 (draws 221

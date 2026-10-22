@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/maths.h (FMatrix, CEulerAngles). Not in Stuart's release.
 
 using OnslaughtRebuild.Parity.Numerics;

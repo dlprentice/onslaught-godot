@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/DXSpriteRenderer.cpp (CDXSpriteRenderer::DrawSprite 00555be0, DrawColouredSprite 005563d0),
 // src/DXFont.cpp (CDXBitmapFont::DrawTextScaled 00540010, ModulateColour), src/Font.cpp (DrawTextDynamic 00465710),
 // src/FrontEnd.cpp (CFrontEnd::DrawLine 00466de0, GetShadowOffsetX/Y 00468730/00468750, EnableAdditiveAlpha 004681c0,

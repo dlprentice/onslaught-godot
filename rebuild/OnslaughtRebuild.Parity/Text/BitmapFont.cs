@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/DXFont.cpp (CDXBitmapFont::InitFromTexture, GetTextExtent) and src/Font.cpp (the
 // character map, RemapChar, CanDisplay, WordWrap) (reconstructed from the retail program; not in Stuart's release).
 

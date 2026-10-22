@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MissionScript/IScript.cpp (IScript 005333b0, ~IScript 00533450, Init 00533500, Ready
 // 005335a0, Arrived 005335d0, StartedDying 00533660, Hit 00533690, Died 005337e0, Shutdown 00533810,
 // FinishedPlayingAnim 00533840, HandleEvent 005385e0, UpdateWaypointFollowing 00538470) and src/thing.cpp

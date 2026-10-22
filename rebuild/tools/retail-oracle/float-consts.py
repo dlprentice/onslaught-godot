@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Per retail function: each x87 instruction reading a constant in memory (width, address, value). Reads the oracle
-image (retail-derived, scratch only). Function ends: the first ret followed by int3/nop padding."""
-import re, struct, subprocess, sys
-IMG = open('$SCRATCH', 'rb').read()
-EXE = '~/.local/share/Steam/steamapps/common/Battle Engine Aquila/BEA.exe'
+image (retail-derived, scratch only). Function ends: the first ret followed by int3/nop padding.
+
+    float-consts.py IMAGE ADDR...   (IMAGE: the oracle's memory image; BEA_EXE names the executable, default Steam's)"""
+import os, re, struct, subprocess, sys
+if len(sys.argv) < 3:
+    raise SystemExit(__doc__)
+IMG = open(sys.argv[1], 'rb').read()
+EXE = os.environ.get('BEA_EXE') or os.path.expanduser('~/.local/share/Steam/steamapps/common/Battle Engine Aquila/BEA.exe')
 def val(width, a):
     o = a - 0x400000
     if width == 'DWORD': return struct.unpack_from('<f', IMG, o)[0]
     if width == 'QWORD': return struct.unpack_from('<d', IMG, o)[0]
     return None
-for addr in sys.argv[1:]:
+for addr in sys.argv[2:]:
     a = int(addr, 16)
     out = subprocess.run(['objdump', '-d', '-M', 'intel', f'--start-address={a:#x}', f'--stop-address={a + 0x1800:#x}', EXE],
                          capture_output=True, text=True).stdout.splitlines()

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MissionScript/vm.cpp (CVM 005398d0, operator= 00539910, Clean 00539980, CallEvent
 // 00539990, CallFunction 00539a60, GotoInstruction 00539ae0, Run 00539b00) and ScriptObjectCode.cpp (CDataStack:
 // operator= 00539350, Clear 005393e0, Push 00539420, Pop 00539470, RemoveTop 005394a0, GetTop 005394e0), reconstructed

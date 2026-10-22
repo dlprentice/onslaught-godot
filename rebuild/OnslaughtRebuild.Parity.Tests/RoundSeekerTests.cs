@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Original query 00425c60, base mask 00426900, centre 004f3ac0 and velocity 00404120 run unchanged
 // on authored inputs: pristine SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 // At 00425e01..00425e0e the x87 radius-squared comparison rejects both less-than and unordered.

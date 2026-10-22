@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
-Last updated: 2026-10-21 (working lane section: integration branch, internal-disk clone and the Parity suite's reference environment; the earlier fixed-point rebuild's section relabelled as history)
+Last updated: 2026-10-21 (working lane section; the earlier fixed-point rebuild relabelled as history; what the Host draws after M7 slice 4)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -84,7 +84,8 @@ draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which 
 earlier simulation, if nothing else needs them) in one cleanup commit once this host carries level 100 and the front
 end; until then pieces are copied over only as needed, noting their origin. By default it renders one level-100
 Present; an experimental live mode (`HOST_LIVE=1`, with `HOST_TAPE` and `HOST_TRACE`) runs level 100 from the parity
-core with ordinary input, as [PARITY.md](PARITY.md) records. A single Present:
+core with ordinary input, and the whole-game mode (`HOST_LIVE=flow`) runs the game from boot to quit, front end and
+level, as [PARITY.md](PARITY.md) records (M7). A single Present:
 
 ```bash
 cd rebuild/OnslaughtRebuild.Host
@@ -101,7 +102,14 @@ blended in gamma space as retail does. Water is retail's fixed-function path (th
 cardid.txt tweak retail never applies here): the camera-centred grid and the shores' surf strips from the level's SURF
 chunk, with retail's stages, texture matrices and drift. Retail-derived textures and films are read from the installed game and the
 local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. The battle engine is drawn part by part
-at its motion controller's bones (CMCMech, in the parity core). Particles are the parity core's (the particle system is deterministic and shares the CRT rand stream with the simulation); the host draws their sprites as retail's RenderSprites builds them (the sun sprite among them). Not drawn yet: the landscape's geometry levels of detail, particle trails and meshes, and the HUD. Diagnostics:
+at its motion controller's bones (CMCMech, in the parity core). Particles are the parity core's (the particle system is deterministic and shares the CRT rand stream with the simulation); the host draws their sprites as retail's RenderSprites builds them (the sun sprite among them). The HUD is drawn from the core's state: the compass ring and its bars, the
+radar, the weapon and ammunition panels, the battle line (its map, or the message box's portrait while a message plays),
+the objectives' screen markers, the eased crosshair, the guns panel and the target box (the target's mesh in its own
+view). In the whole-game mode the front end's pages and the level's 2D (the message box, the pause and end-level menus,
+the end screen) are drawn through the core's canvas, by Godot or by the software rasterizer used as the comparison
+oracle (`HOST_SHOTS`, `HOST_SHOT_GODOT`). Not drawn yet: the landscape's geometry levels of detail, particle trails and
+meshes, the HUD's text (weapon name, warnings, objective panel), the lock-on pieces and warning-receiver threats (not
+ported), and the front end's particles and battle-engine model. Diagnostics:
 `HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
 
 ## The earlier rebuild (history)

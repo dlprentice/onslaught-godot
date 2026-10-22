@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/unit.h and src/Unit.cpp (CUnit: the constructor 004f7e90, Init 004f86d0, SetThingType
 // 004fcdc0, Unknown4fb280 004fb280, Activate 004fd6a0, Deactivate 004fd700). Not in Stuart's release.
 

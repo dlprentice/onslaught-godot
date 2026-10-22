@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The HUD's target box, as retail draws it. Adapted from bea-decomp src/Hud.cpp (CHud::RenderTargetIndicator 00482590,
 // its FHudMatrix and MakeRotF) and renderinfo.cpp (SetProjection 00550b10, SetView 00550be0). The target and its values
 // are the parity core's HUD render's (WorldRender.HudTarget).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MissionScript/AsmInstruction.cpp (CAsmInstruction::GetAttributeValue 0052d040 and each
 // instruction's Execute: PUSHPC 0052e0a0, RETURN 0052e0f0, PLUS 0052e180, MINUS 0052e1d0, MULTIPLY 0052e220, DIVIDE
 // 0052e270, PUSH 0052e2c0, POP 0052e2f0, REMOVE_TOP 0052e320, CMP 0052e330, CMPB 0052e380, OR 0052e4d0, AND 0052e580,

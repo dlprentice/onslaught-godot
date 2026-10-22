@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Places the host's capture beside a reference capture of the same Present (retail's or the port's), with their
 absolute difference below, and prints the mean absolute difference per channel. The images stay where they are given
 (local scratch); nothing here reads or writes the repository."""

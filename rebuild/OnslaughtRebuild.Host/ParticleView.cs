@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The particle sprites as retail draws them. Adapted from bea-decomp src/PDSimpleSprite.cpp (CPDSimpleSprite::RenderSprites
 // 004c5d50, BuildFrameUVs 004c5c50, the colour range's colour) and DXParticleManager.cpp (RenderOther's states and the
 // camera basis, 0054f7e0); the particles themselves are the parity core's.

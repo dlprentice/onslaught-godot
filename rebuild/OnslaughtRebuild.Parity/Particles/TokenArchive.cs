@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The particle set file's reader: CTokenArchive (bea-decomp src/TokenArchive.cpp: ReadToken 004f57b0, SetFixup 004f5b70,
 // SetFloatRef 004f5b80, HandleRelocation 004f5ba0). The token names are the file format's own keys.
 

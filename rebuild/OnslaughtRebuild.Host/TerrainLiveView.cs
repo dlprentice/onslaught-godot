@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Retained Godot presentation of TerrainView's terrain. This changes resource ownership and upload granularity,
 // not the landscape texture calculations or the parity core's heightfield.
 

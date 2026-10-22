@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The HUD's battle line: the round map at the bottom right, coloured by the influence map. Adapted from bea-decomp
 // src/DXBattleLine.cpp (UpdateHeightmap 0053a390, BuildMesh 0053a5e0, InitMipLevels 0053a930, UpdateVertexBuffer
 // 0053aa40, SetupVertex 0053ab40, Render 0053abe0, RenderOverlay 0053b470, AddOverlayPoint 0053b5f0), BattleLine.cpp

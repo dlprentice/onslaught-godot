@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The particle set as the game loads it, and the particle system run on it with a fixed camera and flat ground.
 
 using OnslaughtRebuild.Parity.Crt;

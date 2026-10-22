@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/Equipment.h and src/Equipment.cpp (CInitEquipment; CEquipment::Init 0044a830,
 // GetPrimaryPosition 0044a850, GetPrimaryOrientation 0044a930), src/weapon.h and src/weapon.cpp (CWeapon: the
 // constructor 00505e00, Fire 00506010, CanLock 005061f0, the lock getters 00506350..00506800, Charge 005068f0,

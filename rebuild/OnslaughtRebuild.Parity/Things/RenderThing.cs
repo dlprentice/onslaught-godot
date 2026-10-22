@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/rtmesh.cpp (CRTMesh: Init makes a pose for its mesh; GetRTEmitter 004dd160). Not in
 // Stuart's release.
 

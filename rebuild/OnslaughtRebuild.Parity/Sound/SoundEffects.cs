@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Effect metadata/selection and the explicit old-loop adapter. SoundEffects.Events owns event state. Adapted from bea-decomp
 // src/SoundManager.cpp (CEffect::LoadSFXFile 004e2530, GetEffectByName 004e2a90, CSoundManager::PlayEffect's choice of
 // chained effect and pitch, 004e1910..004e19bb). Event lifetime is simulation state; output audio is presentation.

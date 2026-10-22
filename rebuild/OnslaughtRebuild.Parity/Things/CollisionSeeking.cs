@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/collisionseekingthing.cpp and collisionseekingthing.h (CCollisionSeekingThing: Init
 // 00426150, SetShape 00426370, SetCollisionMask 00426480, Unknown6 004264a0, Unknown8 00426900, Unknown10 00426920;
 // CCSPersistentThing: Init 004269b0, MovedSector 00426a00, HandleEvent 00426a20) and src/HLCollisionDetector.cpp

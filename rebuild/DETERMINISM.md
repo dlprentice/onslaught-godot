@@ -1,7 +1,7 @@
 # Rebuild determinism contract
 
-Status: active — the contract a contributor breaks first
-Last updated: 2026-09-26 (the retail load order, the pre-run, INIT_SCRIPT events and round events; earlier entries keep their dates)
+Status: reference — the earlier fixed-point Core's contract; the parity core's is the short section at the top
+Last updated: 2026-10-21 (the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
 Headless sources named at the bottom; the retail 20 Hz step was MEASURED in
@@ -11,6 +11,24 @@ Specimen: `local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`.
 Summary: what "deterministic" means in this rebuild, what is enforced, and
 what a contributor must do when a change legitimately moves the trace hash.
+
+## The parity core (`OnslaughtRebuild.Parity`)
+
+The parity core is the rebuild's simulation. Given its inputs (the replay tape, the retail data and options files it
+reads as the game does, and its virtual clock) it produces the same run every time:
+
+- It never reads wall time, locale, environment variables or thread scheduling, and has no presentation, process,
+  network or GPU dependency. Retail's own clock reads go to the virtual `PlatformClock`, which counts them as retail's
+  spin loops do.
+- Its tests compare it with recorded retail and native-port references Present by Present. A missing reference, an
+  empty selection or a new skip is not a pass (`rebuild/README.md`, `PARITY.md`).
+- Drawing never reaches the simulation. The front end and the level draw through a pure canvas interface; a run drawing
+  to a null canvas and one drawing to a recording canvas give byte-identical traces (`FrontEndCanvasTests`). The host
+  reads the run's objects only while the run's thread is parked at a Present (`SteppedGameRun.Inspect`, checked by
+  `InspectReadsTheRunOnlyWhileItIsParkedAndChangesNothing`). Reads retail's render makes that touch the game (the HUD's
+  objective points and target choice, `WorldRender.RenderHud`) run in the core's render pass, as retail makes them.
+
+The sections below are the earlier Core's contract (fixed-point, `OnslaughtRebuild.Core`), kept as reference.
 
 ## The fixed step
 

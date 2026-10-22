@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Original-code query oracle: pristine SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 // Query 004fd5e0, segment getters 004442d0/00444300 and Unknown107 004fe540 execute unchanged.
 // The authored vtable records Unknown107 before invoking it with a nonzero countdown, avoiding scheduler imports.

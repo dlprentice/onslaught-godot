@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Matched bea-decomp weapon.cpp: CWeapon::Unknown5088b0 (CanReach), Unknown507ab0 (CanFireAt).
 // Re-derived from pristine SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 using OnslaughtRebuild.Parity.Maths;

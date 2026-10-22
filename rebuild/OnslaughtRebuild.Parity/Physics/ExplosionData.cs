@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/WorldPhysicsManager.h (CExplosionData: the fields, the physics script's constructor, the
 // setters and CopyFrom). Not in Stuart's release.
 

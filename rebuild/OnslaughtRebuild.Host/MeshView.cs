@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The part buffers as CDXMeshVB holds them (bea-decomp src/DXMeshVB.cpp and DXMeshVB.h: the static and skinned
 // vertices, the pieces' indices and texture slots, mPrimitiveType at +0x11c).
 

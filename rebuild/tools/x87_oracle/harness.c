@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
+/* SPDX-License-Identifier: GPL-3.0-only
  *
  * x87 oracle harness for the rebuild's parity numerics. Built with the pinned VC6 SP5 compiler using the flags
  * retail was built with (/O2 /QIfist), run under Wine with the FPU at 24-bit precision control, as retail's

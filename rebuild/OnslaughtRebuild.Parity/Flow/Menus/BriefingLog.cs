@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/LevelBriefingLog.cpp (CLevelBriefingLog: the constructor 0048f540, Render 0048f620, Activate
 // 0048ff90, ReceiveButtonAction 0048ffa0; reconstructed from the retail program, not in Stuart's release).
 

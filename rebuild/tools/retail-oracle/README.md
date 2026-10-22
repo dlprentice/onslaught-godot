@@ -1,7 +1,7 @@
 # Retail oracle
 
 Status: active
-Last updated: 2026-10-15
+Last updated: 2026-10-21 (float-consts.py takes the image and executable as inputs)
 Summary: runs the retail game's own maths functions natively, as a bit-exact oracle for the parity core's float code.
 
 The parity core must compute every float exactly as retail does: 24-bit precision, and each sum in the order compiled
@@ -36,8 +36,8 @@ code itself.
   and the language file's texts, dumped by `RetailOracleTests.DumpFrontEndFontsForTheOracle`. `fontload PATH` builds
   a font in CDXBitmapFont's layout with retail's vtable; the first load runs InitCharMap.
 - `fp.sh START STOP` lists a retail range's x87 instructions with the jumps, calls and float immediates between them.
-  `float-consts.py ADDR...` lists each function's x87 reads of memory constants, with their width and value; it reads
-  the oracle image. Both are for checking a port's float sites by reading.
+  `float-consts.py IMAGE ADDR...` lists each function's x87 reads of memory constants, with their width and value; it
+  reads the oracle image IMAGE and disassembles the executable `BEA_EXE` names (default Steam's install). Both are for checking a port's float sites by reading.
 - Static initializers: the image holds the storage of dynamically initialized statics as zero. The oracle runs those
   the tested code reads (MeshCollisionVolume.cpp's box corners, 004abf00..004abfe0) before the first case.
 - `ONSLAUGHT_RETAIL_ORACLE_OURS=DIR` makes a test write its own outputs, line for line, for diagnosis.

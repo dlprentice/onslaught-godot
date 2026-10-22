@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-19 (shared sound process, spoken missile warning and original explosion falloff order; complete tutorial and device/resource reset remain incomplete).
+Last updated: 2026-10-21 (all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -23,8 +23,8 @@ relicense this subtree or the pinned `references/Onslaught` source.
 
 - Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`), pinned, may be read, ported, and adapted with its GPL licence and attribution
   preserved.
-- The Steam retail executable and Ghidra database establish released static
-  identities and deltas from the reference source.
+- The pristine retail specimen and the private byte-matching decompilation establish released static identities and
+  deltas from the reference source (Ghidra is retired as an authority).
 - Controlled copied-runtime observations establish measured behavior.
 - Original design work, deterministic tests, public standards, and engine APIs
   may fill gaps that are clearly labelled provisional.
@@ -52,17 +52,17 @@ measured from the pinned VC6 SP5 LIBCMT's `rand.obj` and `tidtable.obj`, with no
 
 Licence identifiers (checked 2026-10-15): Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`) ships the GPL version 3 text
 in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
-source, directly or through bea-decomp, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Units adapted from
-bea-decomp code that is not in his release (reconstructed from the retail program, such as the random stream) and
-original rebuild code keep the rebuild's `GPL-3.0-or-later`, which may be combined with GPL-3.0-only code. The table's
-licence column applies this rule per unit.
+source, directly or through bea-decomp, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Since 2026-10-21
+(David's decision for every project's code) the rest of the rebuild is GPL-3.0-only too: units adapted from bea-decomp
+code that is not in his release (reconstructed from the retail program, such as the random stream) and original
+rebuild code, which were `GPL-3.0-or-later` before. The table's licence column notes which units are in his release.
 
 Audit of the earlier rebuild (2026-10-15): every file outside `OnslaughtRebuild.Parity` that cites Stuart's source (a
 `references/Onslaught` path, a `.cpp`/`.h` file and line, or his name) was moved from `GPL-3.0-or-later` to
 `GPL-3.0-only`: 144 files across Core, Core.Tests, Client, Client.Tests, Godot and one tool. The rule is a deliberate
 superset (a test that only cites his code for an expected value is marked too), because 3.0-only is the narrower grant
-and combines with or-later code; files that cite nothing of his keep `GPL-3.0-or-later`. Every rebuild project's
-package licence expression is `GPL-3.0-only`.
+and combined with the or-later code of the time; the 2026-10-21 decision moved the rest to `GPL-3.0-only`. Every
+rebuild project's package licence expression is `GPL-3.0-only`.
 
 | C# unit | Adapted from bea-decomp | Licence |
 | --- | --- | --- |
@@ -72,54 +72,54 @@ package licence expression is `GPL-3.0-only`.
 | `Career/CareerTables.cs` (level structure, episode hint lists, goodie thresholds) | `src/Career.cpp` (`level_structure`, `UpdateGoodieStates`), `src/FEPGoodies.cpp` (`goodies[]`) | GPL-3.0-only (in Stuart's release) |
 | `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) | GPL-3.0-only (in Stuart's release) |
 | `Flow/FrontEnd.cs` (the front end's page machine: page changes and transitions, button routing, the filtered frame step, one Present per iteration) | `src/FrontEnd.cpp`, `src/frontend.h`, `src/FrontEndPage.h` (`CFrontEnd`, `CFrontEndPage`); button ids from `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
-| `Flow/FrontEndMessageBox.cs` (the front end's message box: create, fades, timeout, yes/no, dismiss page) | `src/FEMessBox.cpp`, `src/FEMessBox.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/FrontEndMessageBox.cs` (the front end's message box: create, fades, timeout, yes/no, dismiss page) | `src/FEMessBox.cpp`, `src/FEMessBox.h` | GPL-3.0-only (not in Stuart's release) |
 | `Flow/MemoryCard.cs` (the PC's save folder as the memory card: one device, its saves, create, write, read, delete) | `src/PCMemoryCard.cpp` (`CPCMemoryCard`), `src/MemoryCard.h` (return codes) | GPL-3.0-only (in Stuart's release) |
-| `Flow/Pages/IntroPage.cs` (the title page) | `src/FEPIntro.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Particles/FrontEndParticles.cs` (FED resource loading, camera/world adapter, render-side particle work) | `src/FrontEndData.cpp`, `src/DXFrontend.cpp` (`Init`, `Shutdown`, `RenderParticles`, `RenderEnd`); shared resource reader from `src/ResourceAccumulator.cpp` | GPL-3.0-or-later (new adapter; delegates resource parsing to its existing GPL-3.0-only owner) |
-| `Particles/ParticleProcessState.cs` (per-game-process frame/allocation/sprite counters and one-time noise) | `src/ParticleManager.cpp`, `src/ParticleDescriptor.cpp`, `src/PDSimpleSprite.cpp` (`InitNoiseTable` 004c7db0) | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/Pages/MainPage.cs` (the main menu) | `src/FEPMain.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/Pages/DevSelectPage.cs` (the storage-device page) | `src/FEPDevSelect.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/Pages/VirtualKeyboardPage.cs` (the name keyboard) | `src/FEPVirtualKeyboard.cpp`, `src/FEPVirtualKeyboard.h` | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/ReconnectInterface.cs` (the controller-reconnect prompt's state, Reset and Process) | `src/reconnectinterface.cpp`, `src/reconnectinterface.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/IntroPage.cs` (the title page) | `src/FEPIntro.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Particles/FrontEndParticles.cs` (FED resource loading, camera/world adapter, render-side particle work) | `src/FrontEndData.cpp`, `src/DXFrontend.cpp` (`Init`, `Shutdown`, `RenderParticles`, `RenderEnd`); shared resource reader from `src/ResourceAccumulator.cpp` | GPL-3.0-only (new adapter; delegates resource parsing to its existing GPL-3.0-only owner) |
+| `Particles/ParticleProcessState.cs` (per-game-process frame/allocation/sprite counters and one-time noise) | `src/ParticleManager.cpp`, `src/ParticleDescriptor.cpp`, `src/PDSimpleSprite.cpp` (`InitNoiseTable` 004c7db0) | GPL-3.0-only (not in Stuart's release) |
+| `Flow/Pages/MainPage.cs` (the main menu) | `src/FEPMain.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/Pages/DevSelectPage.cs` (the storage-device page) | `src/FEPDevSelect.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/Pages/VirtualKeyboardPage.cs` (the name keyboard) | `src/FEPVirtualKeyboard.cpp`, `src/FEPVirtualKeyboard.h` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/ReconnectInterface.cs` (the controller-reconnect prompt's state, Reset and Process) | `src/reconnectinterface.cpp`, `src/reconnectinterface.h` | GPL-3.0-only (not in Stuart's release) |
 | `Flow/Pages/SaveGamePage.cs` (the save page: creating and writing the career save, the overwrite question, the cheat codes in the save name) | `src/FEPSaveGame.cpp` (`CFEPSaveGame`) | GPL-3.0-only (in Stuart's release) |
-| `Flow/Pages/LevelSelectPage.cs` (the level select: grid, unlocks, navigation, the render's hover and click) | `src/FEPLevelSelect.cpp`, `src/FEPLevelSelect.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/LevelSelectPage.cs` (the level select: grid, unlocks, navigation, the render's hover and click) | `src/FEPLevelSelect.cpp`, `src/FEPLevelSelect.h` | GPL-3.0-only (not in Stuart's release) |
 | `Flow/Pages/MouseEdgeSlide.cs` (`FEMouseEdgeSlide`: the mouse scrolling a page at the screen's edges) | `src/FEPGoodies.cpp` | GPL-3.0-only (in Stuart's release) |
-| `Flow/Pages/BriefingPage.cs` (the mission briefing: text fade, the briefing video's choice, select and back) | `src/FEPBriefing.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/Pages/BeConfigPage.cs` (the Battle Engine configuration page: choosing a configuration, starting the level) | `src/FEPBEConfig.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/Pages/DebriefingPage.cs` (the debriefing: the new goodies' entrance, the prompt's fade, continuing to the level select) | `src/FEPDebriefing.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/Pages/DirectoryPage.cs` (the PC's save list: picking a save to load or delete, its rows and scroll bar under the mouse) | `src/FEPDirectory.cpp`, `src/FEPDirectory.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/Pages/BriefingPage.cs` (the mission briefing: text fade, the briefing video's choice, select and back) | `src/FEPBriefing.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/Pages/BeConfigPage.cs` (the Battle Engine configuration page: choosing a configuration, starting the level) | `src/FEPBEConfig.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/Pages/DebriefingPage.cs` (the debriefing: the new goodies' entrance, the prompt's fade, continuing to the level select) | `src/FEPDebriefing.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/Pages/DirectoryPage.cs` (the PC's save list: picking a save to load or delete, its rows and scroll bar under the mouse) | `src/FEPDirectory.cpp`, `src/FEPDirectory.h` | GPL-3.0-only (not in Stuart's release) |
 | `Flow/Pages/LoadGamePage.cs` (the load page: reading the picked save into the career) | `src/FEPLoadGame.cpp` (`CFEPLoadGame`) | GPL-3.0-only (in Stuart's release) |
-| `Flow/SystemFlow.cs` (`CSystem::Run` without `-level`: the front end, the levels it starts and the attract films, in turn, until the front end quits) | `src/System.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Text/TextDatabase.cs` (the language file `data\LANGUAGE\*.DAT` by hashed id; the ids' names from `text.stf`, read from the installation) | `src/text.cpp`, `src/text.h` (`CText`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Text/FrontEndText.cs` (`FET.GetText` for the texts the ported pages measure, with its X-key toggle) | `src/FrontEndText.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Text/BitmapFont.cs` (the bitmap font's cell widths measured from the font texture's alpha, the character map, text extents) | `src/DXFont.cpp`, `src/Font.cpp` (`CDXBitmapFont`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Flow/WorldHeaders.cs` (the reader of `data\WorldHeaders.dat`: each level's configurations and wingmen) | `src/FEPBEConfig.cpp` (`Init`, `Load`, `GetCurrentLevel`), `src/FEPWingmen.cpp` (`GetNumWingmen`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Flow/SystemFlow.cs` (`CSystem::Run` without `-level`: the front end, the levels it starts and the attract films, in turn, until the front end quits) | `src/System.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Text/TextDatabase.cs` (the language file `data\LANGUAGE\*.DAT` by hashed id; the ids' names from `text.stf`, read from the installation) | `src/text.cpp`, `src/text.h` (`CText`) | GPL-3.0-only (not in Stuart's release) |
+| `Text/FrontEndText.cs` (`FET.GetText` for the texts the ported pages measure, with its X-key toggle) | `src/FrontEndText.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Text/BitmapFont.cs` (the bitmap font's cell widths measured from the font texture's alpha, the character map, text extents) | `src/DXFont.cpp`, `src/Font.cpp` (`CDXBitmapFont`) | GPL-3.0-only (not in Stuart's release) |
+| `Flow/WorldHeaders.cs` (the reader of `data\WorldHeaders.dat`: each level's configurations and wingmen) | `src/FEPBEConfig.cpp` (`Init`, `Load`, `GetCurrentLevel`), `src/FEPWingmen.cpp` (`GetNumWingmen`) | GPL-3.0-only (not in Stuart's release) |
+| `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-only (not in Stuart's release) |
 | `Platform/PlatformInput.cs` (the window's message queue and handling, key state by scan code, KeyOnce and KeyOnceThisFrame) | `src/ltshell.cpp`, `src/ltshell.h` (`PCLTShell::MsgProc`, `HandlingSystemStuff`, key state), `src/PCPlatform.cpp` (`Process`, `KeyOn`, `KeyOnce`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/DirectInputMouse.cs` (the DirectInput mouse polls the level reads) | `src/Controller.cpp` (`InitMouse`, `ShutdownMouse`, `PollMouseMotion`, `PollMouseState`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/ControlBindings.cs` (the control bindings as raw 32-byte records, the default table, the career's configurable block) | `src/PCController.cpp` (`CONTROL_BINDINGS`), `src/Controller.cpp` (`SControlBinding` constructors), `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
 | `Platform/Controller.cs` (key, mouse and joystick mapping to button actions at flush, auto-repeat, routing to the controlled object, the cursor's draw-back) | `src/Controller.cpp` (`CController`, `UpdateMouseCentre`), `src/Controller.h`, `src/PCController.cpp` (`CPCController`) | GPL-3.0-only (in Stuart's release) |
-| `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Game/SeedUniformRandomNumberStream.cs` | `src/SeedUniformRandomNumberStream.h`, `src/SeedUniformRandomNumberStream.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
 | `Containers/SPtrSet.cs` (the shared node pool, SPtrSet, ListIterator) | `src/SPtrSet.h`, `src/SPtrSet.cpp` (`GenericSPtrSet`, `GenericListIterator`) | GPL-3.0-only (in Stuart's release) |
 | `Mesh/MeshData.cs`, `Mesh/MeshPart.cs` (mesh and part records, the emitter, part and animation-mode queries) | `src/mesh.cpp`, `src/mesh.h`, `src/MeshPart.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Mesh/MeshPose.cs` (the render thing's pose and its emitter lookup) | `src/MeshPose.cpp`, `src/meshpose.h`, `src/MeshRenderer.cpp`, `src/rtmesh.cpp` (`CRTMesh::GetRTEmitter`) | GPL-3.0-only (MeshPose and MeshRenderer are in Stuart's release) |
 | `Mesh/MeshVertexBuffer.cs` (the vertex buffer record as the mesh reader skips it) | `src/DXMeshVB.cpp`, `src/DXMeshVB.h` | GPL-3.0-only (in Stuart's release) |
-| `Mesh/MeshPolyBucket.cs` (the part's poly bucket as stored) | `src/PolyBucket.cpp` and its header | GPL-3.0-or-later (not in Stuart's release) |
-| `Mesh/MatrixOps.cs` (FMatrix sum, difference and scale; the 16/48-byte layouts) | `src/maths.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Mesh/MeshPolyBucket.cs` (the part's poly bucket as stored) | `src/PolyBucket.cpp` and its header | GPL-3.0-only (not in Stuart's release) |
+| `Mesh/MatrixOps.cs` (FMatrix sum, difference and scale; the 16/48-byte layouts) | `src/maths.h` | GPL-3.0-only (not in Stuart's release) |
 | `Things/Thing.cs` (CThing, CComplexThing) | `src/thing.h`, `src/thing.cpp` | GPL-3.0-only (in Stuart's release) |
-| `Things/RadarWarningReceiver.cs`, ordered world round membership, BattleEngine receiver ownership and ComplexThing animation destruction | `src/RadarWarningReceiver.cpp` (Init 004d65a0, Update 004d66b0), `src/round.cpp`, `src/BattleEngine.cpp` (cockpit call 004055dc before receiver Init 00405710), `src/thing.cpp` (destructor 004f3f00) | GPL-3.0-only as combined; reconstructed receiver file GPL-3.0-or-later. Real ordered scans and monitored lifetimes; existing atan2, lock admission and nonloop sound limits remain explicit. |
+| `Things/RadarWarningReceiver.cs`, ordered world round membership, BattleEngine receiver ownership and ComplexThing animation destruction | `src/RadarWarningReceiver.cpp` (Init 004d65a0, Update 004d66b0), `src/round.cpp`, `src/BattleEngine.cpp` (cockpit call 004055dc before receiver Init 00405710), `src/thing.cpp` (destructor 004f3f00) | GPL-3.0-only as combined; reconstructed receiver file GPL-3.0-only. Real ordered scans and monitored lifetimes; existing atan2, lock admission and nonloop sound limits remain explicit. |
 | `Things/Actor.cs` (CActor) | `src/actor.h`, `src/actor.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Things/InitThing.cs` (CInitCSThing, CInitThing's runtime fields, Copy) | `src/InitThing.h` | GPL-3.0-only (in Stuart's release) |
-| `Things/ThingType.cs` (THING_TYPE_ bits) | `src/ThingType.h`, `src/waypoint.h` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/RenderThing.cs` (CRTMesh's mesh, pose and emitter lookup) | `src/rtmesh.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Unit.cs` (CUnit) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/CannonMotionController.cs`, the Cannon construction in `Things/Units.cs` and dispatch in `Things/Actor.cs` | `src/MCCannon.cpp` (`CMCCannon::GetPartTransform` 004952a0, saved-angle comparison 00495770), `src/Cannon.cpp` | GPL-3.0-or-later (not in Stuart's release). Turret yaw, barrel pitch and root-height interpolation use the existing part-transform owner; same-frame and forced/throttled pose scheduling are preserved. |
-| `Things/DropshipMotionController.cs`, Dropship construction/dispatch, the controller hook in `Mesh/MeshPart.cs` and uncached caller in `Mesh/MeshPose.cs` | `src/MCDropship.cpp` (`AdjustFrame` 00496100, saved-state comparison 00496200), `src/Dropship.cpp`, `src/MeshPart.cpp` (`ResolveFrameNumber` 004b24d0), `src/MeshPose.cpp` | GPL-3.0-only as combined (MeshPart/MeshPose adapt Stuart's release; MCDropship/Dropship are reconstructed GPL-3.0-or-later). Door animation frames only; landing, AI and thruster lifecycle are not added by this slice. |
-| `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/ThingType.cs` (THING_TYPE_ bits) | `src/ThingType.h`, `src/waypoint.h` | GPL-3.0-only (not in Stuart's release) |
+| `Things/RenderThing.cs` (CRTMesh's mesh, pose and emitter lookup) | `src/rtmesh.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Unit.cs` (CUnit) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/CannonMotionController.cs`, the Cannon construction in `Things/Units.cs` and dispatch in `Things/Actor.cs` | `src/MCCannon.cpp` (`CMCCannon::GetPartTransform` 004952a0, saved-angle comparison 00495770), `src/Cannon.cpp` | GPL-3.0-only (not in Stuart's release). Turret yaw, barrel pitch and root-height interpolation use the existing part-transform owner; same-frame and forced/throttled pose scheduling are preserved. |
+| `Things/DropshipMotionController.cs`, Dropship construction/dispatch, the controller hook in `Mesh/MeshPart.cs` and uncached caller in `Mesh/MeshPose.cs` | `src/MCDropship.cpp` (`AdjustFrame` 00496100, saved-state comparison 00496200), `src/Dropship.cpp`, `src/MeshPart.cpp` (`ResolveFrameNumber` 004b24d0), `src/MeshPose.cpp` | GPL-3.0-only as combined (MeshPart/MeshPose adapt Stuart's release; MCDropship/Dropship are reconstructed, GPL-3.0-only). Door animation frames only; landing, AI and thruster lifecycle are not added by this slice. |
+| `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Things/BattleEngine.Weapons.cs` (active count, weapon-change admission, timestamp and HUD announcement; jet dispatch remains unsupported) | `src/BattleEngine.cpp` (`ChangeWeapon` 00409f70, `CountActiveWeapons` 0040dc90), `src/BattleEngineWalkerPart.cpp` (`CountActiveWeapons` 00414b70, `GetWeaponIconName` 004145f0) | GPL-3.0-only (BattleEngine.cpp in Stuart's release) |
 | `Things/BattleEngineWalkerPart.cs` (four directional dash paths and the movement inputs that admit them) | `src/BattleEngineWalkerPart.cpp`, `src/BattleEngine.cpp`, `src/maths.h`; pristine original-code fixture, 1,864 cases reproduced by the integrating lead | GPL-3.0-only as combined with the BattleEngine source; isolated arithmetic/order coverage, not complete player acceptance |
@@ -140,26 +140,26 @@ package licence expression is `GPL-3.0-only`.
 | `Things/Explosion.cs` inlined distance for falloff | `src/explosion.cpp`, pristine `CExplosion::Hit` 0044bf10 and its distance block 0044bf65..0044bf9b | GPL-3.0-only as combined. Root reproduced 5,347 isolated original Hit cases; 521 distinguish the old sum order. Eight managed counterexamples also cover retained exponent range. Radius and Damage are authored service boundaries; the current trainer's first-hit difference is upstream or in the native port, not resolved by this correction. |
 | `Things/Round.Seeking.cs`, `Things/BattleEngine.Locking.cs` | `src/round.cpp`, `src/BattleEngine.cpp`; pristine lock-loss and turn blocks | GPL-3.0-only as combined. Root reproduced 2,320 original cases (39,440 words); PC53 changes 1,056 cases. Target reacquisition, other missile classes and launcher lock behavior remain separate. |
 | `Things/LevelResources.cs` (the resource file's MESH, ERES and WRES chunks) | `src/ResourceAccumulator.cpp` (`ReadResources`) | GPL-3.0-only (in Stuart's release) |
-| `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/MapWho.cs` (CMapWho, CMapWhoEntry, CSector; ClipSegmentAgainstAABB3D) | `src/mapwho.h`, `src/mapwho.cpp`, `src/mapwhoentry.h`, `src/MapWhoEntry.cpp`, `src/Geometry.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Unit.SquadUnit.cs` (CUnit's squad, threat, allegiance and target-choice members) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Weapon.cs` (CEquipment, CWeapon, SpawnWeapon) | `src/Equipment.h`, `src/Equipment.cpp`, `src/weapon.h`, `src/weapon.cpp`, `src/WorldPhysicsManager.cpp`, `src/maths.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/MapWho.cs` (CMapWho, CMapWhoEntry, CSector; ClipSegmentAgainstAABB3D) | `src/mapwho.h`, `src/mapwho.cpp`, `src/mapwhoentry.h`, `src/MapWhoEntry.cpp`, `src/Geometry.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Unit.SquadUnit.cs` (CUnit's squad, threat, allegiance and target-choice members) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Weapon.cs` (CEquipment, CWeapon, SpawnWeapon) | `src/Equipment.h`, `src/Equipment.cpp`, `src/weapon.h`, `src/weapon.cpp`, `src/WorldPhysicsManager.cpp`, `src/maths.h` | GPL-3.0-only (not in Stuart's release) |
 | `Things/Unit.Weapons.cs` (CUnit's weapon methods, GetEmitter, GetCentrePos, IsOnGround) | `src/Unit.cpp`, `src/thing.cpp`, `src/actor.cpp`, `src/GroundUnit.cpp`, `src/map.h`, `src/WorldPhysicsManager.cpp` | GPL-3.0-only (thing.cpp and actor.cpp are in Stuart's release) |
-| `Things/Unit.AI.cs` (CUnit's guide calls, Stop, the fire step, undeploying) | `src/unit.h`, `src/Unit.cpp`, `src/actor.h` | GPL-3.0-or-later (not in Stuart's release; CActor::Stop is one assignment) |
-| `Things/UnitAI.cs` (CUnitAI, CPlaneAI, CDropshipAI, CRepairPadAI) | `src/UnitAI.h`, `src/UnitAI.cpp`, `src/PlaneAI.h`, `src/PlaneAI.cpp`, `src/DropshipAI.cpp`, `src/RepairPadAI.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Guide.cs` (CGuide, CAirGuide's events) | `src/Guide.h`, `src/Guide.cpp`, `src/AirGuide.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/InfluenceMap.cs` (CInfluenceMap, CInfluenceNode, CInfluenceResidual) | `src/InfluenceMap.h`, `src/InfluenceMap.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/Squad.cs` (CSquad, CNormalSquad and its member and path, CRelaxedSquad, the target selector, SpawnSquad/IsSquadBehaviour) | `src/squad.h`, `src/squad.cpp`, `src/SquadNormal.cpp`, `src/SquadRelaxed.cpp`, `src/NormalSquadTargetSelector.cpp`, `src/WorldPhysicsManager.cpp` (`SpawnSquad`, `IsSquadBehaviour`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Game/FearGrid.cs` (CFearGrid) | `src/FearGrid.h`, `src/FearGrid.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Things/SimpleThings.cs` (CWaypoint, CLevelScriptThing, CSafeSide, CSphereTrigger, CStart, CWaypointManager/CWaypointPath, the loader's spawner) | `src/waypoint.h`, `src/Waypoint.cpp`, `src/LevelScriptThing.cpp`, `src/SafeSide.cpp`, `src/SphereTrigger.cpp`, `src/Start.cpp`, `src/WaypointManager.cpp` | GPL-3.0-or-later (not in Stuart's release) |
-| `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-or-later (not in Stuart's release) |
-| `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-or-later (not in Stuart's release) |
+| `Things/Unit.AI.cs` (CUnit's guide calls, Stop, the fire step, undeploying) | `src/unit.h`, `src/Unit.cpp`, `src/actor.h` | GPL-3.0-only (not in Stuart's release; CActor::Stop is one assignment) |
+| `Things/UnitAI.cs` (CUnitAI, CPlaneAI, CDropshipAI, CRepairPadAI) | `src/UnitAI.h`, `src/UnitAI.cpp`, `src/PlaneAI.h`, `src/PlaneAI.cpp`, `src/DropshipAI.cpp`, `src/RepairPadAI.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Guide.cs` (CGuide, CAirGuide's events) | `src/Guide.h`, `src/Guide.cpp`, `src/AirGuide.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/InfluenceMap.cs` (CInfluenceMap, CInfluenceNode, CInfluenceResidual) | `src/InfluenceMap.h`, `src/InfluenceMap.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/Squad.cs` (CSquad, CNormalSquad and its member and path, CRelaxedSquad, the target selector, SpawnSquad/IsSquadBehaviour) | `src/squad.h`, `src/squad.cpp`, `src/SquadNormal.cpp`, `src/SquadRelaxed.cpp`, `src/NormalSquadTargetSelector.cpp`, `src/WorldPhysicsManager.cpp` (`SpawnSquad`, `IsSquadBehaviour`) | GPL-3.0-only (not in Stuart's release) |
+| `Game/FearGrid.cs` (CFearGrid) | `src/FearGrid.h`, `src/FearGrid.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Things/SimpleThings.cs` (CWaypoint, CLevelScriptThing, CSafeSide, CSphereTrigger, CStart, CWaypointManager/CWaypointPath, the loader's spawner) | `src/waypoint.h`, `src/Waypoint.cpp`, `src/LevelScriptThing.cpp`, `src/SafeSide.cpp`, `src/SphereTrigger.cpp`, `src/Start.cpp`, `src/WaypointManager.cpp` | GPL-3.0-only (not in Stuart's release) |
+| `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-only (not in Stuart's release) |
+| `Maths/FMatrix.cs` (FMatrix, CEulerAngles; the yaw-pitch-roll rotation as CComplexThing::Init's compiled copy evaluates it) | `src/maths.h` (`FMatrix`, `CEulerAngles`) | GPL-3.0-only (not in Stuart's release) |
+| `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-only (not in Stuart's release) |
 | `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `World/InitThingRecord.cs` (placement records, class ids, battle engine configuration names) | `src/InitThing.h`, `src/InitThing.cpp` (`CInitThing` and derived `Load`, `SpawnInitThing`), `src/oids.h`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
 | `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
-| `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-or-later (not in Stuart's release) |
+| `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
 | `Platform/DisplayReset.cs`, `Clock/PlatformClock.cs` (deferred reset after platform Flip; state 2 saves only after success), `Flow/Menus/MachineDisplay.cs` (Apply queues a reset; current mode key) | `src/Platform.cpp` (`CPlatform::Flip` 004d2580), `src/Career.cpp` (`ReadOptions` 00420d70, `CDisplayModeKey::Set` 00420d10), `src/PauseMenu.cpp` (`DisplaySettingChanged`) | GPL-3.0-only (Platform.cpp/Career.cpp adapt Stuart's release; retail additions reconstructed in bea-decomp). Only the transaction is implemented: host device/resource/input reset and live ReadOptions integration remain unsupported. |
 | `Events/EventManager.cs` (the scheduler: pool, buffers, overflow, AddEvent, AdvanceTime, Flush; CScheduledEvent) | `src/eventmanager.cpp`, `src/eventmanager.h`, `src/scheduledevent.cpp`, `src/scheduledevent.h` | GPL-3.0-only (in Stuart's release) |
@@ -169,13 +169,13 @@ package licence expression is `GPL-3.0-only`.
 | `Game/GameRandom.cs` (GAME.Random and FloatRandom, with draw-site logging) | `src/game.h` (`CGame::Random`, `CGame::FloatRandom`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/GameLoop.cs` (CGame frame timing and main loop) | `src/game.cpp` (`CGame::MainLoop`, the level start's base time), `src/game.h` (`CalcRenderFrameFraction`) | GPL-3.0-only (in Stuart's release) |
 | `Clock/ClockSimulation.cs` (the level-start order: base time, PreRun, MainLoop) | `src/game.cpp` (`CGame::RunLevel`, `PreRun`) | GPL-3.0-only (in Stuart's release) |
-| `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/UnitData.cs`, `Physics/PhysicsRegistry.cs` (the definitions the script builds: units, features, hazards) | `src/WorldPhysicsManager.h` (`CUnitData`, `CFeatureData`, `CHazardData`, `UPhysicsManager`), `src/WorldPhysicsManager.cpp` (the unit setters, `MapMountName`), `src/CPhysicsScriptStatements.h` (the statements' `Execute`, the values' `Load` and `Apply`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/WeaponData.cs` (CWeaponData, CLaunchAngle, CWeaponModeData: physics-script constructors, setters, SetLaunchSequence/SetLaunchAngle, SetRound) | `src/WorldPhysicsManager.h`, `src/WorldPhysicsManager.cpp` (`CWeaponModeData::SetRound`) | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/RoundData.cs` (CRoundData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/SpawnerData.cs` (CSpawnerData: constructor, SetThingName, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
-| `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-or-later (not in Stuart's release) |
+| `Physics/PhysicsScript.cs` (the compiled physics script's statements and value lists) | `src/CPhysicsScript.cpp` (`CPhysicsScript::Load`), `src/CPhysicsScriptStatements.h` (the statements' and value lists' `Load`) | GPL-3.0-only (not in Stuart's release) |
+| `Physics/UnitData.cs`, `Physics/PhysicsRegistry.cs` (the definitions the script builds: units, features, hazards) | `src/WorldPhysicsManager.h` (`CUnitData`, `CFeatureData`, `CHazardData`, `UPhysicsManager`), `src/WorldPhysicsManager.cpp` (the unit setters, `MapMountName`), `src/CPhysicsScriptStatements.h` (the statements' `Execute`, the values' `Load` and `Apply`) | GPL-3.0-only (not in Stuart's release) |
+| `Physics/WeaponData.cs` (CWeaponData, CLaunchAngle, CWeaponModeData: physics-script constructors, setters, SetLaunchSequence/SetLaunchAngle, SetRound) | `src/WorldPhysicsManager.h`, `src/WorldPhysicsManager.cpp` (`CWeaponModeData::SetRound`) | GPL-3.0-only (not in Stuart's release) |
+| `Physics/RoundData.cs` (CRoundData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-only (not in Stuart's release) |
+| `Physics/SpawnerData.cs` (CSpawnerData: constructor, SetThingName, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-only (not in Stuart's release) |
+| `Physics/ExplosionData.cs` (CExplosionData: constructor, setters, CopyFrom) | `src/WorldPhysicsManager.h` | GPL-3.0-only (not in Stuart's release) |
+| `Physics/PhysicsRegistry.Families.cs` (weapon, weapon mode, round, spawner, explosion and component values: Load and Apply; the registries and lookups) | `src/CPhysicsScriptStatements.h`, `src/CPhysicsScriptStatements.cpp` (Create*Value, CreateSeekType, CreateStateType, `CWeaponLanguageName::Apply`), `src/WorldPhysicsManager.h` | GPL-3.0-only (not in Stuart's release) |
 | `Physics/BattleEngineData.cs` (CBattleEngineData, UBattleEngineDataManager, UBattleEngineConfigurations::GetConfiguration) | `src/BattleEngineDataManager.h`, `src/BattleEngineDataManager.cpp`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
 
 The cannon slice is grounded in pristine PC specimen SHA-256

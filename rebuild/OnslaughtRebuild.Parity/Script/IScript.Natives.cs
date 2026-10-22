@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/MissionScript/IScript.cpp (the natives table gScriptFunctions 0064ce20, filled by
 // 0052ff30; the natives SetSlotSave 00533900 .. PostEvent 005383c0 named on each method) and vminternal.h
 // (SScriptFunction), reconstructed from the retail executable; not in Stuart's release.

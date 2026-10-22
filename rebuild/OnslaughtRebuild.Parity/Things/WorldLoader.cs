@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/world.cpp (CWorld::Load 0050b520, LoadWorld 0050b9c0, LoadHeader 0050d4c0, LoadScripts
 // 0050ac70). Not in Stuart's release.
 

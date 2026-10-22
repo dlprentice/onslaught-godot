@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Bounded CMSH static-preview profile v0 parser and OBJ emitter."""
 
 from __future__ import annotations

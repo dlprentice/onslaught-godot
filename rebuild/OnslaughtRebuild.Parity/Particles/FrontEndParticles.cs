@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // FrontEndData.cpp (004687e0/004691c0), FrontEnd.cpp (00466ba0), DXFrontend.cpp (00540c30/00540fb0).
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Maths;

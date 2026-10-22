@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The level start's order from bea-decomp src/game.cpp (CGame::InitRestartLoop's script part, game.cpp:366 and 384;
 // CGame::LoadLevel's players after the load, 716; PostLoadProcess's start positions, 783) and src/world.cpp (the load).
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Matched Plane.cpp Init004d19d0/Move004d1cd0 and Unit.cpp Shutdown004f95d0/~CUnit004f84e0.
 // Pristine SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 using OnslaughtRebuild.Parity.Containers;

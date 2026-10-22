@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/world.h (COccupancyGrid's layout, UnknownCell, TestCell, ClearCross, the CanStep*
 // helpers and the search statics) and src/NavigationMap.cpp (COccupancyGrid: the constructor 004bc260, the destructor
 // 004bc2d0, Unknown4bc2e0, IsBlocked 004bc510, FindNearest 004bc6d0, SetCell 004bdf70, SkipLegacy 004bdff0, Load

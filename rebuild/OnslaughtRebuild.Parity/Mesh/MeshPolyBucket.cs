@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/PolyBucket.cpp (CPolyBucket::Load 004d59f0, CPolyBucketIndexList::ReadBorrowed) and its
 // header (the CPolyBucket layout: mWidth +0x68, mHeight +0x6c). Not in Stuart's release.
 

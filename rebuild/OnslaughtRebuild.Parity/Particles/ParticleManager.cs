@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The particle manager. Adapted from bea-decomp src/ParticleManager.cpp (CleanupHandles 004caf60, Process 004cb210,
 // DoInterpolation 004cb300, CreateEffect 004cb3d0, AllocateParticle 004cb5c0, ProcessParticle 004cb920, OnGround
 // 004cba30, GetDistanceSq 004cba90, MoveParticles 004cbca0, FreeDeadParticles 004cbe30).

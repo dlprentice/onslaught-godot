@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // C3DGamut: the cells of the map the camera can see. Adapted from bea-decomp src/gcgamut.cpp (ComputePlanes 004742a0,
 // MakeIt 00476a20).
 

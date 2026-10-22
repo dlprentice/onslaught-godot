@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/FrontEnd.cpp (CFrontEnd::DrawSlidingTextBordersAndMask 00467200, DrawStandardVideoBackground
 // 004679e0, DrawTitleBar 00467bd0) and src/FEPCommon.cpp (CFEPCommon::RenderVideoBackground 00452ce0,
 // RenderSmallBEALogo 00452df0, RenderSmallForsetiText 00452fd0, RenderSelectionMarker 004530b0).

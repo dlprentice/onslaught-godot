@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Adapted from bea-decomp src/explosion.cpp and explosion.h (CExplosion: Init 0044b930, Hit 0044bf10, Unknown66
 // 0044c0f0, HandleEvent 0044c140, GetRadius 0044c160, Unknown67 0044c170, SetThingType 0044c180) and
 // src/WorldPhysicsManager.cpp (UPhysicsManager::SpawnExplosion 0050ff10). Not in Stuart's release.
