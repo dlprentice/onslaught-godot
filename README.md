@@ -1,7 +1,7 @@
 # onslaught-godot
 
 Status: active, a proof of concept: startup to exit 1:1 with retail, with level 100 playable to completion
-Last updated: 2026-10-22 (the repository split from Onslaught-Career-Editor)
+Last updated: 2026-10-22 (Godot 4.8 beta1 and .NET 10; the repository split from Onslaught-Career-Editor)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, measured against the
 original game Present by Present.
 
@@ -41,7 +41,7 @@ dozens of paths for no gain.
 
 ## Building and testing
 
-You need the .NET 8 SDK and Godot 4.8 .NET (the host's SDK version is pinned in its project file). Clone with the
+You need the .NET 10 SDK (`global.json` pins 10.0.402) and Godot 4.8 beta1 .NET (the host pins `Godot.NET.Sdk/4.8.0-beta.1`). Clone with the
 submodule (`git clone --recurse-submodules`), then:
 
 ```sh
