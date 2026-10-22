@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-22 (private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-22 (stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -16,8 +16,7 @@ Summary: the licence boundary, permitted evidence, and authority order for the
 
 `rebuild/` is a GPL-3.0, source- and reverse-engineering-informed reconstruction, distributed as a whole under
 GPL-3.0-only because many of its files adapt Stuart's version-3-only release (see *Licence identifiers* below). It is
-not a clean-room lane. The root MIT license does not
-relicense this subtree or the pinned `references/Onslaught` source.
+not a clean-room lane. The root licences do not relicense the pinned `references/Onslaught` source.
 
 ## Permitted evidence and inputs
 
