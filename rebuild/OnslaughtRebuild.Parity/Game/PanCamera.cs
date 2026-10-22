@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Things;
 using Monitor = OnslaughtRebuild.Parity.Events.Monitor;
 
@@ -152,19 +153,48 @@ public sealed class PanCamera : Camera
         {
             _pos = thing.Pos + pos;
 
-            // The view faces the thing: FMatrix(Azimuth, Elevation, 0). Presentation only (nothing in the simulation
-            // reads it); its float sequence is not checked against retail's.
-            FVector toThem = thing.Pos - _pos;
-            float m = Collision.Geometry.MagnitudeOutOfLine(toThem);
-            if (m != 0.0f)
-            {
-                float azimuth = -(float)Numerics.X87.Atan2(toThem.X, toThem.Y);
-                float elevation = (float)Numerics.X87.Asin(toThem.Z / m);
-                _orientation = FMatrix.FromYawPitchRoll(azimuth, elevation, 0.0f);
-            }
+            // The view faces the thing (presentation only: nothing in the simulation reads it).
+            Facing(thing.Pos - _pos, ref _orientation);
         }
 
         _context.Events.AddEvent(UpdateCamera, this, EventManager.NextFrame, EventPriority.EndOfFrame);
+    }
+
+    /// <summary>
+    /// FMatrix(us_to_them.Azimuth(), us_to_them.Elevation(), 0) as retail compiles it inline in Update (00419bb0..00419d07),
+    /// leaving <paramref name="orientation"/> as it was when the magnitude is 0. The magnitude sums (Y*Y + Z*Z) + X*X; the
+    /// elevation (__CIasin of Z / m) and the azimuth (-fpatan(X, Y)) stay in the register at full precision into fsin and
+    /// fcos (the out-of-line FMatrix constructor would round both to float first); cos(yaw), sin(yaw), cos and sin of the
+    /// roll 0 and cos(pitch) are stored as floats, sin(pitch) is kept, and the nine elements are formed in 004062d0's
+    /// order. Equal to retail's block on every case of the pan-camera oracle (RetailOracle "pan-camera-orientation-20261022").
+    /// </summary>
+    public static bool Facing(FVector toThem, ref FMatrix orientation)
+    {
+        float x = toThem.X, y = toThem.Y, z = toThem.Z;
+        float m = (float)X87.Sqrt(X87.Add(X87.Add(X87.Mul(y, y), X87.Mul(z, z)), X87.Mul(x, x)));
+        if (m == 0.0f)
+        {
+            return false;
+        }
+
+        double pitch = m > 0.0f ? X87.Asin((float)X87.Div(z, m)) : 0.0;
+        double yaw = -X87.Atan2(x, y);
+        float cy = (float)X87.Cos(yaw), sy = (float)X87.Sin(yaw);
+        float cr = (float)X87.Cos(0.0), sr = (float)X87.Sin(0.0);
+        float cp = (float)X87.Cos(pitch);
+        double sp = X87.Sin(pitch);
+        double spsr = X87.Mul(sp, sr);
+        float spcr = (float)X87.Mul(sp, cr);
+        orientation.Row0.X = (float)X87.Sub(X87.Mul(cr, cy), X87.Mul(spsr, sy));
+        orientation.Row0.Y = (float)-X87.Mul(cp, sy);
+        orientation.Row0.Z = (float)X87.Add(X87.Mul(spcr, sy), X87.Mul(sr, cy));
+        orientation.Row1.X = (float)X87.Add(X87.Mul(spsr, cy), X87.Mul(cr, sy));
+        orientation.Row1.Y = (float)X87.Mul(cp, cy);
+        orientation.Row1.Z = (float)X87.Sub(X87.Mul(sr, sy), X87.Mul(spcr, cy));
+        orientation.Row2.X = (float)-X87.Mul(cp, sr);
+        orientation.Row2.Y = (float)sp;
+        orientation.Row2.Z = (float)X87.Mul(cp, cr);
+        return true;
     }
 
     public override void HandleEvent(Event e)

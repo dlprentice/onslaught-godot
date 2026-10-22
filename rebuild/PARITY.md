@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -556,6 +556,13 @@ oracle):
   - Not drawn yet: the HUD's text (the weapon name and warning lines, the objective panel), the lock-on pieces and
     warning-receiver threats (neither is ported), the Thunderhead's imposter frame, the terrain's detail texture, and
     P2800's dome.
+
+Measured (the pan camera's orientation, 2026-10-22): `PanCamera.Facing` follows retail's inline block in
+`CPanCamera::Update` (00419bb0..00419d07, the block the native port's patch 0036 reproduces): the magnitude summed
+(Y*Y + Z*Z) + X*X, and the elevation and azimuth kept at full precision into fsin and fcos instead of rounded to float
+for the out-of-line constructor. Against retail's own block run natively at control word 0x7F on 20,006 position
+pairs (the retail oracle's `pan-camera-orientation-20261022` group, `PanCameraOracleTests`), all nine elements match on
+every case; the earlier form missed 16,251 of them by a last bit or more.
 
 The observed constants, from C's captures of `BEA.exe -forcewindowed -res 640 480` with no input (two retail processes
 identical at every captured Present):
