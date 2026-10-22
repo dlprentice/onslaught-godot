@@ -12,7 +12,7 @@ using Xunit;
 namespace OnslaughtRebuild.Parity.Tests.Flow;
 
 /// <summary>
-/// The HUD's text through the level's canvas: on the front-end loss route the walker overheats its weapon from about
+/// The HUD's text through the level's canvas, and the parts the tutorial highlights: on the front-end loss route the walker overheats its weapon from about
 /// Present 5100, and the HUD writes "weapon overheating" centred on the second warning row, a shadow then the text, fading
 /// out over the five seconds after each overheat; before the first one it writes nothing (the weapon is an energy weapon, so no
 /// ammunition count, and no weapon change, so no name).
@@ -73,6 +73,53 @@ public sealed class HudTextTests
         Assert.Equal(0xff6040u, text.V0.Colour & 0xffffff);
         Assert.InRange(text.V0.Colour >> 24, 1u, 0xfeu);
         Assert.False(text.ZEnable);
+    }
+
+    /// <summary>
+    /// Level 100's script highlights the compass (P1668 to P1883), the radar (P1884 to P2072) and the current weapon
+    /// (P3424 to P3689) in turn; the port's back buffers flash each at the same sampled Presents (PARITY.md).
+    /// </summary>
+    [RetailGoldenFact(Tape)]
+    public void TheTutorialHighlightsTheCompassTheRadarAndTheWeaponInTurn()
+    {
+        var run = new GameRun(GameData.Read, id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id],
+            new RetailChainTests.InstalledFilms(), true, LevelSession.VirtualVoiceFor(GameData.Read))
+        {
+            Tape = RetailTape.Load(RetailGolden.File(Tape)!),
+        };
+        var flashing = new Dictionary<int, (long First, long Last)>();
+        run.OnPresented = () =>
+        {
+            if (run.Level is { } level)
+            {
+                int[] state = level.Context.HudParts.State;
+                for (int part = 0; part < state.Length; part++)
+                {
+                    if (state[part] == HudParts.Flashing)
+                    {
+                        long p = run.Clock.PresentCount;
+                        flashing[part] = flashing.TryGetValue(part, out var span) ? (span.First, p) : (p, p);
+                    }
+                }
+            }
+
+            if (run.Clock.PresentCount >= 4000)
+            {
+                throw new StopRun();
+            }
+        };
+        try
+        {
+            run.Run();
+        }
+        catch (StopRun)
+        {
+        }
+
+        Assert.Equal([HudParts.Compass, HudParts.Radar, HudParts.CurrentWeapon], flashing.Keys.Order());
+        Assert.Equal((1668L, 1883L), flashing[HudParts.Compass]);
+        Assert.Equal((1884L, 2073L), flashing[HudParts.Radar]);
+        Assert.Equal((3424L, 3690L), flashing[HudParts.CurrentWeapon]);
     }
 
     [Fact]

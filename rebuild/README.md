@@ -114,7 +114,7 @@ local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is commi
 at its motion controller's bones (CMCMech, in the parity core). Particles are the parity core's (the particle system is deterministic and shares the CRT rand stream with the simulation); the host draws their sprites as retail's RenderSprites builds them (the sun sprite among them). The HUD is drawn from the core's state: the compass ring and its bars, the
 radar, the weapon and ammunition panels, the battle line (its map, or the message box's portrait while a message plays),
 the objectives' screen markers, the eased crosshair, the guns panel and the target box (the target's mesh in its own
-view). In the whole-game mode the front end's pages and the level's 2D (the HUD's text, the message box, the pause and
+view), each part flashing while the mission script highlights it. In the whole-game mode the front end's pages and the level's 2D (the HUD's text, the message box, the pause and
 end-level menus, the end screen) are drawn through the core's canvas, by Godot or by the software rasterizer used as the comparison
 oracle (`HOST_SHOTS`, `HOST_SHOT_GODOT`). Not drawn yet: the landscape's geometry levels of detail, particle trails and
 meshes, the lock-on pieces and warning-receiver threats (not

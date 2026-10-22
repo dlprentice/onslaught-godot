@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-22 (the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -568,6 +568,14 @@ P1500 to P6200: the warning ("weapon overheating", P5200 to P6200) shows at the 
 difference of 1.5 to 7.3 on its pixels (no pixel off by more than 40), no more than the level beneath it differs; neither
 shows a weapon name (no weapon change on the route) or an ammunition count (an energy weapon). `HudTextTests` holds the
 warning's place, colour and quads.
+
+Measured (the HUD's parts, 2026-10-22): the host draws each HUD part only while the core's `HudParts` shows it
+(`IsComponentVisible`): the compass's outer ring, the health and energy halves of its inner ring and their bar lines,
+the radar outline, and the weapon's charge bar, heat bar and guns panel. Level 100's script highlights the compass
+(P1668 to P1883), the radar (P1884 to P2073) and the current weapon (P3424 to P3690) on the fe-lose route
+(`HudTextTests`). Against the port's back buffers every 25 Presents through those windows, each part is lit or dark
+at the same sampled Presents (compass 011011011, radar 01101101, weapon charge 111011111010 on both). The health and
+energy parts are never highlighted on this route.
 
 Measured (the pan camera's orientation, 2026-10-22): `PanCamera.Facing` follows retail's inline block in
 `CPanCamera::Update` (00419bb0..00419d07, the block the native port's patch 0036 reproduces): the magnitude summed

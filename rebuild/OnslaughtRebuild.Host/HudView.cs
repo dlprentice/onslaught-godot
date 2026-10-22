@@ -27,6 +27,7 @@ public sealed partial class HudView : Node2D
 
     private ImageTexture? _inner;
     private ImageTexture? _outer;
+    private bool _showOuter = true;
     private float _outerYaw;
     private Texture2D? _barLine;
     private Texture2D? _objective;
@@ -112,6 +113,14 @@ public sealed partial class HudView : Node2D
         lastHealth = health;
         lastEnergy = energy;
 
+        // The HUD's parts (HUD.IsComponentVisible): a hidden health or energy part leaves its half of the inner ring clear
+        // and its bar lines out (DXCompass 0053c510, CCompass::Render 00427210), a hidden compass its outer ring, a hidden
+        // radar its outline, and a hidden current weapon part its charge and heat bars (RenderWeaponPanel, Render00486940).
+        HudParts parts = be.Context.HudParts;
+        bool showHealth = parts.IsComponentVisible(HudParts.HealthBar), showEnergy = parts.IsComponentVisible(HudParts.EnergyBar);
+        view._showOuter = parts.IsComponentVisible(HudParts.Compass);
+        bool showRadar = parts.IsComponentVisible(HudParts.Radar), showWeapon = parts.IsComponentVisible(HudParts.CurrentWeapon);
+
         // A4R4G4B4 rows: row 0 and the last clear; row 1 (the outer edge) brightest, fading towards the inner edge.
         using var image = Image.CreateEmpty(InnerWidth, InnerHeight, false, Image.Format.Rgba8);
         int row = 1;
@@ -123,9 +132,9 @@ public sealed partial class HudView : Node2D
             for (int x = 0; x < InnerWidth; x++)
             {
                 Color col = x < InnerWidth * 60 / 360 ? new Color(0, 0, 0, 0)
-                    : x < health ? C(h0)
-                    : x < InnerWidth * 150 / 360 ? C(h)
+                    : x < InnerWidth * 150 / 360 ? (!showHealth ? new Color(0, 0, 0, 0) : x < health ? C(h0) : C(h))
                     : x < InnerWidth * 225 / 360 ? new Color(0, 0, 0, 0)
+                    : !showEnergy ? new Color(0, 0, 0, 0)
                     : x < energy ? C(e)
                     : C(e0);
                 image.SetPixel(x, row, col);
@@ -137,8 +146,15 @@ public sealed partial class HudView : Node2D
         view._objective = textures.Get(@"hud\v2\CompassObjectiveMarker.tga") ?? textures.Find(@"hud\v2\CompassObjectiveMarker.tga", 0);
 
         // The bar lines: each bar's moving end and its fixed start, at radius 110.
-        foreach (int pos in new[] { health, energy, InnerWidth * 150 / 360, InnerWidth * 225 / 360 })
+        int[] ends = [health, energy, InnerWidth * 150 / 360, InnerWidth * 225 / 360];
+        for (int bar = 0; bar < 4; bar++)
         {
+            if (!(bar % 2 == 0 ? showHealth : showEnergy))
+            {
+                continue;
+            }
+
+            int pos = ends[bar];
             float a = (float)pos / InnerWidth * PiM2;
             view._sprites.Add((a, 110.0f, a, 0xff1f1f1fu, view._barLine));
         }
@@ -213,7 +229,11 @@ public sealed partial class HudView : Node2D
 
         const float Bottom = 480.0f;
         Run("RadioView", CanvasItemMaterial.BlendModeEnum.Mix, [(17.0f, Bottom + 16.0f, 2, 0.0f, 0x6fffffffu, Tex(@"hud\v2\RadioView.tga"), 1.0f)]);
-        Run("RadarOutline", CanvasItemMaterial.BlendModeEnum.Add, [(17.0f, Bottom + 16.0f, 2, 0.0f, 0xff6f8fafu, Tex(@"hud\v2\RadarOutline.tga"), 1.0f)]);
+        if (showRadar)
+        {
+            Run("RadarOutline", CanvasItemMaterial.BlendModeEnum.Add, [(17.0f, Bottom + 16.0f, 2, 0.0f, 0xff6f8fafu, Tex(@"hud\v2\RadarOutline.tga"), 1.0f)]);
+        }
+
         float charge = 0.0f;
         if (be.WalkerPart?.GetCurrentWeapon() is { } weapon && weapon.GetMaxCharge() != 0)
         {
@@ -221,20 +241,25 @@ public sealed partial class HudView : Node2D
         }
 
         Texture2D? fillTex = Tex(@"hud\v2\WeaponFill.tga");
-        Run("WeaponFill", CanvasItemMaterial.BlendModeEnum.Mix,
-        [
-            (9.0f, Bottom - 13.0f, 2, 0.0f, 0x3f000000u, fillTex, 1.0f),
-            (9.0f, Bottom - 13.0f, 2, 0.0f, 0x7f7fff3fu, fillTex, MathF.Min(charge, 1.0f)),
-        ]);
-        Run("WeaponOutline", CanvasItemMaterial.BlendModeEnum.Add, [(9.0f, Bottom - 13.0f, 2, 0.0f, 0xffaf8f6fu, Tex(@"hud\v2\WeaponOutline.tga"), 1.0f)]);
+        if (showWeapon)
+        {
+            Run("WeaponFill", CanvasItemMaterial.BlendModeEnum.Mix,
+            [
+                (9.0f, Bottom - 13.0f, 2, 0.0f, 0x3f000000u, fillTex, 1.0f),
+                (9.0f, Bottom - 13.0f, 2, 0.0f, 0x7f7fff3fu, fillTex, MathF.Min(charge, 1.0f)),
+            ]);
+            Run("WeaponOutline", CanvasItemMaterial.BlendModeEnum.Add, [(9.0f, Bottom - 13.0f, 2, 0.0f, 0xffaf8f6fu, Tex(@"hud\v2\WeaponOutline.tga"), 1.0f)]);
+        }
+
         float iy = view._outerYaw;
         float dx = -MathF.Sin(iy) * -45.0f, dy = MathF.Cos(iy) * -45.0f;
         Run("RadioNorth", CanvasItemMaterial.BlendModeEnum.Mix,
             [(17.0f + 48.0f + dx, Bottom + 16.0f - 128.0f + 48.0f + dy, 4, iy, 0xff5f7fffu, Tex(@"hud\v2\RadioNorth.tga"), 1.0f)]);
 
         // Render00486940: an energy weapon's heat bar on the right (filled from the right, its alpha easing to 0.8, or
-        // flashing between 0.8 and 0.1 while overheated); a store weapon's count is text, not drawn yet.
-        if (be.WalkerPart?.GetCurrentWeapon() is { } current && ammo is not null)
+        // flashing between 0.8 and 0.1 while overheated), and its alpha eased only while the weapon part shows; a store
+        // weapon's count is text, which the core's HUD render writes.
+        if (showWeapon && be.WalkerPart?.GetCurrentWeapon() is { } current && ammo is not null)
         {
             int store = current.Data.AmmoStore;
             if (be.StoreHeat[store])
@@ -507,7 +532,10 @@ public sealed partial class HudView : Node2D
     public override void _Draw()
     {
         // The outer ring: BuildRing(512, 32, 50 segments, radius 31, v 1), turned by -yaw.
-        Ring(_outer, 50, 0.31f, 32.0f * MathF.PI / 512.0f, _outerYaw);
+        if (_showOuter)
+        {
+            Ring(_outer, 50, 0.31f, 32.0f * MathF.PI / 512.0f, _outerYaw);
+        }
 
         // The inner ring: BuildRing(256, 8, 40 segments, radius 27, v 1) in the compass's projection (0.5 .. 100,
         // 640 * 0.00078125 by 480 * 0.00078125): x and y scale to 320 pixels per unit around the centre.

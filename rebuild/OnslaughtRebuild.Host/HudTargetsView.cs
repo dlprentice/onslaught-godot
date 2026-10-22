@@ -199,8 +199,9 @@ public static class HudTargetsView
 
         // Render00485d50's guns panel: the darkener alpha-blended, then added the outline and the current weapon's mount
         // (side, front or top; all three without a weapon), pulsing in red.
+        // Drawn while the current weapon part shows (HUD.IsComponentVisible(HP_CURRENT_WEAPON): flashing while highlighted).
         var guns = new Node2D { Name = "Guns" };
-        if (be.CountActiveWeapons() > 0)
+        if (be.CountActiveWeapons() > 0 && be.Context.HudParts.IsComponentVisible(Parity.Render.HudParts.CurrentWeapon))
         {
             const float X = 112.0f, Y = 480.0f - 74.0f;
             guns.AddChild(new HudQuads([(X, Y, 0, 0.0f, 0x5f000000u, Tex(@"hud\v2\GunsDarken.tga"), 1.0f)])
