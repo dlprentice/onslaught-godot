@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active — scoped proof of concept (reactivated 2026-10-15): startup to exit 1:1 with retail, level 100 playable to completion
-Last updated: 2026-10-22 (the reference environment as a table of variables, values kept outside the repository; earlier entries keep their dates)
+Last updated: 2026-10-22 (development moves to onslaught-godot; the reference environment as a table of variables, values kept outside the repository; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -10,7 +10,9 @@ thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 
 ## Working lane
 
-- Integration branch: `codex/rebuild-takeover-20261017` (merged into `main` when its gate passes).
+- The rebuild is developed in this repository (onslaught-godot) since 2026-10-22: work goes on a branch and merges into
+  `main` when its gate passes. The copy that stayed in Onslaught-Career-Editor's `rebuild/` is frozen (no new commits)
+  until it is removed there.
 - Builds, test runs and captures happen in a clone on an internal disk (or a worktree of it), never in a checkout on
   slow or removable storage. Which clone and folders this machine uses is kept in an ignored local file
   (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.

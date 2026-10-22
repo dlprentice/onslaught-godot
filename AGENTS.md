@@ -22,5 +22,8 @@ Summary: the rules for working in this repository, for people and automated agen
   recorded in [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md).
 - **Machine-specific paths** (reference folders, clones) live in an ignored `local-data/rebuild-env.sh`, never in a
   tracked file. The program sends nothing over the network.
+- **Where work happens:** the rebuild is developed here since 2026-10-22, on branches merged into `main` when their
+  gate passes; Onslaught-Career-Editor's `rebuild/` is frozen until it is removed. Builds and test runs use a clone on
+  an internal disk.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).
