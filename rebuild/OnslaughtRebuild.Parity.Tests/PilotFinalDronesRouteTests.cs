@@ -37,8 +37,9 @@ public sealed class PilotFinalDronesRouteTests(ITestOutputHelper output)
     public void ThePilotWinRouteMatchesThePortThroughTheLevelsEnd()
     {
         const string Dir = "portrefs/l100-pilotwin-port-20261022";
-        LevelSession session = Check(Dir, "pilot-win.tape", 28306);
-        session.AdvanceToNextPresent(); // the quitting MainLoop and RunLevel's close: no Present
+        // No end Present: the comparison runs until RunLevel returns, so a sample taken after the level's end (a second
+        // reading of P28306, whose FT the port has already moved on) is a difference here.
+        LevelSession session = Check(Dir, "pilot-win.tape", 28306, toLevelEnd: true);
         Assert.True(session.Ended, $"the level had not ended after Present {session.PresentCount}");
         Assert.Equal(28306, session.PresentCount);
         Assert.Equal(OnslaughtRebuild.Parity.Clock.QuitType.QuitToFrontEnd, session.Game.Quit);
@@ -100,15 +101,19 @@ public sealed class PilotFinalDronesRouteTests(ITestOutputHelper output)
 
     private sealed class OutroStopped : Exception;
 
-    /// <summary>Every field matches the port every Present through <paramref name="matchedThrough"/> (never lowered).</summary>
-    private LevelSession Check(string dir, string tape, int matchedThrough)
+    /// <summary>
+    /// Every field matches the port every Present through <paramref name="matchedThrough"/> (never lowered). With
+    /// <paramref name="toLevelEnd"/> the comparison continues until the level ends and no field may differ at all.
+    /// </summary>
+    private LevelSession Check(string dir, string tape, int matchedThrough, bool toLevelEnd = false)
     {
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read),
             soundOptions: TrainerRouteTests.SoundProfile(RetailGolden.File(Sounds)!));
         session.Tape = RetailTape.Load(RetailGolden.File(dir + "/" + tape)!);
-        (long matched, string? first, int compared) = TrainerRouteTests.CompareEveryPresent(session, dir + "/port-probes-every1.txt", matchedThrough);
+        (long matched, string? first, int compared) = TrainerRouteTests.CompareEveryPresent(session, dir + "/port-probes-every1.txt", toLevelEnd ? long.MaxValue : matchedThrough);
         output.WriteLine($"{compared} fields compared; every field matches through Present {matched}; first difference: {first ?? "none"}");
         Assert.True(matched >= matchedThrough, $"matched through Present {matched}, below {matchedThrough}; {first}");
+        Assert.True(!toLevelEnd || first is null, $"a field differs before the level's end: {first}");
         Assert.True(compared >= 9 * (matchedThrough - 3), $"only {compared} fields compared");
         return session;
     }
