@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-22 (the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-22 (SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -51,12 +51,14 @@ from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and ada
 `Crt/CrtRand.cs`: the C runtime's `rand`/`srand` behaviour (a per-thread linear congruential state starting at 1),
 measured from the pinned VC6 SP5 LIBCMT's `rand.obj` and `tidtable.obj`, with no runtime code copied.
 
+<!-- REUSE-IgnoreStart -->
 Licence identifiers (checked 2026-10-15): Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`) ships the GPL version 3 text
 in `LICENSE` with no notice offering "any later version", in its README or its source files. Units adapted from his
 source, directly or through the decompilation, are therefore marked `SPDX-License-Identifier: GPL-3.0-only`. Since 2026-10-21
 (the project's decision for all its code) the rest of the rebuild is GPL-3.0-only too: units adapted from decompilation
 code that is not in his release (reconstructed from the retail program, such as the random stream) and original
 rebuild code, which were `GPL-3.0-or-later` before. The table's licence column notes which units are in his release.
+<!-- REUSE-IgnoreEnd -->
 
 Audit of the earlier rebuild (2026-10-15): every file outside `OnslaughtRebuild.Parity` that cites Stuart's source (a
 `references/Onslaught` path, a `.cpp`/`.h` file and line, or his name) was moved from `GPL-3.0-or-later` to
