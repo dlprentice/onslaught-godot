@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-22 (a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-23 (M5 against the port: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -15,7 +15,7 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
-## Where it stands (2026-10-22)
+## Where it stands (2026-10-23)
 
 The milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones-2026-10-15);
 the dated entries below record each measurement.
@@ -25,7 +25,7 @@ the dated entries below record each measurement.
 | M0 | Met (2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its change counts. |
 | M1 | Met for every operation measured, with one measured ceiling: `fsin`, `fcos` and `fpatan` stored to a double differ in the last bits for some arguments (M1 entry below). |
 | M2-M4 | Met on the keyboard-and-mouse tape: the sampled probes (EVT, FT, RNG, SC, LVL, POS, LIFE) equal retail's virtual-DirectSound golden through Present 10000 (`RetailGoldenTests.Level100RunMatchesTheVirtualDsGolden`). |
-| M5 | Open. On the tutorial pilot's win route level 100 equals the native port on every probe field through P27650 (`PilotFinalDronesRouteTests`); the win itself, its end-level data and the career save are not yet compared. The losing routes' end-level data equal the port's (`RetailGoldenTests`). |
+| M5 | Met against the native port on two win routes (2026-10-23). A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). Retail itself is not yet a reference for a win: its paired runs of the same tape differ from each other. |
 | M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
 | M7 | In progress: the Host runs the whole game from boot to quit (`HOST_LIVE=flow`), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
 
@@ -575,6 +575,38 @@ P25977. The planner's k11 tape (p22-fire's input to P26720, then on through the 
 port's every-Present probes (`l100-k11-port-20261022`) on every field through P27400, with the kills at P27055 and
 P27304, k13 (k11's input to P27240, then on) through P27450, with the fifth at P27324, and j4 (k13's input to
 P27341, then the jet transform) through P27650, with the sixth and last at P27511 (`PilotFinalDronesRouteTests`).
+
+Measured (the win, 2026-10-23): the pilot's winning tape (`pilot-win`: j4's input to P27569, then Target Zone 4 and the
+walk in) under `-level 100 -skipfmv` against the native port's every-Present probes (`l100-pilotwin-port-20261022`, the
+frozen 0029+0030 build, to P28600): every probe field matches every Present through P28306, the level's last. The level
+is won at P28157; the Victory screen's countdown quits to the front end; the last MainLoop renders twice (P28305 and
+P28306, both at mFrameTime = mBaseTime while paused) and the next one's update sees the quit and returns before
+rendering (onslaught-decomp `src/game.cpp:2222`), so RunLevel's close follows with no Present. The "extra Present at
+P28306" noted on 2026-10-22 was the comparison sampling the ended session a second time, not a missing Present.
+END_LEVEL_DATA as the close fills it equals the port's 1,484 bytes (its ELD line at P28307). The rest of RunLevel is
+modelled now (`LevelSession.Shutdown`): ShutdownRestartLoop deletes the random stream (`src/game.cpp:567`; the players
+went at the close, `:1516`), and CGame::Shutdown's RunOutroFMV (`:1104`) marks the level's outro (cutscene 2 for level
+100, `src/fmvlookup.cpp`) new among the goodies with one more pending extra goodie and plays it unskippable by select.
+Under -skipfmv the film never ends, and the port's P28307-P28600 (294 Presents, 2,646 fields) equal ours: the game's
+time, frame time, score, level and rand() standing, no random stream and no player.
+
+Measured (a player's whole game, 2026-10-23): the `gold-own-20261023` tape (a maintainer's own keyboard and mouse
+input from boot to the main menu's Quit, moved onto Onslaught CE 0.1.2's timing) against the published 0.1.2 package's
+replay of it (`fe-gold-own-port-20261023`: shim clock, every Present, no game arguments, the tape's start files) on one
+clock (`GameRun`, `GoldOwnRouteTests`): every probe field the port records (EVT, EVN, the front end's FE line, FT, SC,
+LVL, RNG, CRT, POS, LIFE) matches every Present through P12817, the tape's end (117,330 fields); END_LEVEL_DATA equals
+the port's at its change (P12167); the career saved at the debriefing (`BEA 1.bes`, 10,004 bytes) and the last
+`defaultoptions.bea` (10,004 bytes) equal the port's byte for byte. What it took, each at its first difference: the
+film player's harness pacing (a skip seen in the poll after a Present ends the film unpresented: retail's binkw32 finds
+the next frame not yet due at its first look after each Present, measured on pristine 74154bfa under the shim; port
+patch 0053), the goodies page (`CFEPGoodies`: the cursor, its sounds and Back's options save; the viewer is not
+ported), the level's intro film from the front end (RunIntroFMV after the 100% loading screen, `src/game.cpp:1259`),
+the tape's mouse outside a level adding up for the next level's first device read (the harness's DirectInput, as the
+port's `PortReplayMouse`), and the cloak button (`CBattleEngine::HandleCloak`, 0040d4d0; the tutorial's engine has no
+stealth, so it never cloaks). The run uses the level-100 routes' measured sound-pool profile (the frozen e55 -level
+process's 256 seeds), not this process's; every field still matches. Retail is not the reference here: in each of the four
+recorded retail pairs (pristine 74154bfa under the shim) the two runs of the same tape differ from each other, first
+between P3918 and P5003.
 
 Measured (the HUD's text, 2026-10-22): the core's HUD render writes the text of `Render00485d50` (the weapon's name,
 fading in from a change and out after three seconds, and the warnings: two centred rows, each showing the first of its

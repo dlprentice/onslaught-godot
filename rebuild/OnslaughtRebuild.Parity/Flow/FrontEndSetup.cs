@@ -92,6 +92,7 @@ public static class FrontEndSetup
         frontEnd[FrontEndPage.BeConfig] = new BeConfigPage(frontEnd);
         frontEnd[FrontEndPage.Debriefing] = new DebriefingPage(frontEnd);
         frontEnd[FrontEndPage.Options] = new OptionsPage(frontEnd);
+        frontEnd[FrontEndPage.Goodies] = new GoodiesPage(frontEnd);
         frontEnd.DevSelect = devSelect;
         frontEnd.VirtualKeyboard = keyboard;
         frontEnd.Directory = directory;

@@ -40,45 +40,27 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
 
     /// <summary>
     /// Advances the session Present by Present to <paramref name="end"/> (or its first difference), comparing every probe
-    /// field the port's every-Present reference has: EVT, EVN, FT, SC, LVL, RNG, CRT, POS and LIFE.
+    /// field the port's every-Present reference has: EVT, EVN, FT, SC, LVL, RNG, CRT, POS and LIFE. It stops when the level
+    /// ends (RunLevel returns), since that makes no Present to sample.
     /// </summary>
     internal static (long Matched, string? First, int Compared) CompareEveryPresent(LevelSession session, string probesFile, long end)
     {
-        var port = new Dictionary<(long Present, string Name), string>();
-        foreach (string line in File.ReadLines(RetailGolden.File(probesFile)!))
-        {
-            string[] f = line.Split(' ');
-            if (f.Length == 4 && f[0] == "P" && f[2] is not ("ELD" or "ELDEXIT" or "FE"))
-            {
-                port[(long.Parse(f[1]), f[2])] = f[3];
-            }
-        }
+        Dictionary<(long Present, string Name), string> port = ReadPortProbes(probesFile);
 
-        static string Hex(ReadOnlySpan<byte> b) => Convert.ToHexString(b).ToLowerInvariant();
-        static string U32(uint v) { Span<byte> b = stackalloc byte[4]; BinaryPrimitives.WriteUInt32LittleEndian(b, v); return Hex(b); }
-        static string F32(params float[] v) => string.Concat(v.Select(x => U32(BitConverter.SingleToUInt32Bits(x))));
         long matched = 0;
         string? first = null;
         int compared = 0;
-        while (session.PresentCount < end && first is null)
+        while (session.PresentCount < end && first is null && !session.Ended)
         {
             session.AdvanceToNextPresent();
-            long p = session.PresentCount;
-            var ours = new Dictionary<string, string>
+            if (session.Ended)
             {
-                ["EVT"] = F32(session.Context.Events.Time),
-                ["EVN"] = U32(session.Context.Events.TotalEventsProcessed),
-                ["FT"] = F32(session.Game.Loop.FrameTime),
-                ["SC"] = U32(unchecked((uint)session.Game.Score)),
-                ["LVL"] = U32(unchecked((uint)session.Game.CurrentLevel)),
-                ["RNG"] = U32(unchecked((uint)session.Context.Random.Value)) + U32(unchecked((uint)session.Context.Random.Seed)),
-                ["CRT"] = U32(unchecked((uint)session.Context.Crt.Calls)) + U32(unchecked((uint)session.Context.Crt.HoldRand)),
-            };
-            if (session.Game.GetPlayer(0)?.BattleEngine is BattleEngine be)
-            {
-                ours["POS"] = F32(be.Pos.X, be.Pos.Y, be.Pos.Z);
-                ours["LIFE"] = F32(be.Life, be.Energy);
+                // RunLevel returned without another Present (its close fills END_LEVEL_DATA): nothing new to sample.
+                break;
             }
+
+            long p = session.PresentCount;
+            Dictionary<string, string> ours = Probe(session);
 
             foreach ((string name, string value) in ours)
             {
@@ -101,6 +83,56 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
         }
 
         return (matched, first, compared);
+    }
+
+    /// <summary>The port's every-Present probe fields by Present and name (without its ELD, ELDEXIT and FE records).</summary>
+    internal static Dictionary<(long Present, string Name), string> ReadPortProbes(string probesFile)
+    {
+        var port = new Dictionary<(long Present, string Name), string>();
+        foreach (string line in File.ReadLines(RetailGolden.File(probesFile)!))
+        {
+            string[] f = line.Split(' ');
+            if (f.Length == 4 && f[0] == "P" && f[2] is not ("ELD" or "ELDEXIT" or "FE"))
+            {
+                port[(long.Parse(f[1]), f[2])] = f[3];
+            }
+        }
+
+        return port;
+    }
+
+    /// <summary>
+    /// The port's probe set at a Present (bea-decomp port/platform/common/replay.cpp, Probe): a deleted random stream or
+    /// player reads as zero bytes, as the port's probe of a null pointer does.
+    /// </summary>
+    internal static Dictionary<string, string> Probe(LevelSession session)
+    {
+        static string Hex(ReadOnlySpan<byte> b) => Convert.ToHexString(b).ToLowerInvariant();
+        static string U32(uint v) { Span<byte> b = stackalloc byte[4]; BinaryPrimitives.WriteUInt32LittleEndian(b, v); return Hex(b); }
+        static string F32(params float[] v) => string.Concat(v.Select(x => U32(BitConverter.SingleToUInt32Bits(x))));
+        var ours = new Dictionary<string, string>
+        {
+            ["EVT"] = F32(session.Context.Events.Time),
+            ["EVN"] = U32(session.Context.Events.TotalEventsProcessed),
+            ["FT"] = F32(session.Game.Loop.FrameTime),
+            ["SC"] = U32(unchecked((uint)session.Game.Score)),
+            ["LVL"] = U32(unchecked((uint)session.Game.CurrentLevel)),
+            ["RNG"] = session.RandomStreamDeleted ? U32(0) + U32(0)
+                : U32(unchecked((uint)session.Context.Random.Value)) + U32(unchecked((uint)session.Context.Random.Seed)),
+            ["CRT"] = U32(unchecked((uint)session.Context.Crt.Calls)) + U32(unchecked((uint)session.Context.Crt.HoldRand)),
+        };
+        if (session.PlayersDeleted)
+        {
+            ours["POS"] = F32(0, 0, 0);
+            ours["LIFE"] = F32(0, 0);
+        }
+        else if (session.Game.GetPlayer(0)?.BattleEngine is BattleEngine be)
+        {
+            ours["POS"] = F32(be.Pos.X, be.Pos.Y, be.Pos.Z);
+            ours["LIFE"] = F32(be.Life, be.Energy);
+        }
+
+        return ours;
     }
 
     /// <summary>

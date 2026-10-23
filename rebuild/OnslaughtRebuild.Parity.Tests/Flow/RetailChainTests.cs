@@ -75,7 +75,7 @@ public sealed class RetailChainTests
         clock.GetSysTimeFloat();
         PlatformInput input = new(new PlatformWindow());
         ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
-        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing(clock));
         input.FlushInputBuffers();
         BootFilms.Play(player, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: skipFmv, Attract: false));
         for (int i = 0; i < BootFilms.PresentsAfterFilms; i++) clock.Present();
@@ -250,7 +250,7 @@ public sealed class RetailChainTests
         PlatformClock clock = new();
         PlatformInput input = new(new PlatformWindow());
         ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
-        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing(clock));
         BootFilms.Play(player, new BootFilms.Settings(LevelGiven: false, StraightToDeviceSelect: false, SkipFmv: false, Attract: false));
         Assert.Equal([("ltlogo", 228, false), ("openingfmv", 2053, false)], player.Trace);
         Assert.Equal(2285, clock.PresentCount);
@@ -266,7 +266,7 @@ public sealed class RetailChainTests
         PlatformClock clock = new();
         PlatformInput input = new(new PlatformWindow());
         ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
-        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing(clock));
         input.PostMouseMessage(MouseMessage.LeftDown, 10, 10, 1);
         Assert.True(player.PlayFullscreen("ltlogo", false));
         Assert.Equal(("ltlogo", 1, true), player.Trace[0]);
@@ -296,7 +296,7 @@ public sealed class RetailChainTests
         PlatformClock clock = Boot(skipFmv: false);
         (FrontEnd frontEnd, PlatformInput input) = NewFrontEnd(clock);
         ControllerContext controls = new(ControlBindings.Defaults(), input, new ControllerShared(), new FrontEndTests.NoGame(), clock.GetSysTimeFloat);
-        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing());
+        FilmPlayer player = new(clock, input, controls, new InstalledFilms(), new HarnessFilmPacing(clock));
         long lastProcess = 0;
         var entries = new List<(FrontEndEntry Entry, long Present)>();
         int Run(FrontEndEntry entry)

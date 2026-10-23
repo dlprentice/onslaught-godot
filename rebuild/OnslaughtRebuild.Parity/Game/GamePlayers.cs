@@ -170,7 +170,7 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
     /// pan; then, with a powered battle engine that is not dying: the look axes inverted by the career (read as off: the
     /// wiped career) and shaped by tan(1.2 v) * 3 over tan(1.2) * 3 (fptan's value approximated in double); the engine's
     /// own buttons; and the walker's moves.
-    /// The jet and walker have separate controls. Configuration and cloak remain unsupported.
+    /// The jet and walker have separate controls. Configuration remains unsupported.
     /// </summary>
     public void ReceiveButtonAction(Platform.Controller from, int button, float val)
     {
@@ -242,7 +242,8 @@ public sealed class Player(int number, ThingContext context) : Monitor, Platform
                     be.ChangeWeapon();
                     break;
                 case Platform.Buttons.MechCloak:
-                    throw new NotSupportedException($"CPlayer::ReceiveButtonAction: button {button} (the battle engine's own action) is not ported");
+                    be.HandleCloak();
+                    break;
             }
         }
 

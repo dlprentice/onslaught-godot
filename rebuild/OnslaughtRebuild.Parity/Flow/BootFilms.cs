@@ -35,18 +35,34 @@ public interface IFilmPacing
 }
 
 /// <summary>
-/// The pacing of the retail replay harness: retail's binkw32 follows each film's sound track, which plays on Wine's
-/// real-time mixer, so every frame comes due by real time and the virtual clock moves only with the Presents (no spin
-/// escape fired during the boot films). Modelled as every frame due at once: exact for the Presents, which a wait never
-/// makes; the waits themselves are not modelled.
+/// The pacing of the retail replay harness: retail's binkw32 times a film by the wall clock (its sound track plays on
+/// Wine's real-time mixer) while the virtual clock moves only with the Presents, and a frame is drawn in far less than
+/// the 40 ms it lasts. So the player's first look after each Present finds the next frame not yet due (Play sleeps and
+/// polls the input again without presenting), and a later look finds it due: one frame per Present, and a skip seen in
+/// the poll after a Present ends the film without another frame. Measured on pristine 74154bfa under the shim (code
+/// breakpoints, a maintainer's 0.1.1 session tape: the skips after Presents 41 and 85 close the films at 42 and 86), and the
+/// native port's patch 0053 (bea-decomp port/PARITY.md). The waits themselves (Sleep(1)) are not modelled. Limit: just
+/// after a film opens, retail's first frames can already be due at the first look (a catch-up that depends on how
+/// long the open took); this model always waits once.
 /// </summary>
-public sealed class HarnessFilmPacing : IFilmPacing
+public sealed class HarnessFilmPacing(PlatformClock clock) : IFilmPacing
 {
+    private long _lastLook = -1;
+
     public void Opened(FilmHeader film)
     {
     }
 
-    public bool FrameDue(int frameNum) => true;
+    public bool FrameDue(int frameNum)
+    {
+        if (clock.PresentCount != _lastLook)
+        {
+            _lastLook = clock.PresentCount;
+            return false;
+        }
+
+        return true;
+    }
 
     public void Sleep()
     {
@@ -77,6 +93,9 @@ public sealed class FilmPlayer : IButtonReceiver
         _files = files;
         _pacing = pacing;
     }
+
+    /// <summary>The films on disk, as Play finds them.</summary>
+    public IFilmFiles Files => _files;
 
     /// <summary>CFMV::mQuit: the film was skipped.</summary>
     public bool Quit { get; private set; }

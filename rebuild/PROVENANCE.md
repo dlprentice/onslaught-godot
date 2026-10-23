@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-22 (SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-23 (the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -76,6 +76,8 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `Career/EndLevelData.cs` (the end-of-level record the career reads) | `src/EndLevelData.h`, `src/EndLevelData.cpp` (`CEndLevelData`) | GPL-3.0-only (in Stuart's release) |
 | `Flow/FrontEnd.cs` (the front end's page machine: page changes and transitions, button routing, the filtered frame step, one Present per iteration) | `src/FrontEnd.cpp`, `src/frontend.h`, `src/FrontEndPage.h` (`CFrontEnd`, `CFrontEndPage`); button ids from `src/Controller.h` | GPL-3.0-only (in Stuart's release) |
 | `Flow/FrontEndMessageBox.cs` (the front end's message box: create, fades, timeout, yes/no, dismiss page) | `src/FEMessBox.cpp`, `src/FEMessBox.h` | GPL-3.0-only (not in Stuart's release) |
+| `Flow/FmvLookup.cs` (which cutscene plays around each level, and its file name) and `Game/LevelSession.cs`'s cutscenes (the intro after the load's 100% screen; `Shutdown`, RunLevel's tail: ShutdownRestartLoop's deletions, then CGame::Shutdown's outro) | `src/fmvlookup.cpp` (`fmv_lookup`, `lookup_FMV`), `src/game.cpp` (`MakeCutsceneName`, `CGame::RunIntroFMV`, `CGame::RestartLoopRunLevel`, `CGame::RunOutroFMV`, `CGame::Shutdown`, `CGame::ShutdownRestartLoop`, `CGame::RunLevel`) | GPL-3.0-only (`game.cpp` in Stuart's release; `fmvlookup.cpp` reconstructed, not in it) |
+| `Flow/Pages/GoodiesPage.cs` (the goodies page: the grid's cursor, sounds, goodie states and Back's options save; not the viewer) | `src/FEPGoodies.cpp` (`get_goodie_number`, `get_goodie_state`, `CFEPGoodies::Init`, `ButtonPressed`, `Process`, `TransitionNotification`) | GPL-3.0-only (in Stuart's release) |
 | `Flow/MemoryCard.cs` (the PC's save folder as the memory card: one device, its saves, create, write, read, delete) | `src/PCMemoryCard.cpp` (`CPCMemoryCard`), `src/MemoryCard.h` (return codes) | GPL-3.0-only (in Stuart's release) |
 | `Flow/Pages/IntroPage.cs` (the title page) | `src/FEPIntro.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Particles/FrontEndParticles.cs` (FED resource loading, camera/world adapter, render-side particle work) | `src/FrontEndData.cpp`, `src/DXFrontend.cpp` (`Init`, `Shutdown`, `RenderParticles`, `RenderEnd`); shared resource reader from `src/ResourceAccumulator.cpp` | GPL-3.0-only (new adapter; delegates resource parsing to its existing GPL-3.0-only owner) |

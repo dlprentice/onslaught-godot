@@ -75,6 +75,19 @@ public sealed class LevelSession
                 Clock.Present();
             }
 
+            if (IntroFilms is { } films && Flow.FmvLookup.Of(Level, 0) is var intro && intro != -1)
+            {
+                // RestartLoopRunLevel with an intro (game.cpp 1259): SetLoadingFraction(1.0f) shows the 100% screen and
+                // SetLoading(FALSE) releases it, then RunIntroFMV (game.cpp 1070); the later fractions find no screen.
+                if (Loading is { } beforeFilm)
+                {
+                    beforeFilm.Complete();
+                    beforeFilm.SetLoading(false);
+                }
+
+                PlayCutscene(films, intro);
+            }
+
             Game.StartLevelTiming();
             Game.PreRun();
 
@@ -246,6 +259,87 @@ public sealed class LevelSession
         Context.SoundEffects?.SetGameSoundsMasterVolume(1); // native field-only reset; no status/gain refresh here.
         SoundProcess?.ReleaseLevel(Context);
     }
+
+    /// <summary>
+    /// RunLevel's close deleted the players (<c>SAFE_DELETE(mPlayer[i])</c>, game.cpp 1516): GAME's player pointers are
+    /// null from then on. This host keeps the ended world for inspection; a probe of the player reads nothing.
+    /// </summary>
+    public bool PlayersDeleted => Ended;
+
+    /// <summary>ShutdownRestartLoop deleted the game's random stream (<c>SAFE_DELETE(mRandomStream)</c>, game.cpp 567).</summary>
+    public bool RandomStreamDeleted { get; private set; }
+
+    /// <summary>
+    /// The rest of CGame::RunLevel once its restart loop has ended on anything but a restart (game.cpp 1607-1660):
+    /// ShutdownRestartLoop (the sound release, the random stream deleted, the particle manager shut down), then
+    /// CGame::Shutdown (game.cpp 417), whose one step with Presents is RunOutroFMV (game.cpp 484): a level won and quit
+    /// to the front end plays its outro film on <paramref name="films"/>. Under -skipfmv the film never ends (the
+    /// films' <see cref="Flow.UnopenedFilms"/>), so this returns only when the player skips it.
+    /// </summary>
+    public void Shutdown(Flow.FilmPlayer films)
+    {
+        if (!Ended || Game.Quit == OnslaughtRebuild.Parity.Clock.QuitType.RestartLevel)
+        {
+            throw new InvalidOperationException("RunLevel shuts the level down only after its restart loop has ended");
+        }
+
+        if (_shutDown) return;
+        _shutDown = true;
+        ReleaseSoundForRestartOrReturn();
+        RandomStreamDeleted = true;
+        Context.Particles?.Manager.Shutdown();
+        RunOutroFmv(films);
+    }
+
+    private bool _shutDown;
+
+    /// <summary>
+    /// CGame::RunOutroFMV (0046d9f0, game.cpp 1104): when the level quit to the front end won, its outro from
+    /// lookup_FMV (fmvlookup.cpp; level 100's is cutscene 2) is marked new among the goodies (goodie 200 + n, 232 for
+    /// cutscene 33) unless it is already new or old, with one more pending extra goodie, and played full screen,
+    /// unskippable by select; then the input buffers are flushed.
+    /// </summary>
+    private void RunOutroFmv(Flow.FilmPlayer films)
+    {
+        if (Game.Quit != OnslaughtRebuild.Parity.Clock.QuitType.QuitToFrontEnd || EndLevelData.FinalState != OnslaughtRebuild.Parity.Career.EndLevelState.Won)
+        {
+            return;
+        }
+
+        if (Level is 500 or 720 or 741 or 800)
+        {
+            // Level 500's rocket slot and 720's secondary objectives choose the alternative outro; 741 and 800 roll the
+            // credits afterwards. None is modelled (this proof of concept plays level 100 only).
+            throw new NotSupportedException($"RunOutroFMV for level {Level}");
+        }
+
+        int fmv = Flow.FmvLookup.Of(Level, 1);
+        if (fmv == -1)
+        {
+            return;
+        }
+
+        PlayCutscene(films, fmv);
+    }
+
+    /// <summary>The step RunIntroFMV and RunOutroFMV share (game.cpp 1078 and 1143): the goodie, the film, the flush.</summary>
+    private void PlayCutscene(Flow.FilmPlayer films, int fmv)
+    {
+        string name = Flow.FmvLookup.CutsceneName(fmv, films.Files);
+        int goodie = fmv == 33 ? 232 : fmv + 200;
+        OnslaughtRebuild.Parity.Career.Career career = Career ?? throw new InvalidOperationException("a cutscene needs CAREER");
+        if (career.Record.GoodieState(goodie) is not (OnslaughtRebuild.Parity.Career.CareerGoodieState.Old or OnslaughtRebuild.Parity.Career.CareerGoodieState.New))
+        {
+            career.Record.SetGoodieState(goodie, OnslaughtRebuild.Parity.Career.CareerGoodieState.New);
+            career.Record.PendingExtraGoodies++;
+        }
+
+        films.PlayFullscreen(name, skippable: false);
+        Input.Input.FlushInputBuffers();
+    }
+
+    /// <summary>The level's intro film player (<see cref="LevelHost.IntroFilms"/>), for its first time round.</summary>
+    public Flow.FilmPlayer? IntroFilms { get; private init; }
 
     /// <summary>The process's loading screen, for a level from the front end.</summary>
     public Flow.LoadingScreen? Loading { get; private init; }
@@ -510,6 +604,7 @@ public sealed class LevelSession
             EndLevelData = host?.EndLevelData ?? new OnslaughtRebuild.Parity.Career.EndLevelData(),
             FromFrontEnd = host is not null,
             Loading = host?.Loading,
+            IntroFilms = host?.IntroFilms,
             Career = career,
             Level = level,
             Read = read,
@@ -548,4 +643,10 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
 
     /// <summary>Explicit virtual backend/profile binding, never constructed anew for a hosted level.</summary>
     public SoundProcess? SoundProcess { get; init; }
+
+    /// <summary>
+    /// The film player for the level's intro: null when GetIntroFMV gives none (-skipfmv, or a restart, which is not
+    /// the first time round).
+    /// </summary>
+    public Flow.FilmPlayer? IntroFilms { get; init; }
 }

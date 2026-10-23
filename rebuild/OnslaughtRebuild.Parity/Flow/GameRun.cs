@@ -33,7 +33,7 @@ public sealed class GameRun : ISystemParts
         Input = new PlatformInput(new PlatformWindow());
         Bindings = ControlBindings.Defaults();
         Controls = new ControllerContext(Bindings, Input, Shared, new FrontEndGame(), Clock.GetSysTimeFloat);
-        _films = new FilmPlayer(Clock, Input, Controls, skipFmv ? new UnopenedFilms(films) : films, new HarnessFilmPacing());
+        _films = new FilmPlayer(Clock, Input, Controls, skipFmv ? new UnopenedFilms(films) : films, new HarnessFilmPacing(Clock));
         FrontEnd = FrontEndSetup.Create(Clock, Controls, Bindings, read, pcText, out Career.CareerOptions? options);
         if (options is not null)
         {
@@ -81,6 +81,9 @@ public sealed class GameRun : ISystemParts
 
     /// <summary>CONSOLE's loading screen.</summary>
     public LoadingScreen Loading { get; }
+
+    /// <summary>The level whose load is under way (its loading screen's Presents come before <see cref="Level"/> is set).</summary>
+    public int? LoadingLevel { get; private set; }
 
     /// <summary>The level running now, or the last one.</summary>
     public LevelSession? Level { get; private set; }
@@ -155,6 +158,9 @@ public sealed class GameRun : ISystemParts
 
     private readonly Game.GameRenderStatics _renderStatics = new();
 
+    /// <summary>The tape's mouse movement since the last level's device read, for the next level's.</summary>
+    private (int X, int Y, int Wheel, byte Buttons, bool Any) _pendingMouse;
+
     public QuitType RunLevel(int level)
     {
         int[] slots = new int[Career.CareerRecord.SlotWordCount];
@@ -163,6 +169,7 @@ public sealed class GameRun : ISystemParts
             slots[word] = FrontEnd.Career.Record.SlotWord(word);
         }
 
+        LoadingLevel = level;
         Level = LevelSession.Load(level, _read, _voice, LevelChunks?.Invoke(level),
             host: new LevelHost(Clock, Input, Bindings, Shared, Crt.MainThread, FrontEnd.EndLevelData, slots, Loading, FrontEnd.Career.SetSlot)
             {
@@ -172,8 +179,16 @@ public sealed class GameRun : ISystemParts
                 Sounds = Sounds,
                 SoundProcess = SoundProcess,
                 RenderStatics = _renderStatics,
+                IntroFilms = _skipFmv ? null : _films,
             });
+        LoadingLevel = null;
         Level.Draw = LevelDraw?.Invoke();
+        if (_pendingMouse.Any)
+        {
+            Level.Input.Mouse.AddMouseDelta(_pendingMouse.X, _pendingMouse.Y, _pendingMouse.Wheel, _pendingMouse.Buttons);
+            _pendingMouse = default;
+        }
+
         while (true)
         {
             while (!Level.Ended)
@@ -190,8 +205,8 @@ public sealed class GameRun : ISystemParts
             Level = Level.Restart();
         }
 
-        Level.ReleaseSoundForRestartOrReturn();
-        Level.Context.Particles?.Manager.Shutdown();
+        // ShutdownRestartLoop and CGame::Shutdown, with the outro of a level won.
+        Level.Shutdown(_films);
         return Level.Game.Quit;
     }
 
@@ -219,8 +234,13 @@ public sealed class GameRun : ISystemParts
                     case RetailMouseEvent mouse when Level is { Ended: false } level:
                         level.Input.Mouse.AddMouseDelta(mouse.DeltaX, mouse.DeltaY, mouse.Wheel, (byte)mouse.Buttons);
                         break;
-                    case RetailMouseEvent:
-                        throw new NotSupportedException($"a tape's mouse event at Present {p} outside a level (the front end reads the window's cursor)");
+                    case RetailMouseEvent mouse:
+                        // Outside a level no DirectInput mouse reads the tape (the front end follows the window's cursor,
+                        // which a replay never moves): the harness's movement adds up, and the next level's first device
+                        // read takes it with the last buttons (bea-decomp port/platform/common/replay.cpp, PortReplayMouse).
+                        _pendingMouse = (unchecked(_pendingMouse.X + mouse.DeltaX), unchecked(_pendingMouse.Y + mouse.DeltaY),
+                            unchecked(_pendingMouse.Wheel + mouse.Wheel), (byte)mouse.Buttons, true);
+                        break;
                 }
             }
         }

@@ -32,6 +32,24 @@ public sealed partial class BattleEngine
     public void ZoomOut() { if (GetCurrentWeapon()?.Data.ZoomMode == 1) DesiredZoom = 1.0f; }
 
     /// <summary>
+    /// CBattleEngine::HandleCloak (0040d4d0, onslaught-decomp src/BattleEngine.cpp:3234): a cloaked engine decloaks; otherwise,
+    /// with at least the configuration's transform energy, it cloaks (Cloak: only a configuration with stealth does).
+    /// </summary>
+    public void HandleCloak()
+    {
+        if (Cloaked)
+        {
+            DesiredStealth = 0;
+            Cloaked = false;
+        }
+        else if (Energy >= Configuration!.MinTransformEnergy && Configuration.Stealth > 0)
+        {
+            DesiredStealth = Configuration.Stealth;
+            Cloaked = true;
+        }
+    }
+
+    /// <summary>
     /// Morph0040a580: permission first; then slow movement cleared before transition/special-move guards. Both charges
     /// are lost and zoom reset BEFORE the energy test. The ground launch is completed by Move's repeated delayed
     /// BecomeJet events, not a fixed timer started here. The air launch additionally queues its original 0.1s event.
