@@ -1,9 +1,9 @@
 # onslaught-godot
 
-Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: level 100
-equals the native port on every probe field through P27650 of the tutorial win route; the win, end-level data and save
-are open.
-Last updated: 2026-10-22 (contributing and security guides linked; public; the repository family linked; the Host's run script)
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a whole-game
+win route from boot through the outro, debriefing and quit equals the native port on every probe field every Present;
+the saved career and options file match byte for byte. The win milestone remains open against retail.
+Last updated: 2026-10-23 (front-page status follows the measured whole-game win route in rebuild/PARITY.md)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, measured against the
 original game Present by Present.
 
