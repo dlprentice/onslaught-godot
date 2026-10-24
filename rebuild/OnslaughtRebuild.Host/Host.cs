@@ -214,7 +214,18 @@ public partial class Host : Node
     {
         if (_flowMode)
         {
-            ProcessFlow(delta);
+            try
+            {
+                ProcessFlow(delta);
+            }
+            catch (Exception e)
+            {
+                _flowFailure = true;
+                _flowStop = $"Presentation failed after Present {_flowLast?.Present}: {e.Message}";
+                GD.PrintErr($"HOST_FLOW_FAILED: {e}");
+                FinishFlow();
+                GetTree().Quit(1);
+            }
             return;
         }
 

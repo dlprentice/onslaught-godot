@@ -48,7 +48,7 @@ public sealed class GoldOwnRouteTests(ITestOutputHelper output)
                 ? (path, startOptions) : GameData.Read(path);
         var run = new GameRun(Read, id => new RetailPcText(GameData.Read("BEA.exe").Bytes, 0)[id],
             new RetailChainTests.InstalledFilms(), skipFmv: false, LevelSession.VirtualVoiceFor(GameData.Read),
-            TrainerRouteTests.SoundProfile(RetailGolden.File(Sounds)!))
+            OnslaughtRebuild.Host.ReplaySoundProfile.Load(RetailGolden.File(Sounds)!, Read))
         {
             Tape = RetailTape.Load(RetailGolden.File(Dir + "/gold-own-20261023.tape")!),
         };

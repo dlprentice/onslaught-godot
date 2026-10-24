@@ -101,7 +101,7 @@ public sealed class FrontEndView
 
     public SubViewport Viewport { get; }
 
-    public void Show(CanvasFrame frame)
+    public void Show(CanvasFrame frame, Node3D? particles = null)
     {
         if (frame.ClearColour is { } clear)
         {
@@ -109,10 +109,31 @@ public sealed class FrontEndView
         }
 
         int used = 0;
+        int order = 0;
+        bool particlesDrawn = false;
+        void InsertParticles()
+        {
+            if (particlesDrawn || particles is null) return;
+            particlesDrawn = true;
+            _root.AddChild(particles);
+            foreach (Node child in particles.GetChildren())
+            {
+                if (child is MeshInstance3D { Mesh: { } mesh })
+                {
+                    for (int surface = 0; surface < mesh.GetSurfaceCount(); surface++)
+                    {
+                        if (mesh.SurfaceGetMaterial(surface) is ShaderMaterial material)
+                            material.RenderPriority = Math.Min(order++, 255) - 128;
+                    }
+                }
+            }
+        }
         IReadOnlyList<CanvasQuad> quads = frame.Quads;
         for (int start = 0; start < quads.Count;)
         {
             CanvasQuad first = quads[start];
+            // CDXFrontEnd::RenderEnd draws particles after the page and its masks, before the cursor.
+            if (first.Texture.Kind == CanvasTextureKind.Cursor) InsertParticles();
             int end = start + 1;
             while (end < quads.Count && SameState(first, quads[end]))
             {
@@ -122,7 +143,7 @@ public sealed class FrontEndView
             MeshInstance3D instance = Instance(used);
             ArrayMesh mesh = Mesh(quads, start, end);
             instance.Mesh = mesh;
-            instance.MaterialOverride = Material(first, used);
+            instance.MaterialOverride = Material(first, order++);
             instance.Visible = true;
             used++;
             if (first.ZEnable && first.ZAlways)
@@ -131,7 +152,7 @@ public sealed class FrontEndView
                 {
                     MeshInstance3D depth = Instance(used);
                     depth.Mesh = mesh;
-                    depth.MaterialOverride = DepthMaterial(first.Texture, first.Clamp, inverted, used);
+                    depth.MaterialOverride = DepthMaterial(first.Texture, first.Clamp, inverted, order++);
                     depth.Visible = true;
                     used++;
                 }
@@ -139,6 +160,8 @@ public sealed class FrontEndView
 
             start = end;
         }
+
+        InsertParticles();
 
         for (int i = used; i < _pool.Count; i++)
         {

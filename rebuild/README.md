@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte; the tutorial pilot's win route equals it through the level's end and outro.
-Last updated: 2026-10-23 (the whole-game win route and the saved career equal the port; earlier, 2026-10-22, public: running the Host, the beta1 engine, the earlier rebuild's scripts marked reference; earlier entries keep their dates)
+Last updated: 2026-10-24 (frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier, 2026-10-22, public: running the Host, the beta1 engine, the earlier rebuild's scripts marked reference; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -30,6 +30,8 @@ thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 | `ONSLAUGHT_GOLDEN_VDS` | the golden recordings' value dumps | `RetailGoldenTests` |
 | `ONSLAUGHT_BEOBJ_VDS` | the battle engine's object dumps to Present 6000 | `RetailGoldenTests` |
 | `ONSLAUGHT_PORT_OCCUPANCY` | the native port's level-100 occupancy data (`paths.txt`) | `OccupancyTests` |
+| `ONSLAUGHT_PARITY_DATA` | the legacy replay-harness view (`golden`, `golden-640`, `tapes`) | `ClockTests`, `HarnessTests` |
+| `X87_ORACLE_OUT` | the pinned compiler's generated x87 tables, including `manifest.json` | `X87OracleTests` |
 
 ```bash
 source local-data/rebuild-env.sh          # the variables above, with this machine's folders
@@ -106,7 +108,9 @@ export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # if `godot` on PATH
 npm run run:host                                            # builds the Host, then runs the whole game (HOST_LIVE=flow)
 ```
 
-`run:host` opens a window and runs the game from boot to quit with ordinary input. Set `HOST_LIVE=1` for level 100
+`run:host` opens an experimental preview with keyboard input. Its ordinary-player sound-event backend is not yet
+configured: a level can stop at an unsupported sound operation (the incoming-missile warning is one reproduced case).
+It is not yet a complete playable route or an audio acceptance result. Set `HOST_LIVE=1` for level 100
 alone, or `HOST_LIVE=` (empty) to draw a single Present (`HOST_PRESENT=150`, optionally `HOST_CAPTURE=<file.png>`);
 `python3 rebuild/OnslaughtRebuild.Host/tools/side_by_side.py <capture> <retail capture> <out.png>` compares a capture
 with a retail one.
@@ -126,8 +130,20 @@ view), each part flashing while the mission script highlights it. In the whole-g
 end-level menus, the end screen) are drawn through the core's canvas, by Godot or by the software rasterizer used as the comparison
 oracle (`HOST_SHOTS`, `HOST_SHOT_GODOT`). Not drawn yet: the landscape's geometry levels of detail, particle trails and
 meshes, the lock-on pieces and warning-receiver threats (not
-ported), and the front end's particles and battle-engine model. Diagnostics:
+ported), and the front end's particle meshes and battle-engine model. The front end now draws its sprite particles
+(main-menu fireworks and the debriefing's goodie glow/sparks) behind the cursor and subject to the page's depth masks.
+The debriefing's animated glow was inspected in the admitted win replay; completed-campaign fireworks still need
+a visible reference comparison. Diagnostics:
 `HOST_TEXTURE_ONLY=1`, `HOST_DEBUG=lit|normal|colour|grey` and `HOST_NO_GRID=1` (the surf alone).
+
+For recorded route playback only, `HOST_REPLAY_SOUND_PROFILE=<file>` admits the same measured sound-pool profile
+used by the tutorial comparison tests. It requires `HOST_TAPE`, the exact admitted profile, one of the two recorded startup-options containers, and the matching English
+sample bank; it does not enable sound output. The profile contains one native process's allocator state and must not
+be used as an ordinary-player default. It is private reference data, not included here. With that explicit profile,
+the recorded boot-to-debrief route completes in the Host. `HOST_FRONTEND_PARTICLES=0` disables only the new sprite
+drawing for comparison. `HOST_FRONTEND_ONLY=1` is a tape-only capture diagnostic: it still executes the entire
+simulation but omits level-world drawing. Neither diagnostic changes the tape or advances mission events.
+
 
 ## The earlier rebuild (history)
 

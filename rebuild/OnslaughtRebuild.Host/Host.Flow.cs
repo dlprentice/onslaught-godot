@@ -19,8 +19,9 @@ namespace OnslaughtRebuild.Host;
 /// HOST_FULL_BOOT=1 plays the boot films (default: as -skipfmv); HOST_TRACE writes each snapshot's line; HOST_END_PRESENT
 /// stops the run; HOST_DRAW=0 (with a tape) runs as fast as it can. HOST_FLOW_STRAIGHT=1 (with a tape, an end and a trace)
 /// instead runs the same game straight through on this thread, writing the reference the stepped trace must equal.
-/// The front end is drawn by Godot (<see cref="FrontEndView"/>) from the frames its render path records; the level is not
-/// drawn yet. HOST_SHOTS ("P,P,...") with HOST_SHOT_DIR saves those Presents' pictures: always the software reference
+/// The front end is drawn by Godot (<see cref="FrontEndView"/>) from the frames its render path records; level views use
+/// the same renderer as the live preview. HOST_FRONTEND_ONLY=1 is a tape-only capture diagnostic which omits level
+/// drawing. HOST_SHOTS ("P,P,...") with HOST_SHOT_DIR saves those Presents' pictures: always the software reference
 /// (<see cref="FrontEndRaster"/>, shot-NNNNN-raster.png), and with HOST_SHOT_GODOT=1 (a GPU run) Godot's
 /// (shot-NNNNN-godot.png).
 /// </summary>
@@ -29,6 +30,7 @@ public partial class Host
     private bool _flowMode;
     private bool _flowDraw;
     private bool _flowReplay;
+    private bool _flowFrontEndOnly;
     private SteppedGameRun? _flowRun;
     private StreamWriter? _flowTrace;
     private FlowSnapshot? _flowLast;
@@ -53,6 +55,8 @@ public partial class Host
     private CanvasFrame? _flowLevelFrame;
     private FrontEndView? _flowOverlay;
     private CanvasFrame? _flowOverlayFrame;
+    private TextureLibrary? _flowParticleTextures;
+    private TransientHostView? _flowParticles;
 
     private void ReadyFlow()
     {
@@ -60,6 +64,7 @@ public partial class Host
         _flowDraw = System.Environment.GetEnvironmentVariable("HOST_DRAW") != "0";
         string? tape = System.Environment.GetEnvironmentVariable("HOST_TAPE");
         _flowReplay = tape is not null;
+        _flowFrontEndOnly = System.Environment.GetEnvironmentVariable("HOST_FRONTEND_ONLY") == "1";
         if (!_flowDraw && !_flowReplay)
         {
             throw new ArgumentException("HOST_DRAW=0 requires HOST_TAPE; physical input requires the visible preview");
@@ -70,10 +75,16 @@ public partial class Host
             _flowEnd = long.Parse(endText);
         }
 
+        if (_flowFrontEndOnly && !_flowReplay)
+            throw new ArgumentException("HOST_FRONTEND_ONLY requires HOST_TAPE; it is a capture diagnostic");
+        string? soundProfile = System.Environment.GetEnvironmentVariable("HOST_REPLAY_SOUND_PROFILE");
+        if (soundProfile is not null && tape is null)
+            throw new ArgumentException("HOST_REPLAY_SOUND_PROFILE requires HOST_TAPE; recorded allocator state is not a player default");
         GameFiles files = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
         bool fullBoot = System.Environment.GetEnvironmentVariable("HOST_FULL_BOOT") == "1";
         var run = new GameRun(files.Read, id => new RetailPcText(files.Read("BEA.exe").Bytes, 0)[id],
-            new InstalledFilmHeaders(files.Read), !fullBoot, LevelSession.VirtualVoiceFor(files.Read));
+            new InstalledFilmHeaders(files.Read), !fullBoot, LevelSession.VirtualVoiceFor(files.Read),
+            soundProfile is null ? null : ReplaySoundProfile.Load(soundProfile, files.Read));
         if (tape is not null)
         {
             run.Tape = RetailTape.Load(tape);
@@ -139,6 +150,7 @@ public partial class Host
                 // Each level's textures and surf, read from its resource file as it loads (on the run's thread; the views
                 // are built from them on this thread while the run is parked).
                 _flowFiles = files;
+                _flowParticleTextures = new TextureLibrary(files.Read);
                 run.LevelChunks = _ =>
                 {
                     var textures = new TextureLibrary(files.Read);
@@ -165,7 +177,7 @@ public partial class Host
         _flowRun = new SteppedGameRun(run);
         _flowStatus = new Label { Name = "FlowStatus", Position = new Vector2(8, 6), MouseFilter = Control.MouseFilterEnum.Ignore };
         AddChild(_flowStatus);
-        GD.Print($"HOST_FLOW_READY replay={_flowReplay} drawing={_flowDraw} full_boot={fullBoot} silent=true");
+        GD.Print($"HOST_FLOW_READY replay={_flowReplay} drawing={_flowDraw} full_boot={fullBoot} silent=true sound_profile={(soundProfile is null ? "legacy-unconfigured" : "recorded-reference")}");
     }
 
     private void ProcessFlow(double delta)
@@ -241,14 +253,29 @@ public partial class Host
 
         _flowLast = snapshot;
         _flowTrace?.WriteLine(snapshot.Line());
-        if (_flowFiles is not null)
+        // Front-end-only capture still executes every simulation Present, but avoids drawing an unrelated level.
+        if (_flowFiles is not null && !_flowFrontEndOnly)
         {
             ShowFlowLevel(snapshot);
         }
 
         if (Interlocked.Exchange(ref _flowFrame, null) is { } frame && frame.Present == snapshot.Present)
         {
-            _flowView?.Show(frame);
+            _flowParticles?.Dispose();
+            _flowParticles = null;
+            if (_flowView is not null && snapshot.Segment == FlowSegment.FrontEnd
+                && System.Environment.GetEnvironmentVariable("HOST_FRONTEND_PARTICLES") != "0")
+            {
+                _flowRun.Inspect(run =>
+                {
+                    if (run.FrontEnd.Particles is { Camera: { } camera } particles)
+                    {
+                        _flowParticles = new TransientHostView(ParticleView.Build(particles.Manager, _flowParticleTextures!,
+                            camera.Pos, camera.Orientation, particles.EventTime, frontEnd: true));
+                    }
+                });
+            }
+            _flowView?.Show(frame, _flowParticles?.Node as Node3D);
             if (_flowShots?.Contains(snapshot.Present) == true)
             {
                 _flowRaster!.Draw(frame);
@@ -510,6 +537,8 @@ public partial class Host
 
     private void FinishFlow()
     {
+        _flowParticles?.Dispose();
+        _flowParticles = null;
         _flowTrace?.Dispose();
         _flowTrace = null;
         _flowRun?.Dispose();

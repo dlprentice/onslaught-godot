@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 using System.Buffers.Binary;
-using System.Security.Cryptography;
-using System.Text.Json;
 using OnslaughtRebuild.Parity.Game;
-using OnslaughtRebuild.Parity.Maths;
 using OnslaughtRebuild.Parity.Sound;
 using OnslaughtRebuild.Parity.Things;
 using Xunit.Abstractions;
@@ -143,30 +140,6 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
     /// </summary>
     internal static VirtualSoundProcessOptions SoundProfile(string path)
     {
-        byte[] profileBytes = File.ReadAllBytes(path);
-        Assert.Equal("e4b10a4d8b8d0b61140c2e97ac3b1ecfbe92b9caa74f42362bba20925840d009", Convert.ToHexString(SHA256.HashData(profileBytes)).ToLowerInvariant());
-        using var json = JsonDocument.Parse(profileBytes);
-        JsonElement root = json.RootElement;
-        Assert.True(root.GetProperty("admitted").GetBoolean());
-        SoundEventSeed[] seeds = root.GetProperty("seed_profile").GetProperty("seeds").EnumerateArray().Select((e, i) =>
-        {
-            Assert.Equal(i, e.GetProperty("slot").GetInt32());
-            byte[] b = Convert.FromHexString(e.GetProperty("position_xyz_raw").GetString()!);
-            return new SoundEventSeed(e.GetProperty("channel").GetInt32(), new FVector(BinaryPrimitives.ReadSingleLittleEndian(b),
-                BinaryPrimitives.ReadSingleLittleEndian(b.AsSpan(4)), BinaryPrimitives.ReadSingleLittleEndian(b.AsSpan(8))));
-        }).ToArray();
-        byte[] bankBytes = GameData.Read(@"data\sounds\sounds_english_pc.xap").Bytes;
-        Assert.Equal("658c15e3bab844d65dd3c07c4ac880f16f741c0ea116f48c603449bbd4dda8b7", Convert.ToHexString(SHA256.HashData(bankBytes)).ToLowerInvariant());
-        SampleBankMetadata bank = SampleBankMetadata.Read(bankBytes);
-        var samples = new HashSet<SampleMetadata>(bank.Entries, ReferenceEqualityComparer.Instance);
-        Assert.Equal("b5aaad4ef4f95b2926b1373e5ad3e9cbab8aceef04c6762ce966b9d400f25d7e",
-            Convert.ToHexString(SHA256.HashData(GameData.Read("defaultoptions.bea").Bytes)).ToLowerInvariant());
-        var owners = new HashSet<Type> { typeof(BattleEngine), typeof(GroundVehicle), typeof(Cannon), typeof(Building),
-            typeof(SimpleBuilding), typeof(Plane), typeof(Dropship), typeof(Round), typeof(Explosion), typeof(Feature), typeof(Tree),
-            typeof(LevelScriptThing), typeof(SafeSide), typeof(SphereTrigger), typeof(Start), typeof(Waypoint), typeof(NormalSquad),
-            typeof(RelaxedSquad) };
-        return new(new(1, 12, true, false), seeds, (name, _) => bank.Find(name),
-            sample => samples.Contains(sample) && SampleBufferFormat.TryCreate(sample.OriginalPcmBytes, 1, out _),
-            owner => owner is Thing thing && owners.Contains(owner.GetType()) ? new SoundOwnerSpatialState(thing.Pos, default) : null);
+        return OnslaughtRebuild.Host.ReplaySoundProfile.Load(path, GameData.Read);
     }
 }

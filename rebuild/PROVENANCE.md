@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-23 (the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-24 (Host frontend sprite projection and measured replay sound-profile admission; 2026-10-23: the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -41,6 +41,21 @@ Do not import the retail executable, retail asset payloads or conversions,
 decompiler output, user saves, raw runtime captures, or separately licensed
 third-party code/media into this subtree.
 Never describe synthetic or source-only behavior as observed Steam behavior.
+
+## Host presentation and reference playback
+
+The Host's `ParticleView` uses `src/PDSimpleSprite.cpp` (RenderSprites 004c5d50 and BuildFrameUVs 004c5c50)
+and `src/DXParticleManager.cpp` for sprite geometry and blend state. Its frontend projection follows
+`src/FrontEnd.cpp` (RenderStart 004685f0, near/far 0.1/700 and the 4:3 camera frustum); `FrontEndView` inserts the
+sprites after the page and before the cursor, as `src/DXFrontend.cpp` does in RenderEnd. These GPL-3.0-only
+adaptations draw the parity core's existing particles; no asset or generated frame is embedded. Frontend particle
+meshes and the configuration model remain undrawn.
+
+`ReplaySoundProfile` is a shared Host/test admission of the already recorded native tutorial sound pool and English
+sample bank, pinned by SHA-256, with the recorded startup-options containers (the level-start and whole-game
+containers differ in career data but have identical 86-byte options trailers). It is silent reference playback, not reconstructed player audio or a universal
+initial allocator state. The payload stays private. The Host requires a tape before admitting it; ordinary-player
+runs still need a real sound-event backend.
 
 ## Adapted from the decompilation
 

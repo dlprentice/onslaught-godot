@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-23 (M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-24 (Host frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -607,6 +607,49 @@ stealth, so it never cloaks). The run uses the level-100 routes' measured sound-
 process's 256 seeds), not this process's; every field still matches. Retail is not the reference here: in each of the four
 recorded retail pairs (pristine 74154bfa under the shim) the two runs of the same tape differ from each other, first
 between P3918 and P5003.
+
+Measured (frontend sprite presentation, 2026-10-24): the Host now draws the existing frontend sprite particles
+through `ParticleView`, after the page and its depth masks and before the cursor. This adds the goodie glow/sparks
+at debriefing and admits the main menu's firework sprites; particle meshes (including the goodie logo) and the
+configuration model remain undrawn. The source projection is `CFrontEnd::RenderStart` (004685f0: near 0.1, far 700),
+with the render ordering from `CDXFrontEnd::RenderEnd`. There is no new particle simulation.
+
+The `gold-own-20261023` input was replayed through the actual offscreen Host to P12817. Particle drawing enabled,
+disabled, and a frontend-only capture run produced identical complete flow traces (2,036,045 bytes, SHA-256
+`838c83ea02a48cf1c4aa370ca971f77bbc13c9ff293a260ad5b9fbba7fd6bca6`). The consecutive P12220–12280 capture sequence
+was inspected at native 640 × 480: blue rings enter from the left, move and fade behind the page, and follow its
+transition. P12265's enabled/disabled control differs at 7,540 pixels in that effect. The private evidence owner is
+`presentation-20261024` (`candidate-b`, `disabled-c`, `motion-d`); the frame sequence is also encoded at the replay
+clock's 30 Presents per second. These are Godot pictures and a presentation-on/off control, not a new matched
+retail frame comparison or GPU performance result. Completed-campaign fireworks still need a visible comparison.
+
+The full Host replay needs the explicitly selected `HOST_REPLAY_SOUND_PROFILE`, with a tape, the pinned measured
+sound-pool file, one of the two recorded startup-options containers and the pinned English sample bank. The shared
+`ReplaySoundProfile` admission replaces duplicated test setup; the whole-game test supplies its actual starting
+options reader. The profile remains the previously measured native process's pool, not this replay process's or
+retail's universal allocator state. It is silent. Ordinary-player Host runs still lack a configured sound-event
+backend: without the explicit replay profile, this tape stops at the incoming-missile warning after P7429. That is
+an open production-audio dependency, not a completed playable or audio acceptance route.
+
+Fresh read-only observation of this reconstruction replay also distinguishes its win from a low-health shortcut:
+all six planes spawned in the final armed wave (P10480–P10855) reached nonpositive life by P11380, before the
+completion dialogue at P11618. The earlier three airborne targets died at P9687, P9763 and P9846. This agrees with
+the saved nine-aircraft total and is recorded in `presentation-20261024/diagnostic-combat.log`; it does not add a
+retail per-plane oracle. The route's existing every-Present probe and save-byte comparisons remain the native-port
+acceptance evidence.
+
+Presentation cannot consume the core's random stream: it evaluates sprite functions through a copied draw context
+and refuses unadmitted random-valued functions. An authored headless negative confirmed refusal without changing
+the core's random seed or call count. A second negative forced a Host flow presentation error and confirmed a
+failed finish and process exit 1, rather than a logged exception followed by apparent success. Missing-tape,
+changed-profile, changed-bank and changed-options refusals are checked independently. No simulated mission events
+or gameplay constants were changed.
+
+The final Parity run passed 836 cases with five skips: two existing occupancy tests deliberately refuse stale
+native-port dumps, and three x87 oracle theories could not run because their retained tables were unavailable in
+the inspected locations. These are limitations, not passes; no skip was added by this change. The Host built with
+zero warnings/errors, and the documentation, public-payload and diff gates passed. The complete legacy clock and
+tape checks ran after their existing references were routed into the private test environment.
 
 Measured (the HUD's text, 2026-10-22): the core's HUD render writes the text of `Render00485d50` (the weapon's name,
 fading in from a change and out after three seconds, and the warnings: two centred rows, each showing the first of its

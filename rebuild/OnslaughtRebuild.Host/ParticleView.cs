@@ -5,6 +5,7 @@
 
 using Godot;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Crt;
 using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Particles;
 
@@ -29,10 +30,34 @@ public static class ParticleView
         }
         """;
 
-    private static Shader? _shader;
+    // CFrontEnd::RenderStart uses near=0.1, far=700 and half-width=near, half-height=near*0.75.
+    // Project into FrontEndView's orthographic depth space so the existing menu masks also occlude particles.
+    // Multiplying the clip position by view depth preserves perspective-correct UV interpolation.
+    private const string FrontEndVertex = """
+        uniform vec3 eye;
+        uniform vec3 camera_right;
+        uniform vec3 camera_up;
+        uniform vec3 camera_forward;
+        varying float view_depth;
+        void vertex() {
+            vec3 delta = VERTEX - eye;
+            float d = dot(delta, camera_forward);
+            view_depth = d;
+            float z = (700.0 - 70.0 / d) / 699.9;
+            vec4 screen = vec4(320.0 * dot(delta, camera_right) / d + 0.5,
+                               320.0 * dot(delta, camera_up) / d - 0.5, -(1.0 + z), 1.0);
+            POSITION = (PROJECTION_MATRIX * screen) * d;
+        }
+        """;
 
-    public static Node3D Build(ParticleManager manager, TextureLibrary textures, FVector campos, FMatrix cori, float eventTime)
+    private static Shader? _shader;
+    private static Shader? _frontEndShader;
+
+    public static Node3D Build(ParticleManager manager, TextureLibrary textures, FVector campos, FMatrix cori, float eventTime, bool frontEnd = false)
     {
+        // Evaluating a colour/length function must never consume the simulation's random stream. The current
+        // sprites need only existing noise and time. Refuse an unsupported random-valued drawing function below.
+        ParticleManager draw = ReadOnlyContext(manager);
         var buffers = new Dictionary<ParticleTexture, SurfaceTool>();
         try
         {
@@ -51,12 +76,20 @@ public static class ParticleView
                         buffers[texture] = st;
                     }
 
-                    Sprites(manager, sprite, st, campos, up, right, back, eventTime);
+                    Sprites(draw, sprite, st, campos, up, right, back, eventTime);
                 }
             }
 
+            if (draw.Rand.Calls != 0)
+            {
+                throw new NotSupportedException("particle drawing needs random values not captured by the simulation render");
+            }
+
             var root = new Node3D { Name = "Particles" };
-            _shader ??= new Shader { Code = Shader };
+            Shader shader = frontEnd
+                ? _frontEndShader ??= new Shader { Code = Shader.Replace("void fragment() {", "void fragment() {\n            if (view_depth < 0.1 || view_depth > 700.0) discard;")
+                    .Replace("void fragment()", FrontEndVertex + "\n        void fragment()") }
+                : _shader ??= new Shader { Code = Shader };
             int priority = 0;
             foreach (ParticleTexture texture in manager.Set.Textures)
             {
@@ -81,10 +114,21 @@ public static class ParticleView
 
                 var mesh = new ArrayMesh();
                 mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-                var material = new ShaderMaterial { Shader = _shader, RenderPriority = Math.Min(priority++, 127) };
+                var material = new ShaderMaterial { Shader = shader, RenderPriority = Math.Min(priority++, 127) };
                 material.SetShaderParameter("sprite", image);
+                if (frontEnd)
+                {
+                    material.SetShaderParameter("eye", Host.ToGodot(campos));
+                    material.SetShaderParameter("camera_right", Host.ToGodot(new FVector(cori.Row0.X, cori.Row1.X, cori.Row2.X)));
+                    material.SetShaderParameter("camera_forward", Host.ToGodot(new FVector(cori.Row0.Y, cori.Row1.Y, cori.Row2.Y)));
+                    material.SetShaderParameter("camera_up", Host.ToGodot(new FVector(-cori.Row0.Z, -cori.Row1.Z, -cori.Row2.Z)));
+                }
                 mesh.SurfaceSetMaterial(0, material);
-                root.AddChild(new MeshInstance3D { Mesh = mesh, Name = texture.GamePath });
+                var instance = new MeshInstance3D { Mesh = mesh, Name = texture.GamePath };
+                // Front-end clip coordinates are produced by the shader, not by the camera's world transform.
+                // Keep those meshes in the orthographic camera's culling volume; clipping is still done per pixel.
+                if (frontEnd) instance.CustomAabb = new Aabb(new Vector3(-640, -480, -3), new Vector3(1280, 960, 3));
+                root.AddChild(instance);
             }
 
             return root;
@@ -98,6 +142,20 @@ public static class ParticleView
                 buffer.Dispose();
             }
         }
+    }
+
+    private static ParticleManager ReadOnlyContext(ParticleManager source)
+    {
+        var rand = new CrtRandStream();
+        rand.Srand(source.Rand.HoldRand);
+        return new ParticleManager(source.Set, rand, source.World, new ParticleProcessState
+        {
+            Frame = source.State.Frame,
+            Allocations = source.State.Allocations,
+            SpriteCount = source.State.SpriteCount,
+            Noise = source.State.Noise,
+            RenderFraction = source.State.RenderFraction,
+        }) { Time = source.Time, FrameLength = source.FrameLength };
     }
 
     private static void Sprites(ParticleManager m, PdSimpleSprite pd, SurfaceTool st, FVector campos, FVector up, FVector right,

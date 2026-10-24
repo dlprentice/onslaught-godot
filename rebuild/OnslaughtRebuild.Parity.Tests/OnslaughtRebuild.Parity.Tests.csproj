@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <Content Include="Fixtures\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Pure host profile admission: the route tests exercise the same loader used by the Host, without Godot. -->
+    <Compile Include="..\OnslaughtRebuild.Host\ReplaySoundProfile.cs" Link="Host\ReplaySoundProfile.cs" />
   </ItemGroup>
 
 </Project>
