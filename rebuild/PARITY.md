@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-24 (Host frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-25 (Host frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -621,7 +621,12 @@ was inspected at native 640 × 480: blue rings enter from the left, move and fad
 transition. P12265's enabled/disabled control differs at 7,540 pixels in that effect. The private evidence owner is
 `presentation-20261024` (`candidate-b`, `disabled-c`, `motion-d`); the frame sequence is also encoded at the replay
 clock's 30 Presents per second. These are Godot pictures and a presentation-on/off control, not a new matched
-retail frame comparison or GPU performance result. Completed-campaign fireworks still need a visible comparison.
+retail frame comparison or GPU performance result. The enabled candidate also drew the level, while the
+disabled and motion captures selected frontend-only drawing; this was not a single-switch whole-renderer
+comparison. The unchanged traces cover the fields emitted by Host; the separate GoldOwn test compares the
+larger reference set, end-level bytes and complete save/options files. These Host runs stop at the selected
+P12817 preview boundary, not a demonstrated natural game quit. The captures use Intel Compatibility rendering.
+Completed-campaign fireworks still need a visible comparison.
 
 The full Host replay needs the explicitly selected `HOST_REPLAY_SOUND_PROFILE`, with a tape, the pinned measured
 sound-pool file, one of the two recorded startup-options containers and the pinned English sample bank. The shared
@@ -634,7 +639,8 @@ an open production-audio dependency, not a completed playable or audio acceptanc
 Fresh read-only observation of this reconstruction replay also distinguishes its win from a low-health shortcut:
 all six planes spawned in the final armed wave (P10480–P10855) reached nonpositive life by P11380, before the
 completion dialogue at P11618. The earlier three airborne targets died at P9687, P9763 and P9846. This agrees with
-the saved nine-aircraft total and is recorded in `presentation-20261024/diagnostic-combat.log`; it does not add a
+the end-level record's nine-aircraft count and is recorded in `presentation-20261024/diagnostic-combat.log`.
+Training level 100 does not add these kills to the saved career counters. This does not add a
 retail per-plane oracle. The route's existing every-Present probe and save-byte comparisons remain the native-port
 acceptance evidence.
 
