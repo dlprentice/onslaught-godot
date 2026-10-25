@@ -35,8 +35,7 @@ public sealed class X87OracleTests
             "atan2_d" => X87.Atan2,
             _ => throw new ArgumentException(op),
         };
-        (double[] a, double[] b) = Inputs(op);
-        byte[] output = File.ReadAllBytes(X87Oracle.File($"{op}.out.bin"));
+        (double[] a, double[] b, byte[] output) = Inputs(op, 8);
         bool transcendental = op is "sin_d" or "cos_d" or "atan2_d";
         if (!transcendental)
         {
@@ -98,8 +97,7 @@ public sealed class X87OracleTests
             "d2f" => (a, _) => (float)a,
             _ => throw new ArgumentException(op),
         };
-        (double[] a, double[] b) = Inputs(op);
-        byte[] output = File.ReadAllBytes(X87Oracle.File($"{op}.out.bin"));
+        (double[] a, double[] b, byte[] output) = Inputs(op, 4);
         // The harness's (float) casts of its operands are not stores at /O2: VC6 keeps a double operand at full
         // precision in the register (the oracle shows (float)1e300 * 0 = 0, not NaN). For the float operators only the
         // operands that are already floats test float arithmetic, so the others are left out.
@@ -125,8 +123,7 @@ public sealed class X87OracleTests
     public void IntegerConversionsMatchTheOracle(string op)
     {
         Func<double, int> model = op == "fist" ? X87.Fist : X87.Ftol;
-        (double[] a, _) = Inputs(op);
-        byte[] output = File.ReadAllBytes(X87Oracle.File($"{op}.out.bin"));
+        (double[] a, _, byte[] output) = Inputs(op, 4);
         Check(op, a.Length, i =>
         {
             int expected = BinaryPrimitives.ReadInt32LittleEndian(output.AsSpan(i * 4));
@@ -135,10 +132,9 @@ public sealed class X87OracleTests
         });
     }
 
-    private static (double[] A, double[] B) Inputs(string op)
+    private static (double[] A, double[] B, byte[] Output) Inputs(string op, int resultBytes)
     {
-        byte[] input = File.ReadAllBytes(X87Oracle.File($"{op}.in.bin"));
-        int n = input.Length / 16;
+        (byte[] input, byte[] output, int n) = X87OracleTable.Read(X87Oracle.Root!, op, resultBytes, minimumCount: 1_000_000);
         var a = new double[n];
         var b = new double[n];
         for (int i = 0; i < n; i++)
@@ -147,7 +143,7 @@ public sealed class X87OracleTests
             b[i] = BinaryPrimitives.ReadDoubleLittleEndian(input.AsSpan(i * 16 + 8));
         }
 
-        return (a, b);
+        return (a, b, output);
     }
 
     private static bool Same(double expected, double actual) =>

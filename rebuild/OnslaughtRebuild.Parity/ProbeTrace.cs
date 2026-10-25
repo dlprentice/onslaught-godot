@@ -97,6 +97,25 @@ public sealed class ProbeTrace
     public IReadOnlyDictionary<string, byte[]>? At(long frame) =>
         _samples.TryGetValue(frame, out var probes) ? probes : null;
 
+    /// <summary>Admit the reference's required schedule and fields before comparing it; absent samples are not passes.</summary>
+    public void RequireCoverage(long first, long last, int step, params string[] names)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(first, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(last, first);
+        ArgumentOutOfRangeException.ThrowIfLessThan(step, 1);
+        if (names.Length == 0) throw new ArgumentException("At least one required probe is needed.", nameof(names));
+        foreach (string name in names)
+        {
+            if (!ProbeCatalog.IsKnown(name)) throw new ArgumentException($"Unknown required probe '{name}'.", nameof(names));
+            for (long frame = first; frame <= last; frame += step)
+            {
+                if (!TryGet(frame, name, out _))
+                    throw new InvalidDataException($"Reference lacks required {name} at Present {frame} ({first}..{last}, step {step}).");
+                if (last - frame < step) break;
+            }
+        }
+    }
+
     public void Add(long frame, string name, ReadOnlySpan<byte> bytes)
     {
         if (!ProbeCatalog.IsKnown(name))
@@ -170,6 +189,7 @@ public sealed class ProbeTrace
             }
         }
 
+        if (trace.SampleCount == 0) throw new FormatException("A probe trace must contain at least one sample.");
         return trace;
     }
 

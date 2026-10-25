@@ -241,6 +241,8 @@ public sealed class LevelSession
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Game.Loop.CarryFrameTimes(Game.Loop);
         next.Tape = Tape;
+        // The host's canvas belongs to the running route, not the world being replaced by Retry.
+        next.Draw = Draw;
         return next;
     }
 

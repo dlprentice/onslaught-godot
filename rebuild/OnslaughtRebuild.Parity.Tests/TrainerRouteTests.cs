@@ -43,6 +43,8 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
     internal static (long Matched, string? First, int Compared) CompareEveryPresent(LevelSession session, string probesFile, long end)
     {
         Dictionary<(long Present, string Name), string> port = ReadPortProbes(probesFile);
+        long requiredEnd = end == long.MaxValue ? port.Keys.Max(k => k.Present) : end;
+        ReferenceCoverage.Require(port, 3, requiredEnd, 1, "EVT", "EVN", "FT", "SC", "LVL", "RNG", "CRT", "POS", "LIFE");
 
         long matched = 0;
         string? first = null;
@@ -63,6 +65,7 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
             {
                 if (!port.TryGetValue((p, name), out string? theirs))
                 {
+                    first ??= $"Present {p} {name}: the port has no required field";
                     continue;
                 }
 
@@ -117,13 +120,10 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
             ["RNG"] = session.RandomStreamDeleted ? U32(0) + U32(0)
                 : U32(unchecked((uint)session.Context.Random.Value)) + U32(unchecked((uint)session.Context.Random.Seed)),
             ["CRT"] = U32(unchecked((uint)session.Context.Crt.Calls)) + U32(unchecked((uint)session.Context.Crt.HoldRand)),
+            ["POS"] = F32(0, 0, 0),
+            ["LIFE"] = F32(0, 0),
         };
-        if (session.PlayersDeleted)
-        {
-            ours["POS"] = F32(0, 0, 0);
-            ours["LIFE"] = F32(0, 0);
-        }
-        else if (session.Game.GetPlayer(0)?.BattleEngine is BattleEngine be)
+        if (!session.PlayersDeleted && session.Game.GetPlayer(0)?.BattleEngine is BattleEngine be)
         {
             ours["POS"] = F32(be.Pos.X, be.Pos.Y, be.Pos.Z);
             ours["LIFE"] = F32(be.Life, be.Energy);

@@ -5,6 +5,7 @@ using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Flow;
+using OnslaughtRebuild.Parity.Flow.Draw;
 using OnslaughtRebuild.Parity.Flow.Menus;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Physics;
@@ -225,17 +226,27 @@ public sealed class SoundProcessTests
         authored.BindSoundProcess(process);
         var owner = new ScriptMessage("owner", "text", 1, 0, null, null, 0);
         authored.StartLoad("authored.ogg"); authored.PlayLoaded(owner);
+        var frames = new List<CanvasFrame>();
+        session.Draw = new FrontEndDraw(new FrontEndTextures(GameData.Read))
+        {
+            Canvas = new RecordingCanvas(frames.Add),
+        };
         session.Game.SetQuit(QuitType.RestartLevel);
         for (int i = 0; !session.Ended && i < 10; i++) session.AdvanceToNextPresent();
         Assert.True(session.Ended); Assert.True(owner.FinishedPlaying);
         Assert.DoesNotContain(process.Effects.Events, e => e.Playing && ReferenceEquals(e.Owner, owner));
         long present = session.Clock.PresentCount; float lastTime = process.Effects.LastProcessTime;
         LevelSession next = session.Restart();
+        Assert.Same(session.Draw, next.Draw);
         Assert.Same(process, next.SoundProcess); Assert.Same(session.Context.SoundEffects, next.Context.SoundEffects);
         Assert.Same(session.Clock, next.Clock); Assert.True(next.Clock.PresentCount >= present);
         Assert.Equal(lastTime, process.Effects.LastProcessTime); // no fresh initialization/status at reload.
         Assert.Equal(1, process.Effects.GameSoundsMasterVolume);
         Assert.NotSame(voice, ScriptRuntime.Of(next.Context).MessageBox!.Voice);
+        frames.Clear();
+        next.AdvanceToNextPresent(); // the reload's 100% screen
+        next.AdvanceToNextPresent(); // the first world render after Retry
+        Assert.Contains(frames, frame => frame.Present == next.PresentCount);
     }
 
     [GameDataFact]

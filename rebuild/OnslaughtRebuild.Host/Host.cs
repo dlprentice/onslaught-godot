@@ -257,7 +257,6 @@ public partial class Host : Node
         }
     }
 
-    private float _lastRenderFrameTime = -1.0f;
     private float _cloudU;
     private float _cloudV;
     private float _waterAngle;
@@ -273,18 +272,19 @@ public partial class Host : Node
     /// <summary>
     /// CGame::Render's frame length (game.cpp:1669..1685: (time + fraction * CLOCK_TICK) / CLOCK_TICK, less the last; 1
     /// at the first render), CDXLandscape's cloud drift (DXLandscape.cpp:558..563) and CDXWater's angle2 (WATER_ADVANCE),
-    /// for each Present that draws the world. The loading screen's Present (3) draws no landscape.
+    /// for each Present that draws the world. Loading Presents draw no landscape.
     /// </summary>
     private void AccumulateCloudDrift(LevelSession session)
     {
-        if (session.PresentCount <= 3)
+        if (session.Context.RenderFrameNumber == 0)
         {
             return;
         }
 
-        float newTime = (session.Context.Events.Time + (session.Game.Loop.Fraction * 0.05f)) / 0.05f;
-        float length = _lastRenderFrameTime != -1.0f ? newTime - _lastRenderFrameTime : 1.0f;
-        _lastRenderFrameTime = newTime;
+        // StartRender already computed the compiled reciprocal expression, including its rounding and history.
+        // Recomputing it with division changes the phase; a loading Present has not run StartRender at all.
+        float length = session.Context.Particles?.RenderFrameLength
+            ?? throw new InvalidOperationException("a world render has no canonical particle frame length");
         _cloudU += length * 0.001f;
         if (_cloudU > 1.0f)
         {

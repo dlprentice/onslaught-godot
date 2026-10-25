@@ -134,6 +134,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             string[] f = line.Split(' ');
             if (f.Length >= 4 && f[0] == "P" && f[2] == "CRT")
             {
+                ReferenceCoverage.RequireValue("CRT", f[3], long.Parse(f[1], CultureInfo.InvariantCulture));
                 byte[] b = Convert.FromHexString(f[3]);
                 port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
             }
@@ -141,6 +142,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         session.Tape = Level100Tape();
+        ReferenceCoverage.RequireFrames(port.Keys, 3, PortCrtMatchedThrough);
         long last = port.Keys.Max();
         long matched = 0;
         string? first = null;
@@ -287,7 +289,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         "portrefs/l100-david-win1-port/port-probes-every1.txt")]
     public void Level100DavidsRecordingMatchesThePortEveryPresent()
     {
-        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port", 9000);
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-david-win1-loss-retry.tape", "portrefs/l100-david-win1-port", 9000, DavidTapeMatchedThrough);
         Assert.True(matched >= DavidTapeMatchedThrough, $"matched through Present {matched}, below {DavidTapeMatchedThrough}");
     }
 
@@ -299,7 +301,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         "portrefs/l100-pausequit-port/port-probes-every1.txt")]
     public void Level100PauseQuitMatchesThePortEveryPresent()
     {
-        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pausequit.tape", "portrefs/l100-pausequit-port", 4000);
+        long matched = PortTapeMatchedThrough("portrefs/tapes/level100-pausequit.tape", "portrefs/l100-pausequit-port", 4000, PauseQuitMatchedThrough);
         Assert.True(matched >= PauseQuitMatchedThrough, $"matched through Present {matched}, below {PauseQuitMatchedThrough}");
     }
 
@@ -351,7 +353,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         Assert.True(matched >= LoseRetryMatchedThrough, $"matched through Present {matched}, below {LoseRetryMatchedThrough}");
     }
 
-    private long PortTapeMatchedThrough(string tape, string dir, long last)
+    private long PortTapeMatchedThrough(string tape, string dir, long last, long? requiredThrough = null)
     {
         var port = new Dictionary<long, (uint Count, uint Hold)>();
         foreach (string line in System.IO.File.ReadLines(RetailGolden.File(dir + "/crt-per-present.txt")!))
@@ -359,6 +361,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             string[] f = line.Split(' ');
             if (f.Length >= 4 && f[0] == "P" && f[2] == "CRT")
             {
+                ReferenceCoverage.RequireValue("CRT", f[3], long.Parse(f[1], CultureInfo.InvariantCulture));
                 byte[] b = Convert.FromHexString(f[3]);
                 port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
             }
@@ -374,6 +377,9 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             }
         }
 
+        long floor = requiredThrough ?? last;
+        ReferenceCoverage.RequireFrames(port.Keys, 3, floor);
+        ReferenceCoverage.Require(probes, 3, floor, 1, "EVT", "FT", "RNG", "POS", "LIFE");
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         session.Tape = RetailTape.Load(RetailGolden.File(tape)!);
         static string Hex(byte[] b) => Convert.ToHexString(b).ToLowerInvariant();
@@ -433,6 +439,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             {
                 ["EVT"] = Hex(BitConverter.GetBytes(session.Context.Events.Time)),
                 ["FT"] = Hex(BitConverter.GetBytes(session.Game.Loop.FrameTime)),
+                ["POS"] = new string('0', 24),
+                ["LIFE"] = new string('0', 16),
             };
             if (session.Game.GetPlayer(0)?.BattleEngine is Unit be)
             {
@@ -442,8 +450,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
             string? bad = ours.Where(kv => probes.TryGetValue((p, kv.Key), out string? g) && g != kv.Value)
                 .Select(kv => $"{kv.Key} {probes[(p, kv.Key)]}/{kv.Value}").FirstOrDefault();
-            string ourRng = Hex(BitConverter.GetBytes(session.Context.Random.Value));
-            if (bad is null && probes.TryGetValue((p, "RNG"), out string? rng) && !rng.StartsWith(ourRng, StringComparison.Ordinal))
+            string ourRng = Hex([.. BitConverter.GetBytes(session.Context.Random.Value), .. BitConverter.GetBytes(session.Context.Random.Seed)]);
+            if (bad is null && probes.TryGetValue((p, "RNG"), out string? rng) && rng != ourRng)
             {
                 bad = $"RNG {rng}/{ourRng}";
             }
@@ -482,6 +490,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             }
         }
 
+        ReferenceCoverage.Require(golden, 50, VirtualDsFloor, 50, "EVT", "FT", "RNG", "SC", "LVL", "POS", "LIFE");
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         session.Tape = Level100Tape();
         long last = golden.Keys.Max(k => k.Present);
@@ -509,11 +518,13 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
             string ourEvt = Hex(BitConverter.GetBytes(session.Context.Events.Time));
             string ourFt = Hex(BitConverter.GetBytes(session.Game.Loop.FrameTime));
-            string ourRng = Hex(BitConverter.GetBytes(session.Context.Random.Value));
+            string ourRng = Hex([.. BitConverter.GetBytes(session.Context.Random.Value), .. BitConverter.GetBytes(session.Context.Random.Seed)]);
             var ours = new Dictionary<string, string>
             {
                 ["SC"] = Hex(BitConverter.GetBytes(session.Game.Score)),
                 ["LVL"] = Hex(BitConverter.GetBytes(session.Game.CurrentLevel)),
+                ["POS"] = "null",
+                ["LIFE"] = "null",
             };
             if (session.Game.GetPlayer(0)?.BattleEngine is OnslaughtRebuild.Parity.Things.Unit be)
             {
@@ -523,7 +534,7 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
 
             string? other = ours.Where(kv => golden.TryGetValue((p, kv.Key), out string? g) && g != kv.Value)
                 .Select(kv => $"{kv.Key} {golden[(p, kv.Key)]}/{kv.Value}").FirstOrDefault();
-            if (evt == ourEvt && golden[(p, "FT")] == ourFt && golden[(p, "RNG")].StartsWith(ourRng, StringComparison.Ordinal)
+            if (evt == ourEvt && golden[(p, "FT")] == ourFt && golden[(p, "RNG")] == ourRng
                 && other is null)
             {
                 matched = p;
@@ -548,6 +559,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
     [RetailGoldenFact(BeObjFile, Level100TapeFile)]
     public void Level100RunPresentByPresentMatchesRetailsClockAndRandomStream()
     {
+        var reference = TrainerRouteTests.ReadPortProbes(BeObjFile);
+        ReferenceCoverage.Require(reference, 3, BeObjLastPresent, 1, "EVT", "FT", "RNG");
         LevelSession session = LevelSession.Load(100, GameData.Read, LevelSession.VirtualVoiceFor(GameData.Read));
         session.Tape = Level100Tape();
         var ours = new Dictionary<long, (uint Evt, uint Ft, int Rng)>();

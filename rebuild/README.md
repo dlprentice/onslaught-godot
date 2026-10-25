@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte; the tutorial pilot's win route equals it through the level's end and outro.
-Last updated: 2026-10-24 (frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier, 2026-10-22, public: running the Host, the beta1 engine, the earlier rebuild's scripts marked reference; earlier entries keep their dates)
+Last updated: 2026-10-25 (Host foundation scope limits; frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier, 2026-10-22, public: running the Host, the beta1 engine, the earlier rebuild's scripts marked reference; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -110,7 +110,8 @@ npm run run:host                                            # builds the Host, t
 
 `run:host` opens an experimental preview with keyboard input. Its ordinary-player sound-event backend is not yet
 configured: a level can stop at an unsupported sound operation (the incoming-missile warning is one reproduced case).
-It is not yet a complete playable route or an audio acceptance result. Set `HOST_LIVE=1` for level 100
+The whole-game preview does not yet admit physical mouse input; its career and options writes stay in memory and
+do not survive closing the Host. It is not yet a complete playable route or an audio acceptance result. Set `HOST_LIVE=1` for level 100
 alone, or `HOST_LIVE=` (empty) to draw a single Present (`HOST_PRESENT=150`, optionally `HOST_CAPTURE=<file.png>`);
 `python3 rebuild/OnslaughtRebuild.Host/tools/side_by_side.py <capture> <retail capture> <out.png>` compares a capture
 with a retail one.

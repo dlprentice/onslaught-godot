@@ -42,6 +42,8 @@ public sealed class GoldOwnRouteTests(ITestOutputHelper output)
             }
         }
 
+        ReferenceCoverage.Require(port, 1, 12817, 1, "EVT", "EVN", "FT", "SC", "LVL", "RNG", "CRT", "POS", "LIFE");
+        Assert.Equal(12817, last);
         byte[] startOptions = File.ReadAllBytes(RetailGolden.File(Dir + "/start/defaultoptions.bea")!);
         (string, byte[]) Read(string path) =>
             string.Equals(path, OnslaughtRebuild.Parity.Career.DefaultOptions.FileName, StringComparison.OrdinalIgnoreCase)

@@ -134,6 +134,7 @@ public sealed class ClockTests
     public void Level100GoldenEventTimeFrameTimeAndLevelMatchEverySample()
     {
         ProbeTrace golden = ProbeTrace.Load(RetailData.File("golden/m100-or.retail.probes"));
+        golden.RequireCoverage(50, 10000, 50, "EVT", "FT", "LVL");
         // `-level 100` without -skipfmv: the intro FMV released the loading screen, so MainLoop follows PreRun directly
         // (C's per-Present run with these settings matches at all 3,400 Presents this way, base read at 3100).
         var sim = new ClockSimulation(level: 100, baseReadPresent: 3100, levelStartPresent: 3100,
@@ -184,6 +185,7 @@ public sealed class ClockTests
     private static void AssertEveryPresentMatches(string golden, ClockSimulation sim)
     {
         ProbeTrace reference = ProbeTrace.Load(RetailData.File(golden));
+        reference.RequireCoverage(1, 3400, 1, "EVT", "FT", "LVL");
         var ours = new ProbeTrace();
         while (sim.PresentCount < 3_400)
         {

@@ -80,6 +80,25 @@ public sealed class HarnessTests
     }
 
     [Fact]
+    public void EmptyTracesCannotBeAdmittedOrCompared()
+    {
+        Assert.Throws<FormatException>(() => ProbeTrace.Parse(""));
+        ProbeTrace valid = ProbeTrace.Parse("P 1 EVT 00000000\n");
+        Assert.Throws<InvalidDataException>(() => TraceComparison.Compare(new ProbeTrace(), valid));
+        Assert.Throws<InvalidDataException>(() => TraceComparison.Compare(valid, new ProbeTrace()));
+    }
+
+    [Theory]
+    [InlineData("P 50 EVT 00000000\nP 100 EVT 00000000\n", "FT", 50)]
+    [InlineData("P 50 EVT 00000000\nP 50 FT 00000000\n", "EVT", 100)]
+    public void ReferenceCoverageRequiresEveryScheduledField(string text, string missing, int present)
+    {
+        var error = Assert.Throws<InvalidDataException>(() => ProbeTrace.Parse(text)
+            .RequireCoverage(50, 100, 50, "EVT", "FT"));
+        Assert.Contains($"{missing} at Present {present}", error.Message);
+    }
+
+    [Fact]
     public void OneDifferentByteIsTheFirstDivergence()
     {
         ProbeTrace golden = ProbeTrace.Load(Fixture("synthetic.probes"));

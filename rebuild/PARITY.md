@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-25 (Host frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-25 (reference admission, Retry canvas and canonical Host phases; Host frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -656,6 +656,16 @@ native-port dumps, and three x87 oracle theories could not run because their ret
 the inspected locations. These are limitations, not passes; no skip was added by this change. The Host built with
 zero warnings/errors, and the documentation, public-payload and diff gates passed. The complete legacy clock and
 tape checks ran after their existing references were routed into the private test environment.
+
+Foundation admission and lifecycle (2026-10-25): `LevelSession.Restart` retains the route's canvas sink, so Retry
+continues recording its HUD text, messages and menus. The Host consumes the core's existing `RenderFrameLength`
+for cloud, water and surf phases; its former independent division differs from the compiled reciprocal on an actual
+level-100 render schedule (`RenderFrameLengthTests`). Reference gates require their stated Presents and fields,
+rather than accepting a surviving endpoint. Empty trace comparisons fail admission. The x87 oracle reader checks
+nonempty aligned records, the manifest's exact counts and SHA-256 hashes, and the milestone's minimum case count;
+absent tables still report skips. Authored admission negatives and an in-memory missing-probe copy of the retained
+retail reference exercise refusals without changing reference files. These are engine-free checks; this change adds
+no Godot picture, sound-device, ordinary-player or multiplayer acceptance.
 
 Measured (the HUD's text, 2026-10-22): the core's HUD render writes the text of `Render00485d50` (the weapon's name,
 fading in from a change and out after three seconds, and the warnings: two centred rows, each showing the first of its

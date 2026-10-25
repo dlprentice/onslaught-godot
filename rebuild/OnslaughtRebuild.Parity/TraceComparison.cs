@@ -42,10 +42,17 @@ public sealed class TraceComparison
     public long? FirstDivergenceFrame { get; }
 
     /// <summary>All probes exact at every reference sample, with no frame offset.</summary>
-    public bool IsOneToOne => FrameOffset == 0 && Probes.All(p => p.Exact);
+    public bool IsOneToOne => FrameOffset == 0 && Probes.Count != 0 && Probes.All(p => p.Exact);
 
     public static TraceComparison Compare(ProbeTrace reference, ProbeTrace candidate, long frameOffset = 0)
     {
+        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(candidate);
+        if (reference.SampleCount == 0 || candidate.SampleCount == 0)
+        {
+            throw new InvalidDataException("A trace comparison requires nonempty reference and candidate samples.");
+        }
+
         var results = new List<ProbeComparison>();
         long? overall = null;
         long[] frames = reference.Frames.ToArray();
