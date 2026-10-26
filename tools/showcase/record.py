@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Record the generated staged scene through godot-offscreen, with explicit machine locks and private output."""
 from pathlib import Path
-import argparse,fcntl,os,subprocess,json,hashlib,time
+import argparse,fcntl,os,subprocess,json,hashlib,time,re
 p=argparse.ArgumentParser(description=__doc__)
 for flag in ('project','game','output','gpu-lock','heavy-lock'):p.add_argument('--'+flag,type=Path,required=True)
 p.add_argument('--frames',type=int,default=600);p.add_argument('--timeout',type=int,default=180);a=p.parse_args()
@@ -24,4 +24,7 @@ with a.gpu_lock.open('a') as gpu,a.heavy_lock.open('a') as heavy:
  (out/'request.json').write_text(json.dumps({'command':cmd,'frames':a.frames,'size':[1280,720],'fps':30,'source':hashlib.sha256((project/'ShowcaseStage.cs').read_bytes()).hexdigest()},indent=2)+'\n')
  (out/'recorder-pid.txt').write_text(str(os.getpid()))
  with (out/'wrapper.log').open('w') as log:r=subprocess.run(cmd,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=a.timeout+90)
+ text=(out/'offscreen'/'run.log').read_text(errors='replace') if (out/'offscreen'/'run.log').exists() else ''
+ if r.returncode==0 and (re.search(r'^(ERROR|SCRIPT ERROR):',text,re.M) or f'STAGE_DONE frames={a.frames}' not in text):
+  raise SystemExit('Capture had an engine error or lacked its complete-frame marker; inspect retained logs.')
  raise SystemExit(r.returncode)

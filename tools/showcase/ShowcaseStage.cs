@@ -32,7 +32,7 @@ public partial class ShowcaseStage : Node
     private Task? _encoderLogPump;
     private int _frame, _frames;
     private string _output = "";
-    private bool _ready, _done;
+    private bool _ready, _done, _captureHooked;
     private float _height, _span;
     private readonly Color[] _colors = [new("df5355"), new("4d92e8"), new("59c78a"), new("efbd4c"), new("ad7ee6")];
 
@@ -45,6 +45,7 @@ public partial class ShowcaseStage : Node
     private void Build()
     {
         _frames = int.TryParse(System.Environment.GetEnvironmentVariable("STAGE_FRAMES"), out int n) ? n : 600;
+        if(_frames<1||_frames>900)throw new ArgumentOutOfRangeException("STAGE_FRAMES");
         _output = System.Environment.GetEnvironmentVariable("STAGE_OUTPUT") ?? throw new InvalidOperationException("STAGE_OUTPUT required");
         Directory.CreateDirectory(_output);
         Engine.MaxFps = 30;
@@ -79,12 +80,20 @@ public partial class ShowcaseStage : Node
         _span=spacing*5;
         prototype.GetParent().RemoveChild(prototype); prototype.Free();
         var nativeMuzzles=new List<Vector3>();
+        var rest=new OnslaughtRebuild.Parity.Mesh.MeshPose(engine.RenderThing!.Mesh.NumParts);
+        rest.Build(default,FMatrix.Identity,engine.RenderThing.Mesh.Parts[0],null,0);
         foreach(var emitter in engine.RenderThing!.Mesh.Emitters.Where(e=>e.Name.StartsWith("Gun",StringComparison.OrdinalIgnoreCase)))
         {
             if(emitter.MeshPart is null)continue;
             var transform=engine.MotionController?.GetPartTransform(emitter.MeshPart.PartNumber,1);
             if(transform is {} t)nativeMuzzles.Add(HostHelpers.ToGodot(t.Pos)+offset);
+            else {
+                FVector local=rest.Positions[emitter.MeshPart.PartNumber];
+                FVector world=engine.GetOrientation().Transform(local)+engine.Pos;
+                nativeMuzzles.Add(HostHelpers.ToGodot(world)+offset);
+            }
         }
+        GD.Print("STAGE_EMITTERS "+string.Join(",",engine.RenderThing.Mesh.Emitters.Select(e=>$"{e.Name}:{e.Number}:{e.MeshPart?.PartNumber}")));
         GD.Print($"STAGE_MODEL mesh={engine.RenderThing.Mesh.HeaderName} parts={engine.RenderThing.Mesh.NumParts} bounds={bounds} gun_anchors={nativeMuzzles.Count} native_forward={forward}");
         for(int i=0;i<5;i++)
         {
@@ -122,7 +131,7 @@ public partial class ShowcaseStage : Node
         foreach(var arg in new[]{"-hide_banner","-loglevel","warning","-y","-f","rawvideo","-pixel_format","rgba","-video_size","1280x720","-framerate","30","-i","pipe:0","-an","-c:v","libx264","-threads","2","-preset","medium","-crf","20","-pix_fmt","yuv420p",Path.Combine(_output,"silent.mp4")})psi.ArgumentList.Add(arg);
         _encoder=new Process { StartInfo=psi };_encoder.Start();File.WriteAllText(Path.Combine(_output,"encoder-pid.txt"),_encoder.Id.ToString());
         _encoderLog=File.Create(Path.Combine(_output,"encoder.log")); _encoderLogPump=_encoder.StandardError.BaseStream.CopyToAsync(_encoderLog);
-        UpdateShot(0); _ready=true;RenderingServer.FramePostDraw+=CaptureFrame;
+        UpdateShot(0); _ready=true;RenderingServer.FramePostDraw+=CaptureFrame;_captureHooked=true;
         GD.Print("STAGE_READY frames="+_frames);
     }
 
@@ -159,7 +168,7 @@ public partial class ShowcaseStage : Node
     private void UpdateShot(int frame)
     {
         float time=frame/30f,progress=time/20f;
-        _camera.Position=new(Mathf.Lerp(-_span*.17f,_span*.2f,progress),_height*1.5f,-_span*.95f);
+        _camera.Position=new(Mathf.Lerp(-_span*.17f,_span*.2f,progress),_height*1.5f,-_span*1.23f);
         _camera.LookAt(new(0,_height*.48f,0),Vector3.Up);
         int fx=0;
         for(int i=0;i<5;i++)
@@ -183,7 +192,7 @@ public partial class ShowcaseStage : Node
         if(!_ready||_done)return;
         if(_frame>=_frames)
         {
-            _done=true;RenderingServer.FramePostDraw-=CaptureFrame;
+            _done=true;DisconnectCapture();
             _encoder!.StandardInput.Close();if(!_encoder.WaitForExit(30000)||_encoder.ExitCode!=0)throw new InvalidOperationException("Encoder failed/stalled");
             _encoderLogPump?.Wait(5000);
             File.WriteAllText(Path.Combine(_output,"shot-events.json"),JsonSerializer.Serialize(_shots));
@@ -202,9 +211,14 @@ public partial class ShowcaseStage : Node
     {
         using var f=File.Create(file);using var b=new BinaryWriter(f);b.Write("RIFF"u8);b.Write(pcm.Length+36);b.Write("WAVEfmt "u8);b.Write(16);b.Write((short)1);b.Write((short)1);b.Write(44100);b.Write(88200);b.Write((short)2);b.Write((short)16);b.Write("data"u8);b.Write(pcm.Length);b.Write(pcm);
     }
+    private void DisconnectCapture()
+    {
+        if(!_captureHooked)return;
+        RenderingServer.FramePostDraw-=CaptureFrame;_captureHooked=false;
+    }
     public override void _ExitTree()
     {
-        RenderingServer.FramePostDraw-=CaptureFrame;
+        DisconnectCapture();
         _encoder?.StandardInput.Close();_encoder?.Dispose();_encoderLog?.Dispose();
         _materials.Clear();_actors.Clear();_flashes.Clear();_tracers.Clear();_textures=null;_meshView=null;_session=null;
         GC.Collect();GC.WaitForPendingFinalizers();GC.Collect();
