@@ -2,6 +2,8 @@
 // Source contract: CBattleEngine::NeedsRearm0040c5e0, Rearm0040ac50 and CRepairPadAI::CanService004d6e00,
 // onslaught-decomp BattleEngine.cpp and RepairPadAI.cpp. The loaded caller case uses installed L100 definitions;
 // direct shot-payment, pad-selection and rearm calls do not claim completion of the tutorial's player route.
+// The original NeedsRearm body (66 bytes, SHA256 9ec25db8a03b616394764394bb61676a0d4e6c5bbec4e9b1311fa11c63daf00e)
+// branches on x87 C0, so either NaN operand requests rearming; C# source-spelling '<' would lose that behavior.
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
@@ -47,15 +49,16 @@ public sealed class BattleEngineRearmTests
     }
 
     [Theory]
-    [InlineData(float.NaN, 1000f, false)]
-    [InlineData(1000f, float.NaN, false)]
+    [InlineData(float.NaN, 1000f, true)]
+    [InlineData(1000f, float.NaN, true)]
+    [InlineData(float.NaN, float.NaN, true)]
     [InlineData(float.NegativeInfinity, 1000f, true)]
     [InlineData(float.PositiveInfinity, 1000f, false)]
     [InlineData(1000f, float.PositiveInfinity, true)]
     [InlineData(1000f, float.NegativeInfinity, false)]
     [InlineData(-1f, 0f, true)]
     [InlineData(-0f, 0f, false)]
-    public void TheNativeStrictComparisonKeepsEqualityAndUnorderedSemantics(float value, float capacity, bool expected)
+    public void TheOriginalC0ComparisonAdmitsLessOrUnorderedButNotEquality(float value, float capacity, bool expected)
     {
         var be = Engine(); be.StoreValue[5] = value; be.Configuration!.StoreValue[5] = capacity;
         Assert.Equal(expected, be.NeedsRearm());

@@ -102,7 +102,8 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
     {
         for (int i = 0; i < Stores; ++i)
         {
-            if (!StoreHeat[i] && StoreValue[i] < Configuration!.StoreValue[i])
+            // 0040c602..0040c60a tests x87 C0 alone, so an unordered comparison also requests ammunition.
+            if (!StoreHeat[i] && !(StoreValue[i] >= Configuration!.StoreValue[i]))
             {
                 return true;
             }
