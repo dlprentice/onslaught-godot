@@ -97,6 +97,9 @@ public sealed class LiveSoundDevice(Func<SampleMetadata, SamplePcmData> pcm,
         public SoundBufferObservation GetStatus()
         {
             Check();
+            // Godot's streamed player reports Playing=false while paused. That reversible state is
+            // not natural completion: a status observation must leave resume/cursor ownership intact.
+            if (Player.Paused) return new(Token, 0u);
             bool playing = !_stopped && Player.Playing;
             if (!playing && !_stopped) { _cursor = 0; _stopped = true; }
             return new(Token, playing && !Player.Paused ? (_looping ? 5u : 1u) : 0u);

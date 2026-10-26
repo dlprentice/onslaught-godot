@@ -25,7 +25,9 @@ public sealed class LiveAudioTests
     private static CareerOptions Options(int rate = 1) => CareerOptions.Read(new byte[CareerOptions.Size]) with { SoundRate = rate, Sound3DMethod = -1 };
     private sealed class Player : ILiveAudioPlayer
     {
-        public bool Playing { get; set; }
+        private bool _active;
+        // The pinned Godot streamed player does not report Playing while StreamPaused is true.
+        public bool Playing { get => _active && !Paused; set => _active = value; }
         public float PlaybackPosition { get; set; }
         public bool Paused { get; set; }
         public bool FailPlay, ThrowStop, Disposed, Looping;
@@ -172,7 +174,7 @@ public sealed class LiveAudioTests
     public void PausedActualPlayerIsNotMistakenForPlayingAndFocusResumesBeforeCoreObservations()
     {
         using var f = new Fixture(); var buffer = f.Duplicate(); buffer.Play(true);
-        f.Device.SetSuspended(true); Assert.True(f.Players[0].Playing); Assert.Equal(0u, buffer.GetStatus().Flags);
+        f.Device.SetSuspended(true); Assert.False(f.Players[0].Playing); Assert.Equal(0u, buffer.GetStatus().Flags);
         f.Device.SetSuspended(false); Assert.Equal(5u, buffer.GetStatus().Flags);
     }
 
