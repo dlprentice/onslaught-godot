@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from onslaught-decomp src/BattleEngine.h and src/BattleEngine.cpp (CBattleEngine::Init 00404dd0, UpdateConfiguration
-// 0040c650, NeedsRearm 0040c5e0, CalcUnitOverCrossHair 0040acc0, HandleAutoAim 0040b6d0, HandleEvent), in Stuart's release.
+// 0040c650, NeedsRearm 0040c5e0, Hit 00407350, CalcUnitOverCrossHair 0040acc0, HandleAutoAim 0040b6d0, HandleEvent), in Stuart's release.
 
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Maths;
+using OnslaughtRebuild.Parity.Numerics;
 using OnslaughtRebuild.Parity.Physics;
 using OnslaughtRebuild.Parity.World;
 
@@ -55,7 +56,28 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
         base.Hit(other, report);
         if (report.Stuck)
         {
-            throw new NotSupportedException("CBattleEngine::Hit: the stuck return to a safe position (other things' GetVelocity) is not ported");
+            if (other.IsA(ThingType.CanBeWalkedOn)) DeclareOnObject(other);
+
+            FVector safe = SafePos[CurrentSafeTry];
+            FVector first = other.GetVelocity();
+            var twice = new FVector((float)X87.Add(first.X, first.X), (float)X87.Add(first.Y, first.Y),
+                (float)X87.Add(first.Z, first.Z));
+            // 00407424..00407439 folds division by CLOCK_TICK into a multiply by20, with no
+            // intermediate elapsed-time store. The second virtual velocity read follows that scale store.
+            float now = Context.Events.Time;
+            float recorded = SafePosTime[CurrentSafeTry];
+            // FSUB preserves a NaN operand's sign; X87.Sub's Add(a,-b) finite formulation would flip it.
+            double elapsed = float.IsNaN(recorded) ? recorded : X87.Sub(now, recorded);
+            float scale = (float)X87.Mul(elapsed, 20.0f);
+            FVector second = other.GetVelocity();
+            // 00407440..004074a1 retains X's product and sum until adding the safe position;
+            // Y/Z spill both the product and the velocity sum first.
+            double x = X87.Add(X87.Mul(scale, second.X), twice.X);
+            float y = (float)X87.Add((float)X87.Mul(scale, second.Y), twice.Y);
+            float z = (float)X87.Add((float)X87.Mul(scale, second.Z), twice.Z);
+            MoveTo(new FVector((float)X87.Add(safe.X, x), (float)X87.Add(safe.Y, y), (float)X87.Add(safe.Z, z)));
+            ++CurrentSafeTry;
+            if (CurrentSafeTry >= SafePos.Length - 1) --CurrentSafeTry;
         }
     }
 
