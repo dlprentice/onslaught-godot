@@ -11,7 +11,8 @@ events=json.loads((a.run/'shot-events.json').read_text());frames=round(a.frames/
 for e in events:
  start=round(e['frame']/30*rate);count=min(len(sample),frames-start)
  if count<=0:continue
- theta=(e['pan']+1)*math.pi/4
+ # Front-facing camera looks toward world +Z, so screen-right is world -X.
+ theta=(1-e['pan'])*math.pi/4
  out[start:start+count,0]+=sample[:count]*math.cos(theta)
  out[start:start+count,1]+=sample[:count]*math.sin(theta)
 peak=float(np.max(np.abs(out)));assert peak>0

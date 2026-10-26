@@ -5,11 +5,12 @@ from pathlib import Path
 import argparse,fcntl,os,subprocess,json,hashlib,time,re
 p=argparse.ArgumentParser(description=__doc__)
 for flag in ('project','game','output','gpu-lock','heavy-lock'):p.add_argument('--'+flag,type=Path,required=True)
-p.add_argument('--frames',type=int,default=600);p.add_argument('--timeout',type=int,default=180);a=p.parse_args()
+p.add_argument('--start-frame',type=int,default=0);p.add_argument('--frames',type=int,default=600);p.add_argument('--timeout',type=int,default=180);a=p.parse_args()
+if not 0<=a.start_frame<=600:raise SystemExit('Start frame must be 0..600.')
 if not 1<=a.frames<=900:raise SystemExit('Frame count must be 1..900.')
 if a.output.exists() and any(a.output.iterdir()):raise SystemExit('Choose an empty capture output; existing evidence is not overwritten.')
 a.output.mkdir(parents=True,exist_ok=True);out=a.output.resolve();project=a.project.resolve()
-env=dict(os.environ,STAGE_OUTPUT=str(out),STAGE_FRAMES=str(a.frames),ONSLAUGHT_GAME_DIR=str(a.game.resolve()),
+env=dict(os.environ,STAGE_OUTPUT=str(out),STAGE_FRAMES=str(a.frames),STAGE_START_FRAME=str(a.start_frame),ONSLAUGHT_GAME_DIR=str(a.game.resolve()),
  GODOT_GPU_LOCK=str(out/'wrapper-internal.lock'),OFFSCREEN_MEMORY_MAX='6G',DOTNET_GENERATE_ASPNET_CERTIFICATE='false',DOTNET_CLI_TELEMETRY_OPTOUT='1')
 # Canonical GPU then heavy lock prevents cross-lane lock inversion. The wrapper's extra local lock only avoids
 # recursively acquiring that same canonical GPU lock; this parent keeps the canonical descriptors alive throughout.

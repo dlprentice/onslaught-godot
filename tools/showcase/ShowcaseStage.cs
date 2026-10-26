@@ -23,6 +23,7 @@ public partial class ShowcaseStage : Node
     private readonly List<MeshInstance3D> _flashes = [];
     private readonly List<MeshInstance3D> _tracers = [];
     private readonly List<object> _shots = [];
+    private readonly HashSet<(int Frame,int Actor)> _shotKeys = [];
     private readonly List<ShaderMaterial> _materials = [];
     private MeshView? _meshView;
     private TextureLibrary? _textures;
@@ -30,7 +31,8 @@ public partial class ShowcaseStage : Node
     private Process? _encoder;
     private FileStream? _encoderLog;
     private Task? _encoderLogPump;
-    private int _frame, _frames;
+    private int _frame, _frames, _startFrame;
+    private Vector3 _nativeForward;
     private string _output = "";
     private bool _ready, _done, _captureHooked;
     private float _height, _span;
@@ -48,6 +50,7 @@ public partial class ShowcaseStage : Node
         if(_frames<1||_frames>900)throw new ArgumentOutOfRangeException("STAGE_FRAMES");
         _output = System.Environment.GetEnvironmentVariable("STAGE_OUTPUT") ?? throw new InvalidOperationException("STAGE_OUTPUT required");
         Directory.CreateDirectory(_output);
+        _startFrame=int.TryParse(System.Environment.GetEnvironmentVariable("STAGE_START_FRAME"),out int first)?first:0;
         Engine.MaxFps = 30;
         _view = new SubViewport { Name="Capture1280x720", Size=new(1280,720), OwnWorld3D=true,
             RenderTargetUpdateMode=SubViewport.UpdateMode.Always, Msaa3D=Viewport.Msaa.Msaa4X };
@@ -75,8 +78,9 @@ public partial class ShowcaseStage : Node
         _height=bounds.Size.Y; if(_height<=0)throw new InvalidDataException("Empty BattleEngine bounds");
         Vector3 offset=new(-bounds.GetCenter().X,-bounds.Position.Y,-bounds.GetCenter().Z);
         Vector3 forward=HostHelpers.ToGodot(engine.GetOrientation().Transform(new FVector(0,1,0))).Normalized();
+        _nativeForward=forward;
         float yaw=Mathf.Atan2(forward.X,-forward.Z);
-        float spacing=Mathf.Max(bounds.Size.X,bounds.Size.Z)*1.35f;
+        float spacing=Mathf.Max(bounds.Size.X,bounds.Size.Z)*1.04f;
         _span=spacing*5;
         prototype.GetParent().RemoveChild(prototype); prototype.Free();
         var nativeMuzzles=new List<Vector3>();
@@ -101,7 +105,11 @@ public partial class ShowcaseStage : Node
             _world.AddChild(carrier);
             Node3D model=_meshView.Build(engine,1)!; model.Position+=offset; carrier.AddChild(model);
             Tint(model,_colors[i]); _actors.Add(carrier);
-            Vector3[] muzzles=nativeMuzzles.Count>0?nativeMuzzles.Take(2).ToArray():[new(-bounds.Size.X*.22f,_height*.67f,-bounds.Size.Z*.43f),new(bounds.Size.X*.22f,_height*.67f,-bounds.Size.Z*.43f)];
+            // Exterior models may have no named gun emitter. These fallback points are AUTHORED STAGING
+            // APPROXIMATIONS in the normalized actor frame, not native GetLaunchPosition/cache evidence.
+            Vector3[] muzzles=nativeMuzzles.Count>0?nativeMuzzles.Take(2).ToArray():[
+                carrier.Basis.Inverse()*new Vector3(-bounds.Size.X*.22f,_height*.60f,-bounds.Size.Z*.20f),
+                carrier.Basis.Inverse()*new Vector3(bounds.Size.X*.22f,_height*.60f,-bounds.Size.Z*.20f)];
             _muzzleLocal.Add(muzzles);
             for(int j=0;j<muzzles.Length;j++)
             {
@@ -111,11 +119,11 @@ public partial class ShowcaseStage : Node
                     MaterialOverride=Emissive(new Color(1,.7f,.18f)), Visible=false }; _world.AddChild(tracer);_tracers.Add(tracer);
             }
         }
-        var floor=new MeshInstance3D { Mesh=new BoxMesh { Size=new(_span*1.7f,.15f,_span*1.4f) }, Position=new(0,-.1f,-_span*.1f),
+        var floor=new MeshInstance3D { Mesh=new BoxMesh { Size=new(_span*2.2f,.15f,_span*4f) }, Position=new(0,-.1f,0),
             MaterialOverride=new StandardMaterial3D { AlbedoColor=new Color(.105f,.13f,.17f), Roughness=.87f } }; _world.AddChild(floor);
         for(int i=-5;i<=5;i++)
         {
-            var line=new MeshInstance3D { Mesh=new BoxMesh { Size=new(.025f,.004f,_span*1.4f) }, Position=new(i*spacing,-.019f,-_span*.1f), MaterialOverride=Emissive(new Color(.16f,.23f,.31f)) };_world.AddChild(line);
+            var line=new MeshInstance3D { Mesh=new BoxMesh { Size=new(.025f,.004f,_span*4f) }, Position=new(i*spacing,-.019f,0), MaterialOverride=Emissive(new Color(.16f,.23f,.31f)) };_world.AddChild(line);
         }
         _camera=new Camera3D { Current=true,Near=.05f,Far=10000,Fov=48,KeepAspect=Camera3D.KeepAspectEnum.Width };_world.AddChild(_camera);
         var overlay=new CanvasLayer(); _view.AddChild(overlay);
@@ -131,7 +139,12 @@ public partial class ShowcaseStage : Node
         foreach(var arg in new[]{"-hide_banner","-loglevel","warning","-y","-f","rawvideo","-pixel_format","rgba","-video_size","1280x720","-framerate","30","-i","pipe:0","-an","-c:v","libx264","-threads","2","-preset","medium","-crf","20","-pix_fmt","yuv420p",Path.Combine(_output,"silent.mp4")})psi.ArgumentList.Add(arg);
         _encoder=new Process { StartInfo=psi };_encoder.Start();File.WriteAllText(Path.Combine(_output,"encoder-pid.txt"),_encoder.Id.ToString());
         _encoderLog=File.Create(Path.Combine(_output,"encoder.log")); _encoderLogPump=_encoder.StandardError.BaseStream.CopyToAsync(_encoderLog);
-        UpdateShot(0); _ready=true;RenderingServer.FramePostDraw+=CaptureFrame;_captureHooked=true;
+        File.WriteAllText(Path.Combine(_output,"stage-facts.json"),JsonSerializer.Serialize(new {
+            presentation="Five visual copies staged in Godot; not five simulated/network players or native gameplay",
+            muzzle_policy=nativeMuzzles.Count>0?"Copied named exterior mesh anchors":"Authored normalized-frame muzzle approximations; exterior mesh has no named Gun emitters; no native launch/cache proof",
+            mesh=engine.RenderThing.Mesh.HeaderName,colors=_colors.Select(c=>c.ToHtml()).ToArray(),frames=_frames,start_frame=_startFrame,fps=30,width=1280,height=720,
+            sound="Real locally decoded Vulcan sample; authored stereo/frame mix, no microphone or device capture" }));
+        UpdateShot(_startFrame); _ready=true;RenderingServer.FramePostDraw+=CaptureFrame;_captureHooked=true;
         GD.Print("STAGE_READY frames="+_frames);
     }
 
@@ -168,22 +181,22 @@ public partial class ShowcaseStage : Node
     private void UpdateShot(int frame)
     {
         float time=frame/30f,progress=time/20f;
-        _camera.Position=new(Mathf.Lerp(-_span*.17f,_span*.2f,progress),_height*1.5f,-_span*1.23f);
-        _camera.LookAt(new(0,_height*.48f,0),Vector3.Up);
+        _camera.Position=new(Mathf.Lerp(-_span*.07f,_span*.07f,progress),_span*.68f,-_span*1.02f);
+        _camera.LookAt(new(0,_height*1.1f,0),Vector3.Up);
         int fx=0;
         for(int i=0;i<5;i++)
         {
             bool firing=Firing(i,frame),shot=firing&&(frame+i)%4==0;
             for(int j=0;j<_muzzleLocal[i].Length;j++,fx++)
             {
-                Vector3 muzzle=_actors[i].ToGlobal(_muzzleLocal[i][j]);Vector3 forward=_actors[i].GlobalBasis*Vector3.Forward;
+                Vector3 muzzle=_actors[i].ToGlobal(_muzzleLocal[i][j]);Vector3 forward=_actors[i].GlobalBasis*_nativeForward;
                 _flashes[fx].GlobalPosition=muzzle;_flashes[fx].Visible=firing&&((frame+i+j)%4)<2;
                 _flashes[fx].Scale=Vector3.One*(1+((frame*17+i*13+j*3)%7)*.06f);
                 _tracers[fx].Visible=firing;
                 Vector3 start=muzzle+forward*(_height*(.15f+((frame*5+i*9+j*2)%19)*.22f));
                 _tracers[fx].GlobalPosition=start;
                 _tracers[fx].Quaternion=new Quaternion(Vector3.Up,forward);
-                if(shot&&j==0)_shots.Add(new { frame,actor=i,pan=(i-2)*.32f,muzzle=new[]{muzzle.X,muzzle.Y,muzzle.Z} });
+                if(shot&&j==0&&_shotKeys.Add((frame,i)))_shots.Add(new { frame=frame-_startFrame,source_frame=frame,actor=i,pan=(i-2)*.32f,muzzle=new[]{muzzle.X,muzzle.Y,muzzle.Z} });
             }
         }
     }
@@ -198,7 +211,7 @@ public partial class ShowcaseStage : Node
             File.WriteAllText(Path.Combine(_output,"shot-events.json"),JsonSerializer.Serialize(_shots));
             GD.Print("STAGE_DONE frames="+_frame);GetTree().Quit();return;
         }
-        UpdateShot(_frame);
+        UpdateShot(_frame+_startFrame);
     }
     private void CaptureFrame()
     {
