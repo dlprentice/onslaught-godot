@@ -37,6 +37,8 @@ def method(source, signature):
 def actual_callers(source):
     parts = [method(source, name) for name in ("private void LiveFocusEntered()", "private void LiveFocusExited()",
              "private void FailLive(Exception error)", "private void DisposeLiveAudio()", "private void AdvanceLiveCore()")]
+    if "private void CancelLiveAudioStartup()" in source:
+        parts.append(method(source, "private void CancelLiveAudioStartup()"))
     for name in ("LiveTerminal", "CanAdvanceLive"):
         found = re.findall(r"private bool " + name + r" => [^;]+;", source)
         if len(found) > 1:
@@ -46,7 +48,10 @@ def actual_callers(source):
     gate = re.search(r"if \((CanAdvanceLive|_liveStop is null && \(_liveReplay \|\| _liveFocused\))\)", process)
     if not gate:
         raise ValueError("actual ProcessLive admission changed")
-    return "\n".join(parts) + "\n public bool ActualProcessAdmission => " + gate[1] + ";\n"
+    # Execute the actual pending-startup and null-session branch, replacing only the already-admitted
+    # simulation/presentation tail with a counted boundary. The acknowledgement frame must never reach it.
+    prefix = process[:gate.start()].replace("private void ProcessLive(double delta)", "public void StartupProcess(double delta)", 1)
+    return "\n".join(parts) + "\n public bool ActualProcessAdmission => " + gate[1] + ";\n" + prefix + "CoreTailCalls++;\n}\n"
 
 
 HARNESS = r'''
@@ -69,6 +74,15 @@ sealed partial class HostCaller {
  private LiveSoundDevice? _liveSoundDevice; private Sources? _liveSoundPlayers;
  private StubInput? _liveInput = new(); private LevelSession? _liveSession = new();
  private LiveSoundSources? _liveSoundSources;
+ private LiveAudioOutputStartup? _liveAudioStartup;
+ private readonly TreeStub _tree=new();
+ sealed class TreeStub { public int QuitCode=-1; public void Quit(int code){QuitCode=code;} }
+ private TreeStub GetTree()=>_tree;
+ public int CoreTailCalls;
+ public int QuitCode=>_tree.QuitCode;
+ public void BeginStartup(LiveAudioOutputStartup startup){_liveAudioStartup=startup;_liveSession=null;}
+ public void InstallSession()=>_liveSession=new();
+ public void FailNow()=>FailLive(new InvalidOperationException("authored startup failure"));
  public int Notices,MouseReleases,Clouds;
  public HostCaller(LiveSoundDevice device,Sources sources){_liveSoundDevice=device;_liveSoundPlayers=sources;}
  private void UpdateLiveNotice(){Notices++;} private void ReleaseLiveMouse(){MouseReleases++;}
@@ -124,6 +138,33 @@ static class Program {
    else {Must(escaped&&buffers==2&&!f.Host.Failed,"frozen0e must reproduce escaped signal with owned sources alive");if(entering){Must(allowed&&focused,"0e refocus publishes before failed device transition");f.Process.Effects.UpdateStatus();Must(f.Owners.Any(o=>o.FinishedPlaying),"0e paused status creates false owner completion");}}
    rows.Add(new{scenario=entering?"refocus-fault":"unfocus-fault",throw_index=index,closed,escaped,buffers,focused,allowed,source_ledger_preserved=preserved,callbacks_after_poll=f.Owners.Count(o=>o.FinishedPlaying),releases=f.Sources.All.Select(p=>new{p.Stops,p.Disposals}).ToArray()});
   }
+  if(fixedExpected){
+   using(var f=new Fixture()){
+    string selected="Default";int starts=0,requests=0;
+    var startup=new LiveAudioOutputStartup("owned",()=>"PulseAudio",()=>["Default","owned"],()=>selected,_=>requests++,()=>0,()=>{starts++;f.Host.InstallSession();});
+    f.Host.BeginStartup(startup);f.Host.StartupProcess(.1);Must(starts==0&&f.Host.CoreTailCalls==0,"pending actual caller cannot reach core tail");
+    selected="owned";f.Host.StartupProcess(.1);Must(starts==1&&requests==1&&f.Host.CoreTailCalls==0,"acknowledgement frame discards delta");
+    f.Host.StartupProcess(.1);Must(starts==1&&f.Host.CoreTailCalls==1,"next admitted frame reaches core tail once");
+    rows.Add(new{scenario="asynchronous-startup-actual-caller",pass=true});
+   }
+   foreach(double delta in new[]{-.1,double.NaN,double.PositiveInfinity,double.NegativeInfinity})using(var f=new Fixture()){
+    int starts=0;var startup=new LiveAudioOutputStartup("owned",()=>"PulseAudio",()=>["owned"],()=>"owned",_=>{},()=>0,()=>starts++);
+    f.Host.BeginStartup(startup);f.Host.StartupProcess(delta);f.Host.StartupProcess(0);
+    Must(starts==0&&f.Host.CoreTailCalls==0&&f.Host.Failed&&f.Host.QuitCode==1&&!startup.Pending,"invalid startup delta cancels and quits without core admission");
+    rows.Add(new{scenario="invalid-startup-delta-actual-caller",kind=double.IsNaN(delta)?"NaN":double.IsPositiveInfinity(delta)?"+Infinity":double.IsNegativeInfinity(delta)?"-Infinity":"negative",pass=true});
+   }
+   using(var f=new Fixture()){
+    ulong now=0;int starts=0;var startup=new LiveAudioOutputStartup("owned",()=>"PulseAudio",()=>["owned"],()=>"Default",_=>{},()=>now,()=>starts++);
+    f.Host.BeginStartup(startup);now=5000;f.Host.StartupProcess(0);Must(starts==0&&f.Host.CoreTailCalls==0&&f.Host.Failed&&f.Host.QuitCode==1&&!startup.Pending,"timeout actual caller cancels and exits");
+    rows.Add(new{scenario="startup-timeout-actual-caller",pass=true});
+   }
+   using(var f=new Fixture()){
+    int starts=0;var startup=new LiveAudioOutputStartup("owned",()=>"PulseAudio",()=>["owned"],()=>"owned",_=>{},()=>0,()=>starts++);
+    f.Host.BeginStartup(startup);f.Host.FailNow();f.Host.FailNow();f.Host.StartupProcess(0);
+    Must(starts==0&&f.Host.CoreTailCalls==0&&!startup.Pending&&f.Host.Failed,"actual failure callback cancels pending continuation permanently");
+    rows.Add(new{scenario="startup-failure-cancellation-actual-caller",pass=true});
+   }
+  }
   Console.WriteLine(JsonSerializer.Serialize(new{expected=fixedExpected?"fixed":"blocked0e",cases=rows,actual_host_callers=true,actual_production_device=true,actual_shared_owner=true,player_boundary="authored synchronous Paused setter; no Godot/audio/runtime"}));return 0;
  }
 }
@@ -150,7 +191,7 @@ def run(root, output):
         directory.mkdir()
         (directory / "ActualFocus.cs").write_text("using OnslaughtRebuild.Host; using LevelSession=Caller.StubSession; namespace Caller; sealed partial class HostCaller {\n" + actual_callers(text) + "\n}")
         (directory / "Program.cs").write_text(HARNESS)
-        includes = "".join(f'<Compile Include="{root / ("rebuild/OnslaughtRebuild.Host/" + name)}" Link="{name}"/>' for name in ("LiveSoundDevice.cs", "LiveSoundSources.cs"))
+        includes = "".join(f'<Compile Include="{root / ("rebuild/OnslaughtRebuild.Host/" + name)}" Link="{name}"/>' for name in ("LiveSoundDevice.cs", "LiveSoundSources.cs", "LiveAudioOutputStartup.cs"))
         (directory / "Caller.csproj").write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><UseSharedCompilation>false</UseSharedCompilation></PropertyGroup><ItemGroup><Reference Include="OnslaughtRebuild.Parity"><HintPath>' + str(reference) + '</HintPath></Reference>' + includes + '</ItemGroup></Project>')
         command = ["dotnet", "build", str(directory / "Caller.csproj"), "-p:UseSharedCompilation=false", "-p:NuGetAudit=false", "-p:RestoreSources="]
         p = subprocess.run(command, capture_output=True, text=True, env=env, timeout=120)
