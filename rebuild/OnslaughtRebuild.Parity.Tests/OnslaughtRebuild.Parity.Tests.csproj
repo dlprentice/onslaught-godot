@@ -27,6 +27,9 @@
     <Content Include="Fixtures\*" CopyToOutputDirectory="PreserveNewest" />
     <!-- Pure host profile admission: the route tests exercise the same loader used by the Host, without Godot. -->
     <Compile Include="..\OnslaughtRebuild.Host\ReplaySoundProfile.cs" Link="Host\ReplaySoundProfile.cs" />
+    <Compile Include="..\OnslaughtRebuild.Host\LiveSoundSources.cs" Link="Host\LiveSoundSources.cs" />
+    <Compile Include="..\OnslaughtRebuild.Host\LiveSoundDevice.cs" Link="Host\LiveSoundDevice.cs" />
+    <Compile Include="..\OnslaughtRebuild.Host\PcmMessageVoice.cs" Link="Host\PcmMessageVoice.cs" />
   </ItemGroup>
 
 </Project>

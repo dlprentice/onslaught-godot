@@ -361,10 +361,13 @@ public sealed class LevelSession
     public static LevelSession Load(int level, Func<string, (string Name, byte[] Bytes)> read,
         Func<Clock.PlatformClock, IMessageVoice>? voice = null,
         Func<uint, Data.ChunkReader, bool>? otherChunk = null, LevelHost? host = null,
-        VirtualSoundProcessOptions? soundOptions = null)
+        VirtualSoundProcessOptions? soundOptions = null,
+        Func<OnslaughtRebuild.Parity.Career.CareerOptions?, SoundDeviceProcessOptions>? soundDeviceOptions = null)
     {
-        if (host is not null && soundOptions is not null)
+        if (host is not null && (soundOptions is not null || soundDeviceOptions is not null))
             throw new ArgumentException("A hosted level inherits its process sound profile.", nameof(soundOptions));
+        if (soundOptions is not null && soundDeviceOptions is not null)
+            throw new ArgumentException("Choose one process sound device.", nameof(soundDeviceOptions));
         (string pname, byte[] pbytes) = read(@"data\default physics.dat");
         PhysicsRegistry physics = PhysicsRegistry.Build(PhysicsScript.Read(MemBuffer.FromFile(pname, pbytes)));
         (string bname, byte[] bbytes) = read(@"data\battle engine configurations.dat");
@@ -460,7 +463,11 @@ public sealed class LevelSession
         scripts.Text = text;
         // One manager per process. The explicit backend profile is configured only after device Present1 below.
         context.SoundEffects = host?.SoundProcess?.Effects ?? host?.Sounds ?? SoundEffects.Load(read(SoundEffects.FileName).Bytes);
-        SoundProcess? soundProcess = host?.SoundProcess ?? (soundOptions is null ? null : new(context.SoundEffects, clock, soundOptions));
+        // The main-thread host receives the options this boot actually loaded, rather than reading them twice or
+        // pretending a standalone -level run came through the front end. Construction still reads no clock/RNG.
+        SoundProcess? soundProcess = host?.SoundProcess ?? (soundDeviceOptions is not null
+            ? new(context.SoundEffects, clock, soundDeviceOptions(bootOptions))
+            : soundOptions is null ? null : new(context.SoundEffects, clock, soundOptions));
         if (host?.Sounds is not null && !ReferenceEquals(host.Sounds, context.SoundEffects))
             throw new ArgumentException("The host sound owner and configured process disagree.", nameof(host));
         IMessageVoice messageVoice = voice?.Invoke(clock) ?? (soundProcess is null ? new UnmodelledVoice() : new VirtualVoice(clock, read));

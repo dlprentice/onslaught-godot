@@ -41,6 +41,10 @@ public partial class Host
     private bool _liveDisposed;
     private bool _liveFinished;
     private bool _liveFailure;
+    private bool _liveAudioEnabled;
+    private LiveSoundSources? _liveSoundSources;
+    private LiveSoundDevice? _liveSoundDevice;
+    private GodotSoundPlayers? _liveSoundPlayers;
     private string? _liveStop;
     private long? _liveEndPresent;
     private double _liveAccumulator;
@@ -83,9 +87,29 @@ public partial class Host
         _liveFiles = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
         _liveTextures = new TextureLibrary(_liveFiles.Read);
         var surf = new SurfView();
-        // Virtual voice preserves the measured message/mission timing. This slice emits no audio; the UI says so.
-        _liveSession = LevelSession.Load(100, _liveFiles.Read, LevelSession.VirtualVoiceFor(_liveFiles.Read),
-            (tag, c) => _liveTextures.ReadChunk(tag, c) || surf.ReadChunk(tag, c));
+        _liveAudioEnabled = System.Environment.GetEnvironmentVariable("HOST_AUDIO") == "1";
+        if (_liveAudioEnabled)
+        {
+            if (_liveReplay) throw new ArgumentException("HOST_AUDIO=1 is ordinary live playback; measured tapes keep their virtual device.");
+            string manifest = System.Environment.GetEnvironmentVariable("ONSLAUGHT_VOICE_PCM")
+                ?? throw new ArgumentException("HOST_AUDIO=1 requires ONSLAUGHT_VOICE_PCM (the prepared voice manifest).");
+            var voices = new VoicePcmLibrary(manifest, _liveFiles.Read);
+            _liveSoundPlayers = new GodotSoundPlayers(this, System.Environment.GetEnvironmentVariable("HOST_AUDIO_OUTPUT_DEVICE"));
+            _liveSoundDevice = new LiveSoundDevice(sample => _liveSoundSources!.Pcm(sample), _liveSoundPlayers.Create);
+            _liveSession = LevelSession.Load(100, _liveFiles.Read, _ => new PcmMessageVoice(voices, () => _liveSoundSources!),
+                (tag, c) => _liveTextures.ReadChunk(tag, c) || surf.ReadChunk(tag, c),
+                soundDeviceOptions: options =>
+                {
+                    _liveSoundSources = new LiveSoundSources(_liveFiles.Read(@"data\sounds\sounds_english_pc.xap").Bytes, options);
+                    return _liveSoundSources.Options(_liveSoundDevice);
+                });
+        }
+        else
+        {
+            // The existing silent reference viewer keeps its virtual voice/clock unchanged.
+            _liveSession = LevelSession.Load(100, _liveFiles.Read, LevelSession.VirtualVoiceFor(_liveFiles.Read),
+                (tag, c) => _liveTextures.ReadChunk(tag, c) || surf.ReadChunk(tag, c));
+        }
         if (tape is not null)
         {
             _liveSession.Tape = OnslaughtRebuild.Parity.RetailTape.Load(tape);
@@ -114,6 +138,7 @@ public partial class Host
         _liveWindow.FocusEntered += LiveFocusEntered;
         _liveWindow.FocusExited += LiveFocusExited;
         _liveFocused = _liveWindow.HasFocus();
+        _liveSoundDevice?.SetSuspended(!_liveFocused);
         if (!_liveReplay)
         {
             // Even focus-release adapters mutate held/queued platform input. Replay therefore has no adapter,
@@ -125,7 +150,8 @@ public partial class Host
         _liveTrace?.Write(_liveSession);
         CheckLiveEnd();
         UpdateLiveNotice();
-        GD.Print($"HOST_LIVE_READY level=100 present={_liveSession.PresentCount} replay={_liveReplay} silent=true focused={_liveFocused} drawing={_liveDraw}");
+        GD.Print($"HOST_LIVE_READY level=100 present={_liveSession.PresentCount} replay={_liveReplay} silent={!_liveAudioEnabled} focused={_liveFocused} drawing={_liveDraw}");
+        if (_liveAudioEnabled) GD.Print("HOST_AUDIO_POLICY pool=host-empty-256 channels=12 continuous-rate=true spatial=godot waveform-equivalence=false");
     }
 
     private void BuildLiveScene(SurfView surf)
@@ -243,6 +269,7 @@ public partial class Host
     private void LiveFocusEntered()
     {
         _liveFocused = true;
+        _liveSoundDevice?.SetSuspended(false);
         _liveAccumulator = 0;
         _liveInput?.SetFocused(!_liveReplay && _liveStop is null);
         UpdateLiveNotice();
@@ -251,6 +278,7 @@ public partial class Host
     private void LiveFocusExited()
     {
         _liveFocused = false;
+        _liveSoundDevice?.SetSuspended(true);
         _liveAccumulator = 0;
         _liveInput?.SetFocused(false);
         UpdateLiveNotice();
@@ -327,7 +355,9 @@ public partial class Host
         long before = session.PresentCount;
         try
         {
+            if (_liveSoundSources is not null) _liveSoundSources.CheckOptions(session.Input.PauseMenuHost!.Options);
             session.AdvanceToNextPresent();
+            if (_liveSoundSources is not null) _liveSoundSources.CheckOptions(session.Input.PauseMenuHost!.Options);
             if (session.PresentCount != before)
             {
                 AccumulateCloudDrift(session);
@@ -338,6 +368,7 @@ public partial class Host
             _liveFailure = true;
             _liveStop = $"Preview stopped at an unsupported behavior.\n{e.Message}";
             GD.PrintErr($"HOST_LIVE_UNSUPPORTED present={session.PresentCount}: {e}");
+            DisposeLiveAudio();
         }
     }
 
@@ -346,6 +377,7 @@ public partial class Host
         _liveFailure = true;
         _liveStop = "The preview stopped after an error. See the host log for details.";
         GD.PrintErr($"HOST_LIVE_ERROR present={_liveSession?.PresentCount}: {error}");
+        DisposeLiveAudio();
         _liveInput?.SetFocused(false);
         ReleaseLiveMouse();
         UpdateLiveNotice();
@@ -357,6 +389,7 @@ public partial class Host
         {
             if (session.Ended)
             {
+                if (_liveAudioEnabled) session.ReleaseSoundForRestartOrReturn();
                 _liveStop = $"Level ended: {session.Game.Quit}.\nReturn to the front end is not available in this preview.";
             }
             else if (_liveEndPresent is { } end && session.PresentCount >= end)
@@ -367,6 +400,7 @@ public partial class Host
 
         if (_liveStop is not null)
         {
+            DisposeLiveAudio();
             _liveInput?.SetFocused(false);
             _liveAccumulator = 0;
         }
@@ -379,8 +413,9 @@ public partial class Host
             return;
         }
 
+        string audio = _liveAudioEnabled ? "live audio preview" : "silent preview";
         _liveBanner.Text = _liveReplay ? "Level 100 replay · silent preview" : session.Game.State == GameState.Panning
-            ? "Level 100 · silent preview · Enter skips intro" : "Level 100 · silent preview · Esc pauses";
+            ? $"Level 100 · {audio} · Enter skips intro" : $"Level 100 · {audio} · Esc pauses";
         _liveNotice.Text = _liveStop ?? (!_liveReplay && !_liveFocused
             ? "Preview suspended while this window is unfocused."
             : session.Game.Paused ? (_liveReplay ? "Recorded pause — following the tape.\nPhysical input is disabled during replay."
@@ -508,6 +543,7 @@ public partial class Host
         }
 
         _liveDisposed = true;
+        DisposeLiveAudio();
         FinishLiveLog();
         if (_liveWindow is not null && GodotObject.IsInstanceValid(_liveWindow))
         {
@@ -533,5 +569,18 @@ public partial class Host
         _liveSession = null;
         _liveTextures = null;
         _liveFiles = null;
+    }
+
+    private void DisposeLiveAudio()
+    {
+        try { _liveSoundDevice?.Dispose(); }
+        catch (Exception e) { GD.PrintErr($"HOST_AUDIO_TEARDOWN_ERROR: {e}"); _liveFailure = true; }
+        finally
+        {
+            _liveSoundDevice = null;
+            try { _liveSoundPlayers?.Dispose(); }
+            catch (Exception e) { GD.PrintErr($"HOST_AUDIO_TEARDOWN_ERROR: {e}"); _liveFailure = true; }
+            finally { _liveSoundPlayers = null; }
+        }
     }
 }
