@@ -466,9 +466,9 @@ public sealed class LevelSession
         IMessageVoice messageVoice = voice?.Invoke(clock) ?? (soundProcess is null ? new UnmodelledVoice() : new VirtualVoice(clock, read));
         if (soundProcess is not null)
         {
-            if (messageVoice is not VirtualVoice virtualVoice)
-                throw new NotSupportedException("The admitted process requires its shared-event VirtualVoice facade.");
-            virtualVoice.BindSoundProcess(soundProcess);
+            if (messageVoice is not ISoundProcessVoice processVoice)
+                throw new NotSupportedException("The admitted process requires a voice bound to its shared event owner.");
+            processVoice.BindSoundProcess(soundProcess);
             soundProcess.BindLevel(context);
         }
         scripts.MessageBox = new MessageBox(context, text, messageVoice);
@@ -643,7 +643,7 @@ public sealed record LevelHost(Clock.PlatformClock Clock, Platform.PlatformInput
     /// <summary>The process's one effect/event owner, retained even by explicitly legacy fixtures.</summary>
     public SoundEffects? Sounds { get; init; }
 
-    /// <summary>Explicit virtual backend/profile binding, never constructed anew for a hosted level.</summary>
+    /// <summary>Explicit process backend/profile binding, never constructed anew for a hosted level.</summary>
     public SoundProcess? SoundProcess { get; init; }
 
     /// <summary>
