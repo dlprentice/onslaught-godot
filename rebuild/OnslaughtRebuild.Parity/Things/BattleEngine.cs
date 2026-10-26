@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from onslaught-decomp src/BattleEngine.h and src/BattleEngine.cpp (CBattleEngine::Init 00404dd0, UpdateConfiguration
-// 0040c650, CalcUnitOverCrossHair 0040acc0, HandleAutoAim 0040b6d0, HandleEvent), in Stuart's release.
+// 0040c650, NeedsRearm 0040c5e0, CalcUnitOverCrossHair 0040acc0, HandleAutoAim 0040b6d0, HandleEvent), in Stuart's release.
 
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
@@ -97,10 +97,17 @@ public sealed partial class BattleEngine(ThingContext context) : Unit(context, O
 
     public bool FullHealth() => !(Energy < Configuration!.Energy || Life < Configuration.Life);
 
-    /// <summary>NeedsRearm: a store below its configuration's value (the stores are not ported: counted, none).</summary>
+    /// <summary>NeedsRearm (0040c5e0): any ammunition store below its configured capacity; heat stores are ignored.</summary>
     public bool NeedsRearm()
     {
-        Context.Skip("CBattleEngine::NeedsRearm: the stores are not ported (read as full)");
+        for (int i = 0; i < Stores; ++i)
+        {
+            if (!StoreHeat[i] && StoreValue[i] < Configuration!.StoreValue[i])
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
