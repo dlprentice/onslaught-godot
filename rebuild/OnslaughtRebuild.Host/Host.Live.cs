@@ -268,21 +268,35 @@ public partial class Host
 
     private void LiveFocusEntered()
     {
-        _liveFocused = true;
-        _liveSoundDevice?.SetSuspended(false);
-        _liveAccumulator = 0;
-        _liveInput?.SetFocused(!_liveReplay && _liveStop is null);
-        UpdateLiveNotice();
+        if (LiveTerminal) return;
+        try
+        {
+            _liveSoundDevice?.SetSuspended(false);
+            _liveFocused = true;
+            _liveAccumulator = 0;
+            _liveInput?.SetFocused(!_liveReplay);
+            UpdateLiveNotice();
+        }
+        catch (Exception error) { FailLive(error); }
     }
 
     private void LiveFocusExited()
     {
-        _liveFocused = false;
-        _liveSoundDevice?.SetSuspended(true);
-        _liveAccumulator = 0;
-        _liveInput?.SetFocused(false);
-        UpdateLiveNotice();
+        if (LiveTerminal) return;
+        try
+        {
+            _liveSoundDevice?.SetSuspended(true);
+            _liveFocused = false;
+            _liveAccumulator = 0;
+            _liveInput?.SetFocused(false);
+            UpdateLiveNotice();
+        }
+        catch (Exception error) { FailLive(error); }
     }
+
+    // Focus signals arrive outside _Process's exception boundary. A fault is terminal even if a later signal fires.
+    private bool LiveTerminal => _liveDisposed || _liveFailure || _liveStop is not null;
+    private bool CanAdvanceLive => !LiveTerminal && (_liveReplay || _liveFocused);
 
     private void ProcessLive(double delta)
     {
@@ -291,7 +305,7 @@ public partial class Host
             return;
         }
 
-        if (_liveStop is null && (_liveReplay || _liveFocused))
+        if (CanAdvanceLive)
         {
             // Bound catch-up work. If rendering cannot keep pace the preview runs slower; core time still advances
             // by exactly ReplayDt per Present. Never fast-forward through time while unfocused.
@@ -351,6 +365,7 @@ public partial class Host
 
     private void AdvanceLiveCore()
     {
+        if (LiveTerminal) return;
         LevelSession session = _liveSession!;
         long before = session.PresentCount;
         try
@@ -375,6 +390,8 @@ public partial class Host
     private void FailLive(Exception error)
     {
         _liveFailure = true;
+        _liveFocused = false;
+        _liveAccumulator = 0;
         _liveStop = "The preview stopped after an error. See the host log for details.";
         GD.PrintErr($"HOST_LIVE_ERROR present={_liveSession?.PresentCount}: {error}");
         DisposeLiveAudio();
