@@ -45,6 +45,7 @@ public partial class Host
     private LiveSoundSources? _liveSoundSources;
     private LiveSoundDevice? _liveSoundDevice;
     private GodotSoundPlayers? _liveSoundPlayers;
+    private LiveAudioOutputStartup? _liveAudioStartup;
     private string? _liveStop;
     private long? _liveEndPresent;
     private double _liveAccumulator;
@@ -59,6 +60,7 @@ public partial class Host
     /// </summary>
     private void ReadyLive()
     {
+        if (_liveMode) throw new InvalidOperationException("Live startup was already requested.");
         _liveMode = true;
         _liveDraw = System.Environment.GetEnvironmentVariable("HOST_DRAW") != "0";
         _capture = System.Environment.GetEnvironmentVariable("HOST_CAPTURE");
@@ -84,17 +86,35 @@ public partial class Host
             throw new ArgumentException("HOST_END_PRESENT must be at least the initial HOST_PRESENT (default 3)");
         }
 
-        _liveFiles = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
-        _liveTextures = new TextureLibrary(_liveFiles.Read);
-        var surf = new SurfView();
         _liveAudioEnabled = System.Environment.GetEnvironmentVariable("HOST_AUDIO") == "1";
-        if (_liveAudioEnabled)
+        if (_liveAudioEnabled && System.Environment.GetEnvironmentVariable("HOST_AUDIO_OUTPUT_DEVICE") is { } outputDevice)
         {
             if (_liveReplay) throw new ArgumentException("HOST_AUDIO=1 is ordinary live playback; measured tapes keep their virtual device.");
             string manifest = System.Environment.GetEnvironmentVariable("ONSLAUGHT_VOICE_PCM")
                 ?? throw new ArgumentException("HOST_AUDIO=1 requires ONSLAUGHT_VOICE_PCM (the prepared voice manifest).");
+            _liveAudioStartup = new LiveAudioOutputStartup(outputDevice,
+                AudioServer.GetDriverName, AudioServer.GetOutputDeviceList, () => AudioServer.OutputDevice,
+                device => AudioServer.OutputDevice = device, Time.GetTicksMsec,
+                () => CompleteReadyLive(present, tape, manifest, outputDevice));
+            GD.Print("HOST_AUDIO_OUTPUT_PENDING logical_acknowledgement_only=true");
+            return;
+        }
+
+        CompleteReadyLive(present, tape, null, null);
+    }
+
+    private void CompleteReadyLive(int present, string? tape, string? voiceManifest, string? outputDevice)
+    {
+        _liveFiles = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
+        _liveTextures = new TextureLibrary(_liveFiles.Read);
+        var surf = new SurfView();
+        if (_liveAudioEnabled)
+        {
+            if (_liveReplay) throw new ArgumentException("HOST_AUDIO=1 is ordinary live playback; measured tapes keep their virtual device.");
+            string manifest = voiceManifest ?? System.Environment.GetEnvironmentVariable("ONSLAUGHT_VOICE_PCM")
+                ?? throw new ArgumentException("HOST_AUDIO=1 requires ONSLAUGHT_VOICE_PCM (the prepared voice manifest).");
             var voices = new VoicePcmLibrary(manifest, _liveFiles.Read);
-            _liveSoundPlayers = new GodotSoundPlayers(this, System.Environment.GetEnvironmentVariable("HOST_AUDIO_OUTPUT_DEVICE"));
+            _liveSoundPlayers = new GodotSoundPlayers(this, outputDevice);
             _liveSoundDevice = new LiveSoundDevice(sample => _liveSoundSources!.Pcm(sample), _liveSoundPlayers.Create);
             _liveSession = LevelSession.Load(100, _liveFiles.Read, _ => new PcmMessageVoice(voices, () => _liveSoundSources!),
                 (tag, c) => _liveTextures.ReadChunk(tag, c) || surf.ReadChunk(tag, c),
@@ -300,6 +320,24 @@ public partial class Host
 
     private void ProcessLive(double delta)
     {
+        // There is deliberately no session, input adapter, trace or core clock to advance while this is pending.
+        // Pump before the null-session return, then discard this host frame's delta even when startup completes.
+        if (_liveAudioStartup is { } startup)
+        {
+            try
+            {
+                if (LiveTerminal) startup.Cancel();
+                else startup.Pump(delta);
+                if (!startup.Pending) _liveAudioStartup = null;
+            }
+            catch (Exception error)
+            {
+                FailLive(error);
+                GetTree().Quit(1);
+            }
+            return;
+        }
+
         if (_liveSession is null || _liveDisposed)
         {
             return;
@@ -389,6 +427,7 @@ public partial class Host
 
     private void FailLive(Exception error)
     {
+        CancelLiveAudioStartup();
         _liveFailure = true;
         _liveFocused = false;
         _liveAccumulator = 0;
@@ -560,6 +599,7 @@ public partial class Host
         }
 
         _liveDisposed = true;
+        CancelLiveAudioStartup();
         DisposeLiveAudio();
         FinishLiveLog();
         if (_liveWindow is not null && GodotObject.IsInstanceValid(_liveWindow))
@@ -586,6 +626,12 @@ public partial class Host
         _liveSession = null;
         _liveTextures = null;
         _liveFiles = null;
+    }
+
+    private void CancelLiveAudioStartup()
+    {
+        _liveAudioStartup?.Cancel();
+        _liveAudioStartup = null;
     }
 
     private void DisposeLiveAudio()
