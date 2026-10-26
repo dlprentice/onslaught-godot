@@ -25,7 +25,7 @@ namespace OnslaughtRebuild.Parity.Script;
 /// </list>
 /// So a voice started when <c>b</c> blocks had been mixed stops once <c>b + floor(2 frames / 441) + 1</c> have.
 /// </summary>
-public sealed class VirtualVoice : IMessageVoice
+public sealed class VirtualVoice : ISoundProcessVoice
 {
     /// <summary>VOICE_BUFFER_SIZE.</summary>
     public const int VoiceBufferSize = 0x100000;
@@ -66,6 +66,8 @@ public sealed class VirtualVoice : IMessageVoice
     public void BindSoundProcess(SoundProcess process)
     {
         ArgumentNullException.ThrowIfNull(process);
+        if (!process.UsesVirtualBuffers)
+            throw new NotSupportedException("The header-only virtual voice cannot supply PCM to an external sound device.");
         if (!ReferenceEquals(process.Clock, _clock) || _baseNs != StepNs)
             throw new ArgumentException("The shared mixer uses this process clock with its Present1 origin.", nameof(process));
         if (_process is not null || _playing is not null || _loadedSize != 0 || Trace.Count != 0)
@@ -113,7 +115,7 @@ public sealed class VirtualVoice : IMessageVoice
             if (!process.Initialised) throw new InvalidOperationException("The sound process has not reached Init.");
             KillVoice(); // deleting the previous global voice sample kills its actual event first.
             var sample = new SampleMetadata(_path ?? "", checked((uint)size));
-            if (!SampleBufferFormat.TryCreate(sample.OriginalPcmBytes, process.Backend.Profile.SoundRate, out _))
+            if (!SampleBufferFormat.TryCreate(sample.OriginalPcmBytes, process.SoundRate, out _))
                 throw new NotSupportedException("The loaded voice has no admitted virtual sound-buffer format.");
             _sample = sample; process.RegisterVoiceSample(sample);
             int index = Trace.Count;

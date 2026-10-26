@@ -64,6 +64,12 @@ public interface IMessageVoice
     void UpdateStatus();
 }
 
+/// <summary>A voice facade bound to the process's one event owner; device status never supplies a second timer.</summary>
+public interface ISoundProcessVoice : IMessageVoice
+{
+    void BindSoundProcess(Sound.SoundProcess process);
+}
+
 /// <summary>CMessage: a radio message queued in the box (an IAudibleThing, so readers watch it).</summary>
 public sealed class ScriptMessage : Monitor
 {

@@ -17,6 +17,16 @@ public sealed record VirtualSoundProcessOptions(VirtualSoundBackendProfile Profi
     IReadOnlyList<SoundEventSeed> Seeds, Func<string, bool, SampleMetadata?> SampleLookup,
     Func<SampleMetadata, bool> SampleHasBuffer, Func<object, SoundOwnerSpatialState?> OwnerSpatial);
 
+/// <summary>
+/// Explicit externally owned buffers, with the same PC event/channel/spatial kernel. The profile type retains its
+/// existing name for compatibility; these supplied values are not a measured virtual profile or retail defaults.
+/// Source-buffer availability must include actual voice PCM owned by the caller, never metadata membership alone.
+/// </summary>
+public sealed record SoundDeviceProcessOptions(VirtualSoundBackendProfile Profile,
+    IReadOnlyList<SoundEventSeed> Seeds, Func<string, bool, SampleMetadata?> SampleLookup,
+    Func<SampleMetadata, bool> SampleHasBuffer, Func<object, SoundOwnerSpatialState?> OwnerSpatial,
+    ISoundBufferDevice Device);
+
 /// <summary>One process's configured sound owner, shared by front end, levels and restarts.</summary>
 public sealed class SoundProcess
 {
@@ -25,26 +35,45 @@ public sealed class SoundProcess
     private ThingContext? _context;
 
     public SoundProcess(SoundEffects effects, PlatformClock clock, VirtualSoundProcessOptions options)
+        : this(effects, clock, Required(options).Profile, options.Seeds, options.SampleLookup,
+            options.SampleHasBuffer, options.OwnerSpatial, null) { }
+
+    public SoundProcess(SoundEffects effects, PlatformClock clock, SoundDeviceProcessOptions options)
+        : this(effects, clock, Required(options).Profile, options.Seeds, options.SampleLookup,
+            options.SampleHasBuffer, options.OwnerSpatial, Required(options.Device)) { }
+
+    private static T Required<T>(T value) where T : class
+    { ArgumentNullException.ThrowIfNull(value); return value; }
+
+    private SoundProcess(SoundEffects effects, PlatformClock clock, VirtualSoundBackendProfile profile,
+        IReadOnlyList<SoundEventSeed> seeds, Func<string, bool, SampleMetadata?> sampleLookup,
+        Func<SampleMetadata, bool> sampleHasBuffer, Func<object, SoundOwnerSpatialState?> ownerSpatial,
+        ISoundBufferDevice? device)
     {
         ArgumentNullException.ThrowIfNull(effects); ArgumentNullException.ThrowIfNull(clock);
-        ArgumentNullException.ThrowIfNull(options); ArgumentNullException.ThrowIfNull(options.Seeds);
-        ArgumentNullException.ThrowIfNull(options.SampleLookup); ArgumentNullException.ThrowIfNull(options.SampleHasBuffer);
-        ArgumentNullException.ThrowIfNull(options.OwnerSpatial);
-        if (options.Seeds.Count != SoundEffects.EventCapacity)
-            throw new ArgumentException("A measured profile must supply all 256 initial pool seeds.", nameof(options));
+        ArgumentNullException.ThrowIfNull(seeds); ArgumentNullException.ThrowIfNull(sampleLookup);
+        ArgumentNullException.ThrowIfNull(sampleHasBuffer); ArgumentNullException.ThrowIfNull(ownerSpatial);
+        if (seeds.Count != SoundEffects.EventCapacity)
+            throw new ArgumentException("An explicit profile must supply all 256 initial pool seeds.", nameof(seeds));
         if (effects.EventKernelConfigured || effects.EventCount != 0)
             throw new InvalidOperationException("The process must bind an unused sound owner.");
-        Effects = effects; Clock = clock; _seeds = options.Seeds.ToArray();
-        SampleLookup = options.SampleLookup;
+        Effects = effects; Clock = clock; _seeds = seeds.ToArray();
+        SampleLookup = sampleLookup;
         Effects.SampleLookup = SampleLookup;
-        Backend = new(effects, options.Profile, BlocksMixed,
-            sample => _voiceSamples.Contains(sample) || options.SampleHasBuffer(sample), Camera,
-            options.OwnerSpatial);
+        DeviceBackend = device is null
+            ? new VirtualSoundEventBackend(effects, profile, BlocksMixed,
+                sample => _voiceSamples.Contains(sample) || sampleHasBuffer(sample), Camera, ownerSpatial)
+            : new PcSoundEventBackend(effects, profile, device, sampleHasBuffer, Camera, ownerSpatial);
     }
 
     public SoundEffects Effects { get; }
     public PlatformClock Clock { get; }
-    public VirtualSoundEventBackend Backend { get; }
+    /// <summary>The legacy virtual-only API; an external device never returns a fabricated virtual backend.</summary>
+    public VirtualSoundEventBackend Backend => DeviceBackend as VirtualSoundEventBackend
+        ?? throw new InvalidOperationException("This process uses an external buffer device; use DeviceBackend.");
+    public PcSoundEventBackend DeviceBackend { get; }
+    public bool UsesVirtualBuffers => DeviceBackend is VirtualSoundEventBackend;
+    public int SoundRate => DeviceBackend.Profile.SoundRate;
     public Func<string, bool, SampleMetadata?> SampleLookup { get; }
     public bool Initialised => Effects.EventKernelConfigured;
 
@@ -56,8 +85,8 @@ public sealed class SoundProcess
     {
         if (Initialised) throw new InvalidOperationException("Sound has already been initialized for this process.");
         if (Clock.PresentCount != 1) throw new InvalidOperationException("Sound initialization belongs after device Present1.");
-        Effects.ConfigureEventKernel(Backend, Clock.GetSysTimeFloat,
-            () => _context?.Game?.State == GameState.PreRunning, _seeds, Backend.Profile.SoundRate);
+        Effects.ConfigureEventKernel(DeviceBackend, Clock.GetSysTimeFloat,
+            () => _context?.Game?.State == GameState.PreRunning, _seeds, SoundRate);
         Effects.SetMasterVolume(masterVolume);
     }
 
