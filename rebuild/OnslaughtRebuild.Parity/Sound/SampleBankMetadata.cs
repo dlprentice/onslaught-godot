@@ -28,7 +28,12 @@ public sealed class SampleBankMetadata
         return null;
     }
 
-    public static SampleBankMetadata Read(ReadOnlySpan<byte> bank)
+    public static SampleBankMetadata Read(ReadOnlySpan<byte> bank) => ReadWithPayloads(bank, null);
+
+    // The data-backed catalog shares this exact header walk. Offsets identify validated packed bytes; callers never
+    // receive a span into temporary parsing storage. The existing metadata-only entry point retains no payload.
+    internal static SampleBankMetadata ReadWithPayloads(ReadOnlySpan<byte> bank,
+        Action<SampleMetadata, int, int>? payload)
     {
         if (bank.Length < 8) throw new InvalidDataException("A sample bank needs its tag and count.");
         int count = BinaryPrimitives.ReadInt32LittleEndian(bank[4..]);
@@ -46,7 +51,9 @@ public sealed class SampleBankMetadata
             uint packed = (size + 3) / 4;
             position += 72;
             if (packed > bank.Length - position) throw new InvalidDataException("Truncated compressed sample.");
-            entries.Add(new SampleMetadata(Encoding.Latin1.GetString(nul < 0 ? name : name[..nul]), size));
+            var sample = new SampleMetadata(Encoding.Latin1.GetString(nul < 0 ? name : name[..nul]), size);
+            entries.Add(sample);
+            payload?.Invoke(sample, position, (int)packed);
             position += (int)packed;
         }
         // The native loader stops at the declared count; trailing bytes are not a new sample.
