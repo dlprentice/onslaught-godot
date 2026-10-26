@@ -80,14 +80,27 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
         }
 
         FVector dir = Pos - other.Pos;
-        if (other.IsA(ThingType.Explosion))
+        // 004f6ae9..004f6b13: sqrt((Y² + Z²) + X²), retained on the x87 stack. TEST AH,41
+        // admits less/equal and unordered; using !(magnitude <= radius) would reject the latter.
+        if (other.IsA(ThingType.Explosion) && HitMagnitude(dir) > ((Explosion)other).CurrentRadius)
         {
-            throw new NotSupportedException("CTree::Hit: explosions (their current radius) are not ported");
+            return;
         }
 
-        dir.Normalise();
+        // 004f6b15..004f6b64 recomputes the retained norm, skips zero OR unordered, and keeps the
+        // reciprocal unspilled until each component store. FVector.Normalise spills a different sum.
+        double magnitude = HitMagnitude(dir);
+        if (magnitude != 0 && !double.IsNaN(magnitude))
+        {
+            double reciprocal = X87.Div(1, magnitude);
+            dir = new FVector((float)X87.Mul(dir.X, reciprocal), (float)X87.Mul(dir.Y, reciprocal),
+                (float)X87.Mul(dir.Z, reciprocal));
+        }
         CreateFallingTree(dir);
     }
+
+    private static double HitMagnitude(FVector dir) =>
+        X87.Sqrt(X87.Add(X87.Add(X87.Mul(dir.Y, dir.Y), X87.Mul(dir.Z, dir.Z)), X87.Mul(dir.X, dir.X)));
 
     /// <summary>CreateFallingTree (004f69b0): it falls away along dir, colliding with everything half a second later.</summary>
     public void CreateFallingTree(FVector dir)
