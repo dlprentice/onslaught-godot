@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte; the tutorial pilot's win route equals it through the level's end and outro.
-Last updated: 2026-10-25 (Host foundation scope limits; frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier, 2026-10-22, public: running the Host, the beta1 engine, the earlier rebuild's scripts marked reference; earlier entries keep their dates)
+Last updated: 2026-10-27 (opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -88,9 +88,9 @@ draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which 
 gated or extended, and it stays (with Core and Client's earlier simulation) because the asset materializer, the
 first-flight launcher, the static-mesh preview and several measurement probes still read its sources and recipes;
 pieces are copied into the Host only as needed, noting their origin. By default it renders one level-100
-Present; an experimental live mode (`HOST_LIVE=1`, with `HOST_TAPE` and `HOST_TRACE`) runs level 100 from the parity
-core with ordinary input, and the whole-game mode (`HOST_LIVE=flow`) runs the game from boot to quit, front end and
-level, as [PARITY.md](PARITY.md) records (M7).
+Present; an experimental live mode (`HOST_LIVE=1`) runs level 100 from the parity core with ordinary input, or
+replays `HOST_TAPE` using its virtual sound device. `HOST_TRACE` records the live trace. The whole-game mode
+(`HOST_LIVE=flow`) runs the game from boot to quit, front end and level, as [PARITY.md](PARITY.md) records (M7).
 
 #### Running the Host
 
@@ -108,13 +108,21 @@ export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # if `godot` on PATH
 npm run run:host                                            # builds the Host, then runs the whole game (HOST_LIVE=flow)
 ```
 
-`run:host` opens an experimental preview with keyboard input. Its ordinary-player sound-event backend is not yet
-configured: a level can stop at an unsupported sound operation (the incoming-missile warning is one reproduced case).
+`run:host` opens the experimental whole-game preview with keyboard input. That `HOST_LIVE=flow` route does not
+use the opt-in live audio adapter: a level can stop at an unsupported sound operation (the incoming-missile warning
+is one reproduced case).
 The whole-game preview does not yet admit physical mouse input; its career and options writes stay in memory and
 do not survive closing the Host. It is not yet a complete playable route or an audio acceptance result. Set `HOST_LIVE=1` for level 100
 alone, or `HOST_LIVE=` (empty) to draw a single Present (`HOST_PRESENT=150`, optionally `HOST_CAPTURE=<file.png>`);
 `python3 rebuild/OnslaughtRebuild.Host/tools/side_by_side.py <capture> <retail capture> <out.png>` compares a capture
 with a retail one.
+
+For the separate level-100 ordinary-input preview, `HOST_LIVE=1 HOST_AUDIO=1` opts into effects and prepared PCM
+voices. It requires `ONSLAUGHT_VOICE_PCM`, a real Godot audio driver and supported sound options; it cannot be
+combined with `HOST_TAPE`. [`OnslaughtRebuild.Host/AUDIO.md`](OnslaughtRebuild.Host/AUDIO.md) documents preparation,
+output selection and limits. A direct production-device fixture captured nonzero PCM through a private null sink
+and checked playback lifecycle. Audio during ordinary Host gameplay, physical-device and audible acceptance remain unverified;
+this is not full audio parity or validation of the whole-game preview.
 
 It draws the landscape (the lit caches ported from `CHeightField`: the whole map at 512 x 512 and retail's four
 wrapping finer levels near the camera, each 8-metre tile's level chosen as CalcLODs does from the lagged view; the four

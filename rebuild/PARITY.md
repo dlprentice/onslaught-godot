@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-25 (reference admission, Retry canvas and canonical Host phases; Host frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail: a player's whole game from boot to the saved career, and the pilot's win through its level end and outro; the goodies page, the level intro and outro films, the film-skip timing, the cloak button; earlier, 2026-10-22: a "Where it stands" summary first; maintainers' roles and private stores named plainly; the pilot's j4 route matches to P27650; the HUD's parts flash as the port's; the HUD's text drawn and compared with the port; the pan camera's orientation measured against retail's block; private evidence named by its store, not a machine path; earlier, 2026-10-21: whole-game host slices 1-4: the front end drawn page by page against the port, the level inside the flow through a parked-run inspect, the level's 2D and HUD target passes; earlier rows keep their dates)
+Last updated: 2026-10-27 (bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -32,6 +32,19 @@ the dated entries below record each measurement.
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in
 the dated entries below are the counts on their dates.
+
+Opt-in live device audio (2026-10-27, M7 remains incomplete): `HOST_LIVE=1 HOST_AUDIO=1` adds effects and prepared
+PCM voices through the shared sound process. It is separate from `HOST_TAPE`'s virtual device and is not used by
+`HOST_LIVE=flow`. The direct production-device V12 fixture on commit
+`249fd0cda343fb0df465d867191dadcd2b4ce943` passed real Godot/PulseAudio playback, advancing cursor,
+pause/resume and focus-suspension ownership, channel-generation reuse, teardown and reinitialization. It captured
+nonzero PCM through an independently checked private null-sink route. Dummy and unavailable-output controls
+refused before sources or listeners were created, and owned playback references/nodes retired at teardown.
+
+This was a direct caller of the production audio classes, **not ordinary Host gameplay**. It establishes no
+physical-device, heard-output, whole-tutorial, waveform-equivalence or full audio-parity result. The receipt and
+remaining boundaries are in [the Host audio contract](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27).
+The existing deterministic-reference and whole-game routes retain their own sound admission and acceptance limits.
 
 CGameInterface on PC (2026-10-21): the in-game menu rises only at a lost or drawn level's end, after
 `CGame::Update` has made continue, message log, level briefing and options unavailable (onslaught-decomp
@@ -1494,7 +1507,7 @@ framework remain open.
 |---|---|---|---|
 | **Deterministic sim state** | Identical tick-by-tick simulation given identical inputs | Core cold-start + full-chain tests, `--expect` trace hashes | Proves determinism and self-consistency. Does NOT prove retail equality — retail has no tape to replay against |
 | **Visual frame** | Rendered output matches retail within tolerance | `npm run ref:godot-capture -- --plan mainmenu` (through `godot-offscreen`) + `score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
-| **Audio** | Playback behavior matches retail | None (no automated audio gate) | Not gradeable today |
+| **Audio** | Playback behavior matches retail | Shared sound-process and adapter tests; bounded production-device V12 fixture ([scope](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27)) | Checks the stated source contracts and isolated Godot output/lifecycle. Ordinary Host gameplay, physical/audible acceptance and retail audio equivalence remain ungraded. |
 | **Timing / feel** | Response latency, animation cadence feel equivalent | None dedicated | Not gradeable today; 20 Hz step + floor semantics are the strongest proxy |
 | **Content completeness** | All retail content reachable/present | Materializer hash checks (200+ pinned inputs), level-100 slice | Proves the retail inputs consumed are byte-exact. Does NOT prove every level plays |
 
