@@ -8,7 +8,7 @@ namespace OnslaughtRebuild.Host;
 /// <summary>Real Godot sources in the native camera-local listener frame. Only the main-thread live host uses it.</summary>
 public sealed class GodotSoundPlayers : IDisposable
 {
-    private readonly Node3D _root;
+    private readonly SubViewport _root;
     private readonly AudioListener3D _listener;
     private readonly HashSet<Player> _players = [];
     private readonly List<WeakRef> _retiring = [];
@@ -26,11 +26,20 @@ public sealed class GodotSoundPlayers : IDisposable
             if (AudioServer.OutputDevice != outputDevice)
                 throw new InvalidOperationException("The audio driver did not retain the selected output device.");
         }
-        _root = new() { Name = "LiveAudioCameraLocal", ProcessMode = Node.ProcessModeEnum.Always };
+        // Godot's 3D mixer enumerates cameras, then uses each camera's audio-enabled viewport/listener.
+        // Keep camera-local sources in their own audio world: rendered view cameras must not transform them again.
+        _root = new()
+        {
+            Name = "LiveAudioCameraLocal", ProcessMode = Node.ProcessModeEnum.Always,
+            OwnWorld3D = true, AudioListenerEnable3D = true, Size = new Vector2I(2, 2),
+            RenderTargetUpdateMode = SubViewport.UpdateMode.Disabled,
+        };
         _listener = new();
-        try { parent.AddChild(_root); _root.AddChild(_listener); _listener.MakeCurrent(); }
+        var camera = new Camera3D { Current = true };
+        try { parent.AddChild(_root); _root.AddChild(camera); _root.AddChild(_listener); _listener.MakeCurrent(); }
         catch
         {
+            if (camera.GetParent() is null) camera.Free();
             if (!_listener.IsInsideTree()) _listener.Free();
             _root.Free(); throw;
         }
