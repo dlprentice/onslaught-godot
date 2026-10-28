@@ -43,6 +43,8 @@ observer recorded the input positions, motions and cylinder/line dimensions used
 with the old order. With this correction, `ThePilotWinRouteMatchesThePortThroughTheLevelsEnd` compares all nine
 fields every Present through the level's end at 28306, its end-level data, and the outro to 28600 against that
 port reference. This is a port replay plus static retail evidence, not a retail win or device-audio acceptance.
+The earlier `start` and `delta` squared-length checks in this function still use X-first sums; the native port's
+patch 0095 uses Y+Z+X at those sites. Their effect on other collision inputs remains open.
 
 Launch-hit orientation (2026-10-28): pristine `74154bfa…` at `0040d090..0040d0b0` calls the x87 elevation at
 `0040d1a0` and the Euler constructor at `0040d1f0`; its floating-point instruction sequence matches `004062d0`, which
