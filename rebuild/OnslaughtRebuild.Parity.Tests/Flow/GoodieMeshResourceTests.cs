@@ -83,6 +83,19 @@ public sealed class GoodieMeshResourceTests
             _ => ("truncated.bin", Array.Empty<byte>())));
     }
 
+    [Fact]
+    public void RejectsATruncatedNamedChildOfAnAnonymousEmbeddedMesh()
+    {
+        byte[] parent = new byte[MeshData.RecordSize];
+        BinaryPrimitives.WriteUInt32LittleEndian(parent.AsSpan(0x08), 1); // mNextInChain present
+        byte[] childName = new byte[309];
+        childName[0] = (byte)'x';
+        byte[] body = Chunk("PMSH", Join(Chunk("PMS2", new byte[309]), Chunk("CMSH", parent), Chunk("CMST", []),
+            Chunk("BBOX", Chunk("DATA", new byte[40])), Chunk("PMSH", Chunk("PMS2", childName))));
+        Assert.Throws<InvalidDataException>(() => GoodieMeshResource.Read("authored.bin", Resource(meshBody: body), 8,
+            _ => ("truncated.bin", Array.Empty<byte>())));
+    }
+
     [GameDataFact]
     public void InstalledGoodieEightProvidesItsMeshAndFiveTextureDescriptors()
     {
