@@ -35,9 +35,16 @@ public sealed class BattleEngineZoomTests
         Assert.Equal(0x3f333333u, BitConverter.SingleToUInt32Bits(engine.Zoom));
         Assert.Equal(0.2f, engine.DesiredZoom);
 
+        // An unknown mode must not run normal mode's recovery for targets below 0.4.
+        engine.WalkerPart.PrimaryWeapon = weapon;
+        engine.Zoom = 0.8f;
+        engine.DesiredZoom = 0.2f;
+        engine.UpdateWeaponZoom(0);
+        Assert.Equal(0.2f, engine.DesiredZoom);
+        Assert.Equal(0x3f333333u, BitConverter.SingleToUInt32Bits(engine.Zoom));
+
         engine.Zoom = 0.52f;
         engine.DesiredZoom = 0.5f;
-        engine.WalkerPart.PrimaryWeapon = weapon;
         engine.UpdateWeaponZoom(0);
         Assert.Equal(0.52f, engine.OldZoom);
         Assert.Equal(0.5f, engine.Zoom); // the remaining difference is strictly below 0.1
@@ -73,7 +80,7 @@ public sealed class BattleEngineZoomTests
 
         data.ChargeModes[4] = -1;
         weapon.ChargeValue = 200;
-        engine.DesiredZoom = 0.5f;
+        engine.DesiredZoom = 0.8f; // an incorrect 200/400 charge would instead pull the target to 0.6
         engine.ZoomOutTime = -1.0f;
         engine.UpdateWeaponZoom(0);
         Assert.Equal(1.0f, engine.DesiredZoom); // GetCharge's zero-denominator arm returns zero
