@@ -40,6 +40,7 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
             : new DirectInputMouse(Input.Mouse, Window);
         Shared = shared;
         Context = new ControllerContext(bindings, Input, Shared, this, () => clock.GetSysTimeFloat());
+        Mouse.CreationChanged = created => Context.DirectInputCreated = created;
     }
 
     public PlatformWindow Window { get; }
