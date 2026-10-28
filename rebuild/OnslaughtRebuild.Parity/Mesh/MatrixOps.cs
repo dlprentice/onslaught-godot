@@ -20,7 +20,8 @@ public static class MatrixOps
     public static FMatrix Scale(FMatrix a, float f) => new(a.Row0 * f, a.Row1 * f, a.Row2 * f);
 
     // Cached GetWorldTransforms' product: the nine inlined PC24 cell orders at 004b1402..004b153a, also in port
-    // patch 0027. A generic FMatrix product has a different order at several cells.
+    // patch 0027. A generic FMatrix product has a different order at several cells. Managed float intermediates do not
+    // retain x87's wider exponent, so underflow or subnormal cases can differ; see the example in PARITY.md.
     internal static FMatrix CachedFrameWorldOrientation(FMatrix world, FMatrix local)
     {
         FVector a = world.Row0, b = world.Row1, c = world.Row2;

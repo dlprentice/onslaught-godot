@@ -60,9 +60,12 @@ have their own orders (`004b1402..004b153a` and `004b4f7b..004b50b9`); the latte
 out-of-line order on every caller. `MatrixOrderTests` drives both cached paths, checks all cells of these four products
 with finite cancellation inputs, and rejects the former models on selected cells. A pinned-Clang source-derived
 control of the native port's second-leg helper differs from the pristine grouping on two cells for one authored input;
-an actual game pose and the port's inlined machine code at those cells remain to be compared. These controls do not
-establish equivalence for exceptional values or complete visual or gameplay parity. Other inline sites, including the
-body-roll and animated-hierarchy products, still need site-specific review.
+an actual game pose and the port's inlined machine code at those cells remain to be compared. Matching the order does
+not reproduce x87's wider exponent: in an isolated PC24 control, two products of normal `2^-75` inputs sum to the
+smallest float32 subnormal (`00000001`), while rounding each managed float product first gives zero. This was not a
+captured game pose. Underflow, subnormal intermediates, exceptional values and complete visual or gameplay parity
+remain open. Other inline sites, including the body-roll and animated-hierarchy products, still need site-specific
+review.
 
 Opt-in live device audio (2026-10-27, M7 remains incomplete): `HOST_LIVE=1 HOST_AUDIO=1` adds effects and prepared
 PCM voices through the shared sound process. It is separate from `HOST_TAPE`'s virtual device and is not used by

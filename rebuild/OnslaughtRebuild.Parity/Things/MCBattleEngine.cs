@@ -73,8 +73,9 @@ public sealed class MCBattleEngine : Monitor
     private FMatrix _bodyOri = FMatrix.Identity;
     private FVector _unknown88;
 
-    // CMCMech::UpdateBone inlines two distinct products. These are the PC24 sum orders at 0049ae63..0049afbb
-    // and 0049b02e..0049b18e, respectively, on pristine 74154bfa; no host-native floating-point mode is required.
+    // CMCMech::UpdateBone inlines two distinct products. These follow the PC24 sum orders at 0049ae63..0049afbb
+    // and 0049b02e..0049b18e, respectively, on pristine 74154bfa. Managed float intermediates do not retain x87's
+    // wider exponent, so underflow or subnormal results can differ; see the bounded control in PARITY.md.
     internal static FMatrix MechFirstLegProduct(FMatrix left, FMatrix right)
     {
         FVector a = left.Row0, b = left.Row1, c = left.Row2;
