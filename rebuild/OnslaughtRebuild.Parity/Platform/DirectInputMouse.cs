@@ -57,6 +57,9 @@ public sealed class DirectInputMouse
     /// <summary>Whether <c>InitMouse</c> has created the device (<c>sMouse</c>).</summary>
     public bool Created { get; private set; }
 
+    // LevelInput keeps its controller's sMouse check in step with every Init/Shutdown path.
+    internal Action<bool>? CreationChanged { get; set; }
+
     /// <summary>
     /// The live host's suspension boundary: discard queued movement/wheel and device buttons without creating,
     /// polling or releasing the device. This is host policy, not a change to retail Init/Shutdown/Poll semantics.
@@ -74,6 +77,7 @@ public sealed class DirectInputMouse
         mouse.X = window.Width >> 1;
         mouse.Y = window.Height >> 1;
         mouse.InputActive = true;
+        CreationChanged?.Invoke(Created);
     }
 
     /// <summary>
@@ -91,6 +95,7 @@ public sealed class DirectInputMouse
         mouse.X = cursorX;
         mouse.Y = cursorY;
         mouse.ResetTransientState();
+        CreationChanged?.Invoke(Created);
     }
 
     private (int X, int Y, int Wheel, byte Buttons) GetDeviceState() => _state.Read();
