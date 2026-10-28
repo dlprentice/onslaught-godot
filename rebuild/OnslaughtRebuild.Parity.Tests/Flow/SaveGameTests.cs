@@ -74,6 +74,22 @@ public sealed class SaveGameTests
     }
 
     [Fact]
+    public void CareerSaveRefreshesTheModeFromTheCurrentDeviceNotTheOldOptions()
+    {
+        Rig r = new(AutoSaveMode.Not);
+        CareerOptions live = CareerOptions.Read(new byte[CareerOptions.Size]) with { DisplayModeKey = 0x12345678u, VSync = 1 };
+        r.FrontEnd.CurrentOptions = () => live;
+        r.FrontEnd.SetOptions = options => live = options;
+        r.FrontEnd.Machine.CurrentMode = 2; // 1024x768 / 32-bit in this explicit machine model
+        r.FrontEnd.Step();
+        byte[] file = r.FrontEnd.MemoryCard.Folder.Read("BEA 1");
+        CareerOptions saved = CareerOptions.Read(file.AsSpan(CareerSaveGame.Size - CareerOptions.Size));
+        Assert.Equal(0x83000400u, saved.DisplayModeKey);
+        Assert.Equal(1, saved.VSync);
+        Assert.Equal(saved.DisplayModeKey, live.DisplayModeKey);
+    }
+
+    [Fact]
     public void AUsedNameAsksAndYesReplacesTheSave()
     {
         Rig r = new(AutoSaveMode.Not, "bea 1");

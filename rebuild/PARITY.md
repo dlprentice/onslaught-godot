@@ -448,6 +448,10 @@ device/resource/input reset handler** and fails explicitly at the correct reset 
 ReadOptions path that can queue state 2 is also not implemented; its admission rule is tested through
 the explicit API. This milestone does not establish working display Apply in the running host.
 
+Career, options and pause saves now refresh the stored display key from the modeled current mode,
+following `CCareer::WriteOptions`. This uses the existing `MachineDisplay` list; actual host display
+discovery and startup selection of the saved mode remain open.
+
 Cannon motion controller (2026-10-17): `CMCCannon::GetPartTransform` (004952a0) now supplies
 case-sensitive turret yaw, barrel pitch and root-height adjustments through the existing pose and
 uncached-emitter paths. Barrel pitch subtracts the cannon's current Euler pitch, unlike the ground

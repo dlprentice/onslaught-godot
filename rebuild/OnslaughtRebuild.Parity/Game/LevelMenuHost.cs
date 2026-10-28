@@ -81,7 +81,11 @@ public sealed class LevelMenuHost : IMenuHost
         }
     }
 
-    public void SaveFromPause() => DefaultOptionsFile = CareerSaveGame.Save(Career, Bindings.SaveConfigurable(), Options);
+    public void SaveFromPause()
+    {
+        Options = Options with { DisplayModeKey = Machine.CurrentModeKey }; // CCareer::WriteOptions reads the device.
+        DefaultOptionsFile = CareerSaveGame.Save(Career, Bindings.SaveConfigurable(), Options);
+    }
 
     public void SetSoundVolume(float volume)
     {
