@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (pilot-win projectile/cylinder collision order and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -52,6 +52,17 @@ the managed `StraightAimOrientation` models. On the frozen level-100 pilot-win *
 hit vectors now produce the same orientation as the port, including cases where the former `Math.Asin` or inline
 constructor model was one ULP off. The route and all ordinary controls still require their own gates; these observations
 do not establish real-player or full-game parity.
+
+Site-specific matrix products (2026-10-28): `CMCMech::UpdateBone`'s two leg products use the per-cell orders in the
+pristine instructions `0049ae63..0049afbb` and `0049b02e..0049b18e`. The cached-frame and cached-pose world products
+have their own orders (`004b1402..004b153a` and `004b4f7b..004b50b9`); the latter's position uses
+`004b4ef2..004b4f3f`. The general product remains its historical left-to-right model rather than imposing one
+out-of-line order on every caller. `MatrixOrderTests` drives both cached paths, checks all cells of these four products
+with finite cancellation inputs, and rejects the former models on selected cells. A pinned-Clang source-derived
+control of the native port's second-leg helper differs from the pristine grouping on two cells for one authored input;
+an actual game pose and the port's inlined machine code at those cells remain to be compared. These controls do not
+establish equivalence for exceptional values or complete visual or gameplay parity. Other inline sites, including the
+body-roll and animated-hierarchy products, still need site-specific review.
 
 Opt-in live device audio (2026-10-27, M7 remains incomplete): `HOST_LIVE=1 HOST_AUDIO=1` adds effects and prepared
 PCM voices through the shared sound process. It is separate from `HOST_TAPE`'s virtual device and is not used by
