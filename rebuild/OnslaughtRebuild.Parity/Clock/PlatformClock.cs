@@ -78,6 +78,7 @@ public sealed class PlatformClock
         PresentCount++;
         _spin = 0;
         Presented?.Invoke();
+        ReplayPresented?.Invoke();
     }
 
     private long _frameTimerLast = -1;
@@ -115,6 +116,10 @@ public sealed class PlatformClock
 
     /// <summary>Called as each Present returns (for checks that sample state at the Present itself).</summary>
     public Action? Presented { get; set; }
+
+    // Standalone-level tape delivery follows the observer, matching PortReplayFrame's probe-before-input order.
+    internal Action? ReplayPresented { get; set; }
+    internal object? TapeOwner { get; set; }
 
     /// <summary>
     /// The virtual time's steps without counting a timer call (the port's PortClockPeekNs and C's virtual DirectSound

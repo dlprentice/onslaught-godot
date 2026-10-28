@@ -44,14 +44,9 @@ public sealed class LevelSession
     public LevelInput Input { get; private init; } = null!;
 
     private RetailTape? _tape;
-    private string? _tapeInputFailure;
     private bool _tapeContinuation;
 
-    /// <summary>
-    /// A legacy K/M replay tape. CE cursor, window and character tapes are refused until standalone per-Present
-    /// delivery is modeled; use the whole-process <see cref="Flow.GameRun"/>. Legacy input skipped by a multi-Present
-    /// advance also fails explicitly rather than being discarded.
-    /// </summary>
+    /// <summary>A standalone level's tape, delivered after each Present and selected before starting the level.</summary>
     public RetailTape? Tape
     {
         get => _tape;
@@ -59,9 +54,11 @@ public sealed class LevelSession
         {
             if (_started && !ReferenceEquals(value, _tape))
                 throw new InvalidOperationException("Select the tape before starting a standalone level.");
-            if (value is not null && (value.UsesTapeCursor
-                || value.Events.Any(e => e is not (RetailKeyEvent or RetailMouseEvent))))
-                throw new NotSupportedException("Standalone LevelSession cannot yet replay CE window or character input; use GameRun.");
+            if (value is not null && Clock.TapeOwner is { } owner && !ReferenceEquals(owner, this))
+                throw new InvalidOperationException("This clock already has a tape owner.");
+            if (value is not null) Clock.TapeOwner = this;
+            else if (ReferenceEquals(Clock.TapeOwner, this)) Clock.TapeOwner = null;
+            if (!ReferenceEquals(value, _tape)) _tapeContinuation = false;
             _tape = value;
         }
     }
@@ -83,7 +80,6 @@ public sealed class LevelSession
     /// </summary>
     public void AdvanceToNextPresent()
     {
-        if (_tapeInputFailure is not null) throw new NotSupportedException(_tapeInputFailure);
         long before = Clock.PresentCount;
         if (!_started)
         {
@@ -93,6 +89,7 @@ public sealed class LevelSession
             {
                 Input.Input.PrepareTape(Tape);
                 Input.Mouse.UseReplayState(Input.Input.DeviceMouse);
+                Clock.ReplayPresented = DeliverTapeAfterPresent;
             }
             _started = true;
             if (!FromFrontEnd)
@@ -132,14 +129,8 @@ public sealed class LevelSession
 
             // Return at the loading Present itself, where the native probe is taken. Startup noises happen only
             // after that Present returns to RestartLoopRunLevel, not before the caller can observe this boundary.
-            RefuseSkippedTapeEvents(before, Clock.PresentCount);
             _startUnitNoisePending = true;
             return;
-        }
-
-        if (Tape is not null)
-        {
-            Input.Deliver(Tape.EventsAt(before));
         }
 
         if (_startUnitNoisePending)
@@ -200,23 +191,15 @@ public sealed class LevelSession
                 Context.Skip("CGame::RunLevel's close: the music stopped, the language bank reloaded");
                 Game.FillOutEndLevelData(EndLevelData, Context.World);
                 if (Context.Particles is { } particles) particles.Manager.State.RenderFraction = Game.Loop.Fraction;
-                RefuseSkippedTapeEvents(before + 1, Clock.PresentCount);
                 Ended = true;
                 return;
             }
         }
-        RefuseSkippedTapeEvents(before + 1, Clock.PresentCount);
     }
 
-    private void RefuseSkippedTapeEvents(long first, long endExclusive)
+    private void DeliverTapeAfterPresent()
     {
-        if (Tape is null) return;
-        for (long present = first; present < endExclusive; present++)
-            if (!Tape.EventsAt(present).IsEmpty)
-            {
-                _tapeInputFailure = $"Standalone LevelSession skipped tape input at Present {present}; use GameRun.";
-                throw new NotSupportedException(_tapeInputFailure);
-            }
+        if (Tape is not null) Input.Deliver(Tape.EventsAt(Clock.PresentCount));
     }
 
     /// <summary>The level's main loop returned (it quit to the front end, timed out, restarted or the game quit).</summary>
@@ -285,6 +268,7 @@ public sealed class LevelSession
         // A retry is the same process and tape, whose earlier events were handled by the preceding session.
         next._tape = _tape;
         next._tapeContinuation = _tape is not null;
+        if (_tape is not null) Clock.TapeOwner = next;
         // The host's canvas belongs to the running route, not the world being replaced by Retry.
         next.Draw = Draw;
         return next;

@@ -198,9 +198,10 @@ public sealed class RetailTape
 
     private static long ParseFrame(string s, int line)
     {
-        if (!long.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out long frame) || frame < 1)
+        if (!long.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out long frame)
+            || frame < 1 || frame > uint.MaxValue)
         {
-            throw new FormatException($"Tape line {line + 1}: frame must be a positive integer.");
+            throw new FormatException($"Tape line {line + 1}: frame must be between 1 and 4294967295.");
         }
 
         return frame;

@@ -98,9 +98,16 @@ public sealed class GameRun : ISystemParts
         {
             if (Clock.PresentCount != 0 && !ReferenceEquals(value, _tape))
                 throw new InvalidOperationException("Select the tape before the first Present.");
+            if (value is not null && Clock.TapeOwner is { } owner && !ReferenceEquals(owner, this))
+                throw new InvalidOperationException("This clock already has a tape owner.");
+            if (value is not null) Clock.TapeOwner = this;
+            else if (ReferenceEquals(Clock.TapeOwner, this)) Clock.TapeOwner = null;
             _tape = value;
         }
     }
+
+    /// <summary>Called after each Present, before its tape events, like the port's probe sampling.</summary>
+    public Action? BeforeTapeInput { get; set; }
 
     /// <summary>Called after each Present, after the tape's events for it are delivered.</summary>
     public Action? OnPresented { get; set; }
@@ -225,6 +232,7 @@ public sealed class GameRun : ISystemParts
             throw new InvalidOperationException($"the run passed Present {LastPresent}");
         }
 
+        BeforeTapeInput?.Invoke();
         if (Tape is not null)
         {
             foreach (RetailTapeEvent e in Tape.EventsAt(p))

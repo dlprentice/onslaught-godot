@@ -22,6 +22,12 @@ public sealed class CeTapeDeliveryTests
         var trapped = new List<(int, int)>();
         run.Input.KeyTrap = (key, e) => { trapped.Add((key, e)); return false; };
         run.Input.Mouse.SystemCursor = (99, 99);
+        run.BeforeTapeInput = () =>
+        {
+            Assert.Equal(1, run.Clock.PresentCount);
+            Assert.Equal((0, 0), run.Input.Mouse.SystemCursor);
+            Assert.Equal(0, run.Input.Pending);
+        };
         run.OnPresented = () =>
         {
             Assert.Equal(1, run.Clock.PresentCount);
@@ -39,15 +45,83 @@ public sealed class CeTapeDeliveryTests
     }
 
     [GameDataFact]
-    public void StandaloneLevelRefusesLegacyInputItsStartupWouldSkip()
+    public void StandaloneLevelDeliversEarlyInputAfterEachProbe()
     {
-        foreach (int present in new[] { 1, 2 })
+        var level = LevelSession.Load(100, GameData.Read);
+        level.Tape = RetailTape.Parse(Encoding.ASCII.GetBytes("# onslaught tape 2\nW_CLIENT 640 480\n"
+            + "W 1 move 100 200 0\nK 1 down 41 1e a\nC 1 61 1e\nM 1 7 -3 120 1\n"
+            + "W 2 move 200 300 0\nK 2 up 41 1e a\n"));
+        var samples = new List<(long Present, int X, int Y)>();
+        var trapped = new List<(int, int)>();
+        level.Input.Input.KeyTrap = (key, e) => { trapped.Add((key, e)); return false; };
+        level.Clock.Presented = () =>
         {
+            var (x, y) = level.Input.Input.Mouse.SystemCursor;
+            samples.Add((level.Clock.PresentCount, x, y));
+        };
+        level.AdvanceToNextPresent();
+        Assert.Equal([(1L, 0, 0), (2L, 100, 200), (3L, 200, 300)], samples);
+        level.Input.Input.Process(level.Clock.QueryPerformanceCounter());
+        Assert.Equal([(0x1e, KeyTrapEvent.Down), (0x61, KeyTrapEvent.Char), (0x1e, KeyTrapEvent.Up)], trapped);
+        level.Input.Mouse.PollState();
+        Assert.True(level.Input.Input.Mouse.Held[0]);
+    }
+
+    [GameDataFact]
+    public void HostedLevelDoesNotDeliverTheGameRunsTapeTwice()
+    {
+        var builder = new StringBuilder("# onslaught tape 2\n");
+        for (int p = 1; p <= 50; p++) builder.Append($"K {p} down 41 1e a\n");
+        RetailTape tape = RetailTape.Parse(Encoding.ASCII.GetBytes(builder.ToString()));
+        var run = new GameRun(GameData.Read, null, new RetailChainTests.InstalledFilms(), skipFmv: true) { Tape = tape };
+        int downs = 0;
+        run.Input.KeyTrap = (_, e) => { if (e == KeyTrapEvent.Down) downs++; return false; };
+        run.Input.PrepareTape(tape);
+        run.OnPresented = () =>
+        {
+            run.Input.Process(run.Clock.QueryPerformanceCounter());
+            Assert.Equal(run.Clock.PresentCount, downs);
+        };
+        var host = new LevelHost(run.Clock, run.Input, run.Bindings, run.Shared, run.Crt.MainThread,
+            run.FrontEnd.EndLevelData, LevelSession.SlotsOf(run.FrontEnd.Career), run.Loading, run.FrontEnd.Career.SetSlot)
+            { Career = run.FrontEnd.Career };
+        var level = LevelSession.Load(100, GameData.Read, host: host);
+        Assert.Throws<InvalidOperationException>(() => level.Tape = tape);
+        level.AdvanceToNextPresent();
+        Assert.Null(level.Tape);
+        Assert.Null(run.Clock.ReplayPresented);
+        Assert.Equal(run.Clock.PresentCount, downs);
+    }
+
+    [GameDataFact]
+    public void StandaloneRetryKeepsPresentDeliveryThroughThrottledAndRenderedLoads()
+    {
+        foreach (bool throttled in new[] { true, false })
+        {
+            var builder = new StringBuilder("# onslaught tape 2\nW_CLIENT 640 480\n");
+            for (int p = 1; p <= 100; p++) builder.Append($"W {p} move {p} {p} 0\nK {p} down 41 1e a\n");
             var level = LevelSession.Load(100, GameData.Read);
-            level.Tape = RetailTape.Parse(Encoding.ASCII.GetBytes($"K {present} down 41 1e a\n"));
-            var error = Assert.Throws<NotSupportedException>(() => level.AdvanceToNextPresent());
-            Assert.Contains($"Present {present}", error.Message, StringComparison.Ordinal);
-            Assert.Equal(error.Message, Assert.Throws<NotSupportedException>(() => level.AdvanceToNextPresent()).Message);
+            level.Tape = RetailTape.Parse(Encoding.ASCII.GetBytes(builder.ToString()));
+            int downs = 0;
+            level.Input.Input.KeyTrap = (_, e) => { if (e == KeyTrapEvent.Down) downs++; return false; };
+            level.Clock.Presented = () =>
+            {
+                level.Input.Input.Process(level.Clock.QueryPerformanceCounter());
+                Assert.Equal(level.Clock.PresentCount - 1, downs); // probe observes the preceding input, exactly once
+            };
+            level.AdvanceToNextPresent();
+            level.Game.SetQuit(OnslaughtRebuild.Parity.Clock.QuitType.RestartLevel);
+            for (int i = 0; i < 60 && !level.Ended; i++) level.AdvanceToNextPresent();
+            Assert.True(level.Ended);
+            var loading = new LoadingScreen(level.Clock, () => level.Input.Input.Process(level.Clock.QueryPerformanceCounter()));
+            if (throttled) loading.RenderedByBoot();
+            typeof(LevelSession).GetProperty(nameof(LevelSession.Loading))!.SetValue(level, loading);
+            long before = level.Clock.PresentCount;
+            LevelSession retry = level.Restart();
+            if (throttled) Assert.Equal(before, retry.PresentCount);
+            else Assert.True(retry.PresentCount > before);
+            retry.AdvanceToNextPresent();
+            Assert.True(retry.PresentCount > before);
         }
     }
 

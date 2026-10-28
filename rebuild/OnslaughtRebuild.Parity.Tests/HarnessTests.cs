@@ -76,27 +76,13 @@ public sealed class HarnessTests
         Assert.Throws<NotSupportedException>(() => ParityRunner.Run(new RecordingSimulation(), cursorOnly, 1, 1));
     }
 
-    [Fact]
-    public void StandaloneLevelRefusesExtendedTapeUntilItsStartupDeliveryIsImplemented()
-    {
-        var level = (OnslaughtRebuild.Parity.Game.LevelSession)System.Runtime.CompilerServices.RuntimeHelpers
-            .GetUninitializedObject(typeof(OnslaughtRebuild.Parity.Game.LevelSession));
-        RetailTape extended = Tape("# onslaught tape 2\nW_CLIENT 640 480\nW 1 move 1 2 0\n");
-        Assert.Throws<NotSupportedException>(() => level.Tape = extended);
-        Assert.Null(level.Tape);
-        RetailTape characterOnly = Tape("C 1 61 1e\n");
-        Assert.Throws<NotSupportedException>(() => level.Tape = characterOnly);
-        RetailTape legacy = Tape("K 5 down 41 1e a\n");
-        level.Tape = legacy;
-        Assert.Same(legacy, level.Tape);
-    }
-
     [Theory]
     [InlineData("K 5 down 57 11 w\nK 4 up 57 11 w\n")]
     [InlineData("K 5 pressed 57 11 w\n")]
     [InlineData("K 5 down 57 11 w\r\n")]
     [InlineData("M 5 0 0 0 8\n")]
     [InlineData("M 0 0 0 0 0\n")]
+    [InlineData("K 4294967296 down 41 1e a\n")]
     [InlineData("J 5 0 0 0 0\n")]
     [InlineData("K 5 down 157 11 w\n")]
     public void TapeRejectsMalformedLines(string text)
