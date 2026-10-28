@@ -1300,6 +1300,10 @@ public sealed partial class BattleEngine
     /// the battle engine's yaw plus the aim offset; a forward-facing weapon that adjusts its aim points at that place, or
     /// along the battle engine's orientation turned by the aim offsets when the line met nothing.
     /// </summary>
+    // The hit branch calls FVector::Elevation and the 0040d1f0 Euler constructor at 0040d090..0040d0b0.
+    // Their x87 rounding/order matches StraightAimOrientation's 004062d0 constructor, not the inline FMatrix copy.
+    internal static FMatrix AimAtHit(FVector adjusted) => WeaponMaths.StraightAimOrientation(adjusted);
+
     public override void GetLaunchPosition(Weapon weapon, int index, out FVector pos, out FMatrix orientation, bool needOrientation)
     {
         pos = new FVector(0, 0, 0);
@@ -1340,7 +1344,7 @@ public sealed partial class BattleEngine
                 FVector targetVector = endPoint - camPos;
                 FVector hitPoint = (targetVector * (Wlcr.DistToImpact / targetVector.Magnitude())) + camPos;
                 FVector adjusted = hitPoint - pos;
-                orientation = FMatrix.FromYawPitchRoll(WeaponMaths.Azimuth(Context, adjusted), WeaponMaths.Elevation(Context, adjusted), 0.0f);
+                orientation = AimAtHit(adjusted);
             }
             else
             {
