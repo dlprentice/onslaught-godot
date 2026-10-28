@@ -8,6 +8,22 @@ namespace OnslaughtRebuild.Parity.Tests;
 public sealed class ReplaySoundProfileTests
 {
     [Fact]
+    public void UnadmittedReplayReceiptFailsBeforeReadingGameDataOrProfile()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"onslaught-receipt-{Guid.NewGuid():N}.json");
+        try
+        {
+            File.WriteAllText(path, "{\"admitted\":true}");
+            int reads = 0;
+            var error = Assert.Throws<InvalidDataException>(() => ReplaySoundProfile.CreateRecordedReplay(
+                "missing-profile", path, [], [], name => { reads++; return (name, []); }, null, null!));
+            Assert.Contains("replay receipt", error.Message);
+            Assert.Equal(0, reads);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
     public void UnadmittedProfileFailsBeforeReadingGameData()
     {
         string path = Path.Combine(Path.GetTempPath(), $"onslaught-profile-{Guid.NewGuid():N}.json");

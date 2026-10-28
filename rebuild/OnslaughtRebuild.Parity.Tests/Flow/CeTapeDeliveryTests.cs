@@ -17,7 +17,13 @@ public sealed class CeTapeDeliveryTests
     {
         RetailTape tape = RetailTape.Parse(Encoding.ASCII.GetBytes("# onslaught tape 2\nW_CLIENT 640 480\n"
             + "W 1 move 100 200 0\nK 1 down 41 1e a\nC 1 61 1e\nM 1 7 -3 120 1\n"));
-        var run = new GameRun(GameData.Read, null, new RetailChainTests.InstalledFilms(), skipFmv: true) { Tape = tape };
+        var run = new GameRun(GameData.Read, null, new RetailChainTests.InstalledFilms(), skipFmv: true, fixedTape: tape);
+        var events = Assert.IsAssignableFrom<IList<RetailTapeEvent>>(tape.Events);
+        Assert.Throws<NotSupportedException>(() => events[0] = new RetailMouseEvent(1, 0, 0, 0, 0));
+        Assert.Throws<InvalidOperationException>(() => run.Tape = null);
+        RetailTape other = RetailTape.Parse(Encoding.ASCII.GetBytes("K 1 down 42 30 b\n"));
+        Assert.Throws<InvalidOperationException>(() => run.Tape = other);
+        Assert.Same(tape, run.Tape);
         Assert.Same(run.FrontEnd.NormalFont, Assert.IsType<VirtualKeyboardPage>(run.FrontEnd.VirtualKeyboard).Font);
         var trapped = new List<(int, int)>();
         run.Input.KeyTrap = (key, e) => { trapped.Add((key, e)); return false; };

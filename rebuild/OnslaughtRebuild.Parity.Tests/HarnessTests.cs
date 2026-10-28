@@ -17,6 +17,8 @@ public sealed class HarnessTests
         RetailTape tape = RetailTape.Load(Fixture("synthetic.tape"));
 
         Assert.Equal(5, tape.Events.Count);
+        var events = Assert.IsAssignableFrom<IList<RetailTapeEvent>>(tape.Events);
+        Assert.Throws<NotSupportedException>(() => events[0] = new RetailMouseEvent(3, 0, 0, 0, 0));
         Assert.Equal(3, tape.FirstFrame);
         Assert.Equal(6, tape.LastFrame);
         Assert.Equal(64, tape.Sha256.Length);

@@ -45,6 +45,7 @@ public sealed class RetailTape
     private RetailTape(RetailTapeEvent[] events, string sha256, int version, bool usesTapeCursor)
     {
         _events = events;
+        Events = Array.AsReadOnly(events);
         Sha256 = sha256;
         Version = version;
         UsesTapeCursor = usesTapeCursor;
@@ -62,7 +63,8 @@ public sealed class RetailTape
         }
     }
 
-    public IReadOnlyList<RetailTapeEvent> Events => _events;
+    /// <summary>The parsed events in file order, exposed through a read-only collection.</summary>
+    public IReadOnlyList<RetailTapeEvent> Events { get; }
 
     /// <summary>Lowercase hex SHA-256 of the tape's bytes as read.</summary>
     public string Sha256 { get; }

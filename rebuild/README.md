@@ -153,6 +153,12 @@ the recorded boot-to-debrief route completes in the Host. `HOST_FRONTEND_PARTICL
 drawing for comparison. `HOST_FRONTEND_ONLY=1` is a tape-only capture diagnostic: it still executes the entire
 simulation but omits level-world drawing. Neither diagnostic changes the tape or advances mission events.
 
+For the separately observed CE 0.1.9 recording, `ReplaySoundProfile.CreateRecordedReplay` is an explicit test API:
+it requires the pinned private census receipt, the exact tape and complete sidecar, the same pinned pool file and
+English sample bank. It starts from the sidecar's options and careers in memory, with its tape fixed to the run;
+the two ancillary start files remain unmodeled. The selected seeds describe that isolated replay process, not the
+unobserved memory of the original recording or a general player default. This API does not enable live sound.
+
 
 ## The earlier rebuild (history)
 

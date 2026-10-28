@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -50,6 +50,15 @@ at 5823 after its camera zoom made different objects visible. A separate capture
 matrix but different gamut zoom inputs at Presents 5821–5822; the source-backed diagnostic correction produced the
 port's gamut inputs on those frames. The route then stops at an unconfigured incoming-missile sound owner. This is a
 bounded port comparison with no admitted sound-pool profile, not proof of retail parity or a completed rebuild win.
+
+A separate isolated CE 0.1.9 replay of the same tape and full starting sidecar recorded all 256 sound-pool slots;
+their ordered channel and position bits matched the previously admitted pool, and its complete port probes and
+copied output-file hashes matched the original reference. `ReplaySoundProfile.CreateRecordedReplay` accepts only
+the pinned private census receipt, its exact tape and sidecar, and the existing pinned pool and English sample bank.
+It supplies the authenticated options and careers in memory and fixes the tape to that run. The sidecar's two
+ancillary files are authenticated but not modeled. With this process-specific sound admission, the sampled port
+fields match through Present 11670; the rebuild then refuses at the unimplemented goodie-8 viewer. This does not
+establish the recording's original allocator contents, arbitrary process behavior, retail parity or a full rebuild win.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in

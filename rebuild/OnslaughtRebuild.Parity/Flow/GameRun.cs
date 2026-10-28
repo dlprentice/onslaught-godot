@@ -25,7 +25,8 @@ public sealed class GameRun : ISystemParts
     private readonly bool _skipFmv;
 
     public GameRun(Func<string, (string Name, byte[] Bytes)> read, Func<int, string>? pcText, IFilmFiles films,
-        bool skipFmv, Func<PlatformClock, IMessageVoice>? voice = null, VirtualSoundProcessOptions? soundOptions = null)
+        bool skipFmv, Func<PlatformClock, IMessageVoice>? voice = null, VirtualSoundProcessOptions? soundOptions = null,
+        RetailTape? fixedTape = null)
     {
         _read = read;
         _voice = voice;
@@ -54,6 +55,11 @@ public sealed class GameRun : ISystemParts
             else Sounds.PlayEffect(Sounds.Find(name), Crt.MainThread);
         };
         Clock.Presented = Presented;
+        if (fixedTape is not null)
+        {
+            Tape = fixedTape;
+            _fixedTape = true;
+        }
     }
 
     public PlatformClock Clock { get; } = new();
@@ -89,6 +95,7 @@ public sealed class GameRun : ISystemParts
     public LevelSession? Level { get; private set; }
 
     private RetailTape? _tape;
+    private bool _fixedTape;
 
     /// <summary>A replay tape, by Present since boot. It must be selected before the first Present.</summary>
     public RetailTape? Tape
@@ -96,6 +103,8 @@ public sealed class GameRun : ISystemParts
         get => _tape;
         set
         {
+            if (_fixedTape && !ReferenceEquals(value, _tape))
+                throw new InvalidOperationException("This run is bound to its admitted replay tape.");
             if (Clock.PresentCount != 0 && !ReferenceEquals(value, _tape))
                 throw new InvalidOperationException("Select the tape before the first Present.");
             if (value is not null && Clock.TapeOwner is { } owner && !ReferenceEquals(owner, this))
