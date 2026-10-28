@@ -629,7 +629,9 @@ Slice 3 (2026-10-21): the front end's other pages draw.
 - The cursor after a level: `ShutdownMouse` takes `GetCursorPos`, the system cursor, which no tape records. It is now a
   platform input (`Mouse.SystemCursor`), machine state like the clock, defaulting to the port harness's offscreen answer
   (0, 0); the debriefing then matches the port at 0.11. Open: what retail's harness (Wine on the same Xvfb) answers,
-  which the next retail pair can log.
+  which the next retail pair can log. Level return/retry and pause or level-end menus now synchronize the modeled
+  mouse device and controller context on release and reacquisition. Authored controls cover the state and input
+  activity paths; they do not establish physical-device behavior.
 
 Slice 4 (2026-10-21, groundwork): the level inside the flow.
 - `SteppedGameRun.Inspect` is the host's one way into the run's objects. It runs only while the run's thread is parked
