@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -43,8 +43,13 @@ observer recorded the input positions, motions and cylinder/line dimensions used
 with the old order. With this correction, `ThePilotWinRouteMatchesThePortThroughTheLevelsEnd` compares all nine
 fields every Present through the level's end at 28306, its end-level data, and the outro to 28600 against that
 port reference. This is a port replay plus static retail evidence, not a retail win or device-audio acceptance.
-The earlier `start` and `delta` squared-length checks in this function still use X-first sums; the native port's
-patch 0095 uses Y+Z+X at those sites. Their effect on other collision inputs remains open.
+The earlier `start` and `delta` squared-length checks use Y+Z+X at `0044062d..0044064f` and
+`004406a3..004406bf`; the `end` check remains X+Y+Z. On captured pilot-win inputs, the old and retail sum orders
+produce different float32 values by one ULP at both sites. Two authored boundary variants derived from those inputs take different branches under the old model;
+an isolated execution of the pristine function at x87 PC24 rejected both, while the adjacent-radius and inside-end
+controls passed. `CylinderLineTests` reproduces those four outcomes. This is an isolated original-code experiment,
+not an observed retail gameplay branch. Managed float products do not preserve x87's wider exponent, so underflow,
+overflow and other exceptional intermediates, and the remaining collision arithmetic, still need separate evidence.
 
 Launch-hit orientation (2026-10-28): pristine `74154bfa…` at `0040d090..0040d0b0` calls the x87 elevation at
 `0040d1a0` and the Euler constructor at `0040d1f0`; its floating-point instruction sequence matches `004062d0`, which
