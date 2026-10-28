@@ -219,6 +219,7 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
         {
             CareerOptions options = frontEnd.CurrentOptions?.Invoke()
                 ?? throw new InvalidOperationException("Saving needs the game's live options; the host must set FrontEnd.CurrentOptions.");
+            options = frontEnd.OptionsForSave(options);
             byte[] file = CareerSaveGame.SaveAndMarkInProgress(frontEnd.Career, frontEnd.Controls.Bindings.SaveConfigurable(), options);
             result = card.WriteSave(name, file);
             frontEnd.MessageBox.Kill();

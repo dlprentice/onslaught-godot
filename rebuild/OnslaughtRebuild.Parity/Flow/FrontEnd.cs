@@ -371,19 +371,30 @@ public sealed partial class FrontEnd : IButtonReceiver, Menus.IMenuHost
     /// <summary>The display and joysticks the options' display and controls lists read (the port's harness by default).</summary>
     public Menus.MachineDisplay Machine { get; }
 
+    /// <summary>
+    /// CCareer::WriteOptions (00420b10) first replaces the saved display key with the current device mode. Machine's
+    /// existing mode list is the bounded offscreen reference configuration, not a discovery of the host's display.
+    /// </summary>
+    public Career.CareerOptions OptionsForSave(Career.CareerOptions options)
+    {
+        Career.CareerOptions current = options with { DisplayModeKey = Machine.CurrentModeKey };
+        SetOptions?.Invoke(current);
+        return current;
+    }
+
     private void SaveOptionsAfterDisplayReset()
     {
         // WriteOptions refreshes gDisplayModeKey too; subsequent ordinary saves must retain this selected mode.
         Menus.IMenuHost host = this;
-        host.Options = host.Options with { DisplayModeKey = Machine.CurrentModeKey };
-        byte[] image = OnslaughtRebuild.Parity.Career.CareerSaveGame.Save(Career, Controls.Bindings.SaveConfigurable(), host.Options);
+        Career.CareerOptions options = OptionsForSave(host.Options);
+        byte[] image = OnslaughtRebuild.Parity.Career.CareerSaveGame.Save(Career, Controls.Bindings.SaveConfigurable(), options);
         (WriteDefaultOptionsFile ?? throw new NotSupportedException(
             "state-2 reset persistence requires a defaultoptions.bea output owner"))(image);
     }
 
     void Menus.IMenuHost.SaveFromPause()
     {
-        OnslaughtRebuild.Parity.Career.CareerOptions options = ((Menus.IMenuHost)this).Options;
+        OnslaughtRebuild.Parity.Career.CareerOptions options = OptionsForSave(((Menus.IMenuHost)this).Options);
         byte[] image = OnslaughtRebuild.Parity.Career.CareerSaveGame.Save(Career, Controls.Bindings.SaveConfigurable(), options);
         if (SaveGameName.Length != 0 && MemoryCard.CreateSave(SaveGameName, true, out _) == MemoryCard.Success)
         {

@@ -87,7 +87,7 @@ public sealed class OptionsPage(FrontEnd frontEnd) : FrontEndPageBase
             frontEnd.SetPage(FrontEndPage.Main, 70);
         }
 
-        CareerOptions options = frontEnd.CurrentOptions?.Invoke() ?? CareerOptions.Read(new byte[CareerOptions.Size]);
+        CareerOptions options = frontEnd.OptionsForSave(frontEnd.CurrentOptions?.Invoke() ?? CareerOptions.Read(new byte[CareerOptions.Size]));
         byte[] image = CareerSaveGame.Save(frontEnd.Career, frontEnd.Controls.Bindings.SaveConfigurable(), options);
         frontEnd.WriteDefaultOptionsFile?.Invoke(image);
     }

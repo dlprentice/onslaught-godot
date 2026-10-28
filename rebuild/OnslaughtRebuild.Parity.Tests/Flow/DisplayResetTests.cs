@@ -265,4 +265,36 @@ public sealed class DisplayResetTests
         level.SaveFromPause();
         Assert.Equal(savedImage, level.DefaultOptionsFile);
     }
+
+    [Fact]
+    public void OrdinaryOptionsAndPauseSavesReadTheDeviceModeEachTime()
+    {
+        FrontEnd frontEnd = Host();
+        IMenuHost host = frontEnd;
+        host.Options = host.Options with { DisplayModeKey = 0x12345678u, VSync = 1 };
+        var writes = new List<byte[]>();
+        frontEnd.WriteDefaultOptionsFile = writes.Add;
+        host.Machine.CurrentMode = 1;
+        new OptionsPage(frontEnd).SaveDefaultOptions(false);
+        var first = CareerOptions.Read(Assert.Single(writes).AsSpan(CareerSaveGame.Size - CareerOptions.Size));
+        Assert.Equal(0x82580320u, first.DisplayModeKey);
+        Assert.Equal(1, first.VSync);
+        Assert.Equal(first.DisplayModeKey, host.Options.DisplayModeKey);
+
+        host.Machine.CurrentMode = 2;
+        host.SaveFromPause();
+        var second = CareerOptions.Read(writes[1].AsSpan(CareerSaveGame.Size - CareerOptions.Size));
+        Assert.Equal(0x83000400u, second.DisplayModeKey);
+        Assert.Equal(second.DisplayModeKey, host.Options.DisplayModeKey);
+
+        var clock = new PlatformClock();
+        var context = new ThingContext(new SPtrSetPool(), new EventManager(), new SeedUniformRandomNumberStream(1), null!, null!);
+        var level = new LevelMenuHost(context, clock, frontEnd.Career, TextIds.Read([]),
+            host.Options with { DisplayModeKey = 0x12345678u }, host.Bindings);
+        level.Machine.CurrentMode = 1;
+        level.SaveFromPause();
+        var standalone = CareerOptions.Read(level.DefaultOptionsFile!.AsSpan(CareerSaveGame.Size - CareerOptions.Size));
+        Assert.Equal(0x82580320u, standalone.DisplayModeKey);
+        Assert.Equal(standalone.DisplayModeKey, level.Options.DisplayModeKey);
+    }
 }
