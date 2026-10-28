@@ -4,8 +4,9 @@
 namespace OnslaughtRebuild.Parity.Maths;
 
 /// <summary>
-/// The game's three-float vector. Every operation keeps the decomposition's association order, which is retail's:
-/// with float operands at 24-bit precision control, C# float arithmetic in the same order gives the same bits.
+/// The game's three-float vector. Operations use the associations shown below; retail can use different associations
+/// at individual inlined sites. Matching association in C# float and x87's 24-bit precision control does not guarantee
+/// identical bits: x87 has a wider exponent range, and underflow, overflow and exceptional inputs need separate evidence.
 /// </summary>
 public struct FVector : IEquatable<FVector>
 {
