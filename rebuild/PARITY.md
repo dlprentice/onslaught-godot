@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -69,8 +69,16 @@ an actual game pose and the port's inlined machine code at those cells remain to
 not reproduce x87's wider exponent: in an isolated PC24 control, two products of normal `2^-75` inputs sum to the
 smallest float32 subnormal (`00000001`), while rounding each managed float product first gives zero. This was not a
 captured game pose. Underflow, subnormal intermediates, exceptional values and complete visual or gameplay parity
-remain open. Other inline sites, including the body-roll and animated-hierarchy products, still need site-specific
-review.
+remain open. Other inline sites, including the body-roll and animated-hierarchy orientation products, still need
+site-specific review.
+
+The `CMCMech::UpdateBone` animated-hierarchy **point** product now uses the grouping in pristine
+`0049b719..0049b775` (specimen SHA-256 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`):
+X is `(Z+Y)+X`; Y and Z are `(Z+X)+Y`. An isolated PC24 execution of those unchanged instructions produced the
+expected values for two cancellation cases, an identity control and an authored float-rounded rotation/key-position
+case. In the latter, the previous generic transform gave Z `403197a4` instead of `403197a3`; the new test exercises
+the managed `UpdateBone` hierarchy path, and all three differing cases reject the former code. These are authored
+inputs, not captured gameplay poses; the wider-x87-exponent and exceptional-value limits above also apply here.
 
 Opt-in live device audio (2026-10-27, M7 remains incomplete): `HOST_LIVE=1 HOST_AUDIO=1` adds effects and prepared
 PCM voices through the shared sound process. It is separate from `HOST_TAPE`'s virtual device and is not used by

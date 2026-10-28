@@ -4,7 +4,7 @@
 // UpdateBoneHierarchyRecursive 0049bd50, GetPartTransform 0049be00, AdjustFrame 0049c1d0) and src/MCBattleEngine.h and
 // MCBattleEngine.cpp (CMCBattleEngine: slot 10 FALSE, slot 11 the engine's CalculatePitch, slot 13 90, slot 14 the
 // multiplayer foot trace). Reconstructed; not in Stuart's release. The decomp's byte-matching stand-ins (operand orders,
-// helper spellings) are ported as their arithmetic: the bones feed drawing only, so they need no bit-exactness here.
+// helper spellings) are ported as their arithmetic; bit-exactness is established only for the tested cases.
 
 using OnslaughtRebuild.Parity.Events;
 using OnslaughtRebuild.Parity.Game;
@@ -72,6 +72,13 @@ public sealed class MCBattleEngine : Monitor
     private bool _wasUsed;
     private FMatrix _bodyOri = FMatrix.Identity;
     private FVector _unknown88;
+
+    // UpdateBone's hierarchy-point product, pristine 74154bfa 0049b719..0049b775. Its X sum is (Z+Y)+X, while Y and Z
+    // are (Z+X)+Y. Managed float intermediates do not retain x87's wider exponent for underflow or overflow.
+    private static FVector MechHierarchyPointProduct(FMatrix m, FVector p) => new(
+        ((m.Row0.Z * p.Z) + (m.Row0.Y * p.Y)) + (m.Row0.X * p.X),
+        ((m.Row1.Z * p.Z) + (m.Row1.X * p.X)) + (m.Row1.Y * p.Y),
+        ((m.Row2.Z * p.Z) + (m.Row2.X * p.X)) + (m.Row2.Y * p.Y));
 
     // CMCMech::UpdateBone inlines two distinct products. These follow the PC24 sum orders at 0049ae63..0049afbb
     // and 0049b02e..0049b18e, respectively, on pristine 74154bfa. Managed float intermediates do not retain x87's
@@ -646,7 +653,7 @@ public sealed class MCBattleEngine : Monitor
         }
         else
         {
-            pos = moved ? offset : pos + ori.Transform(part.GetKeyPosition(key));
+            pos = moved ? offset : pos + MechHierarchyPointProduct(ori, part.GetKeyPosition(key));
             ori = rotated ? m : m.Multiply(ori.Multiply(part.GetHFrameOrientation(key)));
         }
 
