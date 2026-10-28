@@ -77,6 +77,23 @@ public sealed class StraightAimTests
         Assert.Equal("3f7f5bbc 3d6d55bf bd26583b", Bits(WeaponMaths.StraightAimOrientation(v).Row1));
     }
 
+    /// <summary>
+    /// Two adjusted hit vectors from the native port's level-100 pilot-win replay. The second shot distinguishes the
+    /// x87 asin from Math.Asin, while the third also distinguishes the out-of-line matrix's retained cosine from the
+    /// inline model. The original 0040d090..0040d0b0 calls the 0040d1a0 elevation and 0040d1f0 constructor; the latter
+    /// has the same floating-point instruction sequence as 004062d0 apart from the destination-register move.
+    /// </summary>
+    [Theory]
+    [InlineData("c0facca0 40e52000 4008cb80", "3f2cab0c bf394895 3e15392a", "3f3d007b 3f294569 be0853c8", "80000000 3e4a1edc 3f7af6ab")]
+    [InlineData("c0fa5b40 40e4a340 4008cdac", "3f2ca255 bf394cb1 3e1588b8", "3f3d0870 3f293980 be088fd2", "80000000 3e4a8218 3f7af1ab")]
+    public void HitLaunchUsesRetailElevationAndConstructor(string d, string row0, string row1, string row2)
+    {
+        FMatrix m = BattleEngine.AimAtHit(Vector(d));
+        Assert.Equal(row0, Bits(m.Row0));
+        Assert.Equal(row1, Bits(m.Row1));
+        Assert.Equal(row2, Bits(m.Row2));
+    }
+
     private static FVector Vector(string words)
     {
         float[] f = words.Split(' ').Select(w => BitConverter.UInt32BitsToSingle(uint.Parse(w, NumberStyles.HexNumber))).ToArray();
