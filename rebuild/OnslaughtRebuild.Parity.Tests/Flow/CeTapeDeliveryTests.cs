@@ -16,7 +16,7 @@ public sealed class CeTapeDeliveryTests
     public void FullRunDeliversWindowAndCharacterEventsAtTheRecordedPresent()
     {
         RetailTape tape = RetailTape.Parse(Encoding.ASCII.GetBytes("# onslaught tape 2\nW_CLIENT 640 480\n"
-            + "W 1 move 100 200 0\nK 1 down 41 1e a\nC 1 61 1e\n"));
+            + "W 1 move 100 200 0\nK 1 down 41 1e a\nC 1 61 1e\nM 1 7 -3 120 1\n"));
         var run = new GameRun(GameData.Read, null, new RetailChainTests.InstalledFilms(), skipFmv: true) { Tape = tape };
         Assert.Same(run.FrontEnd.NormalFont, Assert.IsType<VirtualKeyboardPage>(run.FrontEnd.VirtualKeyboard).Font);
         var trapped = new List<(int, int)>();
@@ -29,6 +29,10 @@ public sealed class CeTapeDeliveryTests
             run.Input.Process(run.Clock.QueryPerformanceCounter());
             Assert.Equal((100, 200), (run.Input.Mouse.X, run.Input.Mouse.Y));
             Assert.Equal([(0x1e, KeyTrapEvent.Down), (0x61, KeyTrapEvent.Char)], trapped);
+            var level = new LevelInput(run.Clock, run.Bindings, run.Input, run.Shared);
+            level.Mouse.Init(); level.Mouse.PollState();
+            Assert.Equal((327, 237, 120), (run.Input.Mouse.X, run.Input.Mouse.Y, run.Input.Mouse.Wheel));
+            Assert.True(run.Input.Mouse.Held[0]);
             throw new StopRun();
         };
         Assert.Throws<StopRun>(() => run.Run());
@@ -45,5 +49,27 @@ public sealed class CeTapeDeliveryTests
             Assert.Contains($"Present {present}", error.Message, StringComparison.Ordinal);
             Assert.Equal(error.Message, Assert.Throws<NotSupportedException>(() => level.AdvanceToNextPresent()).Message);
         }
+    }
+
+    [GameDataFact]
+    public void TapeCannotBeAttachedAfterItsInputsHaveAlreadyPassed()
+    {
+        RetailTape tape = RetailTape.Parse(Encoding.ASCII.GetBytes("K 1 down 41 1e a\n"));
+        var run = new GameRun(GameData.Read, null, new RetailChainTests.InstalledFilms(), skipFmv: true);
+        run.Clock.PresentDevice();
+        Assert.Throws<InvalidOperationException>(() => run.Tape = tape);
+        Assert.Null(run.Tape);
+
+        var started = LevelSession.Load(100, GameData.Read);
+        started.AdvanceToNextPresent();
+        Assert.Throws<InvalidOperationException>(() => started.Tape = tape);
+        Assert.Null(started.Tape);
+
+        var alreadyPast = LevelSession.Load(100, GameData.Read);
+        alreadyPast.Tape = tape;
+        alreadyPast.Clock.PresentDevice();
+        alreadyPast.Clock.PresentDevice();
+        var error = Assert.Throws<NotSupportedException>(() => alreadyPast.AdvanceToNextPresent());
+        Assert.Contains("already-passed", error.Message, StringComparison.Ordinal);
     }
 }

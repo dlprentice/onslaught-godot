@@ -88,8 +88,19 @@ public sealed class GameRun : ISystemParts
     /// <summary>The level running now, or the last one.</summary>
     public LevelSession? Level { get; private set; }
 
-    /// <summary>A replay tape, by Present since boot.</summary>
-    public RetailTape? Tape { get; set; }
+    private RetailTape? _tape;
+
+    /// <summary>A replay tape, by Present since boot. It must be selected before the first Present.</summary>
+    public RetailTape? Tape
+    {
+        get => _tape;
+        set
+        {
+            if (Clock.PresentCount != 0 && !ReferenceEquals(value, _tape))
+                throw new InvalidOperationException("Select the tape before the first Present.");
+            _tape = value;
+        }
+    }
 
     /// <summary>Called after each Present, after the tape's events for it are delivered.</summary>
     public Action? OnPresented { get; set; }
@@ -159,9 +170,6 @@ public sealed class GameRun : ISystemParts
 
     private readonly Game.GameRenderStatics _renderStatics = new();
 
-    /// <summary>The tape's mouse movement since the last level's device read, for the next level's.</summary>
-    private (int X, int Y, int Wheel, byte Buttons, bool Any) _pendingMouse;
-
     public QuitType RunLevel(int level)
     {
         int[] slots = new int[Career.CareerRecord.SlotWordCount];
@@ -184,12 +192,6 @@ public sealed class GameRun : ISystemParts
             });
         LoadingLevel = null;
         Level.Draw = LevelDraw?.Invoke();
-        if (_pendingMouse.Any)
-        {
-            Level.Input.Mouse.AddMouseDelta(_pendingMouse.X, _pendingMouse.Y, _pendingMouse.Wheel, _pendingMouse.Buttons);
-            _pendingMouse = default;
-        }
-
         while (true)
         {
             while (!Level.Ended)
@@ -229,14 +231,10 @@ public sealed class GameRun : ISystemParts
             {
                 switch (e)
                 {
-                    case RetailMouseEvent mouse when Level is { Ended: false } level:
-                        level.Input.Mouse.AddMouseDelta(mouse.DeltaX, mouse.DeltaY, mouse.Wheel, (byte)mouse.Buttons);
-                        break;
                     case RetailMouseEvent mouse:
-                        // Outside a level no DirectInput mouse reads the tape. M movement adds up for the next level's
-                        // first device read; only W events move a tape-owned window cursor (port replay.cpp).
-                        _pendingMouse = (unchecked(_pendingMouse.X + mouse.DeltaX), unchecked(_pendingMouse.Y + mouse.DeltaY),
-                            unchecked(_pendingMouse.Wheel + mouse.Wheel), (byte)mouse.Buttons, true);
+                        // The replay buffer belongs to the process. Reads consume motion, not the held button level,
+                        // so the same state survives shutdown, front-end Presents and later level devices.
+                        Input.AddTapeMouse(mouse);
                         break;
                     default:
                         Input.PostTapeMessage(e);

@@ -88,6 +88,62 @@ public sealed class PlatformInputTests
     }
 
     [Fact]
+    public void ReplayMouseSurvivesLevelDeviceReplacementWithoutRepeatingConsumedMotion()
+    {
+        var clock = new OnslaughtRebuild.Parity.Clock.PlatformClock();
+        PlatformInput input = New(frontEnd: false);
+        var shared = new ControllerShared();
+        var first = new OnslaughtRebuild.Parity.Game.LevelInput(clock, ControlBindings.Defaults(), input, shared);
+        first.Mouse.Init();
+        first.Deliver([new RetailMouseEvent(1, 3, 2, 0, 1)]);
+        first.Mouse.PollState();
+        Assert.Equal((323, 242), (input.Mouse.X, input.Mouse.Y));
+        Assert.True(input.Mouse.Held[0]);
+        first.Deliver([new RetailMouseEvent(2, 7, -3, 120, 1)]); // unread at the level boundary
+        first.Mouse.Shutdown(0, 0);
+
+        var second = new OnslaughtRebuild.Parity.Game.LevelInput(clock, ControlBindings.Defaults(), input, shared);
+        input.Mouse.Held[0] = false; // distinguish the device's retained level from the old UI flag
+        second.Mouse.Init();
+        second.Mouse.PollState();
+        Assert.Equal((327, 237), (input.Mouse.X, input.Mouse.Y));
+        Assert.Equal(120, input.Mouse.Wheel);
+        Assert.True(input.Mouse.Held[0]);
+        second.Mouse.PollState();
+        Assert.Equal((327, 237), (input.Mouse.X, input.Mouse.Y));
+        Assert.Equal(120, input.Mouse.Wheel);
+        Assert.True(input.Mouse.Held[0]); // held until another M event changes it
+
+        second.Deliver([new RetailMouseEvent(3, 0, 0, 0, 0)]);
+        var third = new OnslaughtRebuild.Parity.Game.LevelInput(clock, ControlBindings.Defaults(), input, shared);
+        third.Mouse.Init();
+        third.Mouse.PollState();
+        Assert.False(input.Mouse.Held[0]);
+        Assert.True(input.Mouse.Buttons[0].Released);
+        PlatformInput independent = New(frontEnd: false);
+        var other = new OnslaughtRebuild.Parity.Game.LevelInput(clock, ControlBindings.Defaults(), independent, new ControllerShared());
+        other.Mouse.Init(); other.Mouse.PollState();
+        Assert.False(independent.Mouse.Held[0]);
+    }
+
+    [Fact]
+    public void LiveDeviceReplacementDoesNotInheritAReplayBuffer()
+    {
+        var clock = new OnslaughtRebuild.Parity.Clock.PlatformClock();
+        PlatformInput input = New(frontEnd: false);
+        var shared = new ControllerShared();
+        var first = new OnslaughtRebuild.Parity.Game.LevelInput(clock, ControlBindings.Defaults(), input, shared);
+        first.Mouse.Init(); first.Mouse.AddMouseDelta(7, -3, 120, 1); first.Mouse.PollState();
+        Assert.True(input.Mouse.Held[0]);
+        first.Mouse.Shutdown(0, 0);
+        input.Mouse.Held[0] = false;
+        var second = new OnslaughtRebuild.Parity.Game.LevelInput(clock, ControlBindings.Defaults(), input, shared);
+        second.Mouse.Init(); second.Mouse.PollState();
+        Assert.Equal((320, 240, 0), (input.Mouse.X, input.Mouse.Y, input.Mouse.Wheel));
+        Assert.False(input.Mouse.Held[0]);
+    }
+
+    [Fact]
     public void TapeKeysAreHandledByScanCodeWhenThePlatformPumps()
     {
         PlatformInput input = New();

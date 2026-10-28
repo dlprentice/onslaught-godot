@@ -45,6 +45,7 @@ public sealed class LevelSession
 
     private RetailTape? _tape;
     private string? _tapeInputFailure;
+    private bool _tapeContinuation;
 
     /// <summary>
     /// A legacy K/M replay tape. CE cursor, window and character tapes are refused until standalone per-Present
@@ -56,6 +57,8 @@ public sealed class LevelSession
         get => _tape;
         set
         {
+            if (_started && !ReferenceEquals(value, _tape))
+                throw new InvalidOperationException("Select the tape before starting a standalone level.");
             if (value is not null && (value.UsesTapeCursor
                 || value.Events.Any(e => e is not (RetailKeyEvent or RetailMouseEvent))))
                 throw new NotSupportedException("Standalone LevelSession cannot yet replay CE window or character input; use GameRun.");
@@ -84,6 +87,13 @@ public sealed class LevelSession
         long before = Clock.PresentCount;
         if (!_started)
         {
+            if (!_tapeContinuation && Tape is { Events.Count: > 0 } tape && tape.FirstFrame < before)
+                throw new NotSupportedException("The standalone level was given a tape with already-passed input; use GameRun.");
+            if (Tape is not null)
+            {
+                Input.Input.PrepareTape(Tape);
+                Input.Mouse.UseReplayState(Input.Input.DeviceMouse);
+            }
             _started = true;
             if (!FromFrontEnd)
             {
@@ -272,7 +282,9 @@ public sealed class LevelSession
         Context.Particles?.Manager.Shutdown();
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Game.Loop.CarryFrameTimes(Game.Loop);
-        next.Tape = Tape;
+        // A retry is the same process and tape, whose earlier events were handled by the preceding session.
+        next._tape = _tape;
+        next._tapeContinuation = _tape is not null;
         // The host's canvas belongs to the running route, not the world being replaced by Retry.
         next.Draw = Draw;
         return next;

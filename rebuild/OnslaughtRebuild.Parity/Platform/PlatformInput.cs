@@ -40,11 +40,21 @@ public sealed class PlatformInput
     private readonly List<int> _keysRead = new(MaxKeysRead);
     private long? _lastElapsedCounter;
     private bool _tapeCursorInitialised;
+    private bool _replayMouseActive;
 
     public PlatformInput(PlatformWindow window) => Window = window;
 
     public PlatformWindow Window { get; }
     public Mouse Mouse { get; } = new();
+    internal DeviceMouseState DeviceMouse { get; } = new();
+    internal bool ReplayMouseActive => _replayMouseActive;
+
+    /// <summary>Adds one tape device event to the process-owned state, whether or not a level is active.</summary>
+    public void AddTapeMouse(RetailMouseEvent e)
+    {
+        _replayMouseActive = true;
+        DeviceMouse.Add(e.DeltaX, e.DeltaY, e.Wheel, (byte)e.Buttons);
+    }
 
     /// <summary><c>KeyDown</c>: held, by scan code (extended keys above 0x80).</summary>
     public bool[] KeyDown { get; } = new bool[256];
@@ -91,6 +101,7 @@ public sealed class PlatformInput
     /// <summary>Initialises the tape-owned cursor once per process, including across level restarts.</summary>
     public void PrepareTape(RetailTape tape)
     {
+        _replayMouseActive = true;
         if (tape.UsesTapeCursor && !_tapeCursorInitialised)
         {
             Mouse.SystemCursor = (0, 0);

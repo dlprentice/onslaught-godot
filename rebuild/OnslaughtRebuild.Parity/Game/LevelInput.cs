@@ -36,7 +36,8 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
         _rest = new NullGameServices(clock.Present);
         Window = input.Window;
         Input = input;
-        Mouse = new DirectInputMouse(Input.Mouse, Window);
+        Mouse = Input.ReplayMouseActive ? new DirectInputMouse(Input.Mouse, Window, Input.DeviceMouse)
+            : new DirectInputMouse(Input.Mouse, Window);
         Shared = shared;
         Context = new ControllerContext(bindings, Input, Shared, this, () => clock.GetSysTimeFloat());
     }
@@ -84,7 +85,8 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
             switch (e)
             {
                 case RetailMouseEvent mouse:
-                    Mouse.AddMouseDelta(mouse.DeltaX, mouse.DeltaY, mouse.Wheel, (byte)mouse.Buttons);
+                    Input.AddTapeMouse(mouse);
+                    Mouse.UseReplayState(Input.DeviceMouse);
                     break;
                 default:
                     Input.PostTapeMessage(e);

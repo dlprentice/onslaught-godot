@@ -3,6 +3,32 @@
 
 namespace OnslaughtRebuild.Parity.Platform;
 
+// PortReplayMouse's per-process input: reads consume movement and wheel but leave the button level in place.
+internal sealed class DeviceMouseState
+{
+    private int _x, _y, _wheel;
+    private byte _buttons;
+
+    internal void Add(int x, int y, int wheel, byte buttons)
+    {
+        _x = unchecked(_x + x); _y = unchecked(_y + y); _wheel = unchecked(_wheel + wheel);
+        _buttons = buttons;
+    }
+
+    internal (int X, int Y, int Wheel, byte Buttons) Read()
+    {
+        var result = (_x, _y, _wheel, _buttons);
+        _x = _y = _wheel = 0;
+        return result;
+    }
+
+    internal void Discard()
+    {
+        _x = _y = _wheel = 0;
+        _buttons = 0;
+    }
+}
+
 /// <summary>
 /// The DirectInput mouse the level reads (Controller.cpp). The device stands in for DirectInput as the replay harness
 /// drives it: <see cref="AddMouseDelta"/> adds a tape's M event, and the first device-state read after it takes the
@@ -11,10 +37,22 @@ namespace OnslaughtRebuild.Parity.Platform;
 /// DirectInput's <c>rgbButtons[0..2] &amp; 0x80</c>. Not modelled: the re-acquire loop after a failed read (the device
 /// never fails here), and <c>CLIPARAMS.mAutoConfigTest</c>, which is false in play.
 /// </summary>
-public sealed class DirectInputMouse(Mouse mouse, PlatformWindow window)
+public sealed class DirectInputMouse
 {
-    private int _pendingX, _pendingY, _pendingWheel;
-    private byte _buttons;
+    private readonly Mouse mouse;
+    private readonly PlatformWindow window;
+    private DeviceMouseState _state;
+
+    public DirectInputMouse(Mouse mouse, PlatformWindow window) : this(mouse, window, new DeviceMouseState()) { }
+
+    internal DirectInputMouse(Mouse mouse, PlatformWindow window, DeviceMouseState state)
+    {
+        this.mouse = mouse;
+        this.window = window;
+        _state = state;
+    }
+
+    internal void UseReplayState(DeviceMouseState state) => _state = state;
 
     /// <summary>Whether <c>InitMouse</c> has created the device (<c>sMouse</c>).</summary>
     public bool Created { get; private set; }
@@ -23,20 +61,10 @@ public sealed class DirectInputMouse(Mouse mouse, PlatformWindow window)
     /// The live host's suspension boundary: discard queued movement/wheel and device buttons without creating,
     /// polling or releasing the device. This is host policy, not a change to retail Init/Shutdown/Poll semantics.
     /// </summary>
-    public void DiscardPendingState()
-    {
-        _pendingX = _pendingY = _pendingWheel = 0;
-        _buttons = 0;
-    }
+    public void DiscardPendingState() => _state.Discard();
 
     /// <summary>A tape's M event: movement and wheel since the last read, and the current button bits (0x01 left, 0x02 right, 0x04 middle).</summary>
-    public void AddMouseDelta(int dx, int dy, int wheel, byte buttons)
-    {
-        _pendingX = unchecked(_pendingX + dx);
-        _pendingY = unchecked(_pendingY + dy);
-        _pendingWheel = unchecked(_pendingWheel + wheel);
-        _buttons = buttons;
-    }
+    public void AddMouseDelta(int dx, int dy, int wheel, byte buttons) => _state.Add(dx, dy, wheel, buttons);
 
     /// <summary><c>InitMouse</c> (0x0042d310): the device, the transient state reset, the cursor centred, DirectInput driving it.</summary>
     public void Init()
@@ -65,12 +93,7 @@ public sealed class DirectInputMouse(Mouse mouse, PlatformWindow window)
         mouse.ResetTransientState();
     }
 
-    private (int X, int Y, int Wheel, byte Buttons) GetDeviceState()
-    {
-        (int, int, int, byte) state = (_pendingX, _pendingY, _pendingWheel, _buttons);
-        _pendingX = _pendingY = _pendingWheel = 0;
-        return state;
-    }
+    private (int X, int Y, int Wheel, byte Buttons) GetDeviceState() => _state.Read();
 
     /// <summary><c>PollMouseMotion</c> (0x0042d420): the movement and wheel only.</summary>
     public void PollMotion()
