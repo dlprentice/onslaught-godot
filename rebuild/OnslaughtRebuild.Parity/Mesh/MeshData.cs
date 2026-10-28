@@ -252,7 +252,7 @@ public sealed class MeshData
             mesh.MeshFileUnread = data.File.Length - (int)data.File.Position;
         }
 
-        mesh.ReadPastEnd = c.File.EndOfFile || data.File.EndOfFile;
+        mesh.ReadPastEnd = c.File.EndOfFile || data.File.EndOfFile || mesh.NextInChain?.ReadPastEnd == true;
 
         return mesh;
     }
