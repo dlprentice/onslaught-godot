@@ -33,10 +33,10 @@ public sealed class PilotFinalDronesRouteTests(ITestOutputHelper output)
     /// render), RunLevel's close fills END_LEVEL_DATA, and the port's next Present (28307, in the outro film) records it.
     /// Every probe field matches every Present to the level's end, and END_LEVEL_DATA equals the port's byte for byte.
     /// </summary>
-    [RetailGoldenFact("portrefs/l100-pilotwin-port-20261022/port-probes-every1.txt", "portrefs/l100-pilotwin-port-20261022/pilot-win.tape", Sounds)]
+    [RetailGoldenFact("portrefs/l100-pilotwin-port-48738e88/port-probes-every1.txt", "portrefs/l100-pilotwin-port-48738e88/pilot-win.tape", Sounds)]
     public void ThePilotWinRouteMatchesThePortThroughTheLevelsEnd()
     {
-        const string Dir = "portrefs/l100-pilotwin-port-20261022";
+        const string Dir = "portrefs/l100-pilotwin-port-48738e88";
         // No end Present: the comparison runs until RunLevel returns, so a sample taken after the level's end (a second
         // reading of P28306, whose FT the port has already moved on) is a difference here.
         LevelSession session = Check(Dir, "pilot-win.tape", 28306, toLevelEnd: true);

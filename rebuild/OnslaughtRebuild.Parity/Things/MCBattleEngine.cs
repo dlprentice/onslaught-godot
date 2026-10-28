@@ -412,7 +412,7 @@ public sealed class MCBattleEngine : Monitor
                 throw new NotSupportedException("CMCMech::UpdateBone for a dying unit (Unknown106) is not ported");
             }
 
-            _bodyOri = m = m.Multiply(pm).Multiply(rm);
+            _bodyOri = m = m.MultiplyLeftToRight(pm).MultiplyLeftToRight(rm);
         }
         else if (type == 2)
         {
@@ -538,8 +538,8 @@ public sealed class MCBattleEngine : Monitor
             moved = true;
             offset = foot;
             m = FMatrix.MakeFromDirection(diff, legUp);
-            ori = _bodyOri.Inverse().Multiply(ori);
-            ori = ori.Multiply(_legOris[best][l].Inverse());
+            ori = _bodyOri.Inverse().MultiplyLeftToRight(ori);
+            ori = ori.MultiplyLeftToRight(_legOris[best][l].Inverse());
         }
         else if (type == 3)
         {

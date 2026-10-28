@@ -123,8 +123,20 @@ public struct FMatrix
         return p.Multiply(m);
     }
 
-    /// <summary>operator*(FMatrix).</summary>
-    public readonly FMatrix Multiply(FMatrix m) => new(
+    /// <summary>
+    /// operator*(FMatrix) (maths.h): retail calls its out-of-line copy 0040d320 for every FMatrix product but one inline copy
+    /// in CFEPGoodies::ButtonPressed, so each cell is summed in that copy's order (<see cref="MultiplyOutOfLine"/>; the
+    /// native port's patch 0094 does the same).
+    /// </summary>
+    public readonly FMatrix Multiply(FMatrix m) => MultiplyOutOfLine(m);
+
+    /// <summary>
+    /// A product with every cell summed left to right, (X + Y) + Z: the decompilation's file-local copies of operator*
+    /// whose text keeps that order and which the native port compiles as written (src/MCMech.cpp's
+    /// ProduceMechPitchOrientation, ProductMechBodyRoll, ProductMechFirstLeg and ProductMechSecondLeg; src/Round.cpp's
+    /// MulMM for Unknown4d9f30's air product).
+    /// </summary>
+    public readonly FMatrix MultiplyLeftToRight(FMatrix m) => new(
         new FVector((Row0.X * m.Row0.X) + (Row0.Y * m.Row1.X) + (Row0.Z * m.Row2.X),
             (Row0.X * m.Row0.Y) + (Row0.Y * m.Row1.Y) + (Row0.Z * m.Row2.Y),
             (Row0.X * m.Row0.Z) + (Row0.Y * m.Row1.Z) + (Row0.Z * m.Row2.Z)),

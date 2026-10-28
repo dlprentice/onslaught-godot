@@ -541,6 +541,40 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
     }
 
     /// <summary>
+    /// SpawnRound's first launch product, orientation * launchAngle (onslaught-decomp src/weapon.cpp, FSpawnOri), with
+    /// each cell summed in retail's order (pristine 74154bfa, 00506ed1..005072c3, as read for the native port's patch
+    /// 0101): the bracketed pair first, then the last term.
+    /// </summary>
+    internal static FMatrix SpawnOrientationProduct(FMatrix a, FMatrix m)
+    {
+        FVector Row(FVector r, bool lastRow) => new(
+            ((r.Z * m.Row2.X) + (r.Y * m.Row1.X)) + (r.X * m.Row0.X),
+            ((r.X * m.Row0.Y) + (r.Z * m.Row2.Y)) + (r.Y * m.Row1.Y),
+            lastRow ? ((r.X * m.Row0.Z) + (r.Z * m.Row2.Z)) + (r.Y * m.Row1.Z)
+                : ((r.Z * m.Row2.Z) + (r.Y * m.Row1.Z)) + (r.X * m.Row0.Z));
+        return new(Row(a.Row0, false), Row(a.Row1, false), Row(a.Row2, true));
+    }
+
+    /// <summary>
+    /// SpawnRound's second launch product, (orientation * launchAngle) * inaccuracy (src/weapon.cpp, FSpawnTurn), each
+    /// cell in retail's order (00506ed1..005072c3, port patch 0101).
+    /// </summary>
+    internal static FMatrix SpawnTurnProduct(FMatrix a, FMatrix m)
+    {
+        FVector r0 = a.Row0, r1 = a.Row1, r2 = a.Row2;
+        return new(
+            new FVector(((r0.X * m.Row0.X) + (r0.Z * m.Row2.X)) + (r0.Y * m.Row1.X),
+                ((r0.Z * m.Row2.Y) + (r0.Y * m.Row1.Y)) + (r0.X * m.Row0.Y),
+                ((r0.Z * m.Row2.Z) + (r0.Y * m.Row1.Z)) + (r0.X * m.Row0.Z)),
+            new FVector(((r1.Y * m.Row1.X) + (r1.X * m.Row0.X)) + (r1.Z * m.Row2.X),
+                ((r1.Z * m.Row2.Y) + (r1.Y * m.Row1.Y)) + (r1.X * m.Row0.Y),
+                ((r1.Z * m.Row2.Z) + (r1.Y * m.Row1.Z)) + (r1.X * m.Row0.Z)),
+            new FVector(((r2.Z * m.Row2.X) + (r2.Y * m.Row1.X)) + (r2.X * m.Row0.X),
+                ((r2.Z * m.Row2.Y) + (r2.Y * m.Row1.Y)) + (r2.X * m.Row0.Y),
+                ((r2.Z * m.Row2.Z) + (r2.Y * m.Row1.Z)) + (r2.X * m.Row0.Z)));
+    }
+
+    /// <summary>
     /// SpawnRound (005069f0): a battle engine's firing check, the launch sound (once per shot when not per burst), then a
     /// round per volley shot. Each shot takes the next launch position and launch angle, the attached unit's launch
     /// point (aimed at the target when an aim request tracks it), the round's speed along the launch orientation turned
@@ -629,7 +663,7 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
             Unit attached = AttachedTo!;
             init.Pos = pos + attached.GetVelocity();
             init.Dest = AimPosition;
-            init.Orientation = orientation.Multiply(launchAngle).Multiply(inaccuracy);
+            init.Orientation = SpawnTurnProduct(SpawnOrientationProduct(orientation, launchAngle), inaccuracy);
             init.Velocity = init.Orientation.Transform(launchVelocity);
             init.OrientationType = OrientationType.DirectionCosineMatrix;
             init.Allegiance = attached.Allegiance;
@@ -864,7 +898,8 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
 
             FVector vel = GetPrimaryOrientation().Transform(new FVector(0, speed, 0));
             FVector tvel = target.Velocity;
-            float t = (pos - tpos).Magnitude() / vel.Magnitude();
+            // (Y*Y + Z*Z) + X*X for the distance (retail's inlined Magnitude here; port patch 0098), the plain order for the speed.
+            float t = (pos - tpos).MagnitudeYZX() / vel.Magnitude();
             t *= 20.0f;
             return (tvel * t) + tpos;
         }
