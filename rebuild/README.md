@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte; the tutorial pilot's win route equals it through the level's end and outro.
-Last updated: 2026-10-27 (opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Last updated: 2026-10-28 (diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -76,6 +76,7 @@ presentation and the machine to its host (the Godot host, M7). The host supplies
 | `Video` (an `IFrontEndVideo`) | the front-end video player: which files exist, and opening one at a size |
 | `EndLevelData`, `Settings` | the game's `END_LEVEL_DATA` and front-end settings, shared with the game |
 | `VirtualKeyboardPage.Font` (an `IFontMetrics`) | text widths and glyphs, needed only to type a name |
+| `GoodiesPage.StartMeshLoad` | optional diagnostic goodie-8 mesh and deterministic load-completion observation; no viewer drawing or manual control |
 
 Drawing, sound and music are the host's. Each page's `Render` override holds only the state its retail render changes
 (mouse hovers and clicks, scroll clamps). Mouse clicks that hit-test laid-out text (the main menu's items, the message

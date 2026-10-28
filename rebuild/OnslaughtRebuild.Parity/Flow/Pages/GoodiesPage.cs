@@ -4,6 +4,9 @@
 // PC build's changes.
 
 using OnslaughtRebuild.Parity.Career;
+using OnslaughtRebuild.Parity.Flow.Draw;
+using OnslaughtRebuild.Parity.Numerics;
+using OnslaughtRebuild.Parity.Platform;
 
 namespace OnslaughtRebuild.Parity.Flow.Pages;
 
@@ -12,7 +15,9 @@ namespace OnslaughtRebuild.Parity.Flow.Pages;
 /// developers' items; units; films; concept art), the cursor moved with the menu buttons. Selecting a goodie the career
 /// has (new or old) opens its viewer and marks it old; Back saves the options and leaves. What decides the simulation is
 /// here: the cursor, the sounds (each a C runtime draw), the career's goodie states and the save on the way out. The
-/// grid's scroll position and fades are drawing only; the viewer (its loading, meshes, images and films) is not ported.
+/// A diagnostic caller can supply a parsed mesh-resource and the completion of its load for goodie 8; timing is an
+/// explicit input because the PC loader is asynchronous. Mesh drawing, its camera effects, other viewer kinds and
+/// manual mesh controls are not ported.
 /// </summary>
 public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
 {
@@ -33,6 +38,27 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
 
     /// <summary>mImageZoom: the viewer's zoom (0 closed); the grid takes buttons only at 0 with no goodie shown.</summary>
     public float ImageZoom { get; private set; }
+
+    /// <summary>mSelectFade and mXPos; both affect the rendered grid's mouse handling and selection.</summary>
+    public float SelectFade { get; private set; }
+    public float XPos { get; private set; }
+
+    /// <summary>The loaded mesh, null while loading or after resources are freed.</summary>
+    public GoodieMeshResource? MeshResource { get; private set; }
+
+    /// <summary>
+    /// An explicit diagnostic input: start the PC's asynchronous mesh load. The default is unsupported, including on
+    /// interactive hosts; supplying this does not supply texture rendering. Ready must follow the caller's observed or
+    /// authored schedule, not the machine's wall clock.
+    /// </summary>
+    public Func<int, IGoodieMeshLoad>? StartMeshLoad { get; set; }
+    private IGoodieMeshLoad? _meshLoad;
+    private bool _meshLoading;
+    private float _lastProcessTime;
+    private float _textScroll;
+
+    /// <summary>mCurrentYaw, useful to the diagnostic viewer; no visual equivalence is asserted.</summary>
+    public float Yaw { get; private set; }
 
     /// <summary>
     /// get_goodie_number: the goodie at column <paramref name="x"/> of row <paramref name="y"/>, or -1. Row 0: the
@@ -71,8 +97,13 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
     /// <summary>ResetGoodyState: the viewer closed (its fades, zoom, mesh and text state are drawing only).</summary>
     private void ResetGoodyState()
     {
+        SelectFade = 1f;
         ImageZoom = 0f;
         DisplayGoody = false;
+        _meshLoading = false;
+        _lastProcessTime = 0f;
+        _textScroll = -50f;
+        Yaw = 0f;
     }
 
     /// <summary>Init (0045c7a0): the cursor home, the viewer closed, the selection timer read.</summary>
@@ -80,6 +111,7 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
     {
         Column = 0;
         Row = 0;
+        XPos = 0f;
         ResetGoodyState();
         frontEnd.Clock.GetSysTimeFloat(); // mTimerGoody
         return true;
@@ -112,25 +144,32 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
                 case FrontEndButtons.MenuLeft:
                     Column = Math.Max(Column - 1, 0);
                     frontEnd.PlaySound(FrontEndSound.Move);
+                    if (GoodieX(Column) < 90f) XPos -= 45f;
                     break;
                 case FrontEndButtons.MenuRight:
                     Column = Math.Min(Column + 1, Columns - 1);
                     while (GoodieNumber(Column, Row) == -1) Column--;
                     frontEnd.PlaySound(FrontEndSound.Move);
+                    if (GoodieX(Column) > 570f) XPos += 45f;
                     break;
                 case FrontEndButtons.MenuSelect:
                     frontEnd.PlaySound(FrontEndSound.Select);
                     ResetGoodyState();
                     if (GoodieState(Column, Row) is CareerGoodieState.New or CareerGoodieState.Old)
                     {
-                        // StartLoadingGoody and the viewer, then set_goodie_state(GS_OLD).
-                        throw new NotSupportedException($"the goodie viewer (goodie {GoodieNumber(Column, Row)}) is not ported");
+                        int number = GoodieNumber(Column, Row);
+                        if (number != 8 || StartMeshLoad is null)
+                            throw new NotSupportedException($"the goodie viewer (goodie {number}) is not ported");
+                        DisplayGoody = true;
+                        _meshLoad = StartMeshLoad(number) ?? throw new InvalidOperationException("the mesh loader returned no request");
+                        _meshLoading = true;
+                        frontEnd.Career.Record.SetGoodieState(number, CareerGoodieState.Old);
                     }
 
                     break;
                 case FrontEndButtons.MenuBack:
                     frontEnd.PlaySound(FrontEndSound.Back);
-                    // FreeUpGoodyResources: nothing loaded. CFEPOptions::SaveDefaultOptions(false).
+                    FreeMesh();
                     (frontEnd[FrontEndPage.Options] as OptionsPage ?? throw new InvalidOperationException("the options page is not registered"))
                         .SaveDefaultOptions(false);
                     break;
@@ -146,6 +185,11 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
             frontEnd.PlaySound(FrontEndSound.Back);
             DisplayGoody = false;
         }
+        else if (ImageZoom >= 1f && button is 64 or Buttons.CameraPitchUp or Buttons.CameraPitchDown or
+                 Buttons.CameraMoveForward or Buttons.CameraMoveBackwards or Buttons.CameraStrafeLeft or Buttons.CameraStrafeRight)
+        {
+            throw new NotSupportedException("manual goodie mesh controls are not ported");
+        }
     }
 
     /// <summary>TransitionNotification (0045ffa0): the start time read; the viewer closed.</summary>
@@ -156,14 +200,49 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
     }
 
     /// <summary>
-    /// Process (0045d7e0) with the viewer closed: the zoom eases to 0 (drawing), resources freed, the mouse's edge slide
-    /// (drawing: the scroll position); the right mouse button goes back on the active page.
+    /// Process (0045d7e0): a supplied mesh load is polled, the viewer fades and the mesh is freed after it closes.
+    /// Grid edge-slide and the active page's right-mouse back also change input-visible state.
     /// </summary>
     public override void Process(FrontEndPageState state)
     {
         if (DisplayGoody)
         {
-            throw new NotSupportedException("the goodie viewer is not ported");
+            if (_meshLoading && _meshLoad is { Ready: true } load)
+            {
+                frontEnd.Clock.GetSysTimeFloat(); // LoadingGoodyPoll start
+                frontEnd.Clock.GetSysTimeFloat(); // ReadResources start
+                GoodieMeshResource resource = load.Read();
+                if (resource.Number != GoodieNumber(Column, Row)) throw new InvalidDataException("loader returned a different goodie");
+                frontEnd.Clock.GetSysTimeFloat(); // ReadResources end
+                MeshResource = resource;
+                _meshLoading = false;
+                frontEnd.Clock.GetSysTimeFloat(); // LoadingGoodyPoll end
+            }
+            SelectFade = SmoothResize(SelectFade, 0f, .1f, .001f);
+            if (MeshResource is not null)
+            {
+                if (ImageZoom < 1f) ImageZoom = SmoothResize(ImageZoom, 1f, .3f, .005f);
+                float now = frontEnd.Clock.GetSysTimeFloat();
+                double delta = X87.Sub(now, _lastProcessTime);
+                _lastProcessTime = now;
+                Yaw = (float)X87.Add(Yaw, X87.Mul(8f, delta));
+                _textScroll = (float)X87.Add(_textScroll, X87.Div(frontEnd.Timing.FrameStep, .1f));
+                // Text height is set by the unported renderer and is non-negative. Before this threshold its value
+                // cannot affect the reset decision; past it the caller must not infer a text-scroll result.
+                if (_textScroll > 10f) throw new NotSupportedException("goodie text height is not ported");
+                if (ImageZoom >= 1f && frontEnd.Platform.Mouse.Held[0])
+                    throw new NotSupportedException("manual goodie mesh controls are not ported");
+            }
+        }
+        else
+        {
+            SelectFade = SmoothResize(SelectFade, 1f, .1f, .001f);
+            ImageZoom = SmoothResize(ImageZoom, 0f, .4f, .005f);
+            if (SelectFade == 1f || ImageZoom == 0f)
+            {
+                FreeMesh();
+                XPos = MouseEdgeSlide.Apply(frontEnd, state, XPos, 5100f);
+            }
         }
 
         if (state == FrontEndPageState.Active && frontEnd.Platform.Mouse.Buttons[2].Down)
@@ -172,4 +251,81 @@ public sealed class GoodiesPage(FrontEnd frontEnd) : FrontEndPageBase
             ButtonPressed(FrontEndButtons.MenuBack, 1f);
         }
     }
+
+    public override void Shutdown() => FreeMesh();
+
+    private void FreeMesh()
+    {
+        // Retail's cache can still own a worker/buffer after the viewer is closed; cancellation and reuse of that
+        // asynchronous request have not been modelled. Do not turn an unfinished request into a clean release.
+        if (_meshLoading) throw new NotSupportedException("closing a pending goodie mesh load is not ported");
+        _meshLoad?.Release();
+        _meshLoad = null;
+        _meshLoading = false;
+        MeshResource = null;
+    }
+
+    private static float SmoothResize(float value, float target, float factor, float epsilon)
+    {
+        value = (float)X87.Add(value, X87.Mul(X87.Sub(target, value), factor));
+        return Math.Abs(X87.Sub(target, value)) < epsilon ? target : value;
+    }
+
+    private float GoodieX(int column) => 148f - XPos + column * 45f;
+
+    /// <summary>
+    /// Render's stateful grid selection, mouse hover/click, and clock reads; the visual sprites and mesh are unported.
+    /// </summary>
+    public override void Render(float transition, FrontEndPage dest)
+    {
+        if (SelectFade > 0f)
+        {
+            int alpha = Math.Min(FrontEndDraw.MakeAlpha(SelectFade),
+                X87.Fist(X87.Mul(FrontEndDraw.RangeTransition(transition, .75f, 1f), 255f)));
+            for (int x = 0; x < Columns; x++)
+            {
+                float cx = GoodieX(x);
+                if (cx > 620f) break;
+                if (cx < 10f) continue;
+                if (cx > 570f && Column >= x) Column = x - 1;
+                else if (cx < 90f && Column <= x)
+                {
+                    Column = x + 1;
+                    while (GoodieNumber(Column, Row) == -1) Row = (Row + 1) & 3;
+                }
+                if (alpha <= 0) continue;
+                for (int y = 0; y < Rows; y++)
+                {
+                    if (GoodieNumber(x, y) == -1) continue;
+                    float cy = 252.5f + y * 45f;
+                    if (!DisplayGoody && cx >= 90f && cx <= 570f)
+                    {
+                        if (frontEnd.GetCursorStateInRect(cx - 22.5f, cy - 20f, cx + 22.5f, cy + 20f))
+                            (Column, Row) = (x, y);
+                        if (frontEnd.MouseClickedInRect(cx - 22.5f, cy - 20f, cx + 22.5f, cy + 20f))
+                        {
+                            (Column, Row) = (x, y);
+                            ButtonPressed(FrontEndButtons.MenuSelect, 1f);
+                        }
+                    }
+                    if (GoodieState(x, y) == CareerGoodieState.New) frontEnd.Clock.GetSysTimeFloat();
+                }
+            }
+        }
+        if (GoodieState(Column, Row) != CareerGoodieState.Unknown)
+        {
+            frontEnd.Clock.GetSysTimeFloat();
+            frontEnd.Clock.GetSysTimeFloat();
+        }
+        if (MeshResource is not null && ImageZoom >= .8f) frontEnd.Clock.GetSysTimeFloat();
+        frontEnd.RenderHelpArrow(1, transition);
+    }
+}
+
+/// <summary>A diagnostic mesh load: Ready is a deterministic external input; Read supplies the parsed resource.</summary>
+public interface IGoodieMeshLoad
+{
+    bool Ready { get; }
+    GoodieMeshResource Read();
+    void Release();
 }
