@@ -189,6 +189,10 @@ public sealed class SphereVolume(float radius) : GeneralVolume
 /// <summary>CCylinder: a radius and a half height about its centre.</summary>
 public sealed class CylinderVolume(float radius, float halfHeight) : GeneralVolume
 {
+    // The start and direction square sums in 0044062d..0044064f and 004406a3..004406bf add Y+Z before X.
+    // Managed float arithmetic does not retain x87's wider exponent for underflowing intermediates.
+    private static float MagnitudeSqYZX(FVector v) => ((v.Y * v.Y) + (v.Z * v.Z)) + (v.X * v.X);
+
     public float Radius { get; } = radius;
 
     public float RadiusSquared { get; } = radius * radius;
@@ -223,9 +227,9 @@ public sealed class CylinderVolume(float radius, float halfHeight) : GeneralVolu
         }
 
         FVector delta = start - end;
-        if (MagnitudeSq(start) > RadiusSquared && MagnitudeSq(end) > RadiusSquared)
+        if (MagnitudeSqYZX(start) > RadiusSquared && MagnitudeSq(end) > RadiusSquared)
         {
-            float fraction = Dot(delta, start) / MagnitudeSq(delta);
+            float fraction = Dot(delta, start) / MagnitudeSqYZX(delta);
             if (fraction < 0.0 || fraction > 1.0)
             {
                 return false;
