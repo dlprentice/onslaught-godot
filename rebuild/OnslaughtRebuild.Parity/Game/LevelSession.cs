@@ -54,6 +54,8 @@ public sealed class LevelSession
         {
             if (_started && !ReferenceEquals(value, _tape))
                 throw new InvalidOperationException("Select the tape before starting a standalone level.");
+            if (_tapeContinuation && !ReferenceEquals(value, _tape))
+                throw new InvalidOperationException("A retry must continue the same tape.");
             if (value is not null && Clock.TapeOwner is { } owner && !ReferenceEquals(owner, this))
                 throw new InvalidOperationException("This clock already has a tape owner.");
             if (value is not null) Clock.TapeOwner = this;
@@ -83,7 +85,7 @@ public sealed class LevelSession
         long before = Clock.PresentCount;
         if (!_started)
         {
-            if (!_tapeContinuation && Tape is { Events.Count: > 0 } tape && tape.FirstFrame < before)
+            if (!_tapeContinuation && Tape is { Events.Count: > 0 } tape && tape.FirstFrame <= before)
                 throw new NotSupportedException("The standalone level was given a tape with already-passed input; use GameRun.");
             if (Tape is not null)
             {

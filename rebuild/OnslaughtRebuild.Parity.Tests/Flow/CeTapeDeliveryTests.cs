@@ -120,6 +120,11 @@ public sealed class CeTapeDeliveryTests
             LevelSession retry = level.Restart();
             if (throttled) Assert.Equal(before, retry.PresentCount);
             else Assert.True(retry.PresentCount > before);
+            RetailTape original = Assert.IsType<RetailTape>(retry.Tape);
+            RetailTape replacement = RetailTape.Parse(Encoding.ASCII.GetBytes("K 1 down 42 30 b\n"));
+            Assert.Throws<InvalidOperationException>(() => retry.Tape = replacement);
+            Assert.Throws<InvalidOperationException>(() => retry.Tape = null);
+            Assert.Same(original, retry.Tape);
             retry.AdvanceToNextPresent();
             Assert.True(retry.PresentCount > before);
         }
@@ -139,11 +144,14 @@ public sealed class CeTapeDeliveryTests
         Assert.Throws<InvalidOperationException>(() => started.Tape = tape);
         Assert.Null(started.Tape);
 
-        var alreadyPast = LevelSession.Load(100, GameData.Read);
-        alreadyPast.Tape = tape;
-        alreadyPast.Clock.PresentDevice();
-        alreadyPast.Clock.PresentDevice();
-        var error = Assert.Throws<NotSupportedException>(() => alreadyPast.AdvanceToNextPresent());
-        Assert.Contains("already-passed", error.Message, StringComparison.Ordinal);
+        foreach (bool attachBeforePresent in new[] { true, false })
+        {
+            var atBoundary = LevelSession.Load(100, GameData.Read);
+            if (attachBeforePresent) atBoundary.Tape = tape;
+            atBoundary.Clock.PresentDevice();
+            if (!attachBeforePresent) atBoundary.Tape = tape;
+            var error = Assert.Throws<NotSupportedException>(() => atBoundary.AdvanceToNextPresent());
+            Assert.Contains("already-passed", error.Message, StringComparison.Ordinal);
+        }
     }
 }
