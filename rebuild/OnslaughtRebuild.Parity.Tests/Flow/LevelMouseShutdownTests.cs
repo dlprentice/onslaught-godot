@@ -9,9 +9,14 @@ namespace OnslaughtRebuild.Parity.Tests.Flow;
 
 public sealed class LevelMouseShutdownTests
 {
+    // The behavior under test does not require the installation's user-created options file.
+    private static (string Name, byte[] Bytes) WithoutPlayerOptions(string path) =>
+        string.Equals(path, DefaultOptions.FileName, StringComparison.OrdinalIgnoreCase)
+            ? throw new FileNotFoundException(path) : GameData.Read(path);
+
     private static LevelSession Finished(QuitType quit)
     {
-        var level = LevelSession.Load(100, GameData.Read);
+        var level = LevelSession.Load(100, WithoutPlayerOptions);
         level.AdvanceToNextPresent();
         level.Game.SetQuit(quit);
         for (int i = 0; i < 60 && !level.Ended; i++) level.AdvanceToNextPresent();
