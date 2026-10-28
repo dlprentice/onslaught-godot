@@ -2,7 +2,6 @@
 // CController::DoMappings checks the live sMouse after GameInterface or the pause menu releases it.
 using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Platform;
-using OnslaughtRebuild.Parity.Flow.Menus;
 
 namespace OnslaughtRebuild.Parity.Tests.Flow;
 
@@ -47,13 +46,19 @@ public sealed class LevelMouseContextTests
     public void PauseReleaseAndResumeKeepTheControllerDeviceCheckInStep()
     {
         var level = LevelSession.Load(100, ReadData);
+        level.AdvanceToNextPresent();
         var controller = new Controller(0, 0, null);
-        level.Input.ShowPauseMenu(controller);
+        level.Game.Pause(true, controller);
+        Assert.True(level.Game.Paused);
         Assert.False(level.Input.Mouse.Created);
         Assert.False(level.Input.Context.DirectInputCreated);
 
-        // PauseMenu.Resume calls this interface method after relinquishing control.
-        ((IPauseMenuGame)level.Input).InitMouse();
+        // The standalone LevelMenuHost saves its authored options only in memory.
+        var host = Assert.IsType<LevelMenuHost>(level.Input.PauseMenuHost);
+        Assert.Null(host.DefaultOptionsFile);
+        level.Input.PauseMenu!.Resume();
+        Assert.NotNull(host.DefaultOptionsFile);
+        Assert.False(level.Game.Paused);
         Assert.True(level.Input.Mouse.Created);
         Assert.True(level.Input.Context.DirectInputCreated);
     }
