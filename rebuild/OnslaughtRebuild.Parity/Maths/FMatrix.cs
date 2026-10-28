@@ -123,8 +123,17 @@ public struct FMatrix
         return p.Multiply(m);
     }
 
-    /// <summary>operator*(FMatrix).</summary>
-    public readonly FMatrix Multiply(FMatrix m) => new(
+    /// <summary>
+    /// General matrix product. The historical default sums each cell left to right; a caller with a verified inlined or
+    /// out-of-line retail order must use its own method. This default is not a claim about all retail call sites.
+    /// </summary>
+    public readonly FMatrix Multiply(FMatrix m) => MultiplyLeftToRight(m);
+
+    /// <summary>
+    /// A product with every cell summed left to right, (X + Y) + Z. Individual inlined retail products may use different
+    /// orders and need their own methods; this is not a general claim about the decompilation's file-local helpers.
+    /// </summary>
+    public readonly FMatrix MultiplyLeftToRight(FMatrix m) => new(
         new FVector((Row0.X * m.Row0.X) + (Row0.Y * m.Row1.X) + (Row0.Z * m.Row2.X),
             (Row0.X * m.Row0.Y) + (Row0.Y * m.Row1.Y) + (Row0.Z * m.Row2.Y),
             (Row0.X * m.Row0.Z) + (Row0.Y * m.Row1.Z) + (Row0.Z * m.Row2.Z)),

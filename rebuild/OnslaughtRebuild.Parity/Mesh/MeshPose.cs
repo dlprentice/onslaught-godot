@@ -224,8 +224,8 @@ public sealed class MeshPose
                 FVector tpos = subject.RenderPos;
                 FMatrix tori = subject.RenderOrientation;
                 FVector p = pos;
-                pos = tpos + tori.Transform(p);
-                ori = tori.Multiply(ori);
+                pos = tpos + MatrixOps.CachedPoseWorldPosition(tori, p);
+                ori = MatrixOps.CachedPoseWorldOrientation(tori, ori);
             }
 
             return;

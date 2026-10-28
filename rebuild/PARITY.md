@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (launch-hit elevation and matrix rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -33,12 +33,39 @@ The Parity suite gates each route at its stated floor against references kept ou
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in
 the dated entries below are the counts on their dates.
 
+Pilot-win projectile contact (2026-10-28): the pristine specimen's `CCylinder::CollideWithLine`
+instructions at `00440801..0044083d` sum the Y and Z squares before the X square for the two lengths.
+On the frozen native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
+the pilot-win tape's projectile 4034 hit the player cylinder with contact Z `c12dac0d`; the previous
+X-first reconstruction returned `c12dac0e` and differed in LIFE starting at Present 26368. A fresh native
+observer recorded the input positions, motions and cylinder/line dimensions used in
+`CylinderLineTests.LineContactUsesTheRetailMagnitudeOrder`. The test passes with the retail sum order and fails
+with the old order. With this correction, `ThePilotWinRouteMatchesThePortThroughTheLevelsEnd` compares all nine
+fields every Present through the level's end at 28306, its end-level data, and the outro to 28600 against that
+port reference. This is a port replay plus static retail evidence, not a retail win or device-audio acceptance.
+The earlier `start` and `delta` squared-length checks in this function still use X-first sums; the native port's
+patch 0095 uses Y+Z+X at those sites. Their effect on other collision inputs remains open.
+
 Launch-hit orientation (2026-10-28): pristine `74154bfa…` at `0040d090..0040d0b0` calls the x87 elevation at
 `0040d1a0` and the Euler constructor at `0040d1f0`; its floating-point instruction sequence matches `004062d0`, which
 the managed `StraightAimOrientation` models. On the frozen level-100 pilot-win **port** replay, two captured adjusted
 hit vectors now produce the same orientation as the port, including cases where the former `Math.Asin` or inline
 constructor model was one ULP off. The route and all ordinary controls still require their own gates; these observations
 do not establish real-player or full-game parity.
+
+Site-specific matrix products (2026-10-28): `CMCMech::UpdateBone`'s two leg products use the per-cell orders in the
+pristine instructions `0049ae63..0049afbb` and `0049b02e..0049b18e`. The cached-frame and cached-pose world products
+have their own orders (`004b1402..004b153a` and `004b4f7b..004b50b9`); the latter's position uses
+`004b4ef2..004b4f3f`. The general product remains its historical left-to-right model rather than imposing one
+out-of-line order on every caller. `MatrixOrderTests` drives both cached paths, checks all cells of these four products
+with finite cancellation inputs, and rejects the former models on selected cells. A pinned-Clang source-derived
+control of the native port's second-leg helper differs from the pristine grouping on two cells for one authored input;
+an actual game pose and the port's inlined machine code at those cells remain to be compared. Matching the order does
+not reproduce x87's wider exponent: in an isolated PC24 control, two products of normal `2^-75` inputs sum to the
+smallest float32 subnormal (`00000001`), while rounding each managed float product first gives zero. This was not a
+captured game pose. Underflow, subnormal intermediates, exceptional values and complete visual or gameplay parity
+remain open. Other inline sites, including the body-roll and animated-hierarchy products, still need site-specific
+review.
 
 Opt-in live device audio (2026-10-27, M7 remains incomplete): `HOST_LIVE=1 HOST_AUDIO=1` adds effects and prepared
 PCM voices through the shared sound process. It is separate from `HOST_TAPE`'s virtual device and is not used by
@@ -581,6 +608,10 @@ oracle):
     known to drift from P4280.
   - Not drawn yet: the lock-on pieces and warning-receiver threats (neither is ported), the Thunderhead's imposter frame, the terrain's detail texture, and
     P2800's dome.
+
+The following 2026-10-22 and 2026-10-23 entries describe the earlier port build and tests as measured on those dates.
+The current route tests use the newer port reference identified in the projectile-contact entry above; the old event
+observer was not rerun for those new references.
 
 Measured (the repair pad route, 2026-10-22): on the tutorial pilot's p22-fire tape (c17-fire's input to P22150, then
 the return to the Forseti repair pad and the flight out), against the native port's every-Present probes

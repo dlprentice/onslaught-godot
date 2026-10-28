@@ -415,7 +415,7 @@ public sealed class MeshPart
                 if (subject is not null)
                 {
                     FMatrix m = subject.RenderOrientation;
-                    ori = m.Multiply(ori);
+                    ori = MatrixOps.CachedFrameWorldOrientation(m, ori);
                     pos = m.Transform(pos) + subject.RenderPos;
                 }
 

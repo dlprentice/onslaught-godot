@@ -559,7 +559,7 @@ public partial class Round : Actor
 
                 case CollideMode.Nothing:
                     init.OrientationType = OrientationType.DirectionCosineMatrix;
-                    init.Orientation = Orientation.Multiply(FMatrix.FromYawPitchRoll(0, MathF.PI / 2, 0));
+                    init.Orientation = Orientation.MultiplyLeftToRight(FMatrix.FromYawPitchRoll(0, MathF.PI / 2, 0)); // src/Round.cpp MulMM
                     break;
             }
         }

@@ -73,6 +73,39 @@ public sealed class MCBattleEngine : Monitor
     private FMatrix _bodyOri = FMatrix.Identity;
     private FVector _unknown88;
 
+    // CMCMech::UpdateBone inlines two distinct products. These follow the PC24 sum orders at 0049ae63..0049afbb
+    // and 0049b02e..0049b18e, respectively, on pristine 74154bfa. Managed float intermediates do not retain x87's
+    // wider exponent, so underflow or subnormal results can differ; see the bounded control in PARITY.md.
+    internal static FMatrix MechFirstLegProduct(FMatrix left, FMatrix right)
+    {
+        FVector a = left.Row0, b = left.Row1, c = left.Row2;
+        return new FMatrix(
+            new FVector(((a.X * right.Row0.X) + (a.Y * right.Row1.X)) + (a.Z * right.Row2.X),
+                ((a.Z * right.Row2.Y) + (a.Y * right.Row1.Y)) + (a.X * right.Row0.Y),
+                ((a.Z * right.Row2.Z) + (a.Y * right.Row1.Z)) + (a.X * right.Row0.Z)),
+            new FVector(((b.Z * right.Row2.X) + (b.Y * right.Row1.X)) + (b.X * right.Row0.X),
+                ((b.Y * right.Row1.Y) + (b.X * right.Row0.Y)) + (b.Z * right.Row2.Y),
+                ((b.X * right.Row0.Z) + (b.Y * right.Row1.Z)) + (b.Z * right.Row2.Z)),
+            new FVector(((c.Y * right.Row1.X) + (c.X * right.Row0.X)) + (c.Z * right.Row2.X),
+                ((c.Z * right.Row2.Y) + (c.Y * right.Row1.Y)) + (c.X * right.Row0.Y),
+                ((c.X * right.Row0.Z) + (c.Z * right.Row2.Z)) + (c.Y * right.Row1.Z)));
+    }
+
+    internal static FMatrix MechSecondLegProduct(FMatrix left, FMatrix right)
+    {
+        FVector a = left.Row0, b = left.Row1, c = left.Row2;
+        return new FMatrix(
+            new FVector(((a.Z * right.Row2.X) + (a.Y * right.Row1.X)) + (a.X * right.Row0.X),
+                ((a.X * right.Row0.Y) + (a.Z * right.Row2.Y)) + (a.Y * right.Row1.Y),
+                ((a.X * right.Row0.Z) + (a.Z * right.Row2.Z)) + (a.Y * right.Row1.Z)),
+            new FVector(((b.Y * right.Row1.X) + (b.X * right.Row0.X)) + (b.Z * right.Row2.X),
+                ((b.X * right.Row0.Y) + (b.Y * right.Row1.Y)) + (b.Z * right.Row2.Y),
+                ((b.X * right.Row0.Z) + (b.Y * right.Row1.Z)) + (b.Z * right.Row2.Z)),
+            new FVector(((c.X * right.Row0.X) + (c.Z * right.Row2.X)) + (c.Y * right.Row1.X),
+                ((c.X * right.Row0.Y) + (c.Z * right.Row2.Y)) + (c.Y * right.Row1.Y),
+                ((c.X * right.Row0.Z) + (c.Z * right.Row2.Z)) + (c.Y * right.Row1.Z)));
+    }
+
     public MCBattleEngine(ThingContext context, BattleEngine thing)
     {
         _context = context;
@@ -412,7 +445,7 @@ public sealed class MCBattleEngine : Monitor
                 throw new NotSupportedException("CMCMech::UpdateBone for a dying unit (Unknown106) is not ported");
             }
 
-            _bodyOri = m = m.Multiply(pm).Multiply(rm);
+            _bodyOri = m = m.MultiplyLeftToRight(pm).MultiplyLeftToRight(rm);
         }
         else if (type == 2)
         {
@@ -538,8 +571,8 @@ public sealed class MCBattleEngine : Monitor
             moved = true;
             offset = foot;
             m = FMatrix.MakeFromDirection(diff, legUp);
-            ori = _bodyOri.Inverse().Multiply(ori);
-            ori = ori.Multiply(_legOris[best][l].Inverse());
+            ori = MechFirstLegProduct(_bodyOri.Inverse(), ori);
+            ori = MechSecondLegProduct(ori, _legOris[best][l].Inverse());
         }
         else if (type == 3)
         {

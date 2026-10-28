@@ -8,10 +8,9 @@ namespace OnslaughtRebuild.Parity.Tests;
 /// <summary>
 /// Level 100's tutorial pilot route past the first airborne targets (the lead's p22-fire tape: c17-fire's input to P22150,
 /// then the return to the Forseti repair pad, the repair, the flight out and the second airborne target) against the
-/// native port with patches 0029 and 0030 (l100-p22-port-20261022). The pad takes the landed battle engine as its target at
-/// P23333 (its charge effects at the Charge emitters), fires once its shot is ready (CBuilding::Move's timer) and repairs
-/// it to full life at P23367; the walker's augmentation fills and augments its weapon at P25290 (the "weapon augmented"
-/// sample's C runtime draw); "Airborne Target 2 Destroyed" posts at P25977. Every probe field every Present to
+/// native port build 48738e88. An earlier ae04185f event observer recorded the pad taking the landed battle engine as its
+/// target at P23333, repairing it at P23367, the walker's weapon augmenting at P25290 and "Airborne Target 2 Destroyed"
+/// posting at P25977; the newer recording does not include that observer. Every probe field every Present to
 /// <see cref="MatchedThrough"/>, the reference's end, with the route's measured sound-pool profile.
 /// </summary>
 public sealed class PilotP22RouteTests(ITestOutputHelper output)
@@ -19,7 +18,7 @@ public sealed class PilotP22RouteTests(ITestOutputHelper output)
     /// <summary>The Present through which every field matches the port every Present (never lowered).</summary>
     private const int MatchedThrough = 26720;
 
-    private const string Dir = "portrefs/l100-p22-port-20261022";
+    private const string Dir = "portrefs/l100-p22-port-48738e88";
 
     [RetailGoldenFact(Dir + "/port-probes-every1.txt", Dir + "/p22-fire.tape",
         "portrefs/l100-trainer-port-20261021/sound-seeds-admission-root-c.json")]

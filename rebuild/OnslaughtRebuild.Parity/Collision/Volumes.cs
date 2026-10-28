@@ -240,8 +240,9 @@ public sealed class CylinderVolume(float radius, float halfHeight) : GeneralVolu
 
         if (MathF.Abs(start.Z) > Height || MathF.Abs(end.Z) > Height || report.TestTriangles != 0)
         {
-            float speed = (end - start).Magnitude();
-            float distance = -start.Magnitude();
+            // The two inlined lengths at retail 00440801..0044083d add Y and Z before X.
+            float speed = (end - start).MagnitudeYZX();
+            float distance = -start.MagnitudeYZX();
             float aa = speed * speed;
             float bb = 2 * (speed * distance);
             float root = MathF.Sqrt((bb * bb) - (4 * aa * ((distance * distance) - RadiusSquared)));
