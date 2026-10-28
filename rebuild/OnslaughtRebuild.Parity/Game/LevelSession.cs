@@ -43,8 +43,25 @@ public sealed class LevelSession
     /// <summary>The keyboard, mouse and controllers.</summary>
     public LevelInput Input { get; private init; } = null!;
 
-    /// <summary>A replay tape: its events are delivered after the Present they follow.</summary>
-    public RetailTape? Tape { get; set; }
+    private RetailTape? _tape;
+    private string? _tapeInputFailure;
+
+    /// <summary>
+    /// A legacy K/M replay tape. CE cursor, window and character tapes are refused until standalone per-Present
+    /// delivery is modeled; use the whole-process <see cref="Flow.GameRun"/>. Legacy input skipped by a multi-Present
+    /// advance also fails explicitly rather than being discarded.
+    /// </summary>
+    public RetailTape? Tape
+    {
+        get => _tape;
+        set
+        {
+            if (value is not null && (value.UsesTapeCursor
+                || value.Events.Any(e => e is not (RetailKeyEvent or RetailMouseEvent))))
+                throw new NotSupportedException("Standalone LevelSession cannot yet replay CE window or character input; use GameRun.");
+            _tape = value;
+        }
+    }
 
     /// <summary>The platform clock the game reads; each Flip is a Present.</summary>
     public Clock.PlatformClock Clock { get; }
@@ -63,10 +80,10 @@ public sealed class LevelSession
     /// </summary>
     public void AdvanceToNextPresent()
     {
+        if (_tapeInputFailure is not null) throw new NotSupportedException(_tapeInputFailure);
         long before = Clock.PresentCount;
         if (!_started)
         {
-            if (Tape is not null) Input.Input.PrepareTape(Tape);
             _started = true;
             if (!FromFrontEnd)
             {
@@ -105,6 +122,7 @@ public sealed class LevelSession
 
             // Return at the loading Present itself, where the native probe is taken. Startup noises happen only
             // after that Present returns to RestartLoopRunLevel, not before the caller can observe this boundary.
+            RefuseSkippedTapeEvents(before, Clock.PresentCount);
             _startUnitNoisePending = true;
             return;
         }
@@ -172,10 +190,23 @@ public sealed class LevelSession
                 Context.Skip("CGame::RunLevel's close: the music stopped, the language bank reloaded");
                 Game.FillOutEndLevelData(EndLevelData, Context.World);
                 if (Context.Particles is { } particles) particles.Manager.State.RenderFraction = Game.Loop.Fraction;
+                RefuseSkippedTapeEvents(before + 1, Clock.PresentCount);
                 Ended = true;
                 return;
             }
         }
+        RefuseSkippedTapeEvents(before + 1, Clock.PresentCount);
+    }
+
+    private void RefuseSkippedTapeEvents(long first, long endExclusive)
+    {
+        if (Tape is null) return;
+        for (long present = first; present < endExclusive; present++)
+            if (!Tape.EventsAt(present).IsEmpty)
+            {
+                _tapeInputFailure = $"Standalone LevelSession skipped tape input at Present {present}; use GameRun.";
+                throw new NotSupportedException(_tapeInputFailure);
+            }
     }
 
     /// <summary>The level's main loop returned (it quit to the front end, timed out, restarted or the game quit).</summary>

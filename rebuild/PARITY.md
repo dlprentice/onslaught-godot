@@ -31,7 +31,9 @@ the dated entries below record each measurement.
 
 CE version-2 tapes (2026-10-28): the parser and the `GameRun`/level input paths retain ordered window-mouse and
 character events, the recorded back-buffer size and replay-owned cursor as in the 0.1.9 recorder. A mismatched size,
-unknown event or newer declared format is refused; the older K/M-only `ParityRunner` refuses other event types.
+unknown event or newer declared format is refused; the K/M-only `ParityRunner` and standalone `LevelSession` refuse
+extended tapes. A standalone level also refuses older K/M input that a multi-Present advance would skip; actual delivery
+at those Presents needs a separate scheduling correction. The whole-process `GameRun` receives input on each Present.
 Authored controls cover message ordering, keyboard-trap character/scan, cursor and wheel behavior, and size mismatch.
 The new player recording parses without dropping any of its 3,083 events; parsing and authored controls alone do not
 establish a completed port/rebuild replay, a player's original session, or parity. The port reference, starting files,

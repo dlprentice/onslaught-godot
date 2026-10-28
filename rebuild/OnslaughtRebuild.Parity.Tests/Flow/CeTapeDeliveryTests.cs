@@ -2,6 +2,7 @@
 using System.Text;
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Pages;
+using OnslaughtRebuild.Parity.Game;
 using OnslaughtRebuild.Parity.Platform;
 using Xunit;
 
@@ -31,5 +32,18 @@ public sealed class CeTapeDeliveryTests
             throw new StopRun();
         };
         Assert.Throws<StopRun>(() => run.Run());
+    }
+
+    [GameDataFact]
+    public void StandaloneLevelRefusesLegacyInputItsStartupWouldSkip()
+    {
+        foreach (int present in new[] { 1, 2 })
+        {
+            var level = LevelSession.Load(100, GameData.Read);
+            level.Tape = RetailTape.Parse(Encoding.ASCII.GetBytes($"K {present} down 41 1e a\n"));
+            var error = Assert.Throws<NotSupportedException>(() => level.AdvanceToNextPresent());
+            Assert.Contains($"Present {present}", error.Message, StringComparison.Ordinal);
+            Assert.Equal(error.Message, Assert.Throws<NotSupportedException>(() => level.AdvanceToNextPresent()).Message);
+        }
     }
 }
