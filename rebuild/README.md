@@ -157,7 +157,9 @@ For the separately observed CE 0.1.9 recording, `ReplaySoundProfile.CreateRecord
 it requires the pinned private census receipt, the exact tape and complete sidecar, the same pinned pool file and
 English sample bank. It starts from the sidecar's options and careers in memory, with its tape fixed to the run;
 the two ancillary start files remain unmodeled. The selected seeds describe that isolated replay process, not the
-unobserved memory of the original recording or a general player default. This API does not enable live sound.
+unobserved memory of the original recording or a general player default. The diagnostic caller must preserve the
+returned run's initial state and callbacks and its game and film data; the API does not authenticate those assets.
+This API does not enable live sound.
 
 
 ## The earlier rebuild (history)

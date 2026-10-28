@@ -36,7 +36,8 @@ public static class ReplaySoundProfile
     /// Create the specifically observed silent CE 0.1.9 full-boot replay. The pinned private receipt binds the tape,
     /// complete recorded sidecar and sound pool to a separate, repeatable port process. This is not an assertion
     /// about the original recording process, retail parity or physical audio. The two ancillary start files are
-    /// authenticated with the sidecar but are not modeled by <see cref="GameRun"/>.
+    /// authenticated with the sidecar but are not modeled by <see cref="GameRun"/>. The caller must preserve the
+    /// returned run's initial state and callbacks and its supplied game and film data, which are not authenticated here.
     /// </summary>
     public static GameRun CreateRecordedReplay(string profilePath, string receiptPath, byte[] tapeBytes, byte[] sidecarBytes,
         Func<string, (string Name, byte[] Bytes)> read, Func<int, string>? pcText, IFilmFiles films)
