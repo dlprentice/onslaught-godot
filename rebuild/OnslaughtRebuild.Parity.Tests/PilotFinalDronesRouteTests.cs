@@ -9,22 +9,23 @@ namespace OnslaughtRebuild.Parity.Tests;
 /// <summary>
 /// Level 100's tutorial pilot route through the final drones, each tape extending the last exactly (k11: p22-fire's input
 /// to P26720, then on to P27240; k13: k11's to P27240, then on to P27341; j4: k13's to P27341, then the jet transform and
-/// the sixth drone, on to P27569), against the native port with patches 0029 and 0030: "Airborne Target 2 Destroyed" posts
-/// at P25977, P27055, P27304, (k13) P27324 and (j4) P27511. Every probe field every Present to each reference's end, with
-/// the route's measured sound-pool profile.
+/// the sixth drone, on to P27569), against the native port build 48738e88. The earlier ae04185f event observer recorded
+/// "Airborne Target 2 Destroyed" at P25977, P27055, P27304, (k13) P27324 and (j4) P27511; the newer recordings do not
+/// include that observer. Every probe field is compared every Present to each reference's end, with the route's measured
+/// sound-pool profile.
 /// </summary>
 public sealed class PilotFinalDronesRouteTests(ITestOutputHelper output)
 {
     private const string Sounds = "portrefs/l100-trainer-port-20261021/sound-seeds-admission-root-c.json";
 
-    [RetailGoldenFact("portrefs/l100-k11-port-20261022/port-probes-every1.txt", "portrefs/l100-k11-port-20261022/k11.tape", Sounds)]
-    public void TheK11RouteMatchesThePortEveryPresent() => _ = Check("portrefs/l100-k11-port-20261022", "k11.tape", 27400);
+    [RetailGoldenFact("portrefs/l100-k11-port-48738e88/port-probes-every1.txt", "portrefs/l100-k11-port-48738e88/k11.tape", Sounds)]
+    public void TheK11RouteMatchesThePortEveryPresent() => _ = Check("portrefs/l100-k11-port-48738e88", "k11.tape", 27400);
 
-    [RetailGoldenFact("portrefs/l100-k13-port-20261022/port-probes-every1.txt", "portrefs/l100-k13-port-20261022/k13.tape", Sounds)]
-    public void TheK13RouteMatchesThePortEveryPresent() => _ = Check("portrefs/l100-k13-port-20261022", "k13.tape", 27450);
+    [RetailGoldenFact("portrefs/l100-k13-port-48738e88/port-probes-every1.txt", "portrefs/l100-k13-port-48738e88/k13.tape", Sounds)]
+    public void TheK13RouteMatchesThePortEveryPresent() => _ = Check("portrefs/l100-k13-port-48738e88", "k13.tape", 27450);
 
-    [RetailGoldenFact("portrefs/l100-j4-port-20261022/port-probes-every1.txt", "portrefs/l100-j4-port-20261022/j4.tape", Sounds)]
-    public void TheJ4RouteMatchesThePortEveryPresent() => _ = Check("portrefs/l100-j4-port-20261022", "j4.tape", 27650);
+    [RetailGoldenFact("portrefs/l100-j4-port-48738e88/port-probes-every1.txt", "portrefs/l100-j4-port-48738e88/j4.tape", Sounds)]
+    public void TheJ4RouteMatchesThePortEveryPresent() => _ = Check("portrefs/l100-j4-port-48738e88", "j4.tape", 27650);
 
     /// <summary>
     /// The pilot's winning tape (pilot-win: j4's input to P27569, then Target Zone 4 and the walk in) under -level 100: the

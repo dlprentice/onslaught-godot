@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-10-26 (native stuck-contact recovery and sample PCM catalog; 2026-10-24: Host frontend sprite projection and measured replay sound-profile admission; 2026-10-23: the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-10-28 (collision volume adaptation and cylinder-line sum order); 2026-10-26 (native stuck-contact recovery and sample PCM catalog; 2026-10-24: Host frontend sprite projection and measured replay sound-profile admission; 2026-10-23: the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
@@ -123,6 +123,7 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
 | `Containers/SPtrSet.cs` (the shared node pool, SPtrSet, ListIterator) | `src/SPtrSet.h`, `src/SPtrSet.cpp` (`GenericSPtrSet`, `GenericListIterator`) | GPL-3.0-only (in Stuart's release) |
+| `Collision/Volumes.cs` (the base, sphere, cylinder, line and mesh collision-volume dispatch) | `src/GeneralVolume.h`, `src/Sphere.cpp`, `src/Cylinder.cpp`, `src/Line.cpp`; cylinder-line lengths checked against pristine `00440801..0044083d` and a native-port replay | GPL-3.0-only as combined. The recorded contact establishes one port route and the selected static sum order, not complete collision parity. |
 | `Mesh/MeshData.cs`, `Mesh/MeshPart.cs` (mesh and part records, the emitter, part and animation-mode queries) | `src/mesh.cpp`, `src/mesh.h`, `src/MeshPart.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Mesh/MeshPose.cs` (the render thing's pose and its emitter lookup) | `src/MeshPose.cpp`, `src/meshpose.h`, `src/MeshRenderer.cpp`, `src/rtmesh.cpp` (`CRTMesh::GetRTEmitter`) | GPL-3.0-only (MeshPose and MeshRenderer are in Stuart's release) |
 | `Mesh/MeshVertexBuffer.cs` (the vertex buffer record as the mesh reader skips it) | `src/DXMeshVB.cpp`, `src/DXMeshVB.h` | GPL-3.0-only (in Stuart's release) |

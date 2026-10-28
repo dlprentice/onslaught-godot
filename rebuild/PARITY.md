@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-27 (bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (pilot-win projectile/cylinder collision order; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -32,6 +32,17 @@ the dated entries below record each measurement.
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in
 the dated entries below are the counts on their dates.
+
+Pilot-win projectile contact (2026-10-28): the pristine specimen's `CCylinder::CollideWithLine`
+instructions at `00440801..0044083d` sum the Y and Z squares before the X square for the two lengths.
+On the frozen native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
+the pilot-win tape's projectile 4034 hit the player cylinder with contact Z `c12dac0d`; the previous
+X-first reconstruction returned `c12dac0e` and differed in LIFE starting at Present 26368. A fresh native
+observer recorded the input positions, motions and cylinder/line dimensions used in
+`CylinderLineTests.LineContactUsesTheRetailMagnitudeOrder`. The test passes with the retail sum order and fails
+with the old order. With this correction, `ThePilotWinRouteMatchesThePortThroughTheLevelsEnd` compares all nine
+fields every Present through the level's end at 28306, its end-level data, and the outro to 28600 against that
+port reference. This is a port replay plus static retail evidence, not a retail win or device-audio acceptance.
 
 Opt-in live device audio (2026-10-27, M7 remains incomplete): `HOST_LIVE=1 HOST_AUDIO=1` adds effects and prepared
 PCM voices through the shared sound process. It is separate from `HOST_TAPE`'s virtual device and is not used by
@@ -574,6 +585,10 @@ oracle):
     known to drift from P4280.
   - Not drawn yet: the lock-on pieces and warning-receiver threats (neither is ported), the Thunderhead's imposter frame, the terrain's detail texture, and
     P2800's dome.
+
+The following 2026-10-22 and 2026-10-23 entries describe the earlier port build and tests as measured on those dates.
+The current route tests use the newer port reference identified in the projectile-contact entry above; the old event
+observer was not rerun for those new references.
 
 Measured (the repair pad route, 2026-10-22): on the tutorial pilot's p22-fire tape (c17-fire's input to P22150, then
 the return to the Forseti repair pad and the flight out), against the native port's every-Present probes
