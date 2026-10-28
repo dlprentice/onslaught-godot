@@ -60,6 +60,9 @@ public sealed class MeshData
     /// <summary>For a mesh read from its own file: the file's bytes left unread after it and its chain (-1 otherwise).</summary>
     public int MeshFileUnread { get; private set; } = -1;
 
+    /// <summary>Whether the embedded or external mesh reader attempted to read beyond its input.</summary>
+    public bool ReadPastEnd { get; private set; }
+
     /// <summary>The CMesh record as read (pointer fields are presence markers).</summary>
     public byte[] Record { get; private set; } = [];
 
@@ -248,6 +251,8 @@ public sealed class MeshData
         {
             mesh.MeshFileUnread = data.File.Length - (int)data.File.Position;
         }
+
+        mesh.ReadPastEnd = c.File.EndOfFile || data.File.EndOfFile;
 
         return mesh;
     }

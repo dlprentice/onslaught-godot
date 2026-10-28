@@ -21,14 +21,17 @@ public sealed class GoodieMeshResourceTests
     private static byte[] I(int value) => BitConverter.GetBytes(value);
 
     // An anonymous, zero-part mesh and two opaque texture descriptors, authored for this test.
-    internal static byte[] Resource(int number = 8, int type = 1, int count = 2, string meshTag = "MESH")
+    internal static byte[] Resource(int number = 8, int type = 1, int count = 2, string meshTag = "MESH",
+        byte[]? meshBody = null, bool namedMesh = false)
     {
         byte[] mesh = new byte[MeshData.RecordSize];
         BinaryPrimitives.WriteSingleLittleEndian(mesh.AsSpan(0x164), 1f);
-        byte[] meshChunks = Join(Chunk("PMS2", new byte[309]), Chunk("CMSH", mesh), Chunk("CMST", []),
-            Chunk("BBOX", Chunk("DATA", new byte[40])));
+        byte[] name = new byte[309];
+        if (namedMesh) name[0] = (byte)'x';
+        byte[] meshChunks = namedMesh ? Chunk("PMS2", name) : Join(Chunk("PMS2", name), Chunk("CMSH", mesh),
+            Chunk("CMST", []), Chunk("BBOX", Chunk("DATA", new byte[40])));
         byte[] payload = Join(I(number), I(type), Chunk("MDAT", I(count)), Chunk("TXTR", [1, 2]),
-            Chunk("TXTR", [3]), Chunk(meshTag, Chunk("PMSH", meshChunks)));
+            Chunk("TXTR", [3]), Chunk(meshTag, meshBody ?? Chunk("PMSH", meshChunks)));
         return Join(Chunk("LVLR", I(7)), Chunk("GDIE", Chunk("GDAT", payload)));
     }
 
@@ -62,6 +65,22 @@ public sealed class GoodieMeshResourceTests
         foreach (int removed in new[] { 1, 7, 8, 40 })
             Assert.Throws<InvalidDataException>(() => GoodieMeshResource.Read("authored.bin", bytes[..^removed], 8, NoExternalMesh));
         Assert.Throws<InvalidDataException>(() => GoodieMeshResource.Read("authored.bin", Join(bytes, bytes), 8, NoExternalMesh));
+    }
+
+    [Fact]
+    public void RejectsEmptyTruncatedAndWrongMeshWrappersEvenWhenTheirParentSizesAreValid()
+    {
+        foreach (byte[] body in new[] { Array.Empty<byte>(), new byte[] { 1 }, Chunk("PMSH", []),
+                     Chunk("PMSH", Chunk("PMS2", new byte[309])),
+                     Chunk("NOPE", Chunk("PMS2", new byte[309])), Chunk("PMSH", Chunk("NOPE", new byte[309])) })
+            Assert.Throws<InvalidDataException>(() => GoodieMeshResource.Read("authored.bin", Resource(meshBody: body), 8, NoExternalMesh));
+    }
+
+    [Fact]
+    public void RejectsAnExternalMeshWhoseReaderRunsPastItsEnd()
+    {
+        Assert.Throws<InvalidDataException>(() => GoodieMeshResource.Read("authored.bin", Resource(namedMesh: true), 8,
+            _ => ("truncated.bin", Array.Empty<byte>())));
     }
 
     [GameDataFact]
