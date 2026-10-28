@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -39,6 +39,17 @@ and device mouse state across level replacement (unread motion is consumed once;
 The new player recording parses without dropping any of its 3,083 events; parsing and authored controls alone do not
 establish a completed port/rebuild replay, a player's original session, or parity. The port reference, starting files,
 film settings and device/sound assumptions must be admitted separately before comparing the route.
+
+Weapon-driven zoom (2026-10-28): `CBattleEngine::Move` selects a charge-dependent or normal target, keeps the
+previous zoom for camera interpolation, and moves the current value by at most `0.1f` per update. The pristine
+specimen's `004089fb..00408b82` contains the mode branches and uses the `0.1f` constant at `005d85c0`; the previous
+rebuild skipped the weapon modes and used `0.05f`. `BattleEngineZoomTests` cover the mode and timer boundaries,
+zero maximum charge and a PC24 rounding case. On a private, repeatable CE 0.1.9 full-boot level-100 port reference,
+the corrected rebuild's sampled fields match through Present 7480; the prior build first differed in the CRT probe
+at 5823 after its camera zoom made different objects visible. A separate capture found equal camera position and view
+matrix but different gamut zoom inputs at Presents 5821–5822; the source-backed diagnostic correction produced the
+port's gamut inputs on those frames. The route then stops at an unconfigured incoming-missile sound owner. This is a
+bounded port comparison with no admitted sound-pool profile, not proof of retail parity or a completed rebuild win.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in

@@ -529,25 +529,7 @@ public sealed partial class BattleEngine
 
             OldLife = Life;
             OldEnergy = Energy;
-            OldZoom = Zoom;
-            if (CurrentWeaponForZoom() is not null)
-            {
-                Context.Skip("CBattleEngine::Move: the weapon's zoom mode (not ported yet)");
-            }
-
-            const float ZoomSpeed = 0.05f;
-            if (MathF.Abs(DesiredZoom - Zoom) < ZoomSpeed)
-            {
-                Zoom = DesiredZoom;
-            }
-            else if (DesiredZoom > Zoom)
-            {
-                Zoom += ZoomSpeed;
-            }
-            else if (DesiredZoom < Zoom)
-            {
-                Zoom -= ZoomSpeed;
-            }
+            UpdateWeaponZoom(now);
 
             Context.Skip("CBattleEngine::HandleLocks (not ported yet)");
             if (State != BattleEngineState.Jet)
@@ -726,7 +708,41 @@ public sealed partial class BattleEngine
         ThrustersActive = false;
     }
 
-    private Weapon? CurrentWeaponForZoom() => GetCurrentWeapon();
+    /// <summary>
+    /// CBattleEngine::Move's zoom step (004089fb..00408b82): charge and normal weapon modes update the target,
+    /// then the current zoom moves by at most 0.1 while the previous value is kept for camera interpolation.
+    /// </summary>
+    internal void UpdateWeaponZoom(float now)
+    {
+        const float zoomSpeed = 0.1f;
+        OldZoom = Zoom;
+        Weapon? weapon = GetCurrentWeapon();
+        if (weapon is not null)
+        {
+            switch (weapon.Data.ZoomMode)
+            {
+                case 2: // kChargeZoom; GetCharge returns zero when the maximum charge is zero.
+                    int maxCharge = weapon.GetMaxCharge();
+                    double charge = maxCharge == 0 ? 0.0 : X87.Div(weapon.ChargeValue, maxCharge);
+                    float newZoom = (float)X87.Add(X87.Mul(X87.Sub(1.0, charge), 0.8f), 0.2f);
+                    if (charge >= 1.0) ZoomOutTime = now + 0.5f;
+                    if (DesiredZoom > newZoom) DesiredZoom = newZoom;
+                    else if (DesiredZoom < newZoom && now > ZoomOutTime) DesiredZoom = 1.0f;
+                    break;
+                case 1: // kNormalZoom
+                    if (DesiredZoom < 0.4f)
+                    {
+                        DesiredZoom += zoomSpeed;
+                        if (DesiredZoom > 1.0f) DesiredZoom = 1.0f;
+                    }
+                    break;
+            }
+        }
+
+        if (MathF.Abs(DesiredZoom - Zoom) < zoomSpeed) Zoom = DesiredZoom;
+        else if (DesiredZoom > Zoom) Zoom += zoomSpeed;
+        else if (DesiredZoom < Zoom) Zoom -= zoomSpeed;
+    }
 
     /// <summary>IsStandingOnAMoveingObject: on an object that is moving.</summary>
     private bool IsStandingOnAMovingObject()
