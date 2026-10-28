@@ -703,6 +703,24 @@ process's 256 seeds), not this process's; every field still matches. Retail is n
 recorded retail pairs (pristine 74154bfa under the shim) the two runs of the same tape differ from each other, first
 between P3918 and P5003.
 
+Measured (a separate recorded level-100 win, 2026-10-28): an isolated CE 0.1.9 full-boot replay, with the tape's
+copied starting profile, virtual 30 Hz clock, 640×480 offscreen display and dummy audio, reached the won debrief and
+the player's goodie-8 mesh viewer. A diagnostic rebuild run using that replay's separately observed sound-pool seed and
+one instrumented process's first-poll goodie-load completion matches its 112,053 ordinary sampled fields through the
+last input at P12312, both 1,484-byte END_LEVEL_DATA snapshots, 663 sampled goodie grid/viewer states, all five isolated
+final career files and default options byte for byte. A second instrumented port run had the same complete probe and
+final-profile hashes; it showed why the rebuild must release DirectInput on return before window mouse moves, and why
+saves must read the selected device mode rather than retain the initial saved key. These are port-replay comparisons,
+not retail, original-recording process-memory, audible or visual parity.
+
+`GoodiesPage.StartMeshLoad` accepts a deterministic caller-supplied completion observation for the diagnostic goodie-8
+mesh projection. The resource reader checks its GDIE mesh descriptor and reads the referenced mesh; it skips texture
+records and does not draw the item. The native load is asynchronous, so this one observed completion is not a general
+schedule. Other goodies, manual mesh manipulation, the viewer's camera/particle effects, text-height-dependent scrolling
+and graphical presentation remain incomplete. Without an explicitly supplied load the viewer still refuses to run.
+The save-mode model uses its explicitly selected `MachineDisplay` mode; actual host mode discovery and complete startup
+mode selection remain separate work. The recording's two ancillary start files are authenticated but not modelled.
+
 Measured (frontend sprite presentation, 2026-10-24): the Host now draws the existing frontend sprite particles
 through `ParticleView`, after the page and its depth masks and before the cursor. This adds the goodie glow/sparks
 at debriefing and admits the main menu's firework sprites; particle meshes (including the goodie logo) and the
