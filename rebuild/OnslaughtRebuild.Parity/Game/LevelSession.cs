@@ -31,6 +31,7 @@ public sealed class LevelSession
     private bool _started;
     private bool _startUnitNoisePending;
     private bool _soundReleased;
+    private bool _inputReleased;
 
     private LevelSession(ThingContext context, Game game, LevelResources resources, Clock.PlatformClock clock)
     {
@@ -265,6 +266,7 @@ public sealed class LevelSession
             SoundProcess = SoundProcess,
         };
         Context.Particles?.Manager.Shutdown();
+        ReleaseInputForRestartOrReturn();
         LevelSession next = Load(Level, Read, Voice, OtherChunk, host);
         next.Game.Loop.CarryFrameTimes(Game.Loop);
         // A retry is the same process and tape, whose earlier events were handled by the preceding session.
@@ -290,6 +292,15 @@ public sealed class LevelSession
         ScriptRuntime.Of(Context).MessageBox?.Delete();
         Context.SoundEffects?.SetGameSoundsMasterVolume(1); // native field-only reset; no status/gain refresh here.
         SoundProcess?.ReleaseLevel(Context);
+    }
+
+    /// <summary>ShutdownRestartLoop's ShutdownMouse (game.cpp:622): the window mouse owns input again.</summary>
+    private void ReleaseInputForRestartOrReturn()
+    {
+        if (_inputReleased) return;
+        Input.Mouse.Shutdown(Input.Input.Mouse.SystemCursor.X, Input.Input.Mouse.SystemCursor.Y);
+        Input.Context.DirectInputCreated = false;
+        _inputReleased = true;
     }
 
     /// <summary>
@@ -320,6 +331,7 @@ public sealed class LevelSession
         ReleaseSoundForRestartOrReturn();
         RandomStreamDeleted = true;
         Context.Particles?.Manager.Shutdown();
+        ReleaseInputForRestartOrReturn();
         RunOutroFmv(films);
     }
 
