@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-28 (CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -28,6 +28,14 @@ the dated entries below record each measurement.
 | M5 | Open against retail; met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win, and retail is not yet a reference for a win: its paired runs of the same tape differ from each other. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). |
 | M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
 | M7 | In progress: the Host runs the whole game from boot to quit (`HOST_LIVE=flow`), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
+
+CE version-2 tapes (2026-10-28): the parser and the `GameRun`/level input paths retain ordered window-mouse and
+character events, the recorded back-buffer size and replay-owned cursor as in the 0.1.9 recorder. A mismatched size,
+unknown event or newer declared format is refused; the older K/M-only `ParityRunner` refuses other event types.
+Authored controls cover message ordering, keyboard-trap character/scan, cursor and wheel behavior, and size mismatch.
+The new player recording parses without dropping any of its 3,083 events; parsing and authored controls alone do not
+establish a completed port/rebuild replay, a player's original session, or parity. The port reference, starting files,
+film settings and device/sound assumptions must be admitted separately before comparing the route.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in

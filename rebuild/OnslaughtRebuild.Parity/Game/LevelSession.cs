@@ -66,6 +66,7 @@ public sealed class LevelSession
         long before = Clock.PresentCount;
         if (!_started)
         {
+            if (Tape is not null) Input.Input.PrepareTape(Tape);
             _started = true;
             if (!FromFrontEnd)
             {

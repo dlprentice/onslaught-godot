@@ -26,7 +26,7 @@ public interface IParitySimulation
     void ReadProbes(long frame, ProbeTrace trace);
 }
 
-/// <summary>Plays a retail tape into a parity simulation and records its probe trace.</summary>
+/// <summary>Plays K/M tape events into a parity simulation and records its probe trace; other events are refused.</summary>
 public static class ParityRunner
 {
     /// <summary>
@@ -38,6 +38,8 @@ public static class ParityRunner
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(tape);
+        if (tape.UsesTapeCursor)
+            throw new NotSupportedException("This K/M-only simulation cannot provide a tape-owned window cursor.");
         ArgumentOutOfRangeException.ThrowIfLessThan(maxFrames, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(sampleEvery, 1);
         if (simulation.PresentCount != 0)
@@ -71,6 +73,8 @@ public static class ParityRunner
                     case RetailMouseEvent mouse:
                         simulation.DeliverMouse(mouse);
                         break;
+                    default:
+                        throw new NotSupportedException($"This simulation cannot deliver tape event {e.GetType().Name}.");
                 }
             }
         }

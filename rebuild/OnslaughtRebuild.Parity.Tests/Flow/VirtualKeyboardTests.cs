@@ -103,6 +103,20 @@ public sealed class VirtualKeyboardTests
     }
 
     [Fact]
+    public void RecordedCharacterReachesTheActiveNameKeyboardThroughTheMessageQueue()
+    {
+        (FrontEnd frontEnd, VirtualKeyboardPage keyboard) = NewKeyboard();
+        keyboard.SetDefaultName();
+        keyboard.Process(FrontEndPageState.Active);
+        frontEnd.Platform.PostTapeMessage(new RetailKeyEvent(1, true, 0x41, 0x1e, "a"));
+        frontEnd.Platform.PostTapeMessage(new RetailCharacterEvent(1, 0x41, 0x1e));
+        frontEnd.Platform.Process(1);
+        Assert.Equal("A", keyboard.Name);
+        Assert.False(keyboard.Fresh);
+        Assert.False(frontEnd.Platform.KeyOn(0x1e));
+    }
+
+    [Fact]
     public void BackspaceOnTheFreshNameClearsItAndTheNameStopsAt31()
     {
         (_, VirtualKeyboardPage keyboard) = NewKeyboard();

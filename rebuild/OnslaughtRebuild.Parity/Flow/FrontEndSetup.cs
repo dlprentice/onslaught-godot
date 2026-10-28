@@ -76,7 +76,7 @@ public static class FrontEndSetup
             TextIds.Read(read(TextIds.FileName).Bytes), controls.Input, pcText: pcText);
 
         DevSelectPage devSelect = new(frontEnd);
-        VirtualKeyboardPage keyboard = new(frontEnd);
+        VirtualKeyboardPage keyboard = new(frontEnd) { Font = frontEnd.NormalFont };
         DirectoryPage directory = new(frontEnd);
         LevelSelectPage levelSelect = new(frontEnd);
         LoadGamePage loadGame = new(frontEnd);

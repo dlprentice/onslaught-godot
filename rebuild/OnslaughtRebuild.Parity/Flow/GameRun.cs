@@ -14,8 +14,8 @@ namespace OnslaughtRebuild.Parity.Flow;
 /// <summary>
 /// The game from boot to quit as the parity core runs it, Present by Present on one clock: CSystem::Init's films, then
 /// <see cref="SystemFlow"/> with the front end and each level it starts (<see cref="LevelSession"/> on a
-/// <see cref="LevelHost"/>). A tape's events are delivered after the Present they follow: keys as window messages, mouse
-/// movement into DirectInput while a level runs.
+/// <see cref="LevelHost"/>). Tape events are delivered after the Present they follow: keys, characters and window-mouse
+/// events as messages, and device mouse movement into DirectInput while a level runs.
 /// </summary>
 public sealed class GameRun : ISystemParts
 {
@@ -105,6 +105,7 @@ public sealed class GameRun : ISystemParts
     /// </summary>
     public int Run()
     {
+        if (Tape is not null) Input.PrepareTape(Tape);
         Input.FlushInputBuffers();
         // The device makes Present 1 before CSystem::Init. Its first call with a non-zero QPC frequency then
         // establishes GetSysTimeFloat's origin, before the films (port clock traces, 2026-10-17). Setting the origin
@@ -228,18 +229,17 @@ public sealed class GameRun : ISystemParts
             {
                 switch (e)
                 {
-                    case RetailKeyEvent key:
-                        Input.PostTapeKey(key.VirtualKey, key.ScanCode, key.Down);
-                        break;
                     case RetailMouseEvent mouse when Level is { Ended: false } level:
                         level.Input.Mouse.AddMouseDelta(mouse.DeltaX, mouse.DeltaY, mouse.Wheel, (byte)mouse.Buttons);
                         break;
                     case RetailMouseEvent mouse:
-                        // Outside a level no DirectInput mouse reads the tape (the front end follows the window's cursor,
-                        // which a replay never moves): the harness's movement adds up, and the next level's first device
-                        // read takes it with the last buttons (bea-decomp port/platform/common/replay.cpp, PortReplayMouse).
+                        // Outside a level no DirectInput mouse reads the tape. M movement adds up for the next level's
+                        // first device read; only W events move a tape-owned window cursor (port replay.cpp).
                         _pendingMouse = (unchecked(_pendingMouse.X + mouse.DeltaX), unchecked(_pendingMouse.Y + mouse.DeltaY),
                             unchecked(_pendingMouse.Wheel + mouse.Wheel), (byte)mouse.Buttons, true);
+                        break;
+                    default:
+                        Input.PostTapeMessage(e);
                         break;
                 }
             }

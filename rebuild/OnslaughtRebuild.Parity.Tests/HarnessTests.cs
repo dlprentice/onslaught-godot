@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 using System.Text;
+using OnslaughtRebuild.Parity.Platform;
 
 namespace OnslaughtRebuild.Parity.Tests;
 
@@ -24,6 +25,55 @@ public sealed class HarnessTests
         Assert.Equal(new RetailKeyEvent(4, false, 0x57, 0x11, "w"), frame4[1]);
         Assert.True(tape.EventsAt(5).IsEmpty);
         Assert.Equal(new RetailKeyEvent(6, true, 0x1e, 0x1e, "a"), tape.EventsAt(6)[0]);
+    }
+
+    [Fact]
+    public void CeTapeKeepsCharacterAndWindowEventsAndTheirClientSizes()
+    {
+        const string text = "# onslaught tape 2\nW_CLIENT 1280 720\n"
+            + "W 3 move 100 200 0\nK 3 down 41 1e a\nC 3 61 1e\nM 3 -2 1 0 1\n"
+            + "W_CLIENT 640 480\nW 4 wheel -10 20 ff880001\n";
+        RetailTape tape = Tape(text);
+        Assert.Equal(2, tape.Version);
+        Assert.True(tape.UsesTapeCursor);
+        Assert.Equal(5, tape.Events.Count);
+        RetailTapeEvent[] at3 = tape.EventsAt(3).ToArray();
+        Assert.Equal(new RetailWindowMouseEvent(3, MouseMessage.Move, 100, 200, 0, 1280, 720), at3[0]);
+        Assert.Equal(new RetailKeyEvent(3, true, 0x41, 0x1e, "a"), at3[1]);
+        Assert.Equal(new RetailCharacterEvent(3, 0x61, 0x1e), at3[2]);
+        Assert.Equal(new RetailMouseEvent(3, -2, 1, 0, 1), at3[3]);
+        Assert.Equal(new RetailWindowMouseEvent(4, MouseMessage.Wheel, -10, 20, 0xff880001, 640, 480), tape.EventsAt(4)[0]);
+    }
+
+    [Fact]
+    public void CeTapeAcceptsWindowsTextModeButRejectsMixedLineEndings()
+    {
+        RetailTape tape = Tape("# onslaught tape 2\r\nW_CLIENT 640 480\r\nW 1 move 3 4 0\r\n");
+        Assert.Equal(2, tape.Version);
+        Assert.Single(tape.Events);
+        Assert.Throws<FormatException>(() => Tape("# onslaught tape 2\r\nW_CLIENT 640 480\n"));
+    }
+
+    [Theory]
+    [InlineData("# onslaught tape 3\n")]
+    [InlineData("# onslaught tape invalid\n")]
+    [InlineData("W_CLIENT -1 480\n")]
+    [InlineData("W_CLIENT 640\n")]
+    [InlineData("W 1 invalid 1 2 0\n")]
+    [InlineData("W 1 move 1 2 100000000\n")]
+    [InlineData("C 1 61 200\n")]
+    [InlineData("C 1 61 1e\nW 0 move 1 2 0\n")]
+    public void CeTapeRejectsUnsupportedOrMalformedEvents(string text) =>
+        Assert.Throws<FormatException>(() => Tape(text));
+
+    [Fact]
+    public void LegacyRunnerRefusesWindowEventsInsteadOfDroppingThem()
+    {
+        RetailTape tape = Tape("# onslaught tape 2\nW_CLIENT 640 480\nW 1 move 3 4 0\n");
+        Assert.Throws<NotSupportedException>(() => ParityRunner.Run(new RecordingSimulation(), tape, 1, 1));
+        // Even without a W line, version 2 changes GetCursorPos's source for the whole process.
+        RetailTape cursorOnly = Tape("# onslaught tape 2\nM 1 0 0 0 0\n");
+        Assert.Throws<NotSupportedException>(() => ParityRunner.Run(new RecordingSimulation(), cursorOnly, 1, 1));
     }
 
     [Theory]

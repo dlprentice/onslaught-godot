@@ -17,6 +17,7 @@ public readonly record struct WindowMessage(int Message, int WParam, int LParam)
 {
     public const int KeyDownMessage = 0x0100;
     public const int KeyUpMessage = 0x0101;
+    public const int CharMessage = 0x0102;
 }
 
 /// <summary>
@@ -28,8 +29,8 @@ public readonly record struct WindowMessage(int Message, int WParam, int LParam)
 /// <remarks>
 /// Assumed constant in play: <c>CLIPARAMS.mAutoConfigTest</c> is false (it is set only by its command-line switch,
 /// CLIParams.cpp:280), so the key and mouse gating on it never applies; the window is active and ready; the D3D device
-/// is not lost. Not modelled yet: <c>WM_CHAR</c> (which <c>TranslateMessage</c> generates and only a key trap reads),
-/// the console's key binds (<c>CONSOLE.HandleBind</c>), joysticks, and the inactive-window path (<c>GetMessage</c>).
+/// is not lost. Not modelled yet: generating <c>WM_CHAR</c> from live keys, the console's key binds
+/// (<c>CONSOLE.HandleBind</c>), joysticks, and the inactive-window path (<c>GetMessage</c>).
 /// </remarks>
 public sealed class PlatformInput
 {
@@ -38,6 +39,7 @@ public sealed class PlatformInput
     private readonly Queue<WindowMessage> _queue = new();
     private readonly List<int> _keysRead = new(MaxKeysRead);
     private long? _lastElapsedCounter;
+    private bool _tapeCursorInitialised;
 
     public PlatformInput(PlatformWindow window) => Window = window;
 
@@ -58,6 +60,9 @@ public sealed class PlatformInput
 
     /// <summary>The installed key trap (<c>mCurrentKeytrap</c>), if any: it sees keys and mouse buttons first.</summary>
     public Func<int, int, bool>? KeyTrap { get; set; }
+
+    /// <summary><c>gCharScanCode</c>: the key whose WM_CHAR is currently being sent to a trap; zero outside the call.</summary>
+    public int CharScanCode { get; private set; }
 
     /// <summary>Messages posted and not yet handled.</summary>
     public int Pending => _queue.Count;
@@ -82,6 +87,41 @@ public sealed class PlatformInput
     /// </summary>
     public void PostTapeKey(int virtualKey, int scanCode, bool down) =>
         PostKeyMessage(virtualKey, unchecked(1 | (scanCode << 16) | (down ? 0 : (int)0xC0000000)), down);
+
+    /// <summary>Initialises the tape-owned cursor once per process, including across level restarts.</summary>
+    public void PrepareTape(RetailTape tape)
+    {
+        if (tape.UsesTapeCursor && !_tapeCursorInitialised)
+        {
+            Mouse.SystemCursor = (0, 0);
+            _tapeCursorInitialised = true;
+        }
+    }
+
+    /// <summary>Queues a tape's window event in order; DirectInput M events are delivered by the owning level.</summary>
+    public void PostTapeMessage(RetailTapeEvent e)
+    {
+        switch (e)
+        {
+            case RetailKeyEvent key:
+                PostTapeKey(key.VirtualKey, key.ScanCode, key.Down);
+                break;
+            case RetailCharacterEvent character:
+                _queue.Enqueue(new WindowMessage(WindowMessage.CharMessage, unchecked((int)character.Character),
+                    1 | (character.ScanCode << 16)));
+                break;
+            case RetailWindowMouseEvent mouse:
+                if (mouse.ClientWidth != 0 && mouse.ClientHeight != 0
+                    && (mouse.ClientWidth != Window.Width || mouse.ClientHeight != Window.Height))
+                    throw new InvalidOperationException($"Tape window mouse at Present {mouse.Frame} requires "
+                        + $"{mouse.ClientWidth}x{mouse.ClientHeight}, but the back buffer is {Window.Width}x{Window.Height}.");
+                PostMouseMessage(mouse.Message, mouse.X, mouse.Y, unchecked((int)mouse.WParam));
+                if (mouse.Message != MouseMessage.Wheel) Mouse.SystemCursor = (mouse.X, mouse.Y);
+                break;
+            default:
+                throw new NotSupportedException($"The platform cannot queue tape event {e.GetType().Name}.");
+        }
+    }
 
     /// <summary>Posts a mouse message as a tape's W event delivers it: lParam = MAKELPARAM(x, y) in client pixels.</summary>
     public void PostMouseMessage(MouseMessage message, int x, int y, int wParam) =>
@@ -133,6 +173,12 @@ public sealed class PlatformInput
             // Key-ups propagate even when trapped, to avoid stuck keys.
             KeyDown[key] = false;
             KeyWasUp[key] = true;
+        }
+        else if (message.Message == WindowMessage.CharMessage && KeyTrap is not null)
+        {
+            CharScanCode = key;
+            try { KeyTrap(message.WParam & 0xffff, KeyTrapEvent.Char); }
+            finally { CharScanCode = 0; }
         }
         else if (message.Message >= (int)MouseMessage.Move && message.Message <= (int)MouseMessage.Wheel)
         {

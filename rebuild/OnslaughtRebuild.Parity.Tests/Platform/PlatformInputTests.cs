@@ -13,6 +13,81 @@ public sealed class PlatformInputTests
         new(new PlatformWindow { Width = width, Height = height, FrontEndRunning = frontEnd });
 
     [Fact]
+    public void CeTapeCharacterIsTrappedInMessageOrderWithItsScanCode()
+    {
+        PlatformInput input = New();
+        List<(int Key, int Event, int CharScan)> events = [];
+        input.KeyTrap = (key, e) => { events.Add((key, e, input.CharScanCode)); return false; };
+        input.PostTapeMessage(new RetailKeyEvent(1, true, 0x41, 0x11e, "a"));
+        input.PostTapeMessage(new RetailCharacterEvent(1, 0x10041, 0x11e));
+        input.PostTapeMessage(new RetailKeyEvent(1, false, 0x41, 0x11e, "a"));
+        input.Process(1);
+        Assert.Equal([(0x9e, KeyTrapEvent.Down, 0), (0x41, KeyTrapEvent.Char, 0x9e),
+            (0x9e, KeyTrapEvent.Up, 0)], events);
+        Assert.Equal(0, input.CharScanCode);
+        Assert.False(input.KeyOn(0x9e));
+
+        PlatformInput noTrap = New();
+        noTrap.PostTapeMessage(new RetailCharacterEvent(1, 0x41, 0x1e));
+        noTrap.Process(1);
+        Assert.False(noTrap.KeyPressed);
+        Assert.False(noTrap.KeyOn(0x1e));
+    }
+
+    [Fact]
+    public void CeTapeWindowMessagesKeepTheRecordedCursorAndScaleForTheFrontEnd()
+    {
+        PlatformInput input = New(1280, 720);
+        input.Mouse.SystemCursor = (7, 9);
+        RetailTape tape = RetailTape.Parse(System.Text.Encoding.ASCII.GetBytes("# onslaught tape 2\n"));
+        input.PrepareTape(tape);
+        Assert.Equal((0, 0), input.Mouse.SystemCursor);
+        input.PostTapeMessage(new RetailWindowMouseEvent(1, MouseMessage.Move, 640, 360, 0, 1280, 720));
+        input.PostTapeMessage(new RetailWindowMouseEvent(1, MouseMessage.LeftDown, 640, 360, 1, 1280, 720));
+        input.PostTapeMessage(new RetailWindowMouseEvent(1, MouseMessage.LeftUp, 640, 360, 0, 1280, 720));
+        input.PostTapeMessage(new RetailWindowMouseEvent(1, MouseMessage.Wheel, 12, 20, 0xff880000, 1280, 720));
+        Assert.Equal((640, 360), input.Mouse.SystemCursor); // wheel does not change the replay cursor
+        input.PrepareTape(tape); // retry shares the process cursor instead of resetting it
+        Assert.Equal((640, 360), input.Mouse.SystemCursor);
+        input.Process(1);
+        Assert.Equal((320, 240), (input.Mouse.X, input.Mouse.Y));
+        Assert.Equal(-120, input.Mouse.Wheel);
+        Assert.True(input.Mouse.ClickedInRect(0, 0, 640, 480, null));
+        Assert.False(input.Mouse.ClickedInRect(0, 0, 640, 480, null));
+    }
+
+    [Fact]
+    public void CeTapeRejectsAWindowSizeMismatchBeforePostingOrMovingTheCursor()
+    {
+        PlatformInput input = New(640, 480);
+        input.Mouse.SystemCursor = (3, 4);
+        Assert.Throws<InvalidOperationException>(() => input.PostTapeMessage(
+            new RetailWindowMouseEvent(10, MouseMessage.Move, 10, 20, 0, 1280, 720)));
+        Assert.Equal(0, input.Pending);
+        Assert.Equal((3, 4), input.Mouse.SystemCursor);
+        input.PostTapeMessage(new RetailWindowMouseEvent(10, MouseMessage.Move, 10, 20, 0, 0, 0));
+        Assert.Equal((10, 20), input.Mouse.SystemCursor); // no recorded size: the port has no size guard
+    }
+
+    [Fact]
+    public void LevelInputDoesNotDropWindowOrCharacterEvents()
+    {
+        var level = new OnslaughtRebuild.Parity.Game.LevelInput(new OnslaughtRebuild.Parity.Clock.PlatformClock(),
+            ControlBindings.Defaults());
+        List<(int, int)> trapped = [];
+        level.Input.KeyTrap = (key, e) => { trapped.Add((key, e)); return false; };
+        RetailTapeEvent[] events = [
+            new RetailWindowMouseEvent(1, MouseMessage.Move, 123, 234, 0, 640, 480),
+            new RetailCharacterEvent(1, 0x61, 0x1e),
+        ];
+        level.Deliver(events);
+        Assert.Equal((123, 234), level.Input.Mouse.SystemCursor);
+        level.Input.Process(1);
+        Assert.Equal((123, 234), (level.Input.Mouse.X, level.Input.Mouse.Y));
+        Assert.Equal([(0x61, KeyTrapEvent.Char)], trapped);
+    }
+
+    [Fact]
     public void TapeKeysAreHandledByScanCodeWhenThePlatformPumps()
     {
         PlatformInput input = New();

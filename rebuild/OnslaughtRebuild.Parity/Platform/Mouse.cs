@@ -82,9 +82,8 @@ public sealed class Mouse
 
     /// <summary>
     /// <c>GetCursorPos</c>'s answer: the system cursor's position, which <c>ShutdownMouse</c> takes as the cursor when the
-    /// DirectInput mouse is released (a level's pause or end menu, the game interface). It is machine state, not a tape
-    /// event: the host supplies it. The default (0, 0) is what the port's offscreen harness answers, so runs compared with
-    /// port references use it; what retail's harness (Wine on the same Xvfb) answers is still to be logged.
+    /// DirectInput mouse is released (a level's pause or end menu, the game interface). The host supplies it unless a
+    /// CE tape owns the cursor, in which case the last non-wheel W event supplies it. The default is (0, 0).
     /// </summary>
     public (int X, int Y) SystemCursor { get; set; }
 

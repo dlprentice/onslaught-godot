@@ -19,8 +19,8 @@ public interface IFontMetrics
 /// keyboard or, on PC, the real one through a key trap. Done copies the name to the save page and goes there.
 /// </summary>
 /// <remarks>
-/// Typed characters arrive as <c>WM_CHAR</c>, which the platform does not generate yet, and need the font's metrics
-/// (<see cref="Font"/>); accepting the default name, the arrows, backspace and escape need neither. The save list drawn
+/// Typed characters arrive as <c>WM_CHAR</c> and need the font's metrics (<see cref="Font"/>); accepting the default
+/// name, the arrows, backspace and escape need neither. The save list drawn
 /// beside the keyboard (the directory page's, picked with the mouse in its render) is not modelled.
 /// </remarks>
 public sealed class VirtualKeyboardPage : FrontEndPageBase, INameKeyboard

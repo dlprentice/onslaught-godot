@@ -76,18 +76,18 @@ public sealed class LevelInput : IGameServices, IControllerGame, Flow.Menus.IPau
         }
     }
 
-    /// <summary>A tape's events after the Present they follow: keys as window messages, mouse into DirectInput.</summary>
+    /// <summary>Events after their Present: window messages to the platform, device mouse into DirectInput.</summary>
     public void Deliver(ReadOnlySpan<RetailTapeEvent> events)
     {
         foreach (RetailTapeEvent e in events)
         {
             switch (e)
             {
-                case RetailKeyEvent key:
-                    Input.PostTapeKey(key.VirtualKey, key.ScanCode, key.Down);
-                    break;
                 case RetailMouseEvent mouse:
                     Mouse.AddMouseDelta(mouse.DeltaX, mouse.DeltaY, mouse.Wheel, (byte)mouse.Buttons);
+                    break;
+                default:
+                    Input.PostTapeMessage(e);
                     break;
             }
         }
