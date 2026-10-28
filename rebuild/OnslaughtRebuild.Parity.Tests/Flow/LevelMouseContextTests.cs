@@ -8,11 +8,21 @@ namespace OnslaughtRebuild.Parity.Tests.Flow;
 
 public sealed class LevelMouseContextTests
 {
+    private static (string Name, byte[] Bytes) ReadData(string name)
+    {
+        // Use only game data, never whichever options file a player's installation happens to contain.
+        if (string.Equals(name, OnslaughtRebuild.Parity.Career.DefaultOptions.FileName, StringComparison.OrdinalIgnoreCase))
+            throw new FileNotFoundException("The authored control does not read player options.");
+        return GameData.Read(name);
+    }
+
     [GameDataFact]
     public void LevelEndMenuDoesNotTreatWindowMouseMotionAsControllerActivity()
     {
-        var level = LevelSession.Load(100, GameData.Read);
+        var level = LevelSession.Load(100, ReadData);
         level.AdvanceToNextPresent();
+        level.Input.Context.Bindings.ApplyPreset(1); // authored keyboard/mouse preset uses MouseAxis*Any
+        level.Input.Shared.MouseSensitivity = 7f;
         level.Input.ShowLevelEndMenu();
         Assert.False(level.Input.Mouse.Created);
         Assert.False(level.Input.Context.DirectInputCreated);
@@ -36,7 +46,7 @@ public sealed class LevelMouseContextTests
     [GameDataFact]
     public void PauseReleaseAndResumeKeepTheControllerDeviceCheckInStep()
     {
-        var level = LevelSession.Load(100, GameData.Read);
+        var level = LevelSession.Load(100, ReadData);
         var controller = new Controller(0, 0, null);
         level.Input.ShowPauseMenu(controller);
         Assert.False(level.Input.Mouse.Created);
