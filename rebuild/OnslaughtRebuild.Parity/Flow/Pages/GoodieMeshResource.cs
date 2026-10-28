@@ -23,7 +23,10 @@ public sealed record GoodieMeshResource(int Number, int TextureCount, MeshData M
     {
         ArgumentNullException.ThrowIfNull(meshFile);
         if (expectedNumber < 0) throw new ArgumentOutOfRangeException(nameof(expectedNumber));
-        var c = new ChunkReader(MemBuffer.FromFile(fileName, bytes));
+        MemBuffer packed = MemBuffer.FromFile(fileName, bytes);
+        byte[] unpacked = new byte[packed.Length];
+        if (packed.Read(unpacked) != unpacked.Length) throw new InvalidDataException("truncated goodie resource");
+        var c = new ChunkReader(MemBuffer.FromFile("goodie-unpacked", unpacked));
         uint fileEnd = (uint)c.File.Length;
         GoodieMeshResource? result = null;
         while (c.WhereAmI < fileEnd)
@@ -58,12 +61,34 @@ public sealed record GoodieMeshResource(int Number, int TextureCount, MeshData M
 
             var (meshTag, meshEnd) = Next(c, dataEnd);
             if (meshTag != ChunkReader.MakeId("MESH")) throw new InvalidDataException("missing goodie mesh");
+            ValidateMeshHeader(unpacked, c.WhereAmI, meshEnd);
             MeshData mesh = MeshData.Deserialize(c, meshFile) ?? throw new InvalidDataException("goodie mesh was skipped");
-            if (c.WhereAmI != meshEnd || meshEnd != dataEnd)
-                throw new InvalidDataException("goodie mesh does not end with its wrapper");
+            if (mesh.ReadPastEnd || c.WhereAmI != meshEnd || meshEnd != dataEnd)
+                throw new InvalidDataException("truncated goodie mesh or incorrect wrapper end");
             result = new GoodieMeshResource(number, count, mesh);
         }
         return result ?? throw new InvalidDataException("missing GDIE chunk");
+    }
+
+    private static void ValidateMeshHeader(byte[] unpacked, uint start, uint meshEnd)
+    {
+        var check = new ChunkReader(MemBuffer.FromFile("goodie-unpacked", unpacked));
+        check.File.Skip((int)start);
+        var (wrapperTag, wrapperEnd) = Next(check, meshEnd);
+        if (wrapperTag != ChunkReader.MakeId("PMSH") || wrapperEnd != meshEnd)
+            throw new InvalidDataException("invalid goodie mesh wrapper");
+        var (nameTag, nameEnd) = Next(check, wrapperEnd);
+        if (nameTag != ChunkReader.MakeId("PMS2") || nameEnd - check.WhereAmI != 309)
+            throw new InvalidDataException("invalid goodie mesh name header");
+        Span<byte> name = stackalloc byte[300];
+        if (!check.Read(name)) throw new InvalidDataException("truncated goodie mesh name");
+        check.File.Skip(9); // resource id, optional flag, keep-buckets flag
+        if (name[0] == 0)
+        {
+            var (bodyTag, bodyEnd) = Next(check, wrapperEnd);
+            if (bodyTag != ChunkReader.MakeId("CMSH") || bodyEnd - check.WhereAmI != MeshData.RecordSize)
+                throw new InvalidDataException("missing embedded goodie mesh record");
+        }
     }
 
     private static (uint Tag, uint End) Next(ChunkReader c, uint parentEnd)
