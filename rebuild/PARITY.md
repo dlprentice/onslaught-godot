@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-29 (duplicate admission in the loss and selected port-reference readers; recorded loss routes against both original processes, launch-product and round-direction rounding; subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-29 (bounded integer PC24 matrix and rotation products; out-of-line matrix register range; duplicate admission in the loss and selected port-reference readers; recorded loss routes against both original processes, launch-product and round-direction rounding; subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -149,6 +149,24 @@ recordings repeat their last rows identically (`OriginalLossReferenceTests`).
 The trainer, full-boot, front-end CRT and standard golden readers also reject conflicting duplicates rather than
 silently choosing the last row (`ReferenceCoverageTests`); identical observations remain valid. These checks admit
 the reference data; they do not prove the simulation itself matches it.
+
+Out-of-line matrix register range (2026-10-29): the rotation constructor `004062d0` and matrix product `0040d320`
+keep products and sums in x87 registers until the individual float stores. `FMatrix.MakeRotationOutOfLine` and
+`MultiplyOutOfLine` now model that range: a subnormal store can round twice, and terms too small or large for a float can
+still add or cancel before the store. `RetailMatrixSubnormalTests` covers authored discriminators for the rotation,
+each matrix cell, underflow and overflow cancellation; the former implementation fails the controls. An isolated
+execution of the original functions at PC24 agreed with all 45,000 result cells from 3,000 authored finite matrix pairs
+and 2,000 authored rotations. At that register-model change, both recorded loss-route comparisons and the full Parity
+suite passed. These are bounded arithmetic tests, not a demonstrated gameplay fix.
+
+The out-of-line matrix product now uses integer PC24 arithmetic when each operand is zero or has magnitude between
+2^-32 and 2^32, inclusive; otherwise it retains the register model. In this bounded domain a nonzero rounded product
+is a multiple of 2^-87 and all sums of up to three products stay below 2^66, so a nonzero result is always normal and
+finite as binary32. `BoundedPc24Tests` checks authored midpoint, cancellation, signed-zero, fallback and independent
+integer-dyadic controls; its rounding-mode control runs on Linux x64 glibc and reports a skip elsewhere. Two products of
+stored float values in the out-of-line rotation constructor use the same bounded primitive. This does not establish
+portability of the trigonometric functions, the other rotation operations or the general `X87` model. Original NaN and
+infinity behavior, other inline matrix/vector sites and the separate straight-round normalization remain open.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in
