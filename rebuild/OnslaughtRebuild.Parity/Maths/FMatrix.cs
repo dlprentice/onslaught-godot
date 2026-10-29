@@ -88,14 +88,14 @@ public struct FMatrix
         float spcr = (float)X87.Mul(sp, cr);
         var m = new FMatrix();
         m.Row0.X = (float)X87.Sub(X87.Mul(cr, cy), X87.Mul(spsr, sy));
-        m.Row0.Y = -(cp * sy);
+        m.Row0.Y = -(float)X87.Mul(cp, sy);
         m.Row0.Z = (float)X87.Add(X87.Mul(spcr, sy), X87.Mul(sr, cy));
         m.Row1.X = (float)X87.Add(X87.Mul(spsr, cy), X87.Mul(cr, sy));
         m.Row1.Y = (float)X87.Mul(cp, cy);
         m.Row1.Z = (float)X87.Sub(X87.Mul(sr, sy), X87.Mul(spcr, cy));
-        m.Row2.X = -(cp * sr);
+        m.Row2.X = -(float)X87.Mul(cp, sr);
         m.Row2.Y = (float)sp;
-        m.Row2.Z = cp * cr;
+        m.Row2.Z = (float)X87.Mul(cp, cr);
         return m;
     }
 
@@ -147,25 +147,29 @@ public struct FMatrix
 
     /// <summary>
     /// operator* as retail's out-of-line copy computes it (0040d320, CTree::UpdateFallingTree's call): this times
-    /// <paramref name="m"/>, each element summing its three products in its own order (rows done 2, 1, 0).
+    /// <paramref name="m"/>, each element summing its three products in its own order (rows done 2, 1, 0). The
+    /// intermediate results retain the x87 register's exponent range until each finished element is stored.
     /// </summary>
     public readonly FMatrix MultiplyOutOfLine(FMatrix m)
     {
         FVector r0 = Row0, r1 = Row1, r2 = Row2;
         var c2 = new FVector(
-            ((r2.Z * m.Row2.X) + (r2.Y * m.Row1.X)) + (r2.X * m.Row0.X),
-            ((r2.X * m.Row0.Y) + (r2.Z * m.Row2.Y)) + (r2.Y * m.Row1.Y),
-            ((r2.Z * m.Row2.Z) + (r2.Y * m.Row1.Z)) + (r2.X * m.Row0.Z));
+            OutOfLineCell(r2.Z, m.Row2.X, r2.Y, m.Row1.X, r2.X, m.Row0.X),
+            OutOfLineCell(r2.X, m.Row0.Y, r2.Z, m.Row2.Y, r2.Y, m.Row1.Y),
+            OutOfLineCell(r2.Z, m.Row2.Z, r2.Y, m.Row1.Z, r2.X, m.Row0.Z));
         var c1 = new FVector(
-            ((r1.Z * m.Row2.X) + (r1.Y * m.Row1.X)) + (r1.X * m.Row0.X),
-            ((r1.X * m.Row0.Y) + (r1.Z * m.Row2.Y)) + (r1.Y * m.Row1.Y),
-            ((r1.X * m.Row0.Z) + (r1.Z * m.Row2.Z)) + (r1.Y * m.Row1.Z));
+            OutOfLineCell(r1.Z, m.Row2.X, r1.Y, m.Row1.X, r1.X, m.Row0.X),
+            OutOfLineCell(r1.X, m.Row0.Y, r1.Z, m.Row2.Y, r1.Y, m.Row1.Y),
+            OutOfLineCell(r1.X, m.Row0.Z, r1.Z, m.Row2.Z, r1.Y, m.Row1.Z));
         var c0 = new FVector(
-            ((r0.Y * m.Row1.X) + (r0.X * m.Row0.X)) + (r0.Z * m.Row2.X),
-            ((r0.Z * m.Row2.Y) + (r0.Y * m.Row1.Y)) + (r0.X * m.Row0.Y),
-            ((r0.Z * m.Row2.Z) + (r0.Y * m.Row1.Z)) + (r0.X * m.Row0.Z));
+            OutOfLineCell(r0.Y, m.Row1.X, r0.X, m.Row0.X, r0.Z, m.Row2.X),
+            OutOfLineCell(r0.Z, m.Row2.Y, r0.Y, m.Row1.Y, r0.X, m.Row0.Y),
+            OutOfLineCell(r0.Z, m.Row2.Z, r0.Y, m.Row1.Z, r0.X, m.Row0.Z));
         return new FMatrix(c0, c1, c2);
     }
+
+    private static float OutOfLineCell(float a0, float b0, float a1, float b1, float a2, float b2) =>
+        (float)X87.Add(X87.Add(X87.Mul(a0, b0), X87.Mul(a1, b1)), X87.Mul(a2, b2));
 
     /// <summary>operator+ (maths.h): row by row.</summary>
     public readonly FMatrix Add(FMatrix m) => new(Row0 + m.Row0, Row1 + m.Row1, Row2 + m.Row2);
