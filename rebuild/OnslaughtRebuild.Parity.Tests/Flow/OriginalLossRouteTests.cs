@@ -28,21 +28,30 @@ public sealed class OriginalLossRouteTests(ITestOutputHelper output)
     private sealed class StopRun : Exception;
 
     /// <summary>One recorded process: its rows by Present and name (the shim's CR and t= stamps ignored).</summary>
-    private sealed class Original
+    internal sealed class Original
     {
         private readonly Dictionary<(long, string), string> _rows = [];
 
         public long Last { get; private set; }
 
-        public static Original Load(string file)
+        public static Original Load(string file) => LoadRows(File.ReadLines(file));
+
+        internal static Original LoadRows(IEnumerable<string> lines)
         {
             var o = new Original();
-            foreach (string line in File.ReadLines(file))
+            foreach (string line in lines)
             {
                 string[] f = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (f.Length >= 4 && f[0] == "P" && long.TryParse(f[1], NumberStyles.None, CultureInfo.InvariantCulture, out long p))
                 {
-                    o._rows[(p, f[2])] = f[3].Trim();
+                    var key = (p, f[2]);
+                    string value = f[3].Trim();
+                    if (o._rows.TryGetValue(key, out string? previous) && previous != value)
+                    {
+                        throw new InvalidDataException($"Conflicting reference rows for P{p} {f[2]}");
+                    }
+
+                    o._rows[key] = value;
                     o.Last = Math.Max(o.Last, p);
                 }
             }
