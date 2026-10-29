@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-29 (the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-29 (subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -23,7 +23,7 @@ the dated entries below record each measurement.
 | # | Status |
 | --- | --- |
 | M0 | Met (2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its change counts. |
-| M1 | Met for every operation measured, with one measured ceiling: `fsin`, `fcos` and `fpatan` stored to a double differ in the last bits for some arguments (M1 entry below). |
+| M1 | Met for every operation measured, with one measured ceiling: `fsin`, `fcos` and `fpatan` stored to a double differ in the last bits for some arguments (M1 entry below). A float product with a subnormal result rounds twice, in the register and at the store: `X87.Mul` followed by the store's conversion matches the oracle on 1,000,000 such products, and C#'s float multiply does not (the subnormal entry of 2026-10-29). |
 | M2-M4 | Met on the keyboard-and-mouse tape: the sampled probes (EVT, FT, RNG, SC, LVL, POS, LIFE) equal retail's virtual-DirectSound golden through Present 10000 (`RetailGoldenTests.Level100RunMatchesTheVirtualDsGolden`). |
 | M5 | Win route met against the original game's fl2a process (one of the two debriefing outcomes the original takes; 2 of the 8 original processes that reach the debriefing, the pristine game under the replay shim in Wine) on one separately recorded level-100 win (measured 2026-10-29; a private harness run, not a suite test); the loss route is not compared with the original; otherwise met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win. On the recorded win (a player's own game from boot, recorded 2026-10-28) the rebuild equals that original process on EVT, EVN, FT, SC, LVL, RNG, POS and LIFE at all 12,312 of its Presents, on the front end's line, on both END_LEVEL_DATA records, and on the saved careers and the options file byte for byte; it also equals the native port with its patch 0111 on every field the port records (the 2026-10-29 entry below). The original is not repeatable on this tape: its debriefing reads an uninitialised slot, so the first Enter is accepted in 6 of 8 original processes and ignored in the other 2, and the rebuild equals the ignored path only. The diagnostic run uses that replay's separately observed sound-pool seed and one instrumented process's goodie-load completion, both observed in port processes, not in the original. Not compared with the original game: the loss route, the object words, audio, pictures. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). |
 | M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
@@ -103,6 +103,33 @@ time 769 times, so that correction is exercised, but called `GetPredictedTargetP
 branch (a weapon mode with `Predictive` set), and the native port's own observer found no sampled run of the port that reaches it;
 so |vel|'s grouping rests on the pristine instructions and the authored case, not on a recorded value. Receipts are in the
 maintainers' private evidence store.
+
+Subnormal store rounding in the battle engine's decays (2026-10-29): `CBattleEngine::UpdateRotation` (its pitch limits and the
+decays of the turn rates, the roll and the shakes), `CBattleEngine::Move` (the vibration), `CBattleEngineWalkerPart::Move` (the
+friction and the speed cap), `CBattleEngine::DeclareOnGround` (a jet's slowing) and `CBattleEngineJetPart` (the slowing without
+energy and the ground effect's descent) each form a product in the x87 register, a 24-bit significand at PC24 with the register's
+wide exponent, and store it to a float; the pristine specimen's ranges are listed in `SubnormalDecayTests`. A subnormal product
+therefore rounds twice, and C#'s float multiply, which rounds once, can land one unit in the last place away; a float's squares of
+subnormal components are zero where the register keeps them. Compared with the original game, the rebuild's modelled battle-engine
+and walker fields (the tables of `Level100sBattleEngineFollowsRetailsPerPresentObject`, at the same Present) were equal on the
+recorded win (process fl2a) and on the two loss routes (the fe-lose and win1 music-clock pairs) at every compared Present except
+the velocity, the pitch and yaw rates and the vibration, each one unit in the last place in a subnormal value, first at Presents
+2531 (win1), 3686 (fe-lose) and 4208 (the recorded win). All eight first differences reproduce exactly as the register's product
+followed by the store, with the decay factors 0.7 (the walker's friction, the vibration) and 0.8 (the turn rates).
+
+The sites now use `(float)X87.Mul`, and the walker's speed cap and the jet's speed without energy keep their squares in the
+register as `X87` doubles. `SubnormalDecayTests` holds authored cases (found by search from our own starting points; nothing is
+copied from a recording) through the production methods; reverting any one of the 21 sites alone to float arithmetic fails the
+check written for it, and the sources before the correction fail every site's check. A new oracle table, `mul_f_sub` (the VC6
+harness's `mul_f` on 1,000,000 float pairs whose products are subnormal or at the boundary), matches `X87.Mul` followed by the
+store's conversion in every case, while C#'s float multiply differs in 62,329 of them (`X87OracleTests`). Not changed: decays
+elsewhere (other units, particles, cameras) and magnitudes compared only with a threshold (the battle engine's speed against
+0.0001 in `Move`, the jet's squared speeds), which round the same way but change nothing measured. With the correction the
+modelled fields equal the original's at every compared Present on all three tapes (9,835 Presents of the recorded win, 5,534
+of fe-lose, 8,879 of win1), and every probe is as before: equal on the recorded win and fe-lose, and on win1 equal but for
+the EVN difference from Present 5335 (one event more than the original until the Retry), which is a matrix product's order
+and is not affected by this change. With `X87_ORACLE_OUT` naming the tables, the Parity suite passed 1,098 tests with 7
+skips (the three x87 oracle theories run). Receipts are in the maintainers' private evidence store.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in

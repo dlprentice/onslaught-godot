@@ -302,7 +302,9 @@ public sealed partial class BattleEngine
         }
         else if (State == BattleEngineState.Jet)
         {
-            Velocity = new FVector(Velocity.X * 0.9f, Velocity.Y * 0.9f, Velocity.Z * 0.9f);
+            // 0040c94e..0040c977: each component times 0.9 in the x87 register, stored to the new velocity.
+            Velocity = new FVector((float)X87.Mul(Velocity.X, 0.9f), (float)X87.Mul(Velocity.Y, 0.9f),
+                (float)X87.Mul(Velocity.Z, 0.9f));
         }
     }
 
@@ -443,7 +445,7 @@ public sealed partial class BattleEngine
         }
 
         InSafeCollisionPlace = true;
-        Vibration *= 0.7f;
+        DecayVibration();
         if (PlayerReader is not null && Context.Game?.Paused != true && !IsDying)
         {
             Context.Skip("CController::SetVibration");
@@ -654,6 +656,12 @@ public sealed partial class BattleEngine
     }
 
     /// <summary>
+    /// Move's vibration decay (0040836e..0040837a): the vibration times 0.7, formed in the x87 register and stored to the float
+    /// (a subnormal product rounds twice).
+    /// </summary>
+    internal void DecayVibration() => Vibration = (float)X87.Mul(Vibration, 0.7f);
+
+    /// <summary>
     /// GroundParticleEffect (0040ef20): within 10 of the ground or the water below, a land or water effect there, half as
     /// far again below as the altitude.
     /// </summary>
@@ -806,6 +814,9 @@ public sealed partial class BattleEngine
     /// <summary>
     /// UpdateRotation (00407a50): a walker on the ground keeps its pitch near the ground's; then the turn rates apply,
     /// the angles wrap, the rates and (out of jet mode) the roll decay, and the orientation is rebuilt with the shake.
+    /// Each decay and limit forms its product in the x87 register and stores it to the float (00407e1d..00407e23,
+    /// 00407e8b..00407e91, 00407f92..00407ffa, 0040809d..004080cd): a subnormal product rounds twice, which
+    /// <c>(float)X87.Mul</c> reproduces and one float multiply does not (<c>SubnormalDecayTests</c>).
     /// </summary>
     public void UpdateRotation()
     {
@@ -826,7 +837,7 @@ public sealed partial class BattleEngine
                 else if (Pitchvel > 0.0f)
                 {
                     float mult = Math.Max(1.0f - ((d - 0.5f) * 6.0f), 0.0f);
-                    Pitchvel *= mult;
+                    Pitchvel = (float)X87.Mul(Pitchvel, mult);
                 }
             }
             else if (d < -0.8f)
@@ -838,7 +849,7 @@ public sealed partial class BattleEngine
                 else if (Pitchvel < 0.0f)
                 {
                     float mult = Math.Max(1.0f - MathF.Abs((d + 0.8f) * 6.0f), 0.0f);
-                    Pitchvel *= mult;
+                    Pitchvel = (float)X87.Mul(Pitchvel, mult);
                 }
             }
 
@@ -855,7 +866,7 @@ public sealed partial class BattleEngine
                     mult = 0.0f;
                 }
 
-                Pitchvel *= mult;
+                Pitchvel = (float)X87.Mul(Pitchvel, mult);
             }
 
             if (CurrentOrientation.Pitch < -1.17f && Pitchvel < 0.0f && JetPart?.DoingLoop != true)
@@ -866,7 +877,7 @@ public sealed partial class BattleEngine
                     mult = 0.0f;
                 }
 
-                Pitchvel *= mult;
+                Pitchvel = (float)X87.Mul(Pitchvel, mult);
             }
         }
 
@@ -877,21 +888,21 @@ public sealed partial class BattleEngine
         CurrentOrientation.Yaw = Wrap(CurrentOrientation.Yaw);
         CurrentOrientation.Pitch = Wrap(CurrentOrientation.Pitch);
         CurrentOrientation.Roll = Wrap(CurrentOrientation.Roll);
-        Yawvel *= 0.8f;
-        Pitchvel *= 0.8f;
-        Rollvel *= 0.8f;
+        Yawvel = (float)X87.Mul(Yawvel, 0.8f);
+        Pitchvel = (float)X87.Mul(Pitchvel, 0.8f);
+        Rollvel = (float)X87.Mul(Rollvel, 0.8f);
         if (State != BattleEngineState.Jet)
         {
-            CurrentOrientation.Roll *= 0.8f;
+            CurrentOrientation.Roll = (float)X87.Mul(CurrentOrientation.Roll, 0.8f);
         }
-        else if (JetPart!.AutoLevel()) CurrentOrientation.Roll *= 0.97f;
+        else if (JetPart!.AutoLevel()) CurrentOrientation.Roll = (float)X87.Mul(CurrentOrientation.Roll, 0.97f);
 
         Orientation = ShakenOrientation();
         if (MathF.Abs(YawShake) > 0.001f || MathF.Abs(PitchShake) > 0.001f || MathF.Abs(RollShake) > 0.001f)
         {
-            YawShake *= 0.8f;
-            PitchShake *= 0.8f;
-            RollShake *= 0.8f;
+            YawShake = (float)X87.Mul(YawShake, 0.8f);
+            PitchShake = (float)X87.Mul(PitchShake, 0.8f);
+            RollShake = (float)X87.Mul(RollShake, 0.8f);
             ShakeR += 0.8f;
         }
     }

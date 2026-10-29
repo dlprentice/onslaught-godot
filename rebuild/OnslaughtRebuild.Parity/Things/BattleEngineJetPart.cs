@@ -205,11 +205,20 @@ public sealed class BattleEngineJetPart
         }
         else
         {
-            FVector velocity = _main.Velocity * 0.95f;
+            // 004110af..004110d9: each component times 0.95 in the x87 register, stored to the new velocity.
+            FVector slowed = _main.Velocity;
+            var velocity = new FVector((float)X87.Mul(slowed.X, 0.95f), (float)X87.Mul(slowed.Y, 0.95f),
+                (float)X87.Mul(slowed.Z, 0.95f));
             _main.Velocity = velocity;
-            // 004110e2..00411108: this site's sum is (Z² + X²) + Y².
-            float speed = (float)X87.Sqrt((velocity.Z * velocity.Z + velocity.X * velocity.X) + velocity.Y * velocity.Y);
-            _main.AddVelocity(ForwardColumn(speed) * 0.05f);
+            // 004110e2..00411108: the speed, (Z² + X²) + Y², stays in the register with its wide exponent (a float's squares
+            // of subnormal components would be zero). 0041110e..00411145: the forward column times it (X and Y stored, Z
+            // kept in the register), each times 0.05 and stored, added to the velocity.
+            double speed = X87.Sqrt(X87.Add(X87.Add(X87.Mul(velocity.Z, velocity.Z), X87.Mul(velocity.X, velocity.X)),
+                X87.Mul(velocity.Y, velocity.Y)));
+            float c0 = (float)X87.Mul(speed, _main.Orientation.Row0.Y);
+            float c1 = (float)X87.Mul(speed, _main.Orientation.Row1.Y);
+            double c2 = X87.Mul(speed, _main.Orientation.Row2.Y);
+            _main.AddVelocity(new FVector((float)X87.Mul(c0, 0.05f), (float)X87.Mul(c1, 0.05f), (float)X87.Mul(c2, 0.05f)));
         }
         if (_main.IsOnGround() && _main.Velocity.MagnitudeSq() < 0.010000001f && OnGround == 0)
             OnGround = now + 2.5f;
@@ -265,7 +274,8 @@ public sealed class BattleEngineJetPart
         if (altitude < 0) altitude = 0;
         _main.AddVelocity(ForwardColumn((5.0f - altitude) * 0.0025f));
         if (DoingLoop || DoingBarrelCount != 0) return;
-        if (_main.Velocity.Z > 0) _main.Velocity.Z *= 0.9f;
+        // 004117b7..004117c3: the descent times 0.9 in the x87 register, stored.
+        if (_main.Velocity.Z > 0) _main.Velocity.Z = (float)X87.Mul(_main.Velocity.Z, 0.9f);
         float yaw = _main.CurrentOrientation.Yaw;
         var heading = new FVector(-(float)X87.Sin(yaw), (float)X87.Cos(yaw), 0);
         FVector normal = ground < water ? Context.Map.Normal(pos) : new FVector(0, 0, -1);

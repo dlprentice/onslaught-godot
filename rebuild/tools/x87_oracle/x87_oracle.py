@@ -12,6 +12,10 @@ it writes (the harness executable, inputs, outputs, manifest.json) goes to X87_O
 checkout's ignored local-data/parity-oracle/x87/ (set it to an internal-disk folder while archive I/O is limited).
 The tables are results of our own compiled program, not bytes of the game. The parity tests read the same folder
 (X87_ORACLE_OUT, else the canonical default) and skip when it is absent.
+
+A table can reuse a harness operation on its own inputs: mul_f_sub runs the harness's mul_f on float pairs whose
+products are subnormal or lie at the subnormal boundary, where the x87 register (24-bit significand, wide exponent)
+and the float store round twice. The harness itself is unchanged.
 """
 from __future__ import annotations
 
@@ -37,7 +41,11 @@ BASE_PREFIX = Path(BASE_PREFIX_ENV)
 PREFIX = Path(PREFIX_ENV)
 OUT = Path(os.environ.get("X87_ORACLE_OUT", str(CANONICAL / "local-data/parity-oracle/x87")))
 OPS = ("add_d", "sub_d", "mul_d", "div_d", "sqrt_d", "sin_d", "cos_d", "atan2_d",
-       "add_f", "sub_f", "mul_f", "div_f", "sqrt_f", "sin_f", "cos_f", "atan2_f", "d2f", "fist", "trunc")
+       "add_f", "sub_f", "mul_f", "div_f", "sqrt_f", "sin_f", "cos_f", "atan2_f", "d2f", "fist", "trunc", "mul_f_sub")
+# Tables that run another table's harness operation on their own inputs.
+HARNESS_OP = {"mul_f_sub": "mul_f"}
+# Float factors the game's decays multiply by (the battle engine's 0.7, 0.8, 0.9, 0.95 and 0.97 among them).
+DECAY_FACTORS = (0.5, 0.7, 0.8, 0.9, 0.95, 0.97, 0.98, 0.99, 0.05, 0.03, 0.25, 0.75, 0.999)
 
 
 def winpath(p: Path) -> str:
@@ -115,9 +123,38 @@ def midpoint(r: random.Random) -> float:
 SPECIALS = [0.0, -0.0, math.inf, -math.inf, math.nan, 1.0, -1.0, 0.5, 2.0 ** -126, 2.0 ** -149, 3.4028234663852886e38,
             1e-45, 1e30, -1e30, 1e300, 1e-300]
 
+# Subnormal-boundary operands for mul_f_sub: the smallest normal, the smallest subnormal, a tie that rounds to zero,
+# the largest subnormal and its neighbour above.
+SUBNORMAL_SPECIALS = [(2.0 ** -126, 0.5), (2.0 ** -149, 0.5), (-(2.0 ** -149), 0.5), (2.0 ** -149, 1.5),
+                      (2.0 ** -126 * (1 - 2.0 ** -23), 1.0), (2.0 ** -126 * (1 + 2.0 ** -23), 0.5),
+                      (2.0 ** -126, 1.0 - 2.0 ** -24), (2.0 ** -125, 0.25), (-(2.0 ** -127), 0.75), (2.0 ** -140, 0.0)]
+
+
+def subnormal_product_pair(r: random.Random) -> tuple[float, float]:
+    """Float operands whose product is subnormal or within a binade of the smallest normal float, either sign."""
+    kind = r.random()
+    sign = r.choice((1, -1))
+    if kind < 0.5:
+        # A decaying value: a subnormal (or smallest-binade) float times one of the game's decay factors.
+        e = r.choice((-126, -127, -127, -127, -128, -128, -129, -130, -133, -136, -140, -145))
+        return (f32(math.ldexp(r.uniform(1.0, 2.0), e)) * sign, f32(r.choice(DECAY_FACTORS)))
+    if kind < 0.8:
+        # Two floats, normal or not, whose product falls between 2^-152 and 2^-124.
+        ea = r.randint(-120, 0)
+        target = r.randint(-152, -125)
+        return (f32(math.ldexp(r.uniform(1.0, 2.0), ea)) * sign,
+                f32(math.ldexp(r.uniform(1.0, 2.0), target - ea)) * r.choice((1, -1)))
+    # Values just above the smallest normal times factors just below one, which cross into the subnormal range.
+    return (f32(math.ldexp(r.uniform(1.0, 1.25), -126)) * sign, f32(r.uniform(0.75, 1.0)))
+
 
 def pairs(op: str, count: int, seed: int) -> list[tuple[float, float]]:
     r = random.Random(f"{op}:{seed}")
+    if op == "mul_f_sub":
+        out = [(f32(a), f32(b)) for a, b in SUBNORMAL_SPECIALS]
+        while len(out) < count:
+            out.append(subnormal_product_pair(r))
+        return out[:count]
     out: list[tuple[float, float]] = [(a, b) for a in SPECIALS for b in SPECIALS]
     floats_only = op.endswith("_f") and op not in ("sqrt_f", "sin_f", "cos_f", "atan2_f")
     while len(out) < count:
@@ -189,12 +226,13 @@ def generate(count: int, ops: list[str], seed: int) -> int:
     for op in ops:
         data = b"".join(struct.pack("<dd", a, b) for a, b in pairs(op, count, seed))
         (OUT / f"{op}.in.bin").write_bytes(data)
-        result = wine([str(exe), op, winpath(OUT / f"{op}.in.bin"), winpath(OUT / f"{op}.out.bin")])
+        harness_op = HARNESS_OP.get(op, op)
+        result = wine([str(exe), harness_op, winpath(OUT / f"{op}.in.bin"), winpath(OUT / f"{op}.out.bin")])
         print(result.stdout.strip() or result.stderr.strip())
         if result.returncode != 0:
             return result.returncode
         manifest["ops"][op] = {
-            "count": count, "seed": seed,
+            "count": count, "seed": seed, **({"harnessOp": harness_op} if harness_op != op else {}),
             "inSha256": hashlib.sha256(data).hexdigest(),
             "outSha256": hashlib.sha256((OUT / f"{op}.out.bin").read_bytes()).hexdigest(),
         }

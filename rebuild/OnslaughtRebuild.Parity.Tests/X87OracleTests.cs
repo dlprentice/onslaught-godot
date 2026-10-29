@@ -117,6 +117,40 @@ public sealed class X87OracleTests
         });
     }
 
+    /// <summary>
+    /// Float products at and below the smallest normal float (mul_f_sub: the harness's mul_f on float operands whose products
+    /// are subnormal or within a binade of that boundary). The register rounds the exact product to 24 bits at its wide
+    /// exponent and the float store rounds it again, so the model is X87.Mul followed by the store's conversion. C#'s float
+    /// multiply rounds once; on this table it differs from the oracle on about 6% of the cases, so the table separates the two.
+    /// </summary>
+    [X87OracleTheory]
+    [InlineData("mul_f_sub")]
+    public void SubnormalFloatProductsMatchTheOracleAsARegisterProductThenAStore(string op)
+    {
+        (double[] a, double[] b, byte[] output) = Inputs(op, 4);
+        int oneRoundingDifferences = 0;
+        Check(op, a.Length, i =>
+        {
+            float x = (float)a[i];
+            float y = (float)b[i];
+            if ((double)x != a[i] || (double)y != b[i])
+            {
+                return (false, $"{a[i]:R}, {b[i]:R}: an operand is not a float");
+            }
+
+            float expected = BinaryPrimitives.ReadSingleLittleEndian(output.AsSpan(i * 4));
+            float actual = (float)X87.Mul(x, y);
+            if (BitConverter.SingleToInt32Bits(x * y) != BitConverter.SingleToInt32Bits(expected))
+            {
+                oneRoundingDifferences++;
+            }
+
+            return (BitConverter.SingleToInt32Bits(expected) == BitConverter.SingleToInt32Bits(actual),
+                $"{a[i]:R}, {b[i]:R}: oracle {expected:R}, model {actual:R}");
+        });
+        Assert.True(oneRoundingDifferences > 0, $"{op}: one float rounding never differs, so the table cannot separate the models");
+    }
+
     [X87OracleTheory]
     [InlineData("fist")]
     [InlineData("trunc")]

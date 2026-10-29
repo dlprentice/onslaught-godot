@@ -649,15 +649,20 @@ public sealed class BattleEngineWalkerPart
 
         if (!GoingIntoWater() && (_main.IsOnGround() || DoingDashCount != 0))
         {
+            // 00413967..0041398b: each component times the friction in the x87 register, stored to the new velocity.
             float friction = _main.Configuration!.WalkFriction;
-            _main.Velocity = new FVector(_main.Velocity.X * friction, _main.Velocity.Y * friction, _main.Velocity.Z * friction);
+            _main.Velocity = new FVector((float)X87.Mul(_main.Velocity.X, friction), (float)X87.Mul(_main.Velocity.Y, friction),
+                (float)X87.Mul(_main.Velocity.Z, friction));
             var temp = new FVector(_main.Velocity.X, _main.Velocity.Y, 0);
-            float m = (float)X87.Sqrt((temp.X * temp.X) + (temp.Y * temp.Y) + (temp.Z * temp.Z));
+            // 004139a1..004139d5: Y*Y + X*X stays in the register (its wide exponent keeps the squares of subnormal components,
+            // which a float would round to zero); the square root is stored to a float and compared.
+            float m = (float)X87.Sqrt(X87.Add(X87.Mul(temp.Y, temp.Y), X87.Mul(temp.X, temp.X)));
             float mv = _main.Configuration.MaxWalkVelocity;
             if (m > mv && DoingDashCount < DashFriction)
             {
-                float k = mv / m;
-                _main.Velocity = new FVector(temp.X * k, temp.Y * k, _main.Velocity.Z);
+                // 004139ed..00413a24: the ratio stays in the register; each product is stored.
+                double k = X87.Div(mv, m);
+                _main.Velocity = new FVector((float)X87.Mul(temp.X, k), (float)X87.Mul(temp.Y, k), _main.Velocity.Z);
             }
         }
 
