@@ -4,11 +4,12 @@ Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 10
 win route from boot through the outro, debriefing and quit equals the native port on every probe field every Present;
 the saved career and options file match the port's byte for byte. Against the original game itself, one separately
 recorded level-100 win (2026-10-28) equals one of the original's two debriefing outcomes (its process fl2a; 2 of the 8
-original processes that reach the debriefing take that path) on every probe at all 12,312 Presents, with the saved careers
-and the options file byte for byte. That is a private harness run with the pristine game under the replay shim in Wine, not
+original processes that reach the debriefing take that path) on every probe at all 12,312 Presents (on 2,477 of them,
+frames with no player, the original's probes record POS and LIFE as null, which the comparison counts as all-zero), with
+the saved careers and the options file byte for byte. That is a private harness run with the pristine game under the replay shim in Wine, not
 a suite test; it admits a sound-pool seed and a goodie-load completion observed in port processes. The suite's own retail
 references end at Present 10000, and the loss route, audio and pictures are not compared with the original.
-Last updated: 2026-10-29 (the recorded win equals the original game's fl2a process after the lead-time sum-order correction; earlier: what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+Last updated: 2026-10-29 (the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; earlier: what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
 Present by Present with recorded runs of the native port, each route to the floor its test states, with recorded runs of
 the original game through Present 10000, where its suite references end, and on one recorded win with the original's
