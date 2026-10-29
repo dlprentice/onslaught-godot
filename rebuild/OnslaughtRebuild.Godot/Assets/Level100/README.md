@@ -1,7 +1,7 @@
 # Level 100 opening assets
 
 Status: active
-Last updated: 2026-10-22 (a link to another repository's goal document stated inline; content otherwise as of 2026-09-08)
+Last updated: 2026-10-29 (retail byte dumps, instruction quotes and private paths removed; 2026-10-22: a link to another repository's goal document stated inline; content otherwise as of 2026-09-08)
 Summary: locally materialized training assets, their identities and provenance.
 
 This directory owns the ignored local released heightfield,

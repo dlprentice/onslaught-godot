@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte; the tutorial pilot's win route equals it through the level's end and outro.
-Last updated: 2026-10-28 (diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Last updated: 2026-10-29 (retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -868,7 +868,7 @@ the shipped objective marker without adding world-space beacons.
 
 ## Verify
 
-On Omarchy, choose the smallest Linux-native command:
+On Linux, choose the smallest native command:
 
 ```bash
 npm run ref:core-tests

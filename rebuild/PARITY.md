@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-28 (recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-29 (the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -15,7 +15,7 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
-## Where it stands (2026-10-23)
+## Where it stands (2026-10-28)
 
 The milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones-2026-10-15);
 the dated entries below record each measurement.
@@ -25,7 +25,7 @@ the dated entries below record each measurement.
 | M0 | Met (2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its change counts. |
 | M1 | Met for every operation measured, with one measured ceiling: `fsin`, `fcos` and `fpatan` stored to a double differ in the last bits for some arguments (M1 entry below). |
 | M2-M4 | Met on the keyboard-and-mouse tape: the sampled probes (EVT, FT, RNG, SC, LVL, POS, LIFE) equal retail's virtual-DirectSound golden through Present 10000 (`RetailGoldenTests.Level100RunMatchesTheVirtualDsGolden`). |
-| M5 | Open against retail; met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win, and retail is not yet a reference for a win: its paired runs of the same tape differ from each other. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). |
+| M5 | Open against retail; met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win, and retail is not yet a reference for a win: its paired runs of the same tape differ from each other. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). A separately recorded level-100 win (2026-10-28) matches the port through its last input only in a diagnostic run: it uses that replay's separately observed sound-pool seed and one instrumented process's goodie-load completion, and it is a port comparison, not retail (the 2026-10-28 recorded-win entry below). |
 | M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
 | M7 | In progress: the Host runs the whole game from boot to quit (`HOST_LIVE=flow`), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
 
@@ -57,8 +57,10 @@ copied output-file hashes matched the original reference. `ReplaySoundProfile.Cr
 the pinned private census receipt, its exact tape and sidecar, and the existing pinned pool and English sample bank.
 It supplies the authenticated options and careers in memory and fixes the tape to that run. The sidecar's two
 ancillary files are authenticated but not modeled. With this process-specific sound admission, the sampled port
-fields match through Present 11670; the rebuild then refuses at the unimplemented goodie-8 viewer. This does not
-establish the recording's original allocator contents, arbitrary process behavior, retail parity or a full rebuild win.
+fields match through Present 11670; the goodie-8 viewer is not implemented, so without a supplied load completion the
+rebuild refuses there. With one observed, caller-supplied goodie-load completion the diagnostic run matches through the last
+input at P12312 (the 2026-10-28 recorded-win entry below, with its caveats). This does not establish the recording's original
+allocator contents, arbitrary process behavior, retail parity or a full rebuild win.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in

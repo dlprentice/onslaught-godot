@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-10-22
+Last updated: 2026-10-29 (windowed-run wording made generic; machine-specific folders and tool names removed)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -25,11 +25,13 @@ Summary: the rules for working in this repository, for people and automated agen
 - **Where work happens:** the rebuild is developed here since 2026-10-22, on branches merged into `main` when their
   gate passes; Onslaught-Career-Editor's `rebuild/` is frozen until it is removed. Builds and test runs use a clone on
   an internal disk.
-- **On this machine:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) go
-  through `godot-offscreen` on the hidden output behind the GPU lock, never on David's desktop; for example
-  `cd rebuild/OnslaughtRebuild.Host && HOST_PRESENT=150 HOST_CAPTURE=/var/tmp/host-present150.png godot-offscreen
-  --path . --qa local-data/qa/run --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 --
-  --audio-driver Dummy`. The installed engine is `godot48-mono`. The earlier launcher's retail inputs come from the
-  canonical Onslaught-Career-Editor checkout's the private lab folder (`BEA_LOCAL_LAB`); worktrees reuse it, never a copy.
+- **Windowed runs:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
+  open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
+  headless mode. The wrapper, its flags, the engine build and the capture folders are the machine's own and are set in the
+  ignored `local-data/rebuild-env.sh`; for example
+  `cd rebuild/OnslaughtRebuild.Host && HOST_PRESENT=150 HOST_CAPTURE=<capture file> <offscreen wrapper> --path .
+  --qa local-data/qa/run --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 -- --audio-driver Dummy`.
+  The earlier launcher's retail inputs come from an ignored lab folder named by `BEA_LOCAL_LAB`; worktrees reuse it,
+  never a copy.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).

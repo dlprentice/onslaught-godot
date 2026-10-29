@@ -2,16 +2,21 @@
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a whole-game
 win route from boot through the outro, debriefing and quit equals the native port on every probe field every Present;
-the saved career and options file match byte for byte. The win milestone remains open against retail.
-Last updated: 2026-10-23 (front-page status follows the measured whole-game win route in rebuild/PARITY.md)
-Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, measured against the
-original game Present by Present.
+the saved career and options file match byte for byte. The win milestone remains open against retail: retail's own
+references are matched only through Present 10000, and the full-tape comparisons are against the native port, not retail.
+A separately recorded win (2026-10-28) matches the port through its last input only in a diagnostic run, which uses that
+replay's separately observed sound-pool seed and one instrumented process's goodie-load completion.
+Last updated: 2026-10-29 (front-page status corrected: what is compared with retail and what with the native port; the 2026-10-28 recorded win added with its caveats)
+Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
+Present by Present with recorded runs of the native port over whole tapes, and with recorded runs of the original game
+through Present 10000, where its references end.
 
 onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. It has two parts:
 
 - **The parity core** (`rebuild/OnslaughtRebuild.Parity`): the game's simulation, deterministic given its inputs (a
-  replay tape, the retail data files and a virtual clock), compared with recorded runs of the original game and of
-  [Onslaught CE](https://github.com/dlprentice/onslaught-ce) (the native port) at every Present.
+  replay tape, the retail data files and a virtual clock), compared at every Present with recorded runs of
+  [Onslaught CE](https://github.com/dlprentice/onslaught-ce) (the native port) over whole tapes, and with recorded runs of
+  the original game, whose references end at Present 10000.
 - **The host** (`rebuild/OnslaughtRebuild.Host`): a Godot project, built in code, that runs the parity core and draws it
   as the original renderer does.
 

@@ -1,7 +1,7 @@
 # Rebuild determinism contract
 
 Status: reference — the earlier fixed-point Core's contract; the parity core's is the short section at the top
-Last updated: 2026-10-28 (explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
+Last updated: 2026-10-29 (the specimen is cited without its private path; 2026-10-28: explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
 Headless sources named at the bottom; the retail 20 Hz step was MEASURED in
