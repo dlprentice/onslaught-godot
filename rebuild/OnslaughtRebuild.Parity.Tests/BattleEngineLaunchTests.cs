@@ -124,4 +124,37 @@ public sealed class BattleEngineLaunchTests
         engine.GetLaunchPosition(weapon, 1, out _, out FMatrix orientation, true);
         Assert.Equal(Bits(engine.Orientation), Bits(orientation));
     }
+
+    [Fact]
+    public void ExactThresholdRemainsOutsideTheAimAdjustmentBranch()
+    {
+        // Find an authored non-unit forward vector whose rounded dot product lands on the fence.
+        float limit = 0.9f, x = 0f, y = 0f;
+        bool found = false;
+        for (int i = 1; i < 240; i++)
+        {
+            float a = i / 256f;
+            float b = (float)Math.Sqrt(limit - (a * a));
+            if (((a * a) + (b * b)) == limit)
+            {
+                x = a; y = b; found = true; break;
+            }
+        }
+        Assert.True(found, "The authored search must find an exact boundary value.");
+        (BattleEngine engine, Weapon weapon) = Fixture();
+        var primary = new FMatrix(new FVector(1, x, 0), new FVector(0, y, 0), new FVector(0, 0, 1));
+        engine.Orientation = primary;
+        engine.AutoAimYawOffset = 0.3f;
+        engine.AutoAimPitchOffset = 0.2f;
+        weapon.Data.AdjustAim = 1;
+        engine.Wlcr.HitType = LineHitType.Nothing;
+        FVector forward = primary.Transform(new FVector(0, 1, 0));
+        float angle = (forward.X * forward.X) + (forward.Y * forward.Y) + (forward.Z * forward.Z);
+        Assert.True(angle == limit);
+        FMatrix adjusted = primary.MultiplyOutOfLine(FMatrix.MakeRotationOutOfLine(engine.AutoAimYawOffset, engine.AutoAimPitchOffset, 0f));
+        Assert.NotEqual(primary, adjusted);
+        Assert.NotEqual(primary, primary.Multiply(FMatrix.MakeRotationOutOfLine(engine.AutoAimYawOffset, engine.AutoAimPitchOffset, 0f)));
+        engine.GetLaunchPosition(weapon, 1, out _, out FMatrix actual, true);
+        Assert.Equal(primary, actual);
+    }
 }
