@@ -7,29 +7,26 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> leftover after the
-/// sliding-borders call — <c>0x00460B66</c> <c>fld [0x005DB53C]</c>
-/// (148.0) / <c>0x00460B6C</c> <c>fsub [esi+0x3460]</c> /
-/// <c>0x00460B72</c> <c>fstp [esp+0x14]</c> — recovered from
+/// sliding-borders call — <c>0x00460B66</c>: a float load of the value at 0x005DB53C
+/// (148.0) / <c>0x00460B6C</c>: a float subtract of field +0x3460 of esi;
+/// <c>0x00460B72</c>: a float store to stack local +0x14 — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00460B66</c> <c>fld [0x005DB53C]</c>
-/// (<c>d9 05 3c b5 5d 00</c>), <c>0x005DB53C</c> is
-/// <c>00 00 14 43</c> (148.0), <c>0x00460B6C</c>
-/// <c>fsub [esi+0x3460]</c> (<c>d8 a6 60 34 00 00</c>),
-/// <c>0x00460B72</c> <c>fstp [esp+0x14]</c>
-/// (<c>d9 5c 24 14</c>). First consumers are
-/// <c>0x00460BE4</c> <c>fcomp [0x005DB5B0]</c> (610.0) and
-/// <c>0x00460BF9</c> <c>fcomp [0x005D856C]</c> (0.0). Init
+/// <c>0x00460B66</c>: a float load of the value at 0x005DB53C, <c>0x005DB53C</c> is
+/// 148.0, <c>0x00460B6C</c>: a float subtract of field +0x3460 of esi,
+/// <c>0x00460B72</c>: a float store to stack local +0x14. First consumers are
+/// <c>0x00460BE4</c>: a float compare against the value at 0x005DB5B0, popping the result (610.0) and
+/// <c>0x00460BF9</c>: a float compare against the value at 0x005D856C, popping the result (0.0). Init
 /// zeros <c>[esi+0x3468]</c> at <c>0x004603D8</c> and
-/// <c>fstp [esi+0x3460]</c> at <c>0x00460464</c>. Settled
+/// a float store to field +0x3460 of esi at <c>0x00460464</c>. Settled
 /// pad is 148.0 and sits inside the window. The later triple
 /// at <c>0x00460E24</c> is later. Dest Y does not. Latch SET
 /// already owns <c>0x0042D5CF</c>. FMV skip already owns the

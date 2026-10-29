@@ -9,7 +9,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <c>0x0046316F</c> — dest ebx/ecx, leftover 0 / 0 /
 /// <c>0x447A0000</c>, Z <c>0x3EA3D70A</c> — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -18,16 +18,15 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <c>0x0046313D</c> / <c>0x00463141</c> load <c>[esp+0x28]</c> /
 /// <c>[esp+0x24]</c>, then <c>0x00463145</c> / <c>0x00463147</c> /
 /// <c>0x00463149</c> push 0 / 0 / <c>0x447A0000</c>,
-/// <c>push eax</c> / <c>push ebp</c> / 1.0 / 1.0 /
-/// <c>0x3EA3D70A</c> / <c>push ecx</c> / <c>push ebx</c> /
-/// <c>push 1</c>, <c>mov ecx, 0x0088A0A8</c>,
-/// <c>call 0x00515A70</c> at <c>0x00463168</c>,
-/// <c>call 0x00465710</c> at <c>0x0046316F</c>
-/// (<c>RET 0x28</c>). Dest is ebx/ecx, not immediates.
+/// a push of eax, then push of ebp / 1.0 / 1.0 /
+/// <c>0x3EA3D70A</c> / a push of ecx, then push of ebx, then push of constant 1, a load of constant 0x0088A0A8 into ecx,
+/// a direct call to 0x00515A70 at <c>0x00463168</c>,
+/// a direct call to 0x00465710 at <c>0x0046316F</c>
+/// (a return that pops 40 bytes of arguments). Dest is ebx/ecx, not immediates.
 /// <c>0x3EA3D70A</c> is Z, not writing-chrome 0.9 and not
-/// selector-bar 0.33. Cite-fix: <c>cmp ebx, 0x3E8</c> is at
+/// selector-bar 0.33. Cite-fix: a compare of ebx with 0x3E8 is at
 /// <c>0x00465771</c>; <c>0x00465777</c> is
-/// <c>mov word [eax], 0</c>. Do not invent wrap from either.
+/// a store of constant 0 to 16-bit word value pointed to by eax. Do not invent wrap from either.
 /// The 2px MeasureText residual stays open. DrawMainMenu keeps
 /// LabelColor, MeasureText dest, and scale 1.0. Do not invent
 /// dest, wrap, fade, or sheen. Do not redo version

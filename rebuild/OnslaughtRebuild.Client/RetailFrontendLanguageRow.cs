@@ -47,7 +47,7 @@ namespace OnslaughtRebuild.Client;
 /// <c>Assets/Frontend/fe-arrow.texture.aya</c> from
 /// <c>data/resources/dxtntextures/FrontEnd%v2%FE_Arrow.tga(0)A8R8G8B8.aya</c>
 /// (manifest sha256 <c>ecf729f9…</c>, byte-identical to the copy under
-/// <c>local-lab/safe-copy-bea-pristine/</c>). It inflates to a DDS of width 64,
+/// a private pristine copy). It inflates to a DDS of width 64,
 /// height 64, FourCC <c>DXT2</c> — which is what the inventory records for
 /// draws 7-10, so the file and the draw are the same object. Its explicit 4-bit
 /// alpha is a hard 0 or 255 with no feather: the ink bounding box is identical

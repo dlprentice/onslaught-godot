@@ -12,7 +12,7 @@ namespace OnslaughtRebuild.Client;
 /// <para>MEASURED 2026-07-28 over all three shipped files
 /// (<c>MainSet.par</c> sha256 <c>a51fe441…</c>, <c>Frontend.par</c> sha256
 /// <c>01a4c73d…</c>, <c>ModelViewer.par</c> sha256 <c>32d85d1f…</c>, read from
-/// <c>local-lab/safe-copy-bea-pristine/data/ParticleSets/</c>): 1,479
+/// a private copy of the pristine game data): 1,479
 /// descriptors across twelve instantiated type ids. Type id <c>3</c> is not
 /// used by the shipped corpus, but retail's exact factory/vtable/RTTI chain
 /// identifies type 3 as <c>CPDModifier</c>, so it is retained as a proven
@@ -356,7 +356,7 @@ public sealed class ParticleDescriptor
 /// A decoder for the shipped <c>data/ParticleSets/*.par</c> particle-set files.
 ///
 /// <para><b>Format, MEASURED 2026-07-28</b> from the three shipped files read
-/// out of <c>local-lab/safe-copy-bea-pristine/data/ParticleSets/</c>. It is a
+/// out of a private copy of the pristine game data. It is a
 /// CRLF-terminated 8-bit text format:</para>
 /// <code>
 /// ParticleSystemEd_File_(C)2000_Lost_Toys_Ltd

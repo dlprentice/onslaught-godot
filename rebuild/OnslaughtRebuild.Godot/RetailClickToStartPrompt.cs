@@ -4,7 +4,7 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// The CFEPIntro click-to-start clock — <c>this+0x18</c> — recovered from the
-/// pristine specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// pristine specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
@@ -19,12 +19,12 @@ namespace OnslaughtRebuild.GodotClient;
 /// than <c>1.0f</c> at <c>0x005D8568</c>, seed <c>[this+18]</c> with the
 /// immediate <c>0x3727C5AC</c> (<c>0x0051B776</c>).</item>
 /// <item>If the timer is then nonzero, add twice the frame Δ
-/// (<c>fld [dt]; fadd st,st; fadd [esi+18]</c> at <c>0x0051B78D</c>).</item>
+/// (a float load of dt, then doubling of the FPU stack top, then float add of field +18 of esi at <c>0x0051B78D</c>).</item>
 /// </list>
 ///
 /// <para><b>Render.</b> The splash argument is <c>min(timer, 1.0f)</c>:
-/// <c>fld [this+0x18]</c> at <c>0x0051B866</c>, then <c>fcom [1.0f]</c> at
-/// <c>0x005D8568</c> / <c>test ah,0x41</c> / <c>jnz keep</c>; only when the
+/// a float load of field +0x18 of this at <c>0x0051B866</c>, then a float compare against the constant 1.0f at
+/// <c>0x005D8568</c> / a bit test of ah against 0x41, then conditional branch to keep (taken when not zero); only when the
 /// timer is strictly greater than 1 does Render <c>fstp</c> and reload
 /// <c>1.0f</c>. <c>0x005D856C</c> is the adjacent <c>0.0f</c> used by Process,
 /// not this compare. The prompt is drawn only when the timer is strictly
@@ -36,8 +36,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Idle result, predicate only.</b> After page-elapsed time is
 /// strictly greater than <c>30.0f</c> at <c>0x005DB1E4</c>, Process writes
 /// <c>-3</c> to the frontend quit/result global <c>0x008A956C</c>
-/// (<c>fsub [this+4]; fcomp [30.0f]; test ah,0x41 / jnz skip</c> then
-/// <c>mov [0x008A956C], -3</c> at <c>0x0051B731</c>). The consumer is
+/// (a float subtract of field +4 of this, then float compare against the constant 30.0f,
+/// popping the result, then bit test of ah against 0x41, branching when not zero then
+/// a store of constant -3 to the value at 0x008A956C at <c>0x0051B731</c>). The consumer is
 /// <see cref="RetailAttractLoop"/> — not a CFEPIntro fade.</para>
 ///
 /// <para>No Godot types. The capture rig suppresses this page's timing the
@@ -60,7 +61,7 @@ public static class RetailClickToStartPrompt
 
     /// <summary>
     /// Process adds <c>2 * dt</c> once the timer is nonzero
-    /// (<c>fadd st,st</c> at <c>0x0051B793</c>).
+    /// (a doubling of the FPU stack top at <c>0x0051B793</c>).
     /// </summary>
     public const double Rate = 2.0;
 
@@ -119,7 +120,7 @@ public static class RetailClickToStartPrompt
         }
 
         // CRT fmod is toward-zero remainder. C# double % is the same for these
-        // signs. The compare is strictly less than 2.0 (test ah,1 / jz).
+        // signs. The compare is strictly less than 2.0 (a bit test of ah against 1 / jz).
         double remainder = timer % BlinkPeriodSeconds;
         if (remainder < 0d)
         {
@@ -138,7 +139,8 @@ public static class RetailClickToStartPrompt
 
     /// <summary>
     /// Splash-pulse argument: the live timer while it is ≤ 1.0, otherwise 1.0.
-    /// <c>0x0051B869</c> <c>fcom [1.0f]</c> / <c>test ah,0x41</c> / <c>jnz keep</c>.
+    /// <c>0x0051B869</c>: a float compare against the constant 1.0f, then bit test
+    /// of ah against 0x41, then conditional branch to keep (taken when not zero).
     /// </summary>
     public static float SplashArgument(double timer) => timer <= 1d ? (float)timer : 1f;
 

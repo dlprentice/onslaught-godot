@@ -7,7 +7,7 @@ Evidence: SOURCE and bounded copied-runtime observation — constants and behavi
 Headless sources named at the bottom; the retail 20 Hz step was MEASURED in
 the 20 Hz migration evidence. Precision setup is static byte evidence; the
 September 8 Plane control-word sample below is a separate runtime observation.
-Specimen: `local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, SHA-256
+Specimen: `BEA.exe.original.backup` (a private pristine copy), SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`.
 Summary: what "deterministic" means in this rebuild, what is enforced, and
 what a contributor must do when a change legitimately moves the trace hash.

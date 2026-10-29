@@ -31,13 +31,13 @@
   "_referenceNote": [
     "The no-skipfmv two-run set. -skipfmv degrades the main menu itself by",
     "84.18% material, so the older -skipfmv reference could not be used for",
-    "this at all. See local-lab/STARTUP-NOFMV-BASELINE-2026-07-26.md."
+    "this at all. See the private lab note STARTUP-NOFMV-BASELINE-2026-07-26.md."
   ],
   "_measurementProvenance": {
     "status": "CURRENT",
     "measuredAtCommit": "fc07fef6",
     "measuredOn": "2026-07-31",
-    "measuredFromCapture": "local-lab/godot-captures/rescore150-head-mainmenu",
+    "measuredFromCapture": "a private capture (rescore150-head-mainmenu)",
     "_measuredAtCommitNote": [
       "Re-derived with tools/score_frontend_capture.py --measure from a capture",
       "stamped purpose=production, godotSourceCleanliness=clean,",
@@ -257,7 +257,7 @@
       "id": "FEP_OPTIONS",
       "capturePlan": "options",
       "task": "150",
-      "reason": "the missing piece is no longer the reference. Task #150 captured retail's options pages WITH the video backdrop in two runs (local-lab/retail-reference-pristine/nofmv-options-2026-07-31/run1 and run2, 17 burst frames each for optroot/optctrl/optsound/optvideo/credits plus mm), so a noise floor now exists. What blocks gating is OUR side: FrontendCaptureRig's OptionsPlan takes ONE settled shot per page (fep-options-root.png and friends), while this plan pairs frames by millisecond offset from `<prefix>-t<ms>ms.png`. There is nothing to pair against a burst. Gating the options pages needs the rig to sweep them the way it sweeps mainmenu; until then rebuild/tools/compare_options_capture.py's ink-mask IoU is the only options measurement, and it is a text-placement check, not a parity score."
+      "reason": "the missing piece is no longer the reference. Task #150 captured retail's options pages WITH the video backdrop in two runs (a private retail reference capture, run1 and run2 of nofmv-options-2026-07-31, 17 burst frames each for optroot/optctrl/optsound/optvideo/credits plus mm), so a noise floor now exists. What blocks gating is OUR side: FrontendCaptureRig's OptionsPlan takes ONE settled shot per page (fep-options-root.png and friends), while this plan pairs frames by millisecond offset from `<prefix>-t<ms>ms.png`. There is nothing to pair against a burst. Gating the options pages needs the rig to sweep them the way it sweeps mainmenu; until then rebuild/tools/compare_options_capture.py's ink-mask IoU is the only options measurement, and it is a text-placement check, not a parity score."
     },
     {
       "id": "FEP_DEVSELECT",

@@ -56,7 +56,7 @@ public sealed class RetailCareerNodeLink
 /// secondary predicate for the ranking clamp. The ten secondary status
 /// words stay unset (neither 1 nor 2). The predicate itself still runs
 /// from <c>ReCalcLinks</c> and takes the no-objectives arm: log, then
-/// <c>xor eax, eax</c>. That FALSE is indistinguishable from a real
+/// a zeroing of eax. That FALSE is indistinguishable from a real
 /// failure. This type must not invent secondary content to make it TRUE.
 /// </para>
 /// <para>
@@ -141,7 +141,7 @@ public sealed class RetailCareerNodeLink
 /// </remarks>
 public static class RetailCareerReCalcLinks
 {
-    /// <summary>World 100 — <c>level_structure[0][0]</c>; <c>cmp eax, 0x64</c> at <c>0x0041C188</c>.</summary>
+    /// <summary>World 100 — <c>level_structure[0][0]</c>; a compare of eax with 0x64 at <c>0x0041C188</c>.</summary>
     public const int TrainingWorldNumber = 100;
 
     /// <summary>World 110 — <c>level_structure[0][1]</c> is node index 1, whose world is 110.</summary>

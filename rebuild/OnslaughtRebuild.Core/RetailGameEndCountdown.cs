@@ -16,12 +16,10 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <list type="bullet">
 /// <item><c>0x0046F430</c> <c>CGame::DeclareLevelLost</c> —
-/// <c>0x0046F4A8</c> is <c>c7 43 48 00 00 00 40</c>,
-/// <c>mov dword ptr [ebx+0x48], 0x40000000</c> = <c>2.0f</c>.</item>
+/// <c>0x0046F4A8</c> is a store of constant 0x40000000 to field +0x48 of ebx = <c>2.0f</c>.</item>
 /// <item><c>0x0046F2F0</c> <c>CGame::DeclareLevelWon</c> —
-/// <c>0x0046F338</c> is <c>c7 43 48 00 00 a0 40</c>,
-/// <c>mov dword ptr [ebx+0x48], 0x40A00000</c> = <c>5.0f</c>, after
-/// <c>cmp eax, 0x2E5 / je</c> and <c>cmp eax, 0x2E6 / je</c> miss.</item>
+/// <c>0x0046F338</c> is a store of constant 0x40A00000 to field +0x48 of ebx = <c>5.0f</c>, after
+/// the compares of eax with 0x2E5 and 0x2E6 (each branching when equal) miss.</item>
 /// </list>
 /// <para>
 /// <b>Source and retail diverge on Lost, and retail wins.</b> The Xbox
@@ -41,7 +39,7 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>Not established here.</b> The 15.0 f <c>PAUSE_GAME</c> schedule at
-/// <c>0x0046F508</c> (<c>00 00 70 41</c>) after a player-death loss —
+/// <c>0x0046F508</c> after a player-death loss —
 /// <see cref="Level100MissionTiming.DeathPauseDelayTicks"/> already
 /// carries that duration. The <c>-1.0f</c> fade event at
 /// <c>0x0046F52C</c>. What <c>this+0x48</c> is named in the header
@@ -51,7 +49,7 @@ namespace OnslaughtRebuild.Core;
 public static class RetailGameEndCountdown
 {
     /// <summary>
-    /// The Lost store — <c>0x0046F4A8</c> <c>c7 43 48 00 00 00 40</c>.
+    /// The Lost store — <c>0x0046F4A8</c>.
     /// </summary>
     public const uint LostCountdownBits = 0x40000000u;
 
@@ -60,17 +58,17 @@ public static class RetailGameEndCountdown
 
     /// <summary>
     /// The Won store for every world that is not 741 or 742 —
-    /// <c>0x0046F338</c> <c>c7 43 48 00 00 a0 40</c>.
+    /// <c>0x0046F338</c>.
     /// </summary>
     public const uint WonCountdownBits = 0x40A00000u;
 
     /// <summary>The same dword as a float — exactly 5.0.</summary>
     public const float WonCountdownSeconds = 5.0f;
 
-    /// <summary>World 741 — <c>cmp eax, 0x2E5</c> at <c>0x0046F31C</c>.</summary>
+    /// <summary>World 741 — a compare of eax with 0x2E5 at <c>0x0046F31C</c>.</summary>
     public const int ZeroWonCountdownWorldA = 0x2E5;
 
-    /// <summary>World 742 — <c>cmp eax, 0x2E6</c> at <c>0x0046F32C</c>.</summary>
+    /// <summary>World 742 — a compare of eax with 0x2E6 at <c>0x0046F32C</c>.</summary>
     public const int ZeroWonCountdownWorldB = 0x2E6;
 
     /// <summary>Lost overlay length at the released 20 Hz step.</summary>

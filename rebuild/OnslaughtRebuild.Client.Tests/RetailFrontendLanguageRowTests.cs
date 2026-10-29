@@ -16,7 +16,7 @@ namespace OnslaughtRebuild.Client.Tests;
 ///
 /// <para><b>The independent check.</b> Every ink figure below was confirmed
 /// against retail's own rendered frame
-/// (<c>local-lab/retail-reference-pristine/main-menu-640x480.png</c>) by taking
+/// (a private retail reference capture) by taking
 /// the columns in the row band whose deviation from the page fill exceeds a
 /// threshold. That returns three separated runs — 144..165, 178..260, 273..294 —
 /// against composed ink of 142.8..166.8, 177.4..260.6 and 271.2..295.2. The

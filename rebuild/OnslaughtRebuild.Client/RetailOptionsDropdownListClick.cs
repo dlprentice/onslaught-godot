@@ -5,12 +5,12 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> expanded list click leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Expanded list hover at <c>0x004A3FA6</c> is
@@ -30,34 +30,34 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemDest"/>. Icon dest at
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is the
-/// expanded-arm <c>call 0x00469400</c> / <c>mov [esi+0x20], edi</c> /
-/// <c>mov byte [esi+0x24], 0</c>. Do not redo those. Do not invent dest
+/// expanded-arm (a direct call to 0x00469400, then store of edi to field +0x20 of esi, then
+/// store of constant 0 to byte field +0x24 of esi). Do not redo those. Do not invent dest
 /// Y as 5, 15.5, 268, 284, or 304. Do not invent dest X as 322.5 or dest
 /// from 148.0. Do not invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>Click.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3FE6</c> is <c>fild [esp+0x24]</c> leftover SIZE.cy.
-/// <c>0x004A3FEA</c> is <c>fadd [esp+0x10]</c> dest Y leftover.
-/// <c>0x004A3FEE</c> is <c>fstp [esp+0x30]</c>. <c>0x004A3FF2</c> is
-/// <c>fild [esp+0x20]</c> leftover label SIZE.cx. <c>0x004A3FF6</c>
-/// is <c>mov ecx, [esp+0x30]</c>. <c>0x004A3FFA</c> is
-/// <c>push ecx</c>. <c>0x004A3FFB</c> is <c>fadd [esp+0x20]</c>
+/// <c>0x004A3FE6</c> is an integer-to-float load of stack local +0x24 leftover SIZE.cy.
+/// <c>0x004A3FEA</c> is a float add of stack local +0x10 dest Y leftover.
+/// <c>0x004A3FEE</c> is a float store to stack local +0x30. <c>0x004A3FF2</c> is
+/// an integer-to-float load of stack local +0x20 leftover label SIZE.cx. <c>0x004A3FF6</c>
+/// is a load of stack local +0x30 into ecx. <c>0x004A3FFA</c> is
+/// a push of ecx. <c>0x004A3FFB</c> is a float add of stack local +0x20
 /// collapsed dest leftover. <c>0x004A3FFF</c> is
-/// <c>fadd [0x005D8BA0]</c> pad leftover. <c>0x004A4005</c> is
-/// <c>fstp [esp+0x40]</c>. <c>0x004A400D</c> is <c>push edx</c>.
-/// <c>0x004A400E</c> is <c>push ebp</c>. <c>0x004A400F</c> is
-/// <c>push ebx</c>. <c>0x004A4010</c> is <c>call 0x00469400</c>.
-/// <c>0x004A4015</c> is <c>add esp, 0x10</c>. <c>0x004A4018</c>
-/// is <c>test al, al</c>. <c>0x004A401A</c> is
-/// <c>je 0x004A4044</c>. <c>0x004A401C</c> is
-/// <c>mov al, [esi+0x25]</c>. <c>0x004A401F</c> is
-/// <c>mov [esi+0x20], edi</c>. <c>0x004A4022</c> is
-/// <c>test al, al</c>. <c>0x004A4024</c> is
-/// <c>mov byte [esi+0x24], 0</c>. <c>0x004A4028</c> is
-/// <c>jne 0x004A403A</c>. <c>0x004A402A</c> is
-/// <c>cmp [esi+0x1c], edi</c>. <c>0x004A4034</c> is
-/// <c>mov [esi+0x1c], edi</c>. <c>0x004A4037</c> is
-/// <c>call [eax+0x38]</c>. Click writes currentIndex and the expand
+/// a float add of the value at 0x005D8BA0 pad leftover. <c>0x004A4005</c> is
+/// a float store to stack local +0x40. <c>0x004A400D</c> is a push of edx.
+/// <c>0x004A400E</c> is a push of ebp. <c>0x004A400F</c> is
+/// a push of ebx. <c>0x004A4010</c> is a direct call to 0x00469400.
+/// <c>0x004A4015</c> is a stack cleanup of 0x10 bytes. <c>0x004A4018</c>
+/// is a zero test of al. <c>0x004A401A</c> is
+/// a conditional branch to 0x004A4044 (taken when equal). <c>0x004A401C</c> is
+/// a load of field +0x25 of esi into al. <c>0x004A401F</c> is
+/// a store of edi to field +0x20 of esi. <c>0x004A4022</c> is
+/// a zero test of al. <c>0x004A4024</c> is
+/// a store of constant 0 to byte field +0x24 of esi. <c>0x004A4028</c> is
+/// a conditional branch to 0x004A403A (taken when not equal). <c>0x004A402A</c> is
+/// a compare of field +0x1c of esi with edi. <c>0x004A4034</c> is
+/// a store of edi to field +0x1c of esi. <c>0x004A4037</c> is
+/// an indirect call through vtable slot 14. Click writes currentIndex and the expand
 /// byte. Dest Y does not. Colour leftover already consults
 /// currentIndex. Hover leftover already owns <c>0x004A3FA6</c>.
 /// Nearby 15.5, 322.5, and 148.0 are measurements, not dest. Dest is
@@ -77,28 +77,28 @@ public static class RetailOptionsDropdownListClick
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>fild [esp+0x24]</c>. Leftover SIZE.cy, not dest.</summary>
+    /// <summary>An integer-to-float load of stack local +0x24. Leftover SIZE.cy, not dest.</summary>
     public const uint CyFildSite = 0x004A3FE6u;
 
-    /// <summary><c>fadd [esp+0x10]</c>. Dest Y leftover, not dest itself.</summary>
+    /// <summary>A float add of stack local +0x10. Dest Y leftover, not dest itself.</summary>
     public const uint DestYAddSite = 0x004A3FEAu;
 
-    /// <summary><c>fstp [esp+0x30]</c>. Bottom leftover, not dest Y.</summary>
+    /// <summary>A float store to stack local +0x30. Bottom leftover, not dest Y.</summary>
     public const uint BottomStoreSite = 0x004A3FEEu;
 
-    /// <summary><c>fild [esp+0x20]</c>. Leftover label SIZE.cx, not dest.</summary>
+    /// <summary>An integer-to-float load of stack local +0x20. Leftover label SIZE.cx, not dest.</summary>
     public const uint LabelCxFildSite = 0x004A3FF2u;
 
-    /// <summary><c>mov ecx, [esp+0x30]</c>. Bottom into the hit helper.</summary>
+    /// <summary>A load of stack local +0x30 into ecx. Bottom into the hit helper.</summary>
     public const uint BottomLoadSite = 0x004A3FF6u;
 
-    /// <summary><c>push ecx</c>. Bottom into the hit helper.</summary>
+    /// <summary>A push of ecx. Bottom into the hit helper.</summary>
     public const uint BottomPushSite = 0x004A3FFAu;
 
-    /// <summary><c>fadd [esp+0x20]</c>. Collapsed dest leftover, not dest.</summary>
+    /// <summary>A float add of stack local +0x20. Collapsed dest leftover, not dest.</summary>
     public const uint CollapsedAddSite = 0x004A3FFBu;
 
-    /// <summary><c>fadd [0x005D8BA0]</c>. Pad leftover, not dest.</summary>
+    /// <summary>A float add of the value at 0x005D8BA0. Pad leftover, not dest.</summary>
     public const uint PadAddSite = 0x004A3FFFu;
 
     /// <summary>2.0 source. Pad leftover, not dest X itself.</summary>
@@ -107,79 +107,79 @@ public static class RetailOptionsDropdownListClick
     /// <summary>IEEE bits at <see cref="PadGlobal"/>. 2.0.</summary>
     public const uint PadBits = 0x40000000u;
 
-    /// <summary><c>fstp [esp+0x40]</c>. Right leftover, not dest X.</summary>
+    /// <summary>A float store to stack local +0x40. Right leftover, not dest X.</summary>
     public const uint RightStoreSite = 0x004A4005u;
 
-    /// <summary><c>mov edx, [esp+0x40]</c>. Right into the hit helper.</summary>
+    /// <summary>A load of stack local +0x40 into edx. Right into the hit helper.</summary>
     public const uint RightLoadSite = 0x004A4009u;
 
-    /// <summary><c>push edx</c>. Right into the hit helper.</summary>
+    /// <summary>A push of edx. Right into the hit helper.</summary>
     public const uint RightPushSite = 0x004A400Du;
 
-    /// <summary><c>push ebp</c>. Dest Y leftover into the hit helper.</summary>
+    /// <summary>A push of ebp. Dest Y leftover into the hit helper.</summary>
     public const uint TopPushSite = 0x004A400Eu;
 
-    /// <summary><c>push ebx</c>. Dest X leftover into the hit helper.</summary>
+    /// <summary>A push of ebx. Dest X leftover into the hit helper.</summary>
     public const uint LeftPushSite = 0x004A400Fu;
 
-    /// <summary><c>call 0x00469400</c>. Click hit leftover.</summary>
+    /// <summary>A direct call to 0x00469400. Click hit leftover.</summary>
     public const uint ClickHitSite = 0x004A4010u;
 
     /// <summary>Click helper. Forwards the leftover LTRB into <see cref="PointInRect"/>.</summary>
     public const uint ClickHit = 0x00469400u;
 
-    /// <summary><c>add esp, 0x10</c> after the cdecl hit helper.</summary>
+    /// <summary>A stack cleanup of 0x10 bytes after the cdecl hit helper.</summary>
     public const uint ClickHitPop = 0x10u;
 
-    /// <summary><c>test al, al</c>. Click writes only when the helper returns true.</summary>
+    /// <summary>A zero test of al. Click writes only when the helper returns true.</summary>
     public const uint HitTestSite = 0x004A4018u;
 
-    /// <summary><c>je 0x004A4044</c>. Miss keeps currentIndex and the expand byte.</summary>
+    /// <summary>A conditional branch to 0x004A4044 (taken when equal). Miss keeps currentIndex and the expand byte.</summary>
     public const uint MissJumpSite = 0x004A401Au;
 
     /// <summary>Fall-through target after a miss.</summary>
     public const uint MissJumpTarget = 0x004A4044u;
 
-    /// <summary><c>mov al, [esi+0x25]</c>. Pending byte leftover, not dest.</summary>
+    /// <summary>A load of field +0x25 of esi into al. Pending byte leftover, not dest.</summary>
     public const uint PendingLoadSite = 0x004A401Cu;
 
     /// <summary>Pending byte at <c>[this+0x25]</c>. Click leftover, not dest.</summary>
     public const uint PendingByteOffset = 0x25u;
 
-    /// <summary><c>mov [esi+0x20], edi</c>. Click writes currentIndex.</summary>
+    /// <summary>A store of edi to field +0x20 of esi. Click writes currentIndex.</summary>
     public const uint CurrentIndexStoreSite = 0x004A401Fu;
 
     /// <summary>currentIndex at <c>[this+0x20]</c>. Click leftover, not dest.</summary>
     public const uint CurrentIndexOffset = 0x20u;
 
-    /// <summary><c>test al, al</c> after the pending-byte load.</summary>
+    /// <summary>A zero test of al after the pending-byte load.</summary>
     public const uint PendingTestSite = 0x004A4022u;
 
-    /// <summary><c>mov byte [esi+0x24], 0</c>. Click writes the expand byte.</summary>
+    /// <summary>A store of constant 0 to byte field +0x24 of esi. Click writes the expand byte.</summary>
     public const uint ExpandStoreSite = 0x004A4024u;
 
     /// <summary>Expanded flag at <c>[this+0x24]</c>. Already dest leftover.</summary>
     public const uint ExpandByteOffset = 0x24u;
 
-    /// <summary><c>jne 0x004A403A</c>. Pending skips the live apply.</summary>
+    /// <summary>A conditional branch to 0x004A403A (taken when not equal). Pending skips the live apply.</summary>
     public const uint PendingSkipSite = 0x004A4028u;
 
     /// <summary>Fall-through target after a pending skip.</summary>
     public const uint PendingSkipTarget = 0x004A403Au;
 
-    /// <summary><c>cmp [esi+0x1c], edi</c>. committedIndex leftover, not dest.</summary>
+    /// <summary>A compare of field +0x1c of esi with edi. committedIndex leftover, not dest.</summary>
     public const uint CommittedCompareSite = 0x004A402Au;
 
     /// <summary>committedIndex at <c>[this+0x1c]</c>. Click leftover, not dest.</summary>
     public const uint CommittedOffset = 0x1Cu;
 
-    /// <summary><c>mov [esi+0x1c], edi</c>. Live apply leftover, not dest.</summary>
+    /// <summary>A store of edi to field +0x1c of esi. Live apply leftover, not dest.</summary>
     public const uint CommittedStoreSite = 0x004A4034u;
 
     /// <summary>vtable +0x38. SET leftover. Not dest.</summary>
     public const uint SetSlot = 0x38u;
 
-    /// <summary><c>call [eax+0x38]</c>. Live apply leftover, not dest.</summary>
+    /// <summary>An indirect call through vtable slot 14. Live apply leftover, not dest.</summary>
     public const uint SetCallSite = 0x004A4037u;
 
     /// <summary>Point-in-rect leftover used by <see cref="ClickHit"/>.</summary>

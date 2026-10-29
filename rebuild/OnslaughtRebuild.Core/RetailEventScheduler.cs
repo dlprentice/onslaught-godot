@@ -160,9 +160,9 @@ public sealed record RetailEventSchedulerSnapshot(uint TimeBits, uint FrameCount
 /// <para>
 /// <b>Two details relevant to the translation.</b> First, the event
 /// number is stored as a <b>signed 16-bit field</b>: <c>CScheduledEvent::Set</c>
-/// at <c>0x004DE1F0</c> writes <c>mov word ptr [esi+4], ax</c>, the re-use arm
+/// at <c>0x004DE1F0</c> writes a store of ax to 16-bit word field +4 of esi, the re-use arm
 /// at <c>0x0044B4E0</c> does the same, and <c>AddEvent(CScheduledEvent*)</c>
-/// re-reads it with <c>movsx eax, word ptr [esi+4]</c> at <c>0x0044B32E</c>.
+/// re-reads it with a sign-extending load of 16-bit word field +4 of esi into eax at <c>0x0044B32E</c>.
 /// This confirms the <c>short</c> storage in <c>event.h</c>: an event number
 /// outside <c>[-32768, 32767]</c> wraps silently despite the <c>int</c> parameter.
 /// Second, retail keeps every intermediate of the delay computation on the x87
@@ -173,7 +173,7 @@ public sealed record RetailEventSchedulerSnapshot(uint TimeBits, uint FrameCount
 /// CRT default of 53-bit precision control; this static body does not establish
 /// the control word of every runtime caller. Explicit PC24 mode instead rounds
 /// each arithmetic operation through RetailFloat24. The immediate-negative arm rounds
-/// <c>mTime + 0.0001f</c> with <c>fstp dword</c> at <c>0x0044B3DF</c>.
+/// <c>mTime + 0.0001f</c> with a float store to dword at <c>0x0044B3DF</c>.
 /// The relative-time overload also rounds its sum before this body is called.
 /// </para>
 /// <para>
@@ -191,12 +191,12 @@ public sealed record RetailEventSchedulerSnapshot(uint TimeBits, uint FrameCount
 public sealed class RetailEventScheduler
 {
     /// <summary><c>NUM_EVENT_LIST_BUFFERS</c> — <c>eventmanager.h:24</c>; the
-    /// <c>mov ecx, 0xC8</c> at <c>0x0044B518</c> and <c>mov esi, 0xC8</c> at
+    /// load of constant 0xC8 into ecx at <c>0x0044B518</c> and a load of constant 0xC8 into esi at
     /// <c>0x0044B5C8</c> both carry it.</summary>
     public const int EventListBuffers = 200;
 
     /// <summary><c>NUM_PRIORITY</c> — <c>eventmanager.h:23</c>; the two
-    /// <c>mov dword ptr [esp+0x10], 3</c> loop counters in <c>Flush</c>.</summary>
+    /// (a store of constant 3 to stack local +0x10) loop counters in <c>Flush</c>.</summary>
     public const int PriorityLanes = 3;
 
     /// <summary><c>MAX_NUM_EVENTS</c> — <c>eventmanager.h:20</c>, confirmed by
@@ -225,7 +225,7 @@ public sealed class RetailEventScheduler
     /// <summary>Hard drop ceiling — <c>eventmanager.cpp:202</c>; <c>0x005DB290</c>.</summary>
     internal const float MaximumTime = 1_000_000.0f;
 
-    /// <summary><c>NUM_EVENT_LIST_BUFFERS - 2</c> — the <c>cmp ecx, 0xC6</c> at <c>0x0044B42D</c>.</summary>
+    /// <summary><c>NUM_EVENT_LIST_BUFFERS - 2</c> — the compare of ecx with 0xC6 at <c>0x0044B42D</c>.</summary>
     internal const int OverflowBucketThreshold = EventListBuffers - 2;
 
     private readonly PooledEvent[] _pool = new PooledEvent[MaxEvents];
@@ -457,7 +457,7 @@ public sealed class RetailEventScheduler
     /// <summary>
     /// <c>CEventManager::AddEvent(const float&amp; time_from_now, …)</c> —
     /// <c>eventmanager.cpp:143-146</c>, <c>0x0044B2D0</c>. The sum is formed on
-    /// the x87 stack, rounded to float32 by <c>fstp dword</c> at
+    /// the x87 stack, rounded to float32 by a float store to dword at
     /// <c>0x0044B2F6</c>, then passed by reference to the absolute scheduler.
     /// </summary>
     public RetailEventAdmission AddEventTimeFromNow(
@@ -483,7 +483,7 @@ public sealed class RetailEventScheduler
     /// reproduced. The overflow scan starts at
     /// <c>mCurrentProcessOverflowEventNum</c>, not at zero, and advances while
     /// the resident due time is <b>less than or equal to</b> the new one
-    /// (<c>test ah, 0x41 / je</c> at <c>0x0044B459</c>), so equal-time events
+    /// (a bit test of ah against 0x41, branching when equal at <c>0x0044B459</c>), so equal-time events
     /// keep insertion order. The ring append is plain FIFO within a lane.
     /// </remarks>
     public RetailEventAdmission AddEvent(
@@ -516,7 +516,7 @@ public sealed class RetailEventScheduler
             offsetBuffer = _currentBufferNum;
             if (time < 0.0)
             {
-                // fld mTime / fadd 0.0001f / fstp dword: this one IS rounded to
+                // A float load of mTime, then float add of 0.0001f / fstp dword: this one IS rounded to
                 // float before it is stored as the due time.
                 nextTimeBits = BitConverter.SingleToUInt32Bits(
                     StoredSum(_time, ImmediateFloor));
@@ -683,9 +683,9 @@ public sealed class RetailEventScheduler
     /// </summary>
     /// <remarks>
     /// The frame counter increments first and the new <c>mTime</c> is the
-    /// <b>new</b> count times <c>CLOCK_TICK</c>: <c>fild qword</c> over
+    /// <b>new</b> count times <c>CLOCK_TICK</c>: an integer-to-float load of qword over
     /// <c>{mFrameCount, 0}</c> — a zero-extended <c>ULONG</c>, so the conversion
-    /// is exact — then one <c>fmul</c> by <c>0.05f</c> and one <c>fstp dword</c>.
+    /// is exact — then one <c>fmul</c> by <c>0.05f</c> and one float store to dword.
     /// A single rounding to float, computed here as
     /// <c>(float)((double)frames * (double)0.05f)</c>. That is bit-identical to
     /// retail for every frame count below 2^24, where the exact product still
@@ -735,7 +735,7 @@ public sealed class RetailEventScheduler
     /// Order, exactly: all three priority lanes of the ready slot in lane order
     /// and insertion order within a lane; then the overflow list from
     /// <c>mCurrentProcessOverflowEventNum</c> while the head's due time is
-    /// <b>strictly</b> less than <c>mTime</c> (<c>test ah, 1 / je</c> at
+    /// <b>strictly</b> less than <c>mTime</c> (a bit test of ah against 1, branching when equal at
     /// <c>0x0044B6D9</c> — an event due exactly on the frame boundary waits a
     /// frame). The overflow count is captured once after the ring callbacks,
     /// before any overflow callback (<c>0x0044B6BF</c>), and bounds that walk

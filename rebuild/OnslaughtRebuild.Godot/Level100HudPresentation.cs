@@ -144,8 +144,8 @@ public readonly record struct Level100ScannerPlacement(
 ///
 /// <para>Owner: <c>CHud__RenderTacticalRadarContacts</c> @ <c>0x00484c50</c>,
 /// called once from <c>CHud__RenderOverlayForViewpoint</c>. Its sole call site
-/// at <c>0x00487bab</c> is <c>PUSH 0x42c00000</c> (<b>96.0f</b>) before
-/// <c>MOV ECX,ESI; CALL</c> - the function is <c>RET 0x4</c>, so that float is
+/// at <c>0x00487bab</c> is a push of constant 0x42c00000 (<b>96.0f</b>) before
+/// a copy of esi into ecx, then call - the function is a return that pops 4 bytes of arguments, so that float is
 /// its one stack argument. Markers reach the screen through
 /// <c>HudOverlay__DrawSpriteQuad</c> @ <c>0x004857e0</c>, a fixed forwarder to
 /// <c>CVBufTexture__DrawSpriteEx</c> @ <c>0x00555be0</c> with anchor mode
@@ -183,37 +183,37 @@ public readonly record struct Level100ScannerPlacement(
 /// </summary>
 public static class Level100ScannerProjection
 {
-    /// <summary>_DAT_005d8610 = 40.0f.</summary>
+    /// <summary>0x005d8610 = 40.0f.</summary>
     public const float ScaleNumerator = 40f;
 
-    /// <summary>Stack argument at the sole call site 0x00487bab: PUSH 0x42c00000 = 96.0f.</summary>
+    /// <summary>Stack argument at the sole call site 0x00487bab: a push of constant 0x42c00000 = 96.0f.</summary>
     public const float ScaleDenominator = 96f;
 
     /// <summary>World units to scanner pixels: 40/96.</summary>
     public const float PixelsPerWorldUnit = ScaleNumerator / ScaleDenominator;
 
-    /// <summary>_DAT_005dbe6c = 46.0f, in PIXELS.</summary>
+    /// <summary>0x005dbe6c = 46.0f, in PIXELS.</summary>
     public const float ClampRadiusPixels = 46f;
 
-    /// <summary>_DAT_005dbe70 = 8464.0f = 92^2, in PIXELS.</summary>
+    /// <summary>0x005dbe70 = 8464.0f = 92^2, in PIXELS.</summary>
     public const float CullRadiusSquaredPixels = 8_464f;
 
-    /// <summary>_DAT_005dbe68 = 0.021739131f = 1/46.</summary>
+    /// <summary>0x005dbe68 = 0.021739131f = 1/46.</summary>
     public const float FadePerPixel = 0.021739131f;
 
-    /// <summary>_DAT_005d8c70 = 255.0f.</summary>
+    /// <summary>0x005d8c70 = 255.0f.</summary>
     public const float AlphaQuantiser = 255f;
 
     /// <summary>
-    /// _DAT_005dbb70 (69.0f) plus the two viewport-origin globals, which are
-    /// zero for the single-player full-window viewport, minus _DAT_005d8568
+    /// 0x005dbb70 (69.0f) plus the two viewport-origin globals, which are
+    /// zero for the single-player full-window viewport, minus 0x005d8568
     /// (1.0f).
     /// </summary>
     public const float CentreX = 69f - 1f;
 
     /// <summary>
-    /// Viewport bottom (480 on the released 640x480 stage) minus _DAT_005dbe74
-    /// (44.0f) minus _DAT_005d857c (20.0f) plus _DAT_005d8568 (1.0f). The
+    /// Viewport bottom (480 on the released 640x480 stage) minus 0x005dbe74
+    /// (44.0f) minus 0x005d857c (20.0f) plus 0x005d8568 (1.0f). The
     /// 480-44-20 = 416 agrees with the 55-point circle fit of retail's
     /// radar-outline ring at y = 417.25 in the 640x480 frame.
     /// </summary>
@@ -246,7 +246,7 @@ public static class Level100ScannerProjection
     public const int NeutralHighlightAdd = 0x101010;
 
     /// <summary>
-    /// The objective marker's colour: <c>PUSH 0xFFFFFF00</c>, a hard immediate at
+    /// The objective marker's colour: a push of constant 0xFFFFFF00, a hard immediate at
     /// <c>0x00485424</c>, i.e. opaque yellow. Retail draws it from the global
     /// objective list at <c>0x00855140</c> (`0x00485372`), inside the same
     /// scanner function and against the same scanner centre, AFTER the
@@ -317,18 +317,18 @@ public static class Level100ScannerProjection
     /// differs in two ways that are visible on screen and are read straight off
     /// the instruction stream:
     ///
-    /// <para>It has NO cull test - there is no <c>fcom [0x005dbe70]</c> anywhere
+    /// <para>It has NO cull test - there is no float compare against the value at 0x005dbe70 anywhere
     /// between <c>0x004853c1</c> and the draw at <c>0x00485462</c>, where the
     /// three allegiance loops all have one. An objective at any range is drawn,
     /// pinned to the rim.</para>
     ///
     /// <para>It has NO alpha fade - the colour is the hard immediate
-    /// <c>PUSH 0xFFFFFF00</c> at <c>0x00485424</c>, not an
+    /// (a push of constant 0xFFFFFF00) at <c>0x00485424</c>, not an
     /// <c>alpha &lt;&lt; 24</c> composed from the rim distance. Alpha is always
     /// 255.</para>
     ///
     /// <para>The clamp itself is identical: <c>fsqrt</c>,
-    /// <c>fdivr [0x005dbe6c]</c>, compare against <c>[0x005d8568]</c>, and scale
+    /// a reversed float divide by the value at 0x005dbe6c, compare against <c>[0x005d8568]</c>, and scale
     /// both components when 46/r &lt; 1 (<c>0x004853f3</c>-<c>0x00485410</c>).</para>
     /// </summary>
     public static Level100ScannerPlacement PlaceObjective(
@@ -500,7 +500,7 @@ public sealed record Level100HudBattleLineSnapshot(
     /// Reporting <see cref="Level100HudInfluenceMapState.Empty"/> here would be
     /// a measured falsehood for Level 100. Classifying the socket disc across
     /// all 183 pinned retail frames in
-    /// <c>local-lab/retail-reference-pristine/level100-gameplay/</c> finds the
+    /// a private retail reference capture finds the
     /// influence overlay on 20 of them - all 17 of
     /// <c>settled-timeline-run3</c>, plus <c>hud-timeline-run1/t025065</c> and
     /// <c>t011756</c> in BOTH opening-pan runs, which puts the overlay on

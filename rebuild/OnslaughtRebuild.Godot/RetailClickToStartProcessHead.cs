@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// The unread CFEPIntro::Process head —
 /// <c>0x0051B6B0</c>–<c>0x0051B705</c> — recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
@@ -14,21 +14,21 @@ namespace OnslaughtRebuild.GodotClient;
 /// the unread prologue in front of them. Not a fade. Not pixels. Not
 /// in the pinned GPL drop (<c>FEPIntro.cpp</c> is absent).</para>
 ///
-/// <para><b>Early-out.</b> <c>mov eax,[esp+4]; test / jne 0x0051B83B</c>
-/// pops esi and <c>RET 4</c>. A nonzero stack arg skips HUD, ResetFlags,
+/// <para><b>Early-out.</b> a load of stack local +4 into eax, then test, branching to 0x0051B83B when not equal
+/// pops esi and a return that pops 4 bytes of arguments. A nonzero stack arg skips HUD, ResetFlags,
 /// the 3 s dispatch, idle, clock, handshake, and mouse.</para>
 ///
 /// <para><b>HUD.</b> Zero-arg fall-through does
-/// <c>mov ecx, 0x00704858; call 0x0041A200</c>. That body is
-/// <c>xor al, al; ret</c>, so <c>test al,al / je 0x0051B6D4</c> never
+/// (a load of constant 0x00704858 into ecx, then direct call to 0x0041A200). That body is
+/// a zeroing of al, then return, so a zero test of al, branching to 0x0051B6D4 when equal never
 /// reaches ResetFlags <c>0x0051B610</c> from this site. The object at
 /// <c>0x00704858</c> is uninitialised <c>.data</c>.</para>
 ///
 /// <para><b>Dev-mode confirm.</b> <c>0x00662DF4</c> is uninitialised
 /// <c>.data</c> (image-initial 0). Nonzero plus
 /// <c>GetTime()-[this+4]</c> strictly greater than <c>3.0f</c> at
-/// <c>0x005D8CC0</c> (<c>test ah,0x41 / jne skip</c>) then
-/// <c>CALL [vtable+0x0C]</c> with action <c>0x2C</c> and
+/// <c>0x005D8CC0</c> (a bit test of ah against 0x41, branching when not equal) then
+/// an indirect call through vtable slot 3 with action <c>0x2C</c> and
 /// <c>0x3F800000</c> (1.0f). Cold Process therefore never auto-confirms.
 /// Other bodies can write the dword at runtime; this page only reads it.</para>
 ///
@@ -42,13 +42,13 @@ public static class RetailClickToStartProcessHead
     /// <summary>Function entry. Loads <c>[esp+4]</c>.</summary>
     public const uint ProcessVa = 0x0051B6B0u;
 
-    /// <summary>Nonzero <c>[esp+4]</c> lands here: <c>pop esi; ret 4</c>.</summary>
+    /// <summary>Nonzero <c>[esp+4]</c> lands here: a pop into esi, then return that pops 4 bytes of arguments.</summary>
     public const uint EarlyOutVa = 0x0051B83Bu;
 
-    /// <summary>Epilogue is <c>RET 4</c>.</summary>
+    /// <summary>Epilogue is a return that pops 4 bytes of arguments.</summary>
     public const int StackArgBytes = 4;
 
-    /// <summary>Called at <c>0x0051B6C4</c>. Body is <c>xor al, al; ret</c>.</summary>
+    /// <summary>Called at <c>0x0051B6C4</c>. Body is a zeroing of al, then return.</summary>
     public const uint GetShowHudVa = 0x0041A200u;
 
     /// <summary>ECX loaded at <c>0x0051B6BF</c>. Uninitialised <c>.data</c>.</summary>
@@ -80,20 +80,20 @@ public static class RetailClickToStartProcessHead
 
     /// <summary>
     /// Auto-confirm only when page elapsed is strictly greater than this
-    /// (<c>test ah,0x41</c> keeps ≤).
+    /// (a bit test of ah against 0x41 keeps ≤).
     /// </summary>
     public const double AutoConfirmSeconds = 3.0;
 
-    /// <summary>First instruction after the head: <c>mov eax,[esi+0x0C]</c>.</summary>
+    /// <summary>First instruction after the head: a load of field +0x0C of esi into eax.</summary>
     public const uint HeadEndVa = 0x0051B705u;
 
-    /// <summary><c>push 0x2C</c> at <c>0x0051B6FE</c>.</summary>
+    /// <summary>A push of constant 0x2C at <c>0x0051B6FE</c>.</summary>
     public const int ConfirmAction = 0x2C;
 
-    /// <summary><c>push 0x3F800000</c> at <c>0x0051B6F9</c>.</summary>
+    /// <summary>A push of constant 0x3F800000 at <c>0x0051B6F9</c>.</summary>
     public const uint ConfirmValueBits = 0x3F800000u;
 
-    /// <summary><c>call [eax+0x0C]</c> at <c>0x0051B702</c>.</summary>
+    /// <summary>An indirect call through vtable slot 3 at <c>0x0051B702</c>.</summary>
     public const int VtableSlotOffset = 0x0C;
 
     /// <summary>One Process tick of the head. Writes, not pixels.</summary>

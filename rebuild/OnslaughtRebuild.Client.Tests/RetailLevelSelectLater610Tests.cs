@@ -7,35 +7,30 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> later leftover after the
-/// later 1.0 fcom — <c>0x00460F30</c> <c>fld [esp+0x14]</c> /
-/// <c>0x00460F34</c> <c>fcomp [0x005DB5B0]</c> (610.0) /
-/// <c>0x00460F45</c> <c>fld [esp+0x14]</c> /
-/// <c>0x00460F49</c> <c>fcomp [0x005D856C]</c> (0.0) —
+/// later 1.0 fcom — <c>0x00460F30</c>: a float load of stack local +0x14; <c>0x00460F34</c>:
+/// a float compare against the value at 0x005DB5B0, popping the result (610.0) /
+/// <c>0x00460F45</c>: a float load of stack local +0x14; <c>0x00460F49</c>: a
+/// float compare against the value at 0x005D856C, popping the result (0.0) —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
 /// <c>0x00460E7F</c> is already the later-one first store
-/// consumer <c>fistp [esp+0x4C]</c> (<c>df 7c 24 4c</c>).
-/// <c>0x00460F30</c> <c>fld [esp+0x14]</c>
-/// (<c>d9 44 24 14</c>), <c>0x00460F34</c>
-/// <c>fcomp [0x005DB5B0]</c> (<c>d8 1d b0 b5 5d 00</c>),
-/// <c>0x005DB5B0</c> is <c>00 80 18 44</c> (610.0, bits
-/// <c>0x44188000</c>), <c>0x00460F45</c>
-/// <c>fld [esp+0x14]</c> (<c>d9 44 24 14</c>),
-/// <c>0x00460F49</c> <c>fcomp [0x005D856C]</c>
-/// (<c>d8 1d 6c 85 5d 00</c>), <c>0x005D856C</c> is
-/// <c>00 00 00 00</c> (0.0, bits <c>0x00000000</c>).
-/// First consumer is <c>0x00460F5A</c>
-/// <c>mov eax, [esi+ebx*4+0x4]</c> (<c>8b 44 9e 04</c>).
-/// First store is <c>0x00460F5E</c>
-/// <c>mov [esp+0x28], 0</c> (<c>c7 44 24 28 00 00 00 00</c>).
+/// consumer (a float-to-integer store to stack local +0x4C).
+/// <c>0x00460F30</c>: a float load of stack local +0x14, <c>0x00460F34</c>:
+/// a float compare against the value at 0x005DB5B0, popping the result,
+/// <c>0x005DB5B0</c> is 610.0 (bits
+/// <c>0x44188000</c>), <c>0x00460F45</c>: a float load of stack local +0x14,
+/// <c>0x00460F49</c>: a float compare against the value at 0x005D856C, popping the result, <c>0x005D856C</c> is
+/// 0.0 (bits <c>0x00000000</c>).
+/// First consumer is <c>0x00460F5A</c>: a load of indexed table entry at +0x4 of esi into eax.
+/// First store is <c>0x00460F5E</c>: a store of constant 0 to stack local +0x28.
 /// That is not dest. The later 1.0 fcom at <c>0x00460E62</c>
 /// is already owned. The later <c>[esp+0x94]</c> shift at
 /// <c>0x00460E34</c> is already owned. The later 148.0
@@ -46,7 +41,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <c>0x0042D5CF</c>. FMV skip already owns the OR at
 /// <c>0x0053F2EB</c>. The earlier identical 610.0 / 0.0 pair
 /// at <c>0x00460BE4</c> is already owned. The later
-/// <c>fmul 60.0</c> at <c>0x00460F73</c> is later. Dest Y
+/// float multiply by 60.0 at <c>0x00460F73</c> is later. Dest Y
 /// does not. Dest is not 15.5, 322.5, 148.0, 10.0, 138.0,
 /// 322.0, 610.0, 90.0, 570.0, 0.75, 4.0, 1.0, 255.0, 0.0,
 /// 60.0, or the 2.0 constant. DrawLevelSelect consumes the

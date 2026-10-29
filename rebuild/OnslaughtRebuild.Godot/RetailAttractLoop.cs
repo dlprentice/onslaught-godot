@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// What <c>CLTShell::RunFrontEndAndGameLoop</c> does with
 /// <c>CFrontEnd::Run</c>'s return — recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this cycle
 /// (2,506,752 bytes).
@@ -14,9 +14,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// <c>CFrontEnd::Run</c> (<c>0x004684D0</c>, callsite <c>0x004F03C0</c>) the
 /// shell compares the returned dword:</para>
 /// <list type="number">
-/// <item><c>cmp ebp, -1</c> at <c>0x004F03ED</c> (<c>83 fd ff</c>) /
+/// <item>A compare of ebp with -1 at <c>0x004F03ED</c> /
 /// <c>je</c> — process exit.</item>
-/// <item><c>cmp ebp, -3</c> at <c>0x004F03F2</c> (<c>83 fd fd</c>) /
+/// <item>A compare of ebp with -3 at <c>0x004F03F2</c> /
 /// <c>jne</c> to <c>CGame::RunLevel</c> — the taken arm is attract
 /// restart. Debug string <c>"we're in attract mode"</c> at
 /// <c>0x00632B98</c>.</item>
@@ -32,8 +32,8 @@ namespace OnslaughtRebuild.GodotClient;
 /// No splash fade is claimed: the post-movie splash beat is a cold-start
 /// observation, not this arm.</para>
 ///
-/// <para><b>Re-entry.</b> The next loop head does <c>cmp ebp, -3</c> /
-/// <c>sete al</c> at <c>0x004F038F</c> and keeps that in <c>esi</c> —
+/// <para><b>Re-entry.</b> The next loop head does (a compare of ebp with -3, then set
+/// of al from the equal flag) at <c>0x004F038F</c> and keeps that in <c>esi</c> —
 /// <c>FEE_FROM_ATTRACT = 1</c> (<c>references/Onslaught/Frontend.h:54-56</c>).
 /// <c>CFrontEnd::Init</c> then <c>SetPage(FEP_INTRO, 0)</c>
 /// (<c>references/Onslaught/FrontEnd.cpp:188-202</c>).</para>
@@ -50,7 +50,7 @@ public static class RetailAttractLoop
     /// </summary>
     public const int StayInFrontend = -2;
 
-    /// <summary><c>cmp ebp, -1</c> at <c>0x004F03ED</c>.</summary>
+    /// <summary>A compare of ebp with -1 at <c>0x004F03ED</c>.</summary>
     public const int ProcessExitResult = -1;
 
     /// <summary>

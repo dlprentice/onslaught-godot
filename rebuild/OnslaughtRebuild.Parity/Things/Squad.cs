@@ -496,7 +496,8 @@ public abstract class Squad : ComplexThing, IThreatSource
                 UnitData data = squad.UnknownA0 ?? throw new InvalidOperationException("a squad with members has no unit data");
                 if (unit.GetStealth() != 0)
                 {
-                    // `/ 100.0f` compiles as `* 0.01f` (00477dd1: fmul 0.01f, fsubr 1.0f, fmul range).
+                    // `/ 100.0f` compiles as `* 0.01f` (00477dd1: a float multiply
+                    // by 0.01f, a reversed float subtract of 1.0f, fmul range).
                     float range = (1.0f - (unit.GetStealth() * 0.01f)) * data.MaxTargetRange;
                     if (distanceSq > range * range)
                     {

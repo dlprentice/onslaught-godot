@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render version overlay dest leftover and Z
 /// after <c>0x0046416E</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -15,19 +15,19 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>RetailMainMenuVersionOverlay already owns the sprintf at
 /// <c>0x0046416E</c> and the settled pack at <c>0x004641B1</c> /
 /// <c>0x004641B4</c>. Official bytes independently re-read this
-/// cycle: <c>call 0x00515B00</c> at <c>0x004641C9</c> is
-/// <c>PLATFORM__GetWindowHeight</c> (<c>mov eax, [0x00888A0C]; ret</c>).
+/// cycle: a direct call to 0x00515B00 at <c>0x004641C9</c> is
+/// <c>PLATFORM__GetWindowHeight</c> (a load of the value at 0x00888A0C into eax, then return).
 /// That global sits past the 2,506,752-byte image, so
-/// image-initial dest is not 464. <c>sub eax, 0x10</c> at
-/// <c>0x004641CE</c> then <c>fild</c> / <c>fstp [esp]</c>. Dest X
-/// is <c>push 0</c> at <c>0x004641E2</c>, not a 464 immediate.
-/// <c>push 0x3C23D70A</c> at <c>0x004641C4</c> is Z 0.01, not
-/// scale. Identity scale <c>push 0x3F800000</c> at
-/// <c>0x004641BA</c> / <c>0x004641BF</c>. <c>push 1</c> at
+/// image-initial dest is not 464. A subtraction of 0x10 from eax at
+/// <c>0x004641CE</c> then <c>fild</c> / a float store to the top of the stack. Dest X
+/// is a push of constant 0 at <c>0x004641E2</c>, not a 464 immediate.
+/// A push of constant 0x3C23D70A at <c>0x004641C4</c> is Z 0.01, not
+/// scale. Identity scale (a push of constant 0x3F800000) at
+/// <c>0x004641BA</c> / <c>0x004641BF</c>. A push of constant 1 at
 /// <c>0x004641E4</c> then <c>CPlatform__Font</c>
-/// (<c>0x00515A70</c>, <c>RET 4</c>) then
+/// (<c>0x00515A70</c>, a return that pops 4 bytes of arguments) then
 /// <c>CDXFont__DrawTextDynamic</c> (<c>0x00465710</c>,
-/// <c>RET 0x28</c>) at <c>0x004641ED</c>. DrawMainMenu keeps
+/// a return that pops 40 bytes of arguments) at <c>0x004641ED</c>. DrawMainMenu keeps
 /// VersionTint, Format, DestX, DestY(DesignHeight), and scale 1.0.
 /// Do not invent dest immediates. Do not invent a 2px kerning
 /// hack. Do not redo title-logo dest/Z, title-logo shadow dest/Z,

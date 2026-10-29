@@ -7,38 +7,33 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> later leftover after the
-/// later 148.0 triple — <c>0x00460E34</c> <c>fld [esp+0x94]</c> /
-/// <c>0x00460E3B</c> <c>fsub [0x005D8BC4]</c> (0.75) /
-/// <c>0x00460E41</c> <c>fmul [0x005D85BC]</c> (4.0) /
-/// <c>0x00460E47</c> <c>fcom [0x005D856C]</c> (0.0) — recovered from
+/// later 148.0 triple — <c>0x00460E34</c>: a float load of stack local +0x94;
+/// <c>0x00460E3B</c>: a float subtract of the value at 0x005D8BC4 (0.75) /
+/// <c>0x00460E41</c>: a float multiply by the value at 0x005D85BC (4.0) /
+/// <c>0x00460E47</c>: a float compare against the value at 0x005D856C (0.0) — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00460E34</c> <c>fld [esp+0x94]</c>
-/// (<c>d9 84 24 94 00 00 00</c>), <c>0x00460E3B</c>
-/// <c>fsub [0x005D8BC4]</c> (<c>d8 25 c4 8b 5d 00</c>),
-/// <c>0x005D8BC4</c> is <c>00 00 40 3f</c> (0.75, bits
-/// <c>0x3F400000</c>), <c>0x00460E41</c> <c>fmul [0x005D85BC]</c>
-/// (<c>d8 0d bc 85 5d 00</c>), <c>0x005D85BC</c> is
-/// <c>00 00 80 40</c> (4.0, bits <c>0x40800000</c>),
-/// <c>0x00460E47</c> <c>fcom [0x005D856C]</c>
-/// (<c>d8 15 6c 85 5d 00</c>), <c>0x005D856C</c> is
-/// <c>00 00 00 00</c> (0.0). First store consumer is
-/// <c>0x00460E4D</c> <c>fst [esp+0x40]</c>
-/// (<c>d9 54 24 40</c>). That is not dest. The later 148.0
+/// <c>0x00460E34</c>: a float load of stack local +0x94, <c>0x00460E3B</c>: a float subtract of the value at 0x005D8BC4,
+/// <c>0x005D8BC4</c> is 0.75 (bits
+/// <c>0x3F400000</c>), <c>0x00460E41</c>: a float multiply by the value at 0x005D85BC, <c>0x005D85BC</c> is
+/// 4.0 (bits <c>0x40800000</c>),
+/// <c>0x00460E47</c>: a float compare against the value at 0x005D856C, <c>0x005D856C</c> is
+/// 0.0. First store consumer is
+/// <c>0x00460E4D</c>: a float store to stack local +0x40 (without popping). That is not dest. The later 148.0
 /// triple at <c>0x00460E24</c> is already owned. The 10.0
 /// fsub at <c>0x00460C94</c> is already owned. The 148.0 fsub
 /// at <c>0x00460B66</c> is already owned. Sliding-borders
 /// already owns <c>0x00460B61</c>. Latch SET already owns
 /// <c>0x0042D5CF</c>. FMV skip already owns the OR at
-/// <c>0x0053F2EB</c>. The earlier <c>fld [esp+0x94]</c> at
+/// <c>0x0053F2EB</c>. The earlier (a float load of stack local +0x94) at
 /// <c>0x00460B76</c> is earlier and has no 0.75 fsub. The
 /// later 1.0 fcom at <c>0x00460E62</c> is later. The later
 /// 255.0 fmul at <c>0x00460E77</c> is later. The later

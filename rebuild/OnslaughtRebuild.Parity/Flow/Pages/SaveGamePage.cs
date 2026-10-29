@@ -45,7 +45,7 @@ public sealed class SaveGamePage(FrontEnd frontEnd) : FrontEndPageBase
     /// <summary>
     /// <c>gSaveFromOptions</c> (006799d0): set by the options page's save; the success text changes. CreateSave clears it
     /// on every path that reaches its end (FEPSaveGame.cpp:574; in the pristine executable 74154bfa…, four
-    /// <c>mov [006799d0], bl</c> at 0x465290, 0x465350, 0x4653c5 and 0x465482 against one read at 0x465088), not on
+    /// (a store of bl to 006799d0) at 0x465290, 0x465350, 0x4653c5 and 0x465482 against one read at 0x465088), not on
     /// its early returns.
     /// </summary>
     public bool SaveFromOptions { get; set; }

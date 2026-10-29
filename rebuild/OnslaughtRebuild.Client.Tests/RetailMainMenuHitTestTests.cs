@@ -7,14 +7,15 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render pointer hit-test gate at
 /// <c>0x004630AC</c> / <c>0x004631EF</c>, recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
 /// <para><b>Compare.</b> Both sites
-/// <c>fld [esp+0xA4]; fcomp [0x005D8BB0]; fnstsw ax; test ah, 0x41 / jne skip</c>.
+/// (a float load of stack local +0xA4, then float compare against the value at 0x005D8BB0, popping the
+/// result, then FPU status-word read, then bit test of ah against 0x41, branching when not equal).
 /// <c>pe_read_va</c> of <c>0x005D8BB0</c> is <c>0x3F666666</c> (0.9).
-/// <c>test ah, 0x41</c> is C3|C0, so equality skips. Hit-test runs only
+/// A bit test of ah against 0x41 is C3|C0, so equality skips. Hit-test runs only
 /// when transition &gt; 0.9. That is the last tenth of the 50-frame
 /// <c>SetPage(FEP_MAIN, 50)</c> reveal, not the first.</para>
 ///
@@ -25,7 +26,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// writes <c>-1</c>. That is not <c>CFrontEnd::SetLanguage</c>.</para>
 ///
 /// <para><b>Not the twin fade.</b> The third <c>0x005D8BB0</c> site at
-/// <c>0x00463E8D</c> is <c>test ah, 1 / je 0x00463FC7</c> — transition
+/// <c>0x00463E8D</c> is a bit test of ah against 1, branching to 0x00463FC7 when equal — transition
 /// &lt; 0.9 — and then a scale of <c>0x0089D8A4</c>. That is a
 /// different predicate. This helper does not invent that fade.</para>
 ///
@@ -39,7 +40,8 @@ public sealed class RetailMainMenuHitTestTests
     [Fact]
     public void HitTestRunsOnlyWhenTransitionIsStrictlyAboveZeroPointNine()
     {
-        // 0x004630AC / 0x004631EF: fcomp [0x005D8BB0]; test ah, 0x41 / jne.
+        // 0x004630AC / 0x004631EF: a float compare against the value at
+        // 0x005D8BB0, popping the result; a bit test of ah against 0x41 / jne.
         Assert.Equal(0x005D8BB0u, RetailMainMenuHitTest.ThresholdGlobal);
         Assert.Equal(0x3F666666u, RetailMainMenuHitTest.ThresholdBits);
         Assert.Equal(0.9f, RetailMainMenuHitTest.Threshold);
@@ -76,7 +78,7 @@ public sealed class RetailMainMenuHitTestTests
     [Fact]
     public void LanguageHoverRectIsOneHundredNineteenToThreeNineteenAroundYTwoSixtyEight()
     {
-        // 0x00462E96 mov [esp+0x10], 0x43860000 (268). Half-extent is
+        // 0x00462E96: a store of constant 0x43860000 to stack local +0x10 (268). Half-extent is
         // 0x005D857C = 20. cdecl into 0x004693D0 is (119, Y-20, 319, Y+20).
         // 0x00523B50 is left <= x < right and top <= y < bottom.
         Assert.Equal(119f, RetailMainMenuHitTest.LanguageHoverLeft);
@@ -99,7 +101,7 @@ public sealed class RetailMainMenuHitTestTests
     [Fact]
     public void LanguageHoverWritesMinusOneAndIsNotAConfirm()
     {
-        // 0x00463274 mov [edi+8], -1. ButtonPressed stays FrontEnd.cpp:551.
+        // 0x00463274: a store of constant -1 to field +8 of edi. ButtonPressed stays FrontEnd.cpp:551.
         Assert.Equal(-1, RetailMainMenuHitTest.LanguageSelectedIndex);
         Assert.False(RetailMainMenuHitTest.IsButtonPressed);
         Assert.False(RetailMainMenuHitTest.IsSetLanguage);
@@ -122,8 +124,9 @@ public sealed class RetailMainMenuHitTestTests
     [Fact]
     public void TwinFadeCompareIsTheOppositePredicateAndIsNotThisHelper()
     {
-        // 0x00463E8D fcomp [0x005D8BB0]; test ah, 1 / je 0x00463FC7.
-        // C0 only: fall through when transition < 0.9. Not test ah, 0x41.
+        // 0x00463E8D: a float compare against the value at 0x005D8BB0, popping the result; a
+        // bit test of ah against 1, then conditional branch to 0x00463FC7 (taken when equal).
+        // C0 only: fall through when transition < 0.9. Not a bit test of ah against 0x41.
         Assert.False(RetailMainMenuHitTest.AcceptsTwinFade(0.9f));
         Assert.False(RetailMainMenuHitTest.AcceptsTwinFade(1f));
         Assert.True(RetailMainMenuHitTest.AcceptsTwinFade(0f));

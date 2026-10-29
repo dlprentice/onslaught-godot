@@ -34,12 +34,13 @@ public readonly record struct RetailSecondaryObjectiveVerdict(
 /// </para>
 /// <para>
 /// <b>Source and retail agree on every branch.</b> The loop is
-/// <c>mov esi, 0xA</c> / <c>add edx, 8</c> / <c>dec esi</c> / <c>jne</c> over
+/// a load of constant 0xA into esi, then addition of 8 to edx, then decrement of esi / <c>jne</c> over
 /// <c>this + 0x4D0</c>, and the body is
-/// <c>cmp ecx, 1 / je / cmp ecx, 2 / jne next</c> then
-/// <c>cmp ecx, 2 / mov edi, 1 / jne next / xor eax, eax</c>. That is
+/// a compare of ecx with 1, branching when equal, then compare of ecx with 2, branching when not equal then
+/// a compare of ecx with 2, then load of constant 1 into edi, then conditional
+/// branch to next (taken when not equal), then zeroing of eax. That is
 /// <c>EndLevelData.cpp:27-38</c> read literally, with one nicety: the
-/// <c>mov edi, 1</c> sits <i>between</i> the second <c>cmp</c> and its
+/// load of constant 1 into edi sits <i>between</i> the second <c>cmp</c> and its
 /// <c>jne</c>, because <c>mov</c> does not disturb the flags. There are no
 /// floating-point comparisons anywhere in this body, so there is no unordered
 /// behaviour to record.
@@ -48,16 +49,16 @@ public readonly record struct RetailSecondaryObjectiveVerdict(
 /// <b>The two status values are read off the image, not off a header.</b>
 /// <c>MissionObjective.h</c> is not one of the files in the partial GPL release,
 /// so <c>MOS_COMPLETE</c> and <c>MOS_FAILED</c> arrive only as
-/// <c>cmp ecx, 1</c> and <c>cmp ecx, 2</c> at <c>0x004496F6</c> and
+/// a compare of ecx with 1 and a compare of ecx with 2 at <c>0x004496F6</c> and
 /// <c>0x004496FB</c>. Any other status — including <c>0</c> — is neither
 /// "set" nor a failure, so it is invisible to both halves of the predicate.
 /// </para>
 /// <para>
 /// <b>"No objectives" is reported as failure, and it is indistinguishable from
-/// a real failure.</b> <c>0x00449712</c> is <c>test edi, edi / jne</c> around a
+/// a real failure.</b> <c>0x00449712</c> is a zero test of edi, branching when not equal around a
 /// <c>LOG.AddMessage</c> of the string at <c>0x00628AD8</c> —
 /// <c>"ERROR: No secondary objectives in call to
-/// 'IsAllSecondaryObjectivesComplete'"</c> — and then <c>xor eax, eax</c>. The
+/// 'IsAllSecondaryObjectivesComplete'"</c> — and then a zeroing of eax. The
 /// author expected this to be unreachable and shipped a diagnostic rather than a
 /// guard. <see cref="RetailSecondaryObjectiveVerdict.AnyObjectiveSet"/> exposes
 /// the distinction that retail only writes to a log.
@@ -86,22 +87,22 @@ public readonly record struct RetailSecondaryObjectiveVerdict(
 /// </remarks>
 public static class RetailEndLevelObjectives
 {
-    /// <summary><c>MOS_COMPLETE</c> — <c>cmp ecx, 1</c> at <c>0x004496F6</c>.</summary>
+    /// <summary><c>MOS_COMPLETE</c> — a compare of ecx with 1 at <c>0x004496F6</c>.</summary>
     public const int StatusComplete = 1;
 
-    /// <summary><c>MOS_FAILED</c> — <c>cmp ecx, 2</c> at <c>0x004496FB</c>.</summary>
+    /// <summary><c>MOS_FAILED</c> — a compare of ecx with 2 at <c>0x004496FB</c>.</summary>
     public const int StatusFailed = 2;
 
-    /// <summary><c>MAX_SECONDARY_OBJECTIVES</c> — <c>mov esi, 0xA</c> at <c>0x004496EF</c>.</summary>
+    /// <summary><c>MAX_SECONDARY_OBJECTIVES</c> — a load of constant 0xA into esi at <c>0x004496EF</c>.</summary>
     public const int SecondaryObjectiveCount = 10;
 
     /// <summary><c>MAX_PRIMARY_OBJECTIVES</c> — <c>(0x4D0 - 0x480) / 8</c>.</summary>
     public const int PrimaryObjectiveCount = 10;
 
-    /// <summary><c>sizeof(CMissionObjective)</c> — the <c>add edx, 8</c> stride.</summary>
+    /// <summary><c>sizeof(CMissionObjective)</c> — the addition of 8 to edx stride.</summary>
     public const int MissionObjectiveStride = 8;
 
-    /// <summary><c>mSecondaryObjectives</c> — <c>lea edx, [ecx + 0x4D0]</c> at <c>0x004496E9</c>.</summary>
+    /// <summary><c>mSecondaryObjectives</c> — an address computation (ecx+0x4D0) into edx at <c>0x004496E9</c>.</summary>
     public const int SecondaryObjectivesOffset = 0x4D0;
 
     /// <summary><c>mThingsKilled</c> — <c>0x00672E30 - 0x006728F8</c>.</summary>
@@ -154,7 +155,7 @@ public static class RetailEndLevelObjectives
             }
         }
 
-        // test edi, edi / jne: no objective in either state logs and returns 0.
+        // A zero test of edi / jne: no objective in either state logs and returns 0.
         return anySet
             ? new RetailSecondaryObjectiveVerdict(result, true)
             : new RetailSecondaryObjectiveVerdict(false, false);

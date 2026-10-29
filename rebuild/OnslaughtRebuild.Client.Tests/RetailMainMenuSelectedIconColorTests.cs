@@ -7,12 +7,13 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render selected-row icon body colour at
 /// <c>0x004640DC</c>, recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 /// Independently re-read official 74154bfa this cycle (image base 0x400000).
 ///
-/// <para><c>mov edx, esi; shl 8; sub edx, esi; shl 16; or 0x00FFFFFF</c>.
+/// <para>A copy of esi into edx, then left shift by 8, then subtraction
+/// of esi from edx, then left shift by 16, then or with 0x00FFFFFF.
 /// ESI is the 0x0046405C <c>fistp</c> icon-fade byte after the
 /// 0x00464064 signed 0..255 clamp. Settled 255 submits
 /// <c>0xFEFFFFFF</c>, which is not capture BracketTint

@@ -4,7 +4,7 @@ namespace OnslaughtRebuild.Core;
 
 /// <summary>
 /// <c>IScript::Pause</c> / <c>PlayCharMessageWait</c> —
-/// <c>mov dword ptr [0x0089c800], 1</c>. Isolated
+/// a store of constant 1 to the value at 0x0089c800. Isolated
 /// <see cref="Level100MissionTiming.PauseTicks"/> /
 /// <see cref="Level100MissionTiming.MessagePlaybackTicks"/> stay
 /// the rebuild sleep. CVM snapshot copy, the 0.05f resume,
@@ -14,15 +14,15 @@ namespace OnslaughtRebuild.Core;
 /// <remarks>
 /// <para>
 /// Retail identity: independently re-read this session from
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>
+/// a private pristine copy
 /// (2,506,752 bytes, SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>).
 /// File offset = VA − 0x400000.
 /// <c>IScript__Pause</c> at <c>0x00537c70</c> through
-/// <c>ret 0xc</c> at <c>0x00537d66</c> is 249 bytes, SHA-256
+/// a return that pops 12 bytes of arguments at <c>0x00537d66</c> is 249 bytes, SHA-256
 /// <c>2bdf08ea7dc1e678471d738fd05f850037eabc16d4eb271af609ae728d62829f</c>.
 /// <c>IScript__PlayCharMessageWait</c> at <c>0x005375f0</c>
-/// through <c>ret 0xc</c> at <c>0x005377d5</c> is 488 bytes,
+/// through a return that pops 12 bytes of arguments at <c>0x005377d5</c> is 488 bytes,
 /// SHA-256
 /// <c>7d65b4bc6f7b01e86b6cdaccd3a50204a48c4c1d9add09be151235f18eca55e3</c>.
 /// Function note <c>IScript.cpp.md</c> already names the
@@ -32,8 +32,7 @@ namespace OnslaughtRebuild.Core;
 /// <b>Both natives write literal 1 at <c>0x0089c800</c>.</b>
 /// <c>0x00537d55</c> (Pause) and <c>0x005376f9</c>
 /// (PlayCharMessageWait) are
-/// <c>c7 05 00 c8 89 00 01 00 00 00</c> =
-/// <c>mov dword ptr [0x0089c800], 1</c>. That address is
+/// a store of constant 1 to the value at 0x0089c800. That address is
 /// singleton <c>+0x220</c> (the stop flag). Isolated
 /// pause / message duration names the rebuild sleep;
 /// skip this store still leaves those sleeps. One live
@@ -75,7 +74,7 @@ public static class RetailIScriptWaitStop
     public const int SingletonOffset = 0x220;
 
     /// <summary>
-    /// The <c>mov [0x0089c800], 1</c> immediate at
+    /// The store of constant 1 to the value at 0x0089c800 at
     /// <c>0x00537d55</c> / <c>0x005376f9</c>.
     /// </summary>
     public const int FlagStopped = 1;

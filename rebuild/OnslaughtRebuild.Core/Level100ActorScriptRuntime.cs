@@ -303,7 +303,7 @@ public sealed class Level100ActorScriptRuntime
     /// <summary>
     /// Isolated <see cref="Level100MissionTiming.PauseTicks"/> names
     /// the rebuild sleep. This is the
-    /// <c>mov [0x0089c800], 1</c> store on actor-script Pause.
+    /// store of constant 1 to the value at 0x0089c800 on actor-script Pause.
     /// CVM snapshot / 0.05f / FollowWaypointWait stay unclaimed.
     /// </summary>
     public int WaitStopFlag => _waitStopFlag;

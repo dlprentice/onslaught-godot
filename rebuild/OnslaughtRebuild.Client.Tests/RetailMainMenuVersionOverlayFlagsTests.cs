@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render version overlay post-draw flag leftover
 /// after dest/Z/font, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -19,13 +19,13 @@ namespace OnslaughtRebuild.Client.Tests;
 /// RetailMainMenuVersionOverlayFont already owns push 1 /
 /// FONT_SMALL / Font13PS. Official bytes independently re-read
 /// this cycle: after <c>CDXFont__DrawTextDynamic</c> at
-/// <c>0x004641ED</c>, <c>fld [esp+0x38]</c> at
-/// <c>0x004641F2</c>, <c>fcom [0x005D856C]</c> at
+/// <c>0x004641ED</c>, a float load of stack local +0x38 at
+/// <c>0x004641F2</c>, a float compare against the value at 0x005D856C at
 /// <c>0x004641F6</c> (image 0.0f), then
-/// <c>mov byte [0x00679B40], 1</c> at <c>0x004641FC</c>,
-/// <c>mov byte [0x009C68AC], 0</c> at <c>0x00464203</c>,
-/// <c>mov byte [0x009C690D], 1</c> at <c>0x0046420A</c>, then
-/// <c>fnstsw ax</c> at <c>0x00464211</c>. The three stores are
+/// a store of constant 1 to the byte value at 0x00679B40 at <c>0x004641FC</c>,
+/// a store of constant 0 to the byte value at 0x009C68AC at <c>0x00464203</c>,
+/// a store of constant 1 to the byte value at 0x009C690D at <c>0x0046420A</c>, then
+/// an FPU status-word read at <c>0x00464211</c>. The three stores are
 /// unconditional. The <c>fcom</c> is consumed by the
 /// already-owned title-logo shadow clamp, not a version fade.
 /// The 0x00464180 store of 0 to 0x00679B40 is a sibling, not

@@ -183,7 +183,7 @@ public sealed class RetailCareerGradesTests
             () => RetailWorldGrade.GradeByteForWorld(System.Array.Empty<RetailWorldGradeNode>(), 110));
     }
 
-    // cmp dword ptr [eax + 4], 1: a BOOL of 2 is not complete. A rebuild that
+    // A compare of field +4 of eax with 1: a BOOL of 2 is not complete. A rebuild that
     // tested for non-zero would grade this level on its ranking.
     [Theory]
     [InlineData(0)]
@@ -194,7 +194,7 @@ public sealed class RetailCareerGradesTests
             RetailWorldGrade.IncompleteGradeByte,
             RetailWorldGrade.GradeByteForWorld(OneNode(110, complete, 1.0f), 110));
 
-    // The -9999 sentinel was folded to a bare mov al, 0x45 on both failure arms.
+    // The -9999 sentinel was folded to a bare load of constant 0x45 into al on both failure arms.
     [Fact]
     public void IncompleteGradeByte_IsTheFoldedFailedGrade()
     {
@@ -214,7 +214,7 @@ public sealed class RetailCareerGradesTests
     public void GradeByteForWorld_RunsTheRankingLadderOnACompleteWorld(float ranking, byte expected) =>
         Assert.Equal(expected, RetailWorldGrade.GradeByteForWorld(OneNode(110, 1, ranking), 110));
 
-    // The inlined GetGradeFromRanking carries the same test ah, 0x40 that hands
+    // The inlined GetGradeFromRanking carries the same bit test of ah against 0x40 that hands
     // an unordered ranking the top grade.
     [Fact]
     public void GradeByteForWorld_GivesAnUnorderedRankingThePerfectGrade() =>

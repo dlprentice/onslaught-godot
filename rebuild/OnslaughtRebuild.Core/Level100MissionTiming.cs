@@ -137,7 +137,7 @@ public static class Level100MissionTiming
     /// button <c>0x15</c> to <c>ActivateLandingJets</c> only inside that same
     /// <c>== 2</c> branch, which is <c>BATTLE_ENGINE_STATE_WALKER</c> in
     /// <c>references/Onslaught/Player.cpp</c>. The threshold at
-    /// <c>0x005D85EC</c> reads <c>00 00 00 3F</c> in the pristine binary
+    /// <c>0x005D85EC</c> reads 0x3F000000 in the pristine binary
     /// (sha256 74154bfa…7750), i.e. <b>0.5 s</b> — note that the GPL source's
     /// only other use of this predicate,
     /// <c>CBattleEngineWalkerPart::Move</c>'s
@@ -162,7 +162,7 @@ public static class Level100MissionTiming
             : Level100MissionJetModeState.InJetMode;
 
     /// <summary>
-    /// 0.5 s, the shipped <c>_DAT_005d85ec</c> threshold. Written in seconds so
+    /// 0.5 s, the shipped <c>0x005d85ec</c> threshold. Written in seconds so
     /// a Core tick-rate change leaves it meaning the same thing.
     /// </summary>
     public const int GroundContactRecencyTicks = SimulationConstants.TicksPerSecond / 2;

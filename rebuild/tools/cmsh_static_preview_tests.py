@@ -1984,7 +1984,7 @@ class CmshReEmitterTests(unittest.TestCase):
 def _shipped_mesh_directory() -> Path:
     """Where the released meshes are materialised on this machine.
 
-    `local-lab/` is gitignored and exists only in the checkout it was populated
+    The lab folder is gitignored and exists only in the checkout it was populated
     in, so a linked worktree has to be told where it is. The census skips
     entirely when neither location is present, which is the case in a clone.
     """

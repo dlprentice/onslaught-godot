@@ -198,7 +198,7 @@ public static class SimulationConstants
     // calling ShutDown first, so the later level table wins) is inferred from the
     // reference source, not measured, and correcting these constants moves the
     // pinned smoke stateHash. That needs one runtime confirmation first - see
-    // local-lab/LEVEL100-TUTORIAL-ASSESSMENT-2026-07-25.md.
+    // the private lab note LEVEL100-TUTORIAL-ASSESSMENT-2026-07-25.md.
     //
     // -- end of the retained 2026-07-25 note. The energy cost WAS corrected on
     // 2026-07-26 and, measured, it does not move the smoke stateHash at all:
@@ -379,9 +379,8 @@ public static class SimulationConstants
     //                                JET                 -> mJetPart->Gravity()
     //   BattleEngineJetPart.cpp:507  0.005f iff mEnergy == 0, else 0.0f
     //
-    // Confirmed in the pristine specimen local-lab/safe-copy-bea-pristine/
-    // BEA.exe.original.backup, sha256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab
-    // 334ed7a753040eda1e1e7750: CThing__GravityDefault @0x004014b0 loads
+    // Confirmed in the pristine specimen BEA.exe.original.backup (a private pristine copy), sha256
+    // 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750: CThing__GravityDefault @0x004014b0 loads
     // .rdata 0x005d8574 = 0.01f; CBattleEngine__Gravity @0x004074d0 loads
     // 0x005d8bac = 0.002f for MORPHING_INTO_WALKER (the compiler folded
     // 0.01*0.2 into its own literal, an independent confirmation);
@@ -469,8 +468,8 @@ public static class SimulationConstants
     // `vx * mGroundTurnRate / 75.0f` (BattleEngineWalkerPart.cpp:349) with
     // mGroundTurnRate = 1.7. MEASURED 2026-07-31, that byte is 1.0, not 1.7:
     // record 3 "Aquila Prototype" @0x2F6 of data/battle engine
-    // configurations.dat (sha256 58722b12a04cae97ad2163acb2cc2c1699f95a068831
-    // 8bd8a86696714d94454a, 1,514 bytes, decoded whole, zero slack, alignment
+    // configurations.dat (sha256
+    // 58722b12a04cae97ad2163acb2cc2c1699f95a0688318bd8a86696714d94454a, 1,514 bytes, decoded whole, zero slack, alignment
     // proven against the seven already-cited fields of the same record) reads
     // 1.0 / 0x3F800000. The shipped input is therefore 1.0/75 = 13_333
     // micro-rad per retail tick. Core now consumes that released record rather
@@ -599,7 +598,7 @@ public static class SimulationConstants
     // of standing still to recharge.
     //
     // The pristine 74154bfa… body 0x00413760..0x00413A63 performs the elapsed
-    // comparison at 0x004137D3 against 0x005D8CB4 = 9A 99 99 3E = 0.3f.
+    // comparison at 0x004137D3 against 0x005D8CB4 = 0.3f.
     // This is distinct from the 0.5f InJetMode threshold at 0x005D85EC.
     public const int WalkerRechargeGroundContactTicks =
         SimulationConstants.TicksPerSecond * 3 / 10;
@@ -786,11 +785,11 @@ public static class SimulationConstants
     // behaviour.
     //
     // CGame::InitRestartLoop @0x0046c430 allocates the 8-byte seed pair and
-    // seeds it with `push 0x1e240` at 0x0046c7e4 (RandomSeedPair__Set
-    // @0x004de8c0), then stores the pointer at `mov [ebp+0x304], eax`
+    // seeds it with a push of constant 0x1e240 at 0x0046c7e4 (RandomSeedPair__Set
+    // @0x004de8c0), then stores the pointer with a store of eax to frame local +0x304
     // (0x0046c80d). The global read site everywhere else is
-    // `MOV ECX,[0x008a9d9c]`, and 0x008a9d9c - 0x304 = 0x008a9a98, which is
-    // the global CGame (149 `MOV ECX, 0x8a9a98` thiscall sites in .text).
+    // a load of the value at 0x008a9d9c into ecx, and 0x008a9d9c - 0x304 = 0x008a9a98, which is
+    // the global CGame (149 (a load of constant 0x8a9a98 into ecx) thiscall sites in.text).
     // So the whole gameplay stream restarts from a fixed constant at every
     // level start: it is deterministic by construction, not by our choice.
     public const int Level100ReleasedRandomInitialSeed = 123_456;

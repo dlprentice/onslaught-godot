@@ -19,7 +19,7 @@ public sealed class RetailGameEndCountdownTests
     [Fact]
     public void LostCountdown_IsTheImmediateTwoNotTheSourceFive()
     {
-        // 0x0046F4A8  c7 43 48 00 00 00 40  = mov [ebx+0x48], 0x40000000
+        // 0x0046F4A8 a store of constant 0x40000000 to field +0x48 of ebx
         Assert.Equal(0x40000000u, RetailGameEndCountdown.LostCountdownBits);
         Assert.Equal(
             RetailGameEndCountdown.LostCountdownSeconds,
@@ -40,8 +40,8 @@ public sealed class RetailGameEndCountdownTests
     [Fact]
     public void WonCountdown_IsFiveForEveryWorldThatIsNotTheTwoSpecialCases()
     {
-        // 0x0046F338  c7 43 48 00 00 a0 40  = mov [ebx+0x48], 0x40A00000
-        // after failing cmp eax, 0x2E5 / 0x2E6 (worlds 741 and 742).
+        // 0x0046F338 a store of constant 0x40A00000 to field +0x48 of ebx
+        // after failing (a compare of eax with 0x2E5) / 0x2E6 (worlds 741 and 742).
         // Level 100 is world 100, so it takes this arm.
         Assert.Equal(0x40A00000u, RetailGameEndCountdown.WonCountdownBits);
         Assert.Equal(

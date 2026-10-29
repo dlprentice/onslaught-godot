@@ -4,16 +4,16 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the later 148.0
-/// triple — <c>fld [esp+0x94]</c> / <c>fsub [0x005D8BC4]</c>
-/// (0.75) / <c>fmul [0x005D85BC]</c> (4.0) /
-/// <c>fcom [0x005D856C]</c> (0.0) — recovered from official
+/// triple — a float load of stack local +0x94, then float subtract of the value at 0x005D8BC4
+/// (0.75) / a float multiply by the value at 0x005D85BC (4.0) /
+/// a float compare against the value at 0x005D856C (0.0) — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -37,15 +37,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// constant.</para>
 ///
 /// <para><b>Shift.</b> Official 74154bfa independently re-read:
-/// <c>0x00460E34</c> is <c>fld [esp+0x94]</c>
-/// (<c>d9 84 24 94 00 00 00</c>). <c>0x00460E3B</c> is
-/// <c>fsub [0x005D8BC4]</c> (<c>d8 25 c4 8b 5d 00</c>).
-/// <c>0x005D8BC4</c> is <c>00 00 40 3f</c> (0.75).
-/// <c>0x00460E41</c> is <c>fmul [0x005D85BC]</c>
-/// (<c>d8 0d bc 85 5d 00</c>). <c>0x005D85BC</c> is
-/// <c>00 00 80 40</c> (4.0). <c>0x00460E47</c> is
-/// <c>fcom [0x005D856C]</c> (<c>d8 15 6c 85 5d 00</c>).
-/// <c>0x005D856C</c> is <c>00 00 00 00</c> (0.0). Dest does
+/// <c>0x00460E34</c> is a float load of stack local +0x94. <c>0x00460E3B</c> is
+/// a float subtract of the value at 0x005D8BC4.
+/// <c>0x005D8BC4</c> is 0.75.
+/// <c>0x00460E41</c> is a float multiply by the value at 0x005D85BC. <c>0x005D85BC</c> is
+/// 4.0. <c>0x00460E47</c> is
+/// a float compare against the value at 0x005D856C.
+/// <c>0x005D856C</c> is 0.0. Dest does
 /// not. Colour leftover already consults currentIndex. Hover
 /// leftover already owns <c>0x004A3FA6</c>. Click leftover already
 /// owns <c>0x004A4010</c>. Cancel leftover already owns
@@ -55,9 +53,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// constant.</para>
 ///
 /// <para><b>First consumer.</b> <c>0x00460E4D</c> is
-/// <c>fst [esp+0x40]</c> (<c>d9 54 24 40</c>). That is a store
+/// a float store to stack local +0x40 (without popping). That is a store
 /// of the shifted local, not dest. The earlier
-/// <c>fld [esp+0x94]</c> at <c>0x00460B76</c> has no 0.75 fsub;
+/// (a float load of stack local +0x94) at <c>0x00460B76</c> has no 0.75 fsub;
 /// that is not this leftover. The later 1.0 fcom at
 /// <c>0x00460E62</c> is later. The later 255.0 fmul at
 /// <c>0x00460E77</c> is later. The later 610.0 / 0.0 pair at
@@ -94,13 +92,13 @@ public static class RetailLevelSelectLaterEsp94
     /// <summary>Already <see cref="RetailLevelSelectLater148.FldSite"/>.</summary>
     public const uint Later148Site = 0x00460E24u;
 
-    /// <summary><c>fld [esp+0x94]</c> at <c>0x00460E34</c>. Later leftover after the later 148.0 triple.</summary>
+    /// <summary>A float load of stack local +0x94 at <c>0x00460E34</c>. Later leftover after the later 148.0 triple.</summary>
     public const uint FldSite = 0x00460E34u;
 
     /// <summary>Stack local that feeds the shift. Not dest and not the later-148 pad.</summary>
     public const int StackLocal = 0x94;
 
-    /// <summary><c>fsub [0x005D8BC4]</c> at <c>0x00460E3B</c>.</summary>
+    /// <summary>A float subtract of the value at 0x005D8BC4 at <c>0x00460E3B</c>.</summary>
     public const uint FsubSite = 0x00460E3Bu;
 
     /// <summary>0.75 source. Not dest.</summary>
@@ -109,7 +107,7 @@ public static class RetailLevelSelectLaterEsp94
     /// <summary>IEEE bits at <see cref="SubtrahendConst"/>. 0.75. Not dest.</summary>
     public const uint SubtrahendBits = 0x3F400000u;
 
-    /// <summary><c>fmul [0x005D85BC]</c> at <c>0x00460E41</c>.</summary>
+    /// <summary>A float multiply by the value at 0x005D85BC at <c>0x00460E41</c>.</summary>
     public const uint FmulSite = 0x00460E41u;
 
     /// <summary>4.0 source. Not dest.</summary>
@@ -118,7 +116,7 @@ public static class RetailLevelSelectLaterEsp94
     /// <summary>IEEE bits at <see cref="FactorConst"/>. 4.0. Not dest.</summary>
     public const uint FactorBits = 0x40800000u;
 
-    /// <summary><c>fcom [0x005D856C]</c> at <c>0x00460E47</c>. First consumer compare.</summary>
+    /// <summary>A float compare against the value at 0x005D856C at <c>0x00460E47</c>. First consumer compare.</summary>
     public const uint FcomSite = 0x00460E47u;
 
     /// <summary>0.0 source. Compare, not dest. Same dword as <see cref="RetailLevelSelectFsub148.WindowLowConst"/>.</summary>
@@ -127,19 +125,20 @@ public static class RetailLevelSelectLaterEsp94
     /// <summary>IEEE bits at <see cref="ZeroConst"/>. 0.0.</summary>
     public const uint ZeroBits = 0x00000000u;
 
-    /// <summary><c>fst [esp+0x40]</c> at <c>0x00460E4D</c>. First store consumer. Not dest.</summary>
+    /// <summary>A float store to stack local +0x40 (without popping)
+    /// at <c>0x00460E4D</c>. First store consumer. Not dest.</summary>
     public const uint FstSite = 0x00460E4Du;
 
     /// <summary>Stack local that receives the shifted value. Not dest.</summary>
     public const int StoreLocal = 0x40;
 
-    /// <summary>Earlier <c>fld [esp+0x94]</c> at <c>0x00460B76</c>. No 0.75 fsub. Not this leftover.</summary>
+    /// <summary>Earlier (a float load of stack local +0x94) at <c>0x00460B76</c>. No 0.75 fsub. Not this leftover.</summary>
     public const uint EarlierEsp94Site = 0x00460B76u;
 
-    /// <summary>Later <c>fcom [0x005D8568]</c> (1.0) at <c>0x00460E62</c>. Not this leftover.</summary>
+    /// <summary>Later float compare against the value at 0x005D8568 (1.0) at <c>0x00460E62</c>. Not this leftover.</summary>
     public const uint LaterOneSite = 0x00460E62u;
 
-    /// <summary>Later <c>fmul [0x005D8C70]</c> (255.0) at <c>0x00460E77</c>. Not dest.</summary>
+    /// <summary>Later float multiply by the value at 0x005D8C70 (255.0) at <c>0x00460E77</c>. Not dest.</summary>
     public const uint Later255Site = 0x00460E77u;
 
     /// <summary>255.0 source used later. Not this leftover and not dest.</summary>
@@ -148,7 +147,8 @@ public static class RetailLevelSelectLaterEsp94
     /// <summary>IEEE bits at <see cref="Later255Const"/>. 255.0. Not dest.</summary>
     public const uint Later255Bits = 0x437F0000u;
 
-    /// <summary>Later <c>fld [esp+0x14]</c> / <c>fcomp 610.0</c> at <c>0x00460F30</c>.</summary>
+    /// <summary>Later sequence (float load of stack local +0x14, then float
+    /// compare against 610.0, popping the result) at <c>0x00460F30</c>.</summary>
     public const uint Later610Site = 0x00460F30u;
 
     /// <summary>Latch SET at <c>0x0042D5CF</c> is already owned.</summary>
@@ -347,8 +347,8 @@ public static class RetailLevelSelectLaterEsp94
     public static float Shifted(float local) => (local - Subtrahend) * Factor;
 
     /// <summary>
-    /// First consumer of the shifted local: <c>fcom 0.0</c> /
-    /// <c>test ah, 1</c> is below zero. That is not dest.
+    /// First consumer of the shifted local: a float compare against 0.0,
+    /// then bit test of ah against 1 is below zero. That is not dest.
     /// </summary>
     public static bool BelowZero(float shifted) => shifted < CompareZero;
 }

@@ -4,15 +4,15 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> first leftover — the unique
-/// <c>call 0x00467200</c> to
+/// (a direct call to 0x00467200) to
 /// <c>CFrontEnd__DrawSlidingTextBordersAndMask</c> — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Latch-to-button SET at <c>0x0042D5CF</c> is
@@ -26,18 +26,18 @@ namespace OnslaughtRebuild.GodotClient;
 /// 2.0 constant.</para>
 ///
 /// <para><b>Call.</b> Official 74154bfa independently re-read:
-/// <c>0x00460B40</c> is <c>sub esp, 0x80</c> (<c>81 ec 80 00 00 00</c>).
-/// <c>0x00460B46</c> is <c>mov eax, [esp+0x88]</c> (dest page).
-/// <c>0x00460B50</c> is <c>mov esi, ecx</c> (this).
-/// <c>0x00460B53</c> is <c>mov ecx, [esp+0x94]</c> (transition).
+/// <c>0x00460B40</c> is a stack-frame reservation of 0x80 bytes.
+/// <c>0x00460B46</c> is a load of stack local +0x88 into eax (dest page).
+/// <c>0x00460B50</c> is a copy of ecx into esi (this).
+/// <c>0x00460B53</c> is a load of stack local +0x94 into ecx (transition).
 /// <c>0x00460B5A</c> / <c>0x00460B5B</c> push dest then transition.
-/// <c>0x00460B5C</c> is <c>mov ecx, 0x0089D758</c>.
-/// <c>0x00460B61</c> is the unique <c>call 0x00467200</c>
-/// (<c>e8 9a 66 00 00</c>, one image hit). That is
+/// <c>0x00460B5C</c> is a load of constant 0x0089D758 into ecx.
+/// <c>0x00460B61</c> is the unique direct call to 0x00467200
+/// (one image hit). That is
 /// <c>CFrontEnd__DrawSlidingTextBordersAndMask</c>.
-/// <c>0x00460B66</c> <c>fld [0x005DB53C]</c> (148.0) /
-/// <c>0x00460B6C</c> <c>fsub [esi+0x3460]</c> /
-/// <c>0x00460B72</c> <c>fstp [esp+0x14]</c> is later. Dest does
+/// <c>0x00460B66</c>: a float load of the value at 0x005DB53C (148.0) /
+/// <c>0x00460B6C</c>: a float subtract of field +0x3460 of esi;
+/// <c>0x00460B72</c>: a float store to stack local +0x14 is later. Dest does
 /// not. Colour leftover already consults currentIndex. Hover
 /// leftover already owns <c>0x004A3FA6</c>. Click leftover already
 /// owns <c>0x004A4010</c>. Cancel leftover already owns
@@ -69,40 +69,40 @@ public static class RetailLevelSelectSlidingBorders
     /// <summary><c>CFEPLevelSelect::Render</c> at <c>0x00460B40</c>.</summary>
     public const uint RenderSite = 0x00460B40u;
 
-    /// <summary><c>sub esp, 0x80</c>. Frame leftover, not dest.</summary>
+    /// <summary>A stack-frame reservation of 0x80 bytes. Frame leftover, not dest.</summary>
     public const uint PrologueSite = 0x00460B40u;
 
     /// <summary>Prologue immediate. Not dest and not the 148.0 later fld.</summary>
     public const int PrologueImmediate = 0x80;
 
-    /// <summary><c>mov eax, [esp+0x88]</c> at <c>0x00460B46</c>. Dest page, not dest XY.</summary>
+    /// <summary>A load of stack local +0x88 into eax at <c>0x00460B46</c>. Dest page, not dest XY.</summary>
     public const uint DestPageLoadSite = 0x00460B46u;
 
-    /// <summary><c>mov esi, ecx</c> at <c>0x00460B50</c>. This leftover, not dest.</summary>
+    /// <summary>A copy of ecx into esi at <c>0x00460B50</c>. This leftover, not dest.</summary>
     public const uint ThisSaveSite = 0x00460B50u;
 
-    /// <summary><c>mov ecx, [esp+0x94]</c> at <c>0x00460B53</c>. Transition leftover.</summary>
+    /// <summary>A load of stack local +0x94 into ecx at <c>0x00460B53</c>. Transition leftover.</summary>
     public const uint TransitionLoadSite = 0x00460B53u;
 
-    /// <summary><c>push eax</c> at <c>0x00460B5A</c>. Dest page, not dest XY.</summary>
+    /// <summary>A push of eax at <c>0x00460B5A</c>. Dest page, not dest XY.</summary>
     public const uint DestPagePushSite = 0x00460B5Au;
 
-    /// <summary><c>push ecx</c> at <c>0x00460B5B</c>. Transition leftover.</summary>
+    /// <summary>A push of ecx at <c>0x00460B5B</c>. Transition leftover.</summary>
     public const uint TransitionPushSite = 0x00460B5Bu;
 
-    /// <summary><c>mov ecx, 0x0089D758</c> at <c>0x00460B5C</c>.</summary>
+    /// <summary>A load of constant 0x0089D758 into ecx at <c>0x00460B5C</c>.</summary>
     public const uint FrontendThisLoadSite = 0x00460B5Cu;
 
     /// <summary>FRONTEND this. Same object as the main-menu surf this.</summary>
     public const uint FrontendThis = 0x0089D758u;
 
-    /// <summary>Unique <c>call 0x00467200</c> at <c>0x00460B61</c>. First leftover.</summary>
+    /// <summary>Unique (a direct call to 0x00467200) at <c>0x00460B61</c>. First leftover.</summary>
     public const uint CallSite = 0x00460B61u;
 
     /// <summary><c>CFrontEnd__DrawSlidingTextBordersAndMask</c>.</summary>
     public const uint DrawSlidingTextBordersAndMask = 0x00467200u;
 
-    /// <summary><c>fld [0x005DB53C]</c> at <c>0x00460B66</c>. Later. Not dest.</summary>
+    /// <summary>A float load of the value at 0x005DB53C at <c>0x00460B66</c>. Later. Not dest.</summary>
     public const uint LaterFldSite = 0x00460B66u;
 
     /// <summary>148.0 constant. Later leftover, not dest.</summary>
@@ -111,10 +111,10 @@ public static class RetailLevelSelectSlidingBorders
     /// <summary>IEEE bits at <see cref="LaterConst"/>. 148.0. Not dest.</summary>
     public const uint LaterConstBits = 0x43140000u;
 
-    /// <summary><c>fsub [esi+0x3460]</c> at <c>0x00460B6C</c>. Later. Not dest.</summary>
+    /// <summary>A float subtract of field +0x3460 of esi at <c>0x00460B6C</c>. Later. Not dest.</summary>
     public const uint LaterFsubSite = 0x00460B6Cu;
 
-    /// <summary><c>fstp [esp+0x14]</c> at <c>0x00460B72</c>. Later. Not dest.</summary>
+    /// <summary>A float store to stack local +0x14 at <c>0x00460B72</c>. Later. Not dest.</summary>
     public const uint LaterFstpSite = 0x00460B72u;
 
     /// <summary>Latch SET at <c>0x0042D5CF</c> is already owned.</summary>

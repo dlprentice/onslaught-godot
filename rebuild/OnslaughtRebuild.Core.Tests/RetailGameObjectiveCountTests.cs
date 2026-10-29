@@ -33,8 +33,8 @@ public sealed class RetailGameObjectiveCountTests
     }
 
     /// <summary>
-    /// <c>0x00472670</c> is <c>cmp dword [ecx], 0</c> / <c>je</c> /
-    /// <c>inc eax</c> over ten stride-8 records. A failed primary
+    /// <c>0x00472670</c> is a compare of value pointed to by ecx with 0 / <c>je</c> /
+    /// an increment of eax over ten stride-8 records. A failed primary
     /// still counts; only the zero sentinel does not. Mutation:
     /// counting only <c>MOS_COMPLETE</c> drops a failed row.
     /// This table is not Level 100 content.

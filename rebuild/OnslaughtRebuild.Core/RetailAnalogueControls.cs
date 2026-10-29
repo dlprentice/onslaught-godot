@@ -25,7 +25,7 @@ namespace OnslaughtRebuild.Core;
 /// <b>Source and retail DIVERGE on the three 1/1000 axes, and retail wins.</b>
 /// <c>PCController.cpp:155</c>, <c>:166</c> and <c>:177</c> all write
 /// <c>lx = lx / 1000.0f</c>. The shipped code multiplies:
-/// <c>fild dword ptr [eax]</c> then <c>fmul dword ptr [0x005DC6E4]</c>, and
+/// an integer-to-float load of value pointed to by eax then a float multiply by the value at 0x005DC6E4, and
 /// <c>0x005DC6E4</c> holds <c>0x3A83126F</c>, which is <c>0.001f</c> exactly —
 /// the correctly-rounded float nearest 1/1000, not 1/1000. Multiplying by that
 /// reciprocal is not the same function as dividing by 1000: swept over raw
@@ -125,7 +125,7 @@ public static class RetailAnalogueControls
 
     /// <summary>
     /// The value retail's axis getters return when the requested pad is not
-    /// present — <c>fld dword ptr [0x005D856C]</c>, which is <c>0.0f</c>. All
+    /// present — a float load of the value at 0x005D856C, which is <c>0.0f</c>. All
     /// four getters take this arm; <c>0x005146D0</c> takes it on either of two
     /// tests.
     /// </summary>

@@ -4,7 +4,7 @@ namespace OnslaughtRebuild.Core;
 
 /// <summary>
 /// <c>IScript::SetObjective</c> / <c>UnsetObjective</c> — the
-/// <c>or/and byte ptr [esi+0x2c], imm</c> stores.
+/// or/and update of byte field +0x2c of esi with an immediate stores.
 /// Isolated <see cref="Level100ActorSnapshot.IsObjective"/> and
 /// <see cref="Level100MissionSnapshot.NavigationObjective"/> stay
 /// the rebuild bool / string. Noticeboard Add/Remove stay
@@ -13,12 +13,11 @@ namespace OnslaughtRebuild.Core;
 /// <remarks>
 /// <para>
 /// Retail identity: <c>IScript__SetObjective</c> at
-/// <c>0x00535ed0</c> through <c>ret 0xc</c> at <c>0x00535eda</c>
+/// <c>0x00535ed0</c> through a return that pops 12 bytes of arguments at <c>0x00535eda</c>
 /// (13 bytes) on the official <c>74154bfa…</c> specimen. File
 /// offset = VA − 0x400000. Re-derived this session from
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>
-/// (2,506,752 bytes). Body is
-/// <c>8b 49 10 6a 01 e8 96 da fb ff c2 0c 00</c>, SHA-256
+/// a private pristine copy
+/// (2,506,752 bytes). Body SHA-256
 /// <c>e1e368b83a8c664935143709b40f4ad2bf7c6217003492b5d64c2562a48f666b</c>.
 /// Twin <c>IScript__UnsetObjective</c> at <c>0x00535ee0</c>
 /// (13 B SHA-256
@@ -32,12 +31,10 @@ namespace OnslaughtRebuild.Core;
 /// <b>The callee ORs bit 0x20; Unset ANDs ~0x20.</b>
 /// Full body 61 B SHA-256
 /// <c>da733fdd7e7575a433875b1f7179c538834892d555e8d02db320a269353980b0</c>.
-/// <c>0x004f398e</c> is <c>80 4e 2c 20</c> =
-/// <c>or byte ptr [esi+0x2c], 0x20</c>.
-/// <c>0x004f39a5</c> is <c>80 66 2c df</c> =
-/// <c>and byte ptr [esi+0x2c], 0xdf</c>. FillOut already
+/// <c>0x004f398e</c> is an or of 0x20 into byte field +0x2c of esi.
+/// <c>0x004f39a5</c> is a mask of byte field +0x2c of esi with 0xdf. FillOut already
 /// names <c>+0x2c</c> as <c>mFlags</c> via
-/// <c>test byte [eax+0x2c], 4</c> (TF_DYING). Isolated
+/// a bit test of byte field +0x2c of eax against 4 (TF_DYING). Isolated
 /// <c>IsObjective</c> = true names the rebuild bool; skip
 /// this OR still leaves that bool / the navigation name.
 /// Mutation: replace so Mark(0x04) becomes 0x20, or Unmark
@@ -66,19 +63,19 @@ public static class RetailSetObjective
 
     /// <summary>
     /// <c>TF_DYING</c> — already pinned by FillOut
-    /// <c>test byte [eax+0x2c], 4</c>. Used only so Mark
+    /// (a bit test of byte field +0x2c of eax against 4). Used only so Mark
     /// cannot be a replace-with-0x20.
     /// </summary>
     public const int DyingBit = 0x04;
 
     /// <summary>
-    /// The <c>or [esi+0x2c], 0x20</c> store. Mutation:
+    /// The or of 0x20 into field +0x2c of esi. Mutation:
     /// return <see cref="MarkedBit"/> so Mark(4) becomes 0x20.
     /// </summary>
     public static int Mark(int currentFlags) => currentFlags | MarkedBit;
 
     /// <summary>
-    /// The <c>and [esi+0x2c], 0xdf</c> store. Mutation:
+    /// The mask of field +0x2c of esi with 0xdf. Mutation:
     /// return 0 so Unmark(0x24) becomes 0.
     /// </summary>
     public static int Unmark(int currentFlags) => currentFlags & ~MarkedBit;

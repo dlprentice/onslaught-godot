@@ -224,7 +224,7 @@ public sealed class Level100MessageScheduleTests
     /// <remarks>
     /// <para>
     /// Detector, applied to every frame of
-    /// <c>local-lab/retail-reference-pristine/level100-gameplay/</c>: count the
+    /// a private retail reference capture: count the
     /// white glyph pixels (min channel &gt;= 185) inside the measured text
     /// rectangle. Of the 68 HUD-visible frames exactly four have ZERO -
     /// <c>t011756</c> (also <c>t011755</c> in the second independent

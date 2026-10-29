@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the frontend mouse-cursor last-draw law measured by the 2026-07-27
-/// d3d9 sweep (<c>local-lab/D3D9-FULL-SWEEP-2026-07-27.md</c>, inventories
+/// d3d9 sweep (the private lab note D3D9-FULL-SWEEP-2026-07-27.md, inventories
 /// under <c><maintainer evidence>\bea-frontend-pages\SWEEP-2026-07-27\inventories\</c>).
 ///
 /// <para><b>Boot pages 2-4 are CFEPIntro, not FMV.</b> <c>boot-second-page.csv</c>

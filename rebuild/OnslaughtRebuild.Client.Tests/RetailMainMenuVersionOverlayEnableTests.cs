@@ -8,7 +8,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the CFEPMain::Render version overlay pre-draw enable-byte leftover
 /// after sprintf and before dest/Z/font/draw, recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -21,11 +21,11 @@ namespace OnslaughtRebuild.Client.Tests;
 /// FONT_SMALL / Font13PS. RetailMainMenuVersionOverlayFlags already
 /// owns the post-draw restore of <c>[0x00679B40]=1</c> at
 /// <c>0x004641FC</c>. Official bytes independently re-read this
-/// cycle: after sprintf <c>0x00464174</c> / <c>add esp, 0x10</c> at
-/// <c>0x00464179</c> / <c>lea edx, [esp+0x3C]</c> at
+/// cycle: after sprintf <c>0x00464174</c> / a stack cleanup of 0x10 bytes at
+/// <c>0x00464179</c> / an address computation (esp+0x3C) into edx at
 /// <c>0x0046417C</c>, <c>0x00464180</c> is
-/// <c>mov byte [0x00679B40], 0</c>. The two-instruction reader at
-/// <c>0x00465F00</c> is <c>mov al, [0x00679B40]; ret</c> with six
+/// a store of constant 0 to the byte value at 0x00679B40. The two-instruction reader at
+/// <c>0x00465F00</c> is a load of the value at 0x00679B40 into al, then return with six
 /// CALL sites. The <c>0x00464191</c> <c>Text__AsciiToWideScratch</c>
 /// call is a sibling, not this leftover. DrawMainMenu keeps
 /// title-font DrawText. Do not invent a fade, a sheen, dest

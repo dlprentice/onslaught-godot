@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render version overlay font-slot leftover after
 /// dest/Z, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -16,15 +16,15 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <c>0x0046416E</c> and the settled pack at <c>0x004641B1</c> /
 /// <c>0x004641B4</c>. RetailMainMenuVersionOverlayZ already owns
 /// GetWindowHeight-16 dest Y, dest X push 0, and Z 0.01. Official
-/// bytes independently re-read this cycle: <c>push 1</c> at
-/// <c>0x004641E4</c> then <c>call 0x00515A70</c> at
-/// <c>0x004641E6</c> then <c>mov ecx, eax</c> then
+/// bytes independently re-read this cycle: a push of constant 1 at
+/// <c>0x004641E4</c> then a direct call to 0x00515A70 at
+/// <c>0x004641E6</c> then a copy of eax into ecx then
 /// <c>CDXFont__DrawTextDynamic</c> at <c>0x004641ED</c>.
-/// <c>CPlatform__Font</c> is <c>cmp eax, 3 / ja zero / jmp [eax*4+0x00515AA0]</c>.
-/// Slot 1 jumps to <c>0x00515A8C</c> (<c>mov eax, [ecx+0x20]; ret 4</c>),
+/// <c>CPlatform__Font</c> is a compare of eax with 3, branching when above, then jump-table dispatch.
+/// Slot 1 jumps to <c>0x00515A8C</c> (a load of field +0x20 of ecx into eax, then return that pops 4 bytes of arguments),
 /// not this+0x1C. Slot 2 is this+0x1C. InitFonts stores
 /// <c>Font13PS.tga</c> (<c>0x0063E10C</c>) at <c>[esi+0x20]</c>
-/// (<c>0x0051572C</c>) after <c>push 16</c> and
+/// (<c>0x0051572C</c>) after a push of constant 16 and
 /// <c>CDXBitmapFont__InitTextureFontSlot</c>. GPL
 /// <c>Platform.h</c> <c>FONT_SMALL</c> is 1 and
 /// <c>PCPlatform.cpp</c> InitFonts / Font() agree. No

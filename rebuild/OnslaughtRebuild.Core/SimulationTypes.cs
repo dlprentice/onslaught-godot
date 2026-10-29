@@ -99,7 +99,7 @@ public enum Level100PlayerWeapon : byte
 /// single round.
 ///
 /// <para><b>The cadence is byte-proven, not chosen.</b> In the pristine
-/// specimen (local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256
+/// specimen (a private pristine copy, sha256
 /// 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750 - NOT the
 /// installed executable, which is patched) the launch body
 /// `ProjectileBurst__SpawnFromCurrentPreset` at 0x005069f0 issues exactly one

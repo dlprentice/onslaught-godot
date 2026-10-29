@@ -5,13 +5,13 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItem__Render</c> label dest leftover — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
-/// <para><b>Sibling.</b> <c>and esi, ebp</c> at <c>0x004A33FC</c>
+/// <para><b>Sibling.</b> a mask of esi with ebp at <c>0x004A33FC</c>
 /// is already <see cref="RetailOptionsMenuItemColor"/>. Apply's
 /// cosine is already <see cref="RetailOptionsApplyPulse"/>. Main
 /// menu dest at <c>0x0046309D</c> is already
@@ -20,19 +20,19 @@ namespace OnslaughtRebuild.Client;
 /// invent dest Y as 5, 268, 284, or 304.</para>
 ///
 /// <para><b>Dest X.</b> Official 74154bfa independently re-read:
-/// <c>0x004A337B</c> is <c>lea ecx, [esp+0x0C]</c>.
-/// <c>0x004A338F</c> is <c>call 0x00540680</c>.
-/// <c>0x004A3394</c> is <c>mov eax, [esp+0x0C]</c>.
+/// <c>0x004A337B</c> is an address computation (esp+0x0C) into ecx.
+/// <c>0x004A338F</c> is a direct call to 0x00540680.
+/// <c>0x004A3394</c> is a load of stack local +0x0C into eax.
 /// <c>0x004A3398</c> stores identity scale 1.0.
-/// <c>0x004A33A0</c> is <c>cdq / sub eax, edx / sar eax, 1</c>.
+/// <c>0x004A33A0</c> is a sign extension of eax into edx, then
+/// subtraction of edx from eax, then arithmetic right shift of eax by 1.
 /// <c>0x004A33A9</c> <c>fild</c>s that half.
-/// <c>0x004A33AD</c> is <c>fld [esp+0x18]</c> (incoming dest X).
-/// <c>0x004A33B1</c> is <c>fsub st(1)</c> into
-/// <c>0x004A33B3</c> <c>fstp [esp+0x24]</c>.</para>
+/// <c>0x004A33AD</c> is a float load of stack local +0x18 (incoming dest X).
+/// <c>0x004A33B1</c> is a float subtract using the FPU stack into
+/// <c>0x004A33B3</c>: a float store to stack local +0x24.</para>
 ///
-/// <para><b>Not dest Y.</b> Nearby <c>fcomp [0x005D85D8]</c>
-/// (5.0) at <c>0x004A33BB</c> and the <c>mov [esp+0x24],
-/// 0x40A00000</c> store at <c>0x004A33D2</c> are leftover min
+/// <para><b>Not dest Y.</b> Nearby float compare against the value at 0x005D85D8, popping the result
+/// (5.0) at <c>0x004A33BB</c> and the store of constant 0x40A00000 to stack local +0x24 at <c>0x004A33D2</c> are leftover min
 /// dest X, not dest Y. Dest Y is incoming <c>[esp+0x1C]</c> at
 /// <c>0x004A33EA</c>. DrawOptionTextCentered keeps dest Y as the
 /// row top and scale 1.0. The 2px MeasureText residual is width,
@@ -51,40 +51,41 @@ public static class RetailOptionsMenuItemDest
     /// <summary><c>CMenuItem__Render</c> body at <c>0x004A32C0</c>.</summary>
     public const uint RenderSite = 0x004A32C0u;
 
-    /// <summary><c>lea ecx, [esp+0x0C]</c>. SIZE dest.</summary>
+    /// <summary>An address computation (esp+0x0C) into ecx. SIZE dest.</summary>
     public const uint SizeLeaSite = 0x004A337Bu;
 
-    /// <summary><c>call 0x00540680</c>.</summary>
+    /// <summary>A direct call to 0x00540680.</summary>
     public const uint ExtentCallSite = 0x004A338Fu;
 
     /// <summary>SIZE store. Same helper as main-menu dest.</summary>
     public const uint GetTextExtent = 0x00540680u;
 
-    /// <summary><c>mov eax, [esp+0x0C]</c>. SIZE.cx.</summary>
+    /// <summary>A load of stack local +0x0C into eax. SIZE.cx.</summary>
     public const uint CxLoadSite = 0x004A3394u;
 
-    /// <summary><c>mov [esp+0x20], 0x3F800000</c>.</summary>
+    /// <summary>A store of constant 0x3F800000 to stack local +0x20.</summary>
     public const uint ScaleStoreSite = 0x004A3398u;
 
     /// <summary>IEEE bits of the identity scale store. 1.0.</summary>
     public const uint ScaleBits = 0x3F800000u;
 
-    /// <summary><c>sar eax, 1</c> after <c>cdq / sub eax, edx</c>.</summary>
+    /// <summary>An arithmetic right shift of eax by 1 after a sign extension
+    /// of eax into edx, then subtraction of edx from eax.</summary>
     public const uint HalfSarSite = 0x004A33A3u;
 
-    /// <summary><c>fild [esp+0x24]</c>.</summary>
+    /// <summary>An integer-to-float load of stack local +0x24.</summary>
     public const uint FildHalfSite = 0x004A33A9u;
 
-    /// <summary><c>fld [esp+0x18]</c>. Incoming dest X.</summary>
+    /// <summary>A float load of stack local +0x18. Incoming dest X.</summary>
     public const uint FldDestXSite = 0x004A33ADu;
 
-    /// <summary><c>fsub st(1)</c>.</summary>
+    /// <summary>A float subtract using the FPU stack.</summary>
     public const uint FsubSite = 0x004A33B1u;
 
-    /// <summary><c>fstp [esp+0x24]</c>. Dest X leftover.</summary>
+    /// <summary>A float store to stack local +0x24. Dest X leftover.</summary>
     public const uint DestStoreSite = 0x004A33B3u;
 
-    /// <summary><c>fcomp [0x005D85D8]</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D85D8, popping the result.</summary>
     public const uint FcompSite = 0x004A33BBu;
 
     /// <summary>5.0 source. Leftover min dest X, not dest Y.</summary>
@@ -93,13 +94,13 @@ public static class RetailOptionsMenuItemDest
     /// <summary>IEEE bits at <see cref="LeftoverMinGlobal"/>. 5.0.</summary>
     public const uint LeftoverMinBits = 0x40A00000u;
 
-    /// <summary><c>mov [esp+0x24], 0x40A00000</c>. Leftover min dest X.</summary>
+    /// <summary>A store of constant 0x40A00000 to stack local +0x24. Leftover min dest X.</summary>
     public const uint LeftoverMinStoreSite = 0x004A33D2u;
 
-    /// <summary><c>mov eax, [esp+0x1C]</c>. Incoming dest Y.</summary>
+    /// <summary>A load of stack local +0x1C into eax. Incoming dest Y.</summary>
     public const uint DestYLoadSite = 0x004A33EAu;
 
-    /// <summary><c>call 0x004659A0</c> after the colour AND.</summary>
+    /// <summary>A direct call to 0x004659A0 after the colour AND.</summary>
     public const uint DrawTextCallSite = 0x004A3410u;
 
     /// <summary>Label draw. Not DrawTextDynamic.</summary>
@@ -169,7 +170,8 @@ public static class RetailOptionsMenuItemDest
     public static float LeftoverMinX => BitConverter.UInt32BitsToSingle(LeftoverMinBits);
 
     /// <summary>
-    /// <c>cdq / sub eax,edx / sar eax,1</c>. Toward-zero half of
+    /// A sign extension of eax into edx, then subtraction of edx from
+    /// eax, then arithmetic right shift of eax by 1. Toward-zero half of
     /// SIZE.cx. Not float half.
     /// </summary>
     public static int IntegerHalf(int value) => value / 2;

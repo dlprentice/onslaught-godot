@@ -7,26 +7,26 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> first leftover — unique
-/// <c>0x00460B61</c> <c>call 0x00467200</c>
+/// <c>0x00460B61</c>: a direct call to 0x00467200
 /// <c>CFrontEnd__DrawSlidingTextBordersAndMask</c> — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00460B40</c> <c>sub esp, 0x80</c> (<c>81 ec 80 00 00 00</c>),
-/// <c>0x00460B46</c> <c>mov eax, [esp+0x88]</c>,
-/// <c>0x00460B50</c> <c>mov esi, ecx</c>,
-/// <c>0x00460B53</c> <c>mov ecx, [esp+0x94]</c>,
+/// <c>0x00460B40</c>: a stack-frame reservation of 0x80 bytes,
+/// <c>0x00460B46</c>: a load of stack local +0x88 into eax,
+/// <c>0x00460B50</c>: a copy of ecx into esi,
+/// <c>0x00460B53</c>: a load of stack local +0x94 into ecx,
 /// <c>0x00460B5A</c> / <c>0x00460B5B</c> push dest then transition,
-/// <c>0x00460B5C</c> <c>mov ecx, 0x0089D758</c>,
-/// <c>0x00460B61</c> unique <c>call 0x00467200</c>
-/// (<c>e8 9a 66 00 00</c>, one image hit).
-/// <c>0x00460B66</c> <c>fld [0x005DB53C]</c> (148.0) is later.
+/// <c>0x00460B5C</c>: a load of constant 0x0089D758 into ecx,
+/// <c>0x00460B61</c>: the unique direct call to 0x00467200
+/// (one image hit).
+/// <c>0x00460B66</c>: a float load of the value at 0x005DB53C (148.0) is later.
 /// Dest Y does not. Latch SET already owns <c>0x0042D5CF</c>.
 /// FMV skip already owns the OR at <c>0x0053F2EB</c>. Dest is not
 /// 15.5, 322.5, 148.0, or the 2.0 constant. DrawLevelSelect

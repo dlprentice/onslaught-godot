@@ -11,10 +11,10 @@ namespace OnslaughtRebuild.Core;
 /// <remarks>
 /// <para>
 /// Statement <c>Pulse Cannon Pod</c> at file offset <c>0x17463</c> of
-/// <c>local-lab/safe-copy-bea-pristine/data/default physics.dat</c>
+/// <c>default physics.dat</c> in a private copy of the pristine game data
 /// (175,603 bytes, SHA-256
 /// <c>e1fb3dedbeb29b4b4151da2c8cbbdc940b716b1a2321e1d6a9ba1542c74ada14</c>).
-/// <c>CWeaponChargeRate</c> is the dword <c>00 00 20 41</c> = <c>10.0f</c>.
+/// <c>CWeaponChargeRate</c> is the dword 0x41200000 = <c>10.0f</c>.
 /// Two <c>CWeaponChargeLevel</c> nodes mark indices 0 and 1 present
 /// (<c>Mech Pulse Cannon Charged</c> / <c>Mech Pulse Cannon Charged 2</c>);
 /// indices 2..4 stay at the absent marker. That is why

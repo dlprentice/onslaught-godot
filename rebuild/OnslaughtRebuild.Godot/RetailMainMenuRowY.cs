@@ -5,14 +5,14 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render row-Y slot init — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Sibling.</b> Dest Y at <c>0x0046309D</c> is already
-/// <see cref="RetailMainMenuLabelDest"/>: <c>fsubr [esp+0x10]</c>
+/// <see cref="RetailMainMenuLabelDest"/>: a reversed float subtract of stack local +0x10
 /// minus integer-half cy. Language hover centres at 268 / 304 are
 /// already <see cref="RetailMainMenuHitTest"/>. Writing-chrome Y
 /// says <c>0x00462E96</c> overwrites the same slot after the
@@ -21,16 +21,16 @@ namespace OnslaughtRebuild.GodotClient;
 /// those. Do not invent dest Y as 268 or 304.</para>
 ///
 /// <para><b>Seed.</b> <c>0x00462E96</c> is
-/// <c>mov [esp+0x10], 0x43860000</c> (268.0). Then
-/// <c>0x00462EE7</c> is <c>mov eax, [0x0083D990]</c>,
-/// <c>0x00462EEC</c> is <c>or ebp, -1</c>,
-/// <c>0x00462EEF</c> is <c>test eax, eax</c>,
-/// <c>0x00462EF1</c> is <c>je 0x00462EFD</c>. Zero keeps
+/// a store of constant 0x43860000 to stack local +0x10 (268.0). Then
+/// <c>0x00462EE7</c> is a load of the value at 0x0083D990 into eax,
+/// <c>0x00462EEC</c> is an or of -1 into ebp,
+/// <c>0x00462EEF</c> is a zero test of eax,
+/// <c>0x00462EF1</c> is a conditional branch to 0x00462EFD (taken when equal). Zero keeps
 /// 268.0 and index -1.</para>
 ///
 /// <para><b>Nonzero.</b> <c>0x00462EF3</c> is
-/// <c>xor ebp, ebp</c> and <c>0x00462EF5</c> is
-/// <c>mov [esp+0x10], 0x43980000</c> (304.0). Regular
+/// a zeroing of ebp and <c>0x00462EF5</c> is
+/// a store of constant 0x43980000 to stack local +0x10 (304.0). Regular
 /// rows therefore start at index 0 / 304.0.
 /// <c>0x0083D990</c> is uninitialised <c>.data</c>, so
 /// the image-initial dword is 0 and cold Render keeps
@@ -41,9 +41,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// row-Y slot minus integer-half cy. DrawMainMenu keeps
 /// dest Y as <c>rowY - 8</c> until cy is measured. The
 /// 2px MeasureText residual is width, not this slot.
-/// Nearby <c>fadd [0x005DB5D8]</c> (36.0) at
+/// Nearby float add of the value at 0x005DB5D8 (36.0) at
 /// <c>0x00463647</c> is the fall-through increment
-/// skipped by the label <c>jmp 0x0046364D</c>. Do not
+/// skipped by the label (a jump to 0x0046364D). Do not
 /// invent dest from that 36.0. Label pitch 20.0 is
 /// already <see cref="RetailMainMenuLabelText"/>.</para>
 ///
@@ -67,40 +67,40 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuRowY
 {
-    /// <summary><c>mov [esp+0x10], 0x43860000</c>.</summary>
+    /// <summary>A store of constant 0x43860000 to stack local +0x10.</summary>
     public const uint SeedSite = 0x00462E96u;
 
     /// <summary>IEEE bits stored at <see cref="SeedSite"/>. 268.0.</summary>
     public const uint LanguageSlotBits = 0x43860000u;
 
-    /// <summary><c>mov eax, [0x0083D990]</c>.</summary>
+    /// <summary>A load of the value at 0x0083D990 into eax.</summary>
     public const uint FlagLoadSite = 0x00462EE7u;
 
     /// <summary>Uninitialised <c>.data</c>. Same dword as hover.</summary>
     public const uint FlagGlobal = 0x0083D990u;
 
-    /// <summary><c>or ebp, -1</c>.</summary>
+    /// <summary>An or of -1 into ebp.</summary>
     public const uint LanguageIndexSite = 0x00462EECu;
 
     /// <summary>Cold starting index. Language row.</summary>
     public const int LanguageIndex = -1;
 
-    /// <summary><c>test eax, eax</c> after the flag load.</summary>
+    /// <summary>A zero test of eax after the flag load.</summary>
     public const uint FlagTestSite = 0x00462EEFu;
 
-    /// <summary><c>je 0x00462EFD</c>. Zero keeps 268 / -1.</summary>
+    /// <summary>A conditional branch to 0x00462EFD (taken when equal). Zero keeps 268 / -1.</summary>
     public const uint FlagJeSite = 0x00462EF1u;
 
     /// <summary>Fall-through after the <c>je</c>.</summary>
     public const uint FlagJeTarget = 0x00462EFDu;
 
-    /// <summary><c>xor ebp, ebp</c>.</summary>
+    /// <summary>A zeroing of ebp.</summary>
     public const uint RegularIndexSite = 0x00462EF3u;
 
     /// <summary>Nonzero starting index. First regular row.</summary>
     public const int RegularIndex = 0;
 
-    /// <summary><c>mov [esp+0x10], 0x43980000</c>.</summary>
+    /// <summary>A store of constant 0x43980000 to stack local +0x10.</summary>
     public const uint NonzeroSlotSite = 0x00462EF5u;
 
     /// <summary>IEEE bits stored at <see cref="NonzeroSlotSite"/>. 304.0.</summary>
@@ -109,10 +109,10 @@ public static class RetailMainMenuRowY
     /// <summary>Image-initial dword. Cold Render keeps 268 / -1.</summary>
     public const uint ImageInitialFlag = 0u;
 
-    /// <summary><c>fadd [0x005DB5D8]</c> at <c>0x00463647</c>.</summary>
+    /// <summary>A float add of the value at 0x005DB5D8 at <c>0x00463647</c>.</summary>
     public const uint SkippedPitchSite = 0x00463647u;
 
-    /// <summary>36.0 source. Label <c>jmp 0x0046364D</c> skips it.</summary>
+    /// <summary>36.0 source. Label (a jump to 0x0046364D) skips it.</summary>
     public const uint SkippedPitchGlobal = 0x005DB5D8u;
 
     /// <summary>IEEE bits at <see cref="SkippedPitchGlobal"/>. 36.0.</summary>

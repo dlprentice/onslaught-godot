@@ -7,34 +7,30 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> later leftover after the
-/// 10.0 fsub — <c>0x00460E24</c> <c>fld [0x005DB53C]</c> (148.0) /
-/// <c>0x00460E2A</c> <c>fsub [esi+0x3460]</c> /
-/// <c>0x00460E30</c> <c>fstp [esp+0x14]</c> — recovered from
+/// 10.0 fsub — <c>0x00460E24</c>: a float load of the value at 0x005DB53C (148.0) /
+/// <c>0x00460E2A</c>: a float subtract of field +0x3460 of esi;
+/// <c>0x00460E30</c>: a float store to stack local +0x14 — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop. Two image hits of the triple: <c>0x00460B66</c>
 /// already owned by <c>RetailLevelSelectFsub148</c>, and this later
 /// site.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00460E24</c> <c>fld [0x005DB53C]</c>
-/// (<c>d9 05 3c b5 5d 00</c>), <c>0x005DB53C</c> is
-/// <c>00 00 14 43</c> (148.0), <c>0x00460E2A</c>
-/// <c>fsub [esi+0x3460]</c> (<c>d8 a6 60 34 00 00</c>),
-/// <c>0x00460E30</c> <c>fstp [esp+0x14]</c>
-/// (<c>d9 5c 24 14</c>). First consumers are
-/// <c>0x00460E99</c> <c>fld [esp+0x14]</c> /
-/// <c>0x00460E9D</c> <c>fcomp [0x00629390]</c> (90.0,
-/// bits <c>0x42B40000</c>) and <c>0x00460EAC</c>
-/// <c>fld [esp+0x14]</c> / <c>0x00460EB0</c>
-/// <c>fcomp [0x00629394]</c> (570.0, bits <c>0x440E8000</c>).
-/// <c>test ah, 1</c> / <c>jnz</c> clears the flag when the pad
-/// is below 90.0. <c>test ah, 0x41</c> / <c>jnz</c> keeps the
+/// <c>0x00460E24</c>: a float load of the value at 0x005DB53C, <c>0x005DB53C</c> is
+/// 148.0, <c>0x00460E2A</c>: a float subtract of field +0x3460 of esi,
+/// <c>0x00460E30</c>: a float store to stack local +0x14. First consumers are
+/// <c>0x00460E99</c>: a float load of stack local +0x14; <c>0x00460E9D</c>: a
+/// float compare against the value at 0x00629390, popping the result (90.0,
+/// bits <c>0x42B40000</c>) and <c>0x00460EAC</c>: a float load of stack local +0x14; <c>0x00460EB0</c>:
+/// a float compare against the value at 0x00629394, popping the result (570.0, bits <c>0x440E8000</c>).
+/// A bit test of ah against 1 / <c>jnz</c> clears the flag when the pad
+/// is below 90.0. A bit test of ah against 0x41 / <c>jnz</c> keeps the
 /// flag when the pad is not above 570.0. Window is
 /// <c>90.0 &lt;= pad &lt;= 570.0</c>. That is not dest. The
 /// earlier identical triple at <c>0x00460B66</c> is already

@@ -5,14 +5,14 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render 0x0089D7F0 writing-chrome Z and dest X —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Texture.</b> Load at <c>0x00462DC4</c> is
-/// <c>mov edx, [0x0089D7F0]</c>. That is Forseti writing large, not
+/// a load of the value at 0x0089D7F0 into edx. That is Forseti writing large, not
 /// 0x0089D894 / D898 / D89C / D8A0 / D8A4. Do not redo
 /// <see cref="RetailMainMenuWritingColor"/>,
 /// <see cref="RetailMainMenuWritingScroll"/>,
@@ -28,11 +28,11 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Site.</b> <see cref="RetailMainMenuWritingScroll"/> owns
 /// the Y prologue at <c>0x00462D46</c> and says it does not own the
 /// 458 X or the 0.9 Z. Tile 0 <c>0x00462DFF</c> is
-/// <c>push 0x3F666666</c>. <c>0x00462E05</c> is
-/// <c>push 0x43E50000</c> (458.0). Tile 1 <c>0x00462E39</c> /
+/// a push of constant 0x3F666666. <c>0x00462E05</c> is
+/// a push of constant 0x43E50000 (458.0). Tile 1 <c>0x00462E39</c> /
 /// <c>0x00462E42</c> and tile 2 <c>0x00462E76</c> /
 /// <c>0x00462E7F</c> push the same pair. Identity scale
-/// <c>push 0x3F800000</c> at <c>0x00462DCC</c> is 1.0, not 0.9.
+/// (a push of constant 0x3F800000) at <c>0x00462DCC</c> is 1.0, not 0.9.
 /// Colour sibling <c>0x00462DDD</c> is already
 /// <see cref="RetailMainMenuWritingColor"/>.</para>
 ///
@@ -65,40 +65,40 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuWritingZ
 {
-    /// <summary><c>push 0x3F666666</c> at <c>0x00462DFF</c>.</summary>
+    /// <summary>A push of constant 0x3F666666 at <c>0x00462DFF</c>.</summary>
     public const uint Tile0ZPushSite = 0x00462DFFu;
 
-    /// <summary><c>push 0x43E50000</c> at <c>0x00462E05</c>.</summary>
+    /// <summary>A push of constant 0x43E50000 at <c>0x00462E05</c>.</summary>
     public const uint Tile0XPushSite = 0x00462E05u;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x00462E0A</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x00462E0A</c>.</summary>
     public const uint Tile0CallSite = 0x00462E0Au;
 
-    /// <summary><c>push 0x3F666666</c> at <c>0x00462E39</c>.</summary>
+    /// <summary>A push of constant 0x3F666666 at <c>0x00462E39</c>.</summary>
     public const uint Tile1ZPushSite = 0x00462E39u;
 
-    /// <summary><c>push 0x43E50000</c> at <c>0x00462E42</c>.</summary>
+    /// <summary>A push of constant 0x43E50000 at <c>0x00462E42</c>.</summary>
     public const uint Tile1XPushSite = 0x00462E42u;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x00462E47</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x00462E47</c>.</summary>
     public const uint Tile1CallSite = 0x00462E47u;
 
-    /// <summary><c>push 0x3F666666</c> at <c>0x00462E76</c>.</summary>
+    /// <summary>A push of constant 0x3F666666 at <c>0x00462E76</c>.</summary>
     public const uint Tile2ZPushSite = 0x00462E76u;
 
-    /// <summary><c>push 0x43E50000</c> at <c>0x00462E7F</c>.</summary>
+    /// <summary>A push of constant 0x43E50000 at <c>0x00462E7F</c>.</summary>
     public const uint Tile2XPushSite = 0x00462E7Fu;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x00462E84</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x00462E84</c>.</summary>
     public const uint Tile2CallSite = 0x00462E84u;
 
-    /// <summary><c>mov edx, [0x0089D7F0]</c> at <c>0x00462DC4</c>.</summary>
+    /// <summary>A load of the value at 0x0089D7F0 into edx at <c>0x00462DC4</c>.</summary>
     public const uint TextureLoadSite = 0x00462DC4u;
 
     /// <summary>Forseti writing-chrome texture global.</summary>
     public const uint TextureGlobal = 0x0089D7F0u;
 
-    /// <summary><c>push 0x3F800000</c> at <c>0x00462DCC</c>. Identity 1.0, not 0.9.</summary>
+    /// <summary>A push of constant 0x3F800000 at <c>0x00462DCC</c>. Identity 1.0, not 0.9.</summary>
     public const uint ScalePushSite = 0x00462DCCu;
 
     /// <summary>Identity scale immediate. Not a title-logo 29%.</summary>

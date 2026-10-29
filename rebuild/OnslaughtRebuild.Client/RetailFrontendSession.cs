@@ -55,7 +55,7 @@ public sealed class RetailFrontendSession
     /// Default game name offered by the page. Retail's pristine 640x480
     /// FEP_DEVSELECT capture shows "BEA 1" pre-filled and highlighted in the
     /// name field with no career selected
-    /// (local-lab/retail-reference-pristine/choose-game-name/choose-game-name-640x480.png).
+    /// (a private retail reference capture).
     /// </summary>
     public const string DefaultGameName = "BEA 1";
 
@@ -518,7 +518,7 @@ public sealed class RetailFrontendSession
                 // Retail does NOT go from level select to loading. The pristine
                 // 640x480 capture chain taken 2026-07-25 records
                 // SELECT LEVEL -> MISSION BRIEFING -> SELECT CONFIGURATION ->
-                // LOADING (local-lab/STARTUP-FLOW-FINDINGS-2026-07-25.md), with a
+                // LOADING (the private lab note STARTUP-FLOW-FINDINGS-2026-07-25.md), with a
                 // reference frame for each of the three intermediate pages.
                 Screen = RetailFrontendScreen.MissionBriefing;
                 return RetailFrontendSignal.PageChanged;
@@ -890,7 +890,7 @@ public enum RetailFrontendScreen
     /// resetting its root session on each entry. The in-game pause menu is a
     /// distinct runtime instance of the same widget implementation.
     ///
-    /// Reference frames: local-lab/retail-captures-options-pause-2026-07-27/
+    /// Reference frames: a private retail reference capture
     /// fep-options-{root,controller,video,sound}-640x480.png.
     /// </summary>
     Options,
@@ -906,7 +906,7 @@ public enum RetailFrontendScreen
 
     /// <summary>
     /// Retail's MISSION BRIEFING page, reached from SELECT LEVEL. Reference
-    /// frame: local-lab/retail-reference-pristine/mission-briefing/
+    /// frame: a private retail reference capture
     /// 05-mission-briefing-640x480.png.
     /// </summary>
     MissionBriefing,
@@ -914,7 +914,7 @@ public enum RetailFrontendScreen
     /// <summary>
     /// Retail's SELECT CONFIGURATION page, between briefing and loading. It was
     /// first observed on 2026-07-25 and the reconstruction had never modelled
-    /// it. Reference frame: local-lab/retail-reference-pristine/
+    /// it. Reference frame: a private retail reference capture
     /// select-configuration/06-select-configuration-640x480.png.
     /// </summary>
     SelectConfiguration,

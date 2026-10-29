@@ -37,7 +37,7 @@ public sealed class Level100SunTests
     /// <b>MEASURED</b> from retail frame
     /// <c><maintainer evidence>\bea-inlevel\t25b-20260727-192619\20260727-192620-57904\f005205.png</c>
     /// against the paired reconstruction frame
-    /// <c>local-lab/godot-captures/20260730-034218-gameplay/level100-t042000ms.png</c>.
+    /// a private capture folder.
     ///
     /// <para>The two frames align at zero offset - mean absolute luminance
     /// difference 0.31/255 over a 60x180 px patch of open sky - so the

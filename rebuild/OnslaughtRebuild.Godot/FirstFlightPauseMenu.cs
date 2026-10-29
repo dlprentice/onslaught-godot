@@ -36,11 +36,11 @@ public sealed partial class FirstFlightPauseMenu : CanvasLayer
     //
     // Retained scalar provenance from the previous renderer: lab BEA.exe
     // .rdata (sha256 e1436ef7e0ad9ccbddd43aaaca952f6e84d4b1a282835cead745efcfc32fadf4):
-    //   _DAT_005dc240 = 1.1     file 0x1dc240  panel size factor
-    //   _DAT_005d85ec = 0.5     file 0x1d85ec  centring halve
-    //   _DAT_005dc568 = 160.0   file 0x1dc568  panel alpha scale
-    //   _DAT_005db2b8 = 32.0    file 0x1db2b8  corner size
-    //   _DAT_005dbb50 = 0.0625  file 0x1dbb50  edge stretch over the 16px blank
+    //   0x005dc240 = 1.1 file 0x1dc240 panel size factor
+    //   0x005d85ec = 0.5 file 0x1d85ec centring halve
+    //   0x005dc568 = 160.0 file 0x1dc568 panel alpha scale
+    //   0x005db2b8 = 32.0 file 0x1db2b8 corner size
+    //   0x005dbb50 = 0.0625 file 0x1dbb50 edge stretch over the 16px blank
     // The alpha argument at the call site is 1.2, so the frame tint is
     // ROUND(1.2 * 160.0) = 192 over RGB 0 -- pure black, alpha 192/255,
     // the same 192 ceiling the fullscreen pause fade already uses.

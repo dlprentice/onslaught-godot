@@ -5,12 +5,12 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> expanded list colour leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Expanded list dest X at <c>0x004A3FCD</c> is
@@ -27,19 +27,19 @@ namespace OnslaughtRebuild.Client;
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. Row colour AND at
 /// <c>0x004A33FC</c> is already <see cref="RetailOptionsMenuItemColor"/>.
-/// This leftover is the expanded-arm <c>mov ebx, 0xFF404040</c> /
-/// <c>or ebx, -1</c>. Do not redo those. Do not invent dest Y as 5,
+/// This leftover is the expanded-arm (a load of constant 0xFF404040 into ebx,
+/// then or of -1 into ebx). Do not redo those. Do not invent dest Y as 5,
 /// 15.5, 268, 284, or 304. Do not invent dest X as 322.5 or dest from
 /// 148.0. Do not invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>Colour.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3F43</c> is <c>xor edi, edi</c>. <c>0x004A3F65</c> is
-/// <c>mov ebp, [esp+0x10]</c> dest Y leftover.
-/// <c>0x004A3F69</c> is <c>mov eax, [esi+0x20]</c> currentIndex.
-/// <c>0x004A3F6C</c> is <c>mov ebx, 0xFF404040</c>.
-/// <c>0x004A3F71</c> is <c>cmp edi, eax</c>. <c>0x004A3F73</c> is
-/// <c>jne 0x004A3F78</c>. <c>0x004A3F75</c> is <c>or ebx, -1</c>
-/// (<c>83 CB FF</c>). <c>0x004A3FCC</c> is <c>push ebx</c> into the
+/// <c>0x004A3F43</c> is a zeroing of edi. <c>0x004A3F65</c> is
+/// a load of stack local +0x10 into ebp dest Y leftover.
+/// <c>0x004A3F69</c> is a load of field +0x20 of esi into eax currentIndex.
+/// <c>0x004A3F6C</c> is a load of constant 0xFF404040 into ebx.
+/// <c>0x004A3F71</c> is a compare of edi with eax. <c>0x004A3F73</c> is
+/// a conditional branch to 0x004A3F78 (taken when not equal). <c>0x004A3F75</c>
+/// is an or of -1 into ebx. <c>0x004A3FCC</c> is a push of ebx into the
 /// DrawText path. <c>0x004A3FCD</c> then reuses ebx for dest X.
 /// Idle is <c>0xFF404040</c>. When the loop index equals
 /// currentIndex, ebx becomes <c>0xFFFFFFFF</c>. Colour consults
@@ -60,40 +60,40 @@ public static class RetailOptionsDropdownListColor
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>xor edi, edi</c>. Loop index leftover, not dest.</summary>
+    /// <summary>A zeroing of edi. Loop index leftover, not dest.</summary>
     public const uint LoopIndexZeroSite = 0x004A3F43u;
 
-    /// <summary><c>mov eax, [esi+0x20]</c>. currentIndex. Colour leftover, not dest.</summary>
+    /// <summary>A load of field +0x20 of esi into eax. currentIndex. Colour leftover, not dest.</summary>
     public const uint CurrentIndexLoadSite = 0x004A3F69u;
 
     /// <summary>currentIndex at <c>[this+0x20]</c>. Colour leftover, not dest.</summary>
     public const uint CurrentIndexOffset = 0x20u;
 
-    /// <summary><c>mov ebx, 0xFF404040</c>.</summary>
+    /// <summary>A load of constant 0xFF404040 into ebx.</summary>
     public const uint IdleColorSite = 0x004A3F6Cu;
 
     /// <summary>Idle packed colour leftover.</summary>
     public const uint IdlePackedColor = 0xFF404040u;
 
-    /// <summary><c>cmp edi, eax</c>. Loop index against currentIndex.</summary>
+    /// <summary>A compare of edi with eax. Loop index against currentIndex.</summary>
     public const uint CompareSite = 0x004A3F71u;
 
-    /// <summary><c>jne 0x004A3F78</c>. Skip the selected or.</summary>
+    /// <summary>A conditional branch to 0x004A3F78 (taken when not equal). Skip the selected or.</summary>
     public const uint SelectedSkipSite = 0x004A3F73u;
 
     /// <summary>Fall-through target after the selected or.</summary>
     public const uint SelectedSkipTarget = 0x004A3F78u;
 
-    /// <summary><c>or ebx, -1</c>. <c>83 CB FF</c>.</summary>
+    /// <summary>An or of -1 into ebx.</summary>
     public const uint SelectedOrSite = 0x004A3F75u;
 
-    /// <summary>Sign-extended <c>or ebx, -1</c> immediate.</summary>
+    /// <summary>Sign-extended (an or of -1 into ebx).</summary>
     public const uint SelectedOrImmediate = 0xFFFFFFFFu;
 
-    /// <summary><c>push ebx</c> into the DrawText path. Colour, not dest.</summary>
+    /// <summary>A push of ebx into the DrawText path. Colour, not dest.</summary>
     public const uint ColorPushSite = 0x004A3FCCu;
 
-    /// <summary><c>call 0x004659A0</c> after the dest leftover.</summary>
+    /// <summary>A direct call to 0x004659A0 after the dest leftover.</summary>
     public const uint DrawTextCallSite = 0x004A3FE1u;
 
     /// <summary>Expanded list draw. Not DrawTextDynamic.</summary>

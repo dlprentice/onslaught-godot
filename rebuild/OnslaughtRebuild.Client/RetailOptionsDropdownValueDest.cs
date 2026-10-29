@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> collapsed value dest leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -17,17 +17,17 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemDest"/>. Icon dest at
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is
-/// the collapsed-arm <c>mov edx, [esp+0x28]</c> after vtable
+/// the collapsed-arm (a load of stack local +0x28 into edx) after vtable
 /// +0x44. Do not redo those. Do not invent dest Y as 5, 268, 284,
 /// or 304. Do not invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>Dest X.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3D38</c> is <c>fadd [0x005D8BA0]</c>.
-/// <c>0x004A3D3E</c> is <c>fstp [esp+0x18]</c>.
+/// <c>0x004A3D38</c> is a float add of the value at 0x005D8BA0.
+/// <c>0x004A3D3E</c> is a float store to stack local +0x18.
 /// <c>0x004A3DA8</c> tests <c>[esi+0x24]</c>.
-/// <c>0x004A3DAD</c> is <c>je 0x004A409B</c>.
-/// <c>0x004A40B1</c> is <c>call [eax+0x44]</c>.
-/// Independently read +0x44 helpers end <c>RET 4</c>, so the four
+/// <c>0x004A3DAD</c> is a conditional branch to 0x004A409B (taken when equal).
+/// <c>0x004A40B1</c> is an indirect call through vtable slot 17.
+/// Independently read +0x44 helpers end (a return that pops 4 bytes of arguments), so the four
 /// DrawText tail pushes stay on the stack and
 /// <c>[esp+0x28]</c> aliases that earlier <c>[esp+0x18]</c>
 /// store. Dest X is incoming dest X plus the 2.0 pad leftover.
@@ -53,10 +53,10 @@ public static class RetailOptionsDropdownValueDest
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>fadd [0x005D8BA0]</c>. Pad leftover, not dest Y.</summary>
+    /// <summary>A float add of the value at 0x005D8BA0. Pad leftover, not dest Y.</summary>
     public const uint PadAddSite = 0x004A3D38u;
 
-    /// <summary><c>fstp [esp+0x18]</c>. Incoming dest X plus pad.</summary>
+    /// <summary>A float store to stack local +0x18. Incoming dest X plus pad.</summary>
     public const uint PadStoreSite = 0x004A3D3Eu;
 
     /// <summary>2.0 source. Pad leftover, not dest X itself.</summary>
@@ -65,37 +65,37 @@ public static class RetailOptionsDropdownValueDest
     /// <summary>IEEE bits at <see cref="PadGlobal"/>. 2.0.</summary>
     public const uint PadBits = 0x40000000u;
 
-    /// <summary><c>mov ebx, [esp+0x10C]</c>. Incoming dest Y.</summary>
+    /// <summary>A load of stack local +0x10C into ebx. Incoming dest Y.</summary>
     public const uint DestYLoadSite = 0x004A3D78u;
 
     /// <summary>Expanded flag at <c>[this+0x24]</c>.</summary>
     public const uint ExpandByteOffset = 0x24u;
 
-    /// <summary><c>mov al, [esi+0x24]</c>.</summary>
+    /// <summary>A load of field +0x24 of esi into al.</summary>
     public const uint ExpandTestSite = 0x004A3DA8u;
 
-    /// <summary><c>je 0x004A409B</c>.</summary>
+    /// <summary>A conditional branch to 0x004A409B (taken when equal).</summary>
     public const uint CollapseJumpSite = 0x004A3DADu;
 
     /// <summary>Collapsed arm. Not the expanded list.</summary>
     public const uint CollapseTarget = 0x004A409Bu;
 
-    /// <summary>vtable +0x44. State string. <c>RET 4</c>.</summary>
+    /// <summary>vtable +0x44. State string. A return that pops 4 bytes of arguments.</summary>
     public const uint GetStateSlot = 0x44u;
 
-    /// <summary><c>call [eax+0x44]</c>.</summary>
+    /// <summary>An indirect call through vtable slot 17.</summary>
     public const uint GetStateCallSite = 0x004A40B1u;
 
-    /// <summary>Independently read +0x44 helpers end <c>RET 4</c>.</summary>
+    /// <summary>Independently read +0x44 helpers end (a return that pops 4 bytes of arguments).</summary>
     public const uint GetStateRet = 4u;
 
-    /// <summary><c>mov edx, [esp+0x28]</c>. Dest X leftover.</summary>
+    /// <summary>A load of stack local +0x28 into edx. Dest X leftover.</summary>
     public const uint DestLoadSite = 0x004A40B4u;
 
     /// <summary>IEEE bits of the identity scale pushes. 1.0.</summary>
     public const uint ScaleBits = 0x3F800000u;
 
-    /// <summary><c>call 0x004659A0</c> after the dest leftover.</summary>
+    /// <summary>A direct call to 0x004659A0 after the dest leftover.</summary>
     public const uint DrawTextCallSite = 0x004A40CAu;
 
     /// <summary>Collapsed value draw. Not DrawTextDynamic.</summary>

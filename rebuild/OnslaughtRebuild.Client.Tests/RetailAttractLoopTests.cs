@@ -17,7 +17,7 @@ public sealed class RetailAttractLoopTests
     [Fact]
     public void MinusThreeRestartsAttractAndMinusOneExitsTheProcess()
     {
-        // 0x004F03ED cmp ebp,-1 / je; 0x004F03F2 cmp ebp,-3 / jne RunLevel.
+        // 0x004F03ED: a compare of ebp with -1 / je; 0x004F03F2: a compare of ebp with -3 / jne RunLevel.
         Assert.Equal(-3, RetailAttractLoop.AttractRestartResult);
         Assert.Equal(-3, RetailClickToStartPrompt.IdleResult);
         Assert.Equal(-1, RetailAttractLoop.ProcessExitResult);
@@ -39,7 +39,7 @@ public sealed class RetailAttractLoopTests
     [Fact]
     public void AttractReentryIsFeeFromAttractThenFepIntro()
     {
-        // 0x004F038F sete al after cmp ebp,-3 → esi = FEE_FROM_ATTRACT = 1.
+        // 0x004F038F: a set of al from the equal flag after a compare of ebp with -3 → esi = FEE_FROM_ATTRACT = 1.
         // FrontEnd.cpp:188-202 SetPage(FEP_INTRO, 0). FEE_TITLE_SCREEN is FEP_MAIN.
         Assert.Equal(0, RetailAttractLoop.StartEntry);
         Assert.Equal(1, RetailAttractLoop.FromAttractEntry);

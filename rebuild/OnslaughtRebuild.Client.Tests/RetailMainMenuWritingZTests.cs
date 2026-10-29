@@ -7,19 +7,19 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D7F0 writing-chrome Z and dest X
 /// leftover at <c>0x00462DFF</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>RetailMainMenuWritingScroll owns the Y prologue and says it
 /// does not own the 458 X or the 0.9 Z. Official bytes independently
-/// re-read this cycle: tile 0 <c>push 0x3F666666</c> at
-/// <c>0x00462DFF</c> then <c>push 0x43E50000</c> at <c>0x00462E05</c>;
+/// re-read this cycle: tile 0 (a push of constant 0x3F666666) at
+/// <c>0x00462DFF</c> then a push of constant 0x43E50000 at <c>0x00462E05</c>;
 /// tile 1 <c>0x00462E39</c> / <c>0x00462E42</c>; tile 2
 /// <c>0x00462E76</c> / <c>0x00462E7F</c>. Texture load at
-/// <c>0x00462DC4</c> is <c>mov edx, [0x0089D7F0]</c>. Identity scale
-/// <c>push 0x3F800000</c> at <c>0x00462DCC</c>. Calls
+/// <c>0x00462DC4</c> is a load of the value at 0x0089D7F0 into edx. Identity scale
+/// (a push of constant 0x3F800000) at <c>0x00462DCC</c>. Calls
 /// <c>CDXSurf__RenderSurface</c> (<c>0x005563D0</c>) at
 /// <c>0x00462E0A</c> / <c>0x00462E47</c> / <c>0x00462E84</c>. The
 /// leftover 0.9 is Z, not scale and not a 29% title-logo. Dest X is

@@ -53,7 +53,7 @@ public sealed class RetailCameraLawsTests
     }
 
     // THE divergence test. Camera.cpp:650 says (fov/90)/2.0f; 0x0041A681 says
-    // fmul [0x005D9338] then fmul [0x005D85EC], i.e. fov * (1/90 as float) *
+    // (a float multiply by the value at 0x005D9338) then a float multiply by the value at 0x005D85EC, i.e. fov * (1/90 as float) *
     // 0.5f, and 0x005D9338 is 0x3C360B61 - the rounded reciprocal, not 1/90. At
     // fov 65 the two differ in the last ulp: 0x3EB8E38F against 0x3EB8E38E. 41
     // of the 180 integer FOVs from 1 to 180 diverge. The 90 and 45 rows are

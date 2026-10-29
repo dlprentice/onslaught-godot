@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> expanded list dest leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -18,21 +18,21 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemDest"/>. Icon dest at
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is
-/// the expanded-arm <c>mov ebx, [esp+0x4C]</c> after vtable
+/// the expanded-arm (a load of stack local +0x4C into ebx) after vtable
 /// +0x44. Do not redo those. Do not invent dest Y as 5, 268, 284,
 /// or 304. Do not invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>Dest X.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3D38</c> is <c>fadd [0x005D8BA0]</c>.
-/// <c>0x004A3D3E</c> is <c>fstp [esp+0x18]</c>.
+/// <c>0x004A3D38</c> is a float add of the value at 0x005D8BA0.
+/// <c>0x004A3D3E</c> is a float store to stack local +0x18.
 /// <c>0x004A3DA8</c> tests <c>[esi+0x24]</c>.
-/// <c>0x004A3DAD</c> is <c>je 0x004A409B</c>.
-/// After <c>push ebp</c>, that <c>[esp+0x18]</c> aliases
-/// <c>[esp+0x1C]</c>. <c>0x004A3F55</c> is <c>fld [esp+0x1C]</c>.
-/// <c>0x004A3F59</c> is <c>fadd [0x005D8BA0]</c>.
-/// <c>0x004A3F5F</c> is <c>fstp [esp+0x34]</c>.
-/// <c>0x004A3FC8</c> is <c>call [eax+0x44]</c>.
-/// Independently read +0x44 helpers end <c>RET 4</c>, so the four
+/// <c>0x004A3DAD</c> is a conditional branch to 0x004A409B (taken when equal).
+/// After a push of ebp, that <c>[esp+0x18]</c> aliases
+/// <c>[esp+0x1C]</c>. <c>0x004A3F55</c> is a float load of stack local +0x1C.
+/// <c>0x004A3F59</c> is a float add of the value at 0x005D8BA0.
+/// <c>0x004A3F5F</c> is a float store to stack local +0x34.
+/// <c>0x004A3FC8</c> is an indirect call through vtable slot 17.
+/// Independently read +0x44 helpers end (a return that pops 4 bytes of arguments), so the four
 /// leftover pushes stay and <c>[esp+0x4C]</c> aliases that
 /// <c>[esp+0x34]</c> store. Dest X is the collapsed dest leftover
 /// plus the 2.0 pad leftover. Dest is not 2.0.</para>
@@ -57,13 +57,13 @@ public static class RetailOptionsDropdownListDest
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>fld [esp+0x1C]</c>. Collapsed dest leftover after <c>push ebp</c>.</summary>
+    /// <summary>A float load of stack local +0x1C. Collapsed dest leftover after a push of ebp.</summary>
     public const uint CollapsedLeftoverLoadSite = 0x004A3F55u;
 
-    /// <summary><c>fadd [0x005D8BA0]</c>. Pad leftover, not dest Y.</summary>
+    /// <summary>A float add of the value at 0x005D8BA0. Pad leftover, not dest Y.</summary>
     public const uint PadAddSite = 0x004A3F59u;
 
-    /// <summary><c>fstp [esp+0x34]</c>. Collapsed dest leftover plus pad.</summary>
+    /// <summary>A float store to stack local +0x34. Collapsed dest leftover plus pad.</summary>
     public const uint PadStoreSite = 0x004A3F5Fu;
 
     /// <summary>2.0 source. Pad leftover, not dest X itself.</summary>
@@ -75,46 +75,46 @@ public static class RetailOptionsDropdownListDest
     /// <summary>Expanded flag at <c>[this+0x24]</c>.</summary>
     public const uint ExpandByteOffset = 0x24u;
 
-    /// <summary><c>mov al, [esi+0x24]</c>.</summary>
+    /// <summary>A load of field +0x24 of esi into al.</summary>
     public const uint ExpandTestSite = 0x004A3DA8u;
 
-    /// <summary><c>je 0x004A409B</c>.</summary>
+    /// <summary>A conditional branch to 0x004A409B (taken when equal).</summary>
     public const uint CollapseJumpSite = 0x004A3DADu;
 
     /// <summary>Collapsed arm. Not this leftover.</summary>
     public const uint CollapseTarget = 0x004A409Bu;
 
-    /// <summary>vtable +0x44. State string. <c>RET 4</c>.</summary>
+    /// <summary>vtable +0x44. State string. A return that pops 4 bytes of arguments.</summary>
     public const uint GetStateSlot = 0x44u;
 
-    /// <summary><c>call [eax+0x44]</c>.</summary>
+    /// <summary>An indirect call through vtable slot 17.</summary>
     public const uint GetStateCallSite = 0x004A3FC8u;
 
-    /// <summary>Independently read +0x44 helpers end <c>RET 4</c>.</summary>
+    /// <summary>Independently read +0x44 helpers end (a return that pops 4 bytes of arguments).</summary>
     public const uint GetStateRet = 4u;
 
-    /// <summary><c>mov ebx, [esp+0x4C]</c>. Dest X leftover.</summary>
+    /// <summary>A load of stack local +0x4C into ebx. Dest X leftover.</summary>
     public const uint DestLoadSite = 0x004A3FCDu;
 
     /// <summary>IEEE bits of the identity scale leftover. 1.0.</summary>
     public const uint ScaleBits = 0x3F800000u;
 
-    /// <summary><c>call 0x00515A70</c> before DrawText.</summary>
+    /// <summary>A direct call to 0x00515A70 before DrawText.</summary>
     public const uint FontCallSite = 0x004A3FDAu;
 
-    /// <summary>Font helper. Independently read <c>RET 4</c> at <c>0x00515A83</c>.</summary>
+    /// <summary>Font helper. Independently read (a return that pops 4 bytes of arguments) at <c>0x00515A83</c>.</summary>
     public const uint Font = 0x00515A70u;
 
-    /// <summary>Independently read font helper ends <c>RET 4</c>.</summary>
+    /// <summary>Independently read font helper ends a return that pops 4 bytes of arguments.</summary>
     public const uint FontRet = 4u;
 
-    /// <summary><c>call 0x004659A0</c> after the dest leftover.</summary>
+    /// <summary>A direct call to 0x004659A0 after the dest leftover.</summary>
     public const uint DrawTextCallSite = 0x004A3FE1u;
 
     /// <summary>Expanded list draw. Not DrawTextDynamic.</summary>
     public const uint DrawText = 0x004659A0u;
 
-    /// <summary>Independently read DrawText ends <c>RET 32</c> at <c>0x00465A19</c>.</summary>
+    /// <summary>Independently read DrawText ends a return that pops 32 bytes of arguments at <c>0x00465A19</c>.</summary>
     public const uint DrawTextRet = 32u;
 
     /// <summary>Dest Y is not a 5 push.</summary>

@@ -27,7 +27,7 @@ public sealed class RetailCareerSlotHandoffTests
     }
 
     /// <summary>
-    /// <c>0x0041BD06</c> is <c>cmp eax, 5</c> / <c>jne</c> over the
+    /// <c>0x0041BD06</c> is a compare of eax with 5 / <c>jne</c> over the
     /// copy. Lost is 4, so it never stores. Mutation: treating any
     /// terminal state as a copy would also overwrite on Lost.
     /// </summary>
@@ -74,7 +74,7 @@ public sealed class RetailCareerSlotHandoffTests
     }
 
     /// <summary>
-    /// The loop counter at <c>0x0041BD37</c> is <c>mov edx, 0x20</c>.
+    /// The loop counter at <c>0x0041BD37</c> is a load of constant 0x20 into edx.
     /// Words 8..31 are unreachable through <c>SetSlot</c> but the
     /// assignment still copies them. Mutation: copying only the eight
     /// addressable words leaves the tail behind.

@@ -7,33 +7,30 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> later leftover after the
-/// later second 20.0 addend — <c>0x00461008</c>
-/// <c>fld [esp+0x20]</c> / <c>0x0046100C</c>
-/// <c>fsub [0x005D857C]</c> (20.0) / first store
-/// <c>0x00461013</c> <c>fstp [esp]</c> — recovered from
+/// later second 20.0 addend — <c>0x00461008</c>: a float load of stack local +0x20;
+/// <c>0x0046100C</c>: a float subtract of the value at 0x005D857C (20.0) / first store
+/// <c>0x00461013</c>: a float store to the top of the stack — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>
 /// (PE32 magic <c>0x010B</c>). File offset = VA − <c>0x400000</c>.
-/// Twin <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>
+/// Twin a private twin copy
 /// is the same size and hash. <c>FEPLevelSelect</c> is absent from
 /// the pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
 /// <c>0x00460FFE</c> is already the later second 20.0 add
-/// <c>fadd [0x005D857C]</c> (<c>d8 05 7c 85 5d 00</c>).
+/// (a float add of the value at 0x005D857C).
 /// <c>0x00461005</c> is already that leftover's first store
-/// <c>fstp [esp]</c> (<c>d9 1c 24</c>).
-/// <c>0x00461008</c> is <c>fld [esp+0x20]</c>
-/// (<c>d9 44 24 20</c>). <c>0x0046100C</c> is
-/// <c>fsub [0x005D857C]</c> (<c>d8 25 7c 85 5d 00</c>).
-/// <c>0x005D857C</c> is <c>00 00 a0 41</c> (20.0, bits
-/// <c>0x41A00000</c>). First store is <c>0x00461013</c>
-/// <c>fstp [esp]</c> (<c>d9 1c 24</c>) after
-/// <c>push ecx</c> at <c>0x00461012</c>. That is a
+/// (a float store to the top of the stack).
+/// <c>0x00461008</c> is a float load of stack local +0x20. <c>0x0046100C</c> is
+/// a float subtract of the value at 0x005D857C.
+/// <c>0x005D857C</c> is 20.0 (bits
+/// <c>0x41A00000</c>). First store is <c>0x00461013</c>: a float store to the top of the stack after
+/// a push of ecx at <c>0x00461012</c>. That is a
 /// subtrahend on a later <c>[esp+0x20]</c> local, not dest.
-/// The later second <c>fsub [0x005D857C]</c> at
+/// The later second float subtract of the value at 0x005D857C at
 /// <c>0x0046101A</c> is later. The later second 20.0 addend
 /// at <c>0x00460FFE</c> is already owned. The later first
 /// 20.0 addend at <c>0x00460FF0</c> is already owned. The
@@ -52,7 +49,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// sliding-borders call, the 148.0 fsub, the 10.0 fsub, the
 /// later 148.0 triple, the later <c>[esp+0x94]</c> shift,
 /// the later 1.0 fcom, the later 610.0 / 0.0 pair, the later
-/// 60.0 scale, the later [esp+0x94]/fcomp 1.0 compare, the
+/// 60.0 scale, the later [esp+0x94]/a float compare against 1.0, popping the result compare, the
 /// later first 20.0 addend, the later second 20.0 addend,
 /// Apply pulse, dropdown cosine, language pitch, or the
 /// 0x00463669 compare. Do not invent dest from 20.0. Do not

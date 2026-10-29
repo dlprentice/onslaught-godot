@@ -7,11 +7,11 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render version overlay at <c>0x0046416E</c>,
 /// recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
-/// <para><c>push 0x00629454</c> is <c>"V%1d.%02d"</c>. Major dword
+/// <para>A push of constant 0x00629454 is <c>"V%1d.%02d"</c>. Major dword
 /// <c>0x00629410</c> is image-initial 1. Minor <c>0x00679980</c> is
 /// BSS past the image, so image-initial 0. Settled colour is
 /// <c>fade&lt;&lt;24 | 0x00102025</c> = <c>0xFF102025</c>, which is

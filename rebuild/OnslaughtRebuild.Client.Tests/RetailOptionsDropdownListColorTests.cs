@@ -6,27 +6,27 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CMenuItemDropdown::Render</c> expanded list colour leftover
-/// after <c>0x004A3F6C</c> <c>mov ebx, 0xFF404040</c> /
-/// <c>0x004A3F75</c> <c>or ebx, -1</c> — recovered from official
+/// after <c>0x004A3F6C</c>: a load of constant 0xFF404040 into ebx;
+/// <c>0x004A3F75</c>: an or of -1 into ebx — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A3F43</c> <c>xor edi, edi</c>,
-/// <c>0x004A3F65</c> <c>mov ebp, [esp+0x10]</c> dest Y leftover,
-/// <c>0x004A3F69</c> <c>mov eax, [esi+0x20]</c> currentIndex,
-/// <c>0x004A3F6C</c> <c>mov ebx, 0xFF404040</c>,
-/// <c>0x004A3F71</c> <c>cmp edi, eax</c>,
-/// <c>0x004A3F73</c> <c>jne 0x004A3F78</c>,
-/// <c>0x004A3F75</c> <c>or ebx, -1</c> (<c>83 CB FF</c>),
-/// <c>0x004A3FCC</c> <c>push ebx</c> colour into DrawText,
-/// <c>0x004A3FCD</c> <c>mov ebx, [esp+0x4C]</c> dest X leftover,
-/// <c>0x004A3FE1</c> <c>call 0x004659A0</c>.
+/// <c>0x004A3F43</c>: a zeroing of edi,
+/// <c>0x004A3F65</c>: a load of stack local +0x10 into ebp dest Y leftover,
+/// <c>0x004A3F69</c>: a load of field +0x20 of esi into eax currentIndex,
+/// <c>0x004A3F6C</c>: a load of constant 0xFF404040 into ebx,
+/// <c>0x004A3F71</c>: a compare of edi with eax,
+/// <c>0x004A3F73</c>: a conditional branch to 0x004A3F78 (taken when not equal),
+/// <c>0x004A3F75</c>: an or of -1 into ebx,
+/// <c>0x004A3FCC</c>: a push of ebx colour into DrawText,
+/// <c>0x004A3FCD</c>: a load of stack local +0x4C into ebx dest X leftover,
+/// <c>0x004A3FE1</c>: a direct call to 0x004659A0.
 /// Idle is <c>0xFF404040</c>. When the loop index equals
 /// currentIndex, ebx becomes <c>0xFFFFFFFF</c>. Colour consults
 /// currentIndex. Dest Y does not. Dest is not 15.5, 322.5, 148.0,

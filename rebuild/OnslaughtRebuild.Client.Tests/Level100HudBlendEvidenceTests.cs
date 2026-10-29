@@ -256,8 +256,8 @@ public sealed class Level100HudBlendEvidenceTests
     /// device-level read of the safe copy produced, so a later "the portrait
     /// looks a bit dark, nudge it" pass has to argue with the debugger log
     /// rather than with a taste judgement. Sources:
-    /// local-lab/PORTRAIT-BATTLELINE-FIELD-2026-07-26.md and
-    /// local-lab/portrait-battleline-2026-07-26/.
+    /// the private lab note PORTRAIT-BATTLELINE-FIELD-2026-07-26.md and
+    /// a private lab folder.
     ///
     /// The three diffuse DWORDs (0x7fffffff darkener, 0x40ffffff portrait,
     /// 0xff6f8faf outline) and the six-fold portrait draw were read at the
@@ -314,7 +314,7 @@ public sealed class Level100HudBlendEvidenceTests
     ///
     /// Full recovery, including the six-row offset that is still open and is why
     /// the 95/101 radii were NOT touched:
-    /// local-lab/HUD-LANE-RECOVERED-2026-07-29.md.
+    /// the private lab note HUD-LANE-RECOVERED-2026-07-29.md.
     /// </summary>
     [Fact]
     public void TheCompassBaseRingIsTheAchromaticTapeTexelDrawnAsOneStrip()

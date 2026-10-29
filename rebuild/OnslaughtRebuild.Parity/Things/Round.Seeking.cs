@@ -12,7 +12,7 @@ public partial class Round
     /// <summary>The post-movement target release and seeking turn; called after unwiggling the velocity.</summary>
     internal void UpdateSeeking()
     {
-        // Native TEST AH,1 skips both negative and unordered damage, unlike !(damage < 0).
+        // Native (a bit test of ah against 1) skips both negative and unordered damage, unlike !(damage < 0).
         if (!(Data.Damage >= 0)) return;
         if (Target.ToRead is { } target)
         {

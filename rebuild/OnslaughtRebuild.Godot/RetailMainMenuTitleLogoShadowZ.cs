@@ -5,18 +5,18 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render 0x0089D88C title-logo shadow dest leftover
 /// and Z — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Texture.</b> Load at <c>0x00464251</c> is
-/// <c>mov eax, [0x0089D88C]</c> then later <c>push eax</c>. That is
+/// a load of the value at 0x0089D88C into eax then later push of eax. That is
 /// the same Title2 surface as the body, not 0x0089D7F0 / D894 /
 /// D898 / D89C / D8A0 / D8A4. Init stores the previous load of
 /// <c>FrontEnd\v3\FE_BEA_Title2.tga</c> (<c>0x0062A3A0</c>)
-/// at <c>mov [ebp+0x12C], eax</c> (<c>0x00468E60</c>). Colour
+/// at a store of eax to frame local +0x12C (<c>0x00468E60</c>). Colour
 /// sibling <c>0x0046424F</c> is already
 /// <see cref="RetailMainMenuTitleLogoShadow"/>. Body dest/Z
 /// sibling <c>0x004642CE</c> is already
@@ -36,13 +36,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailMainMenuRightTwinOverlay"/>.</para>
 ///
 /// <para><b>Site.</b> Colour sibling <c>0x0046424F</c> already owns
-/// the *63 pack. <c>push 0x3F866666</c> at <c>0x00464269</c> /
+/// the *63 pack. A push of constant 0x3F866666 at <c>0x00464269</c> /
 /// <c>0x00464274</c> is already ShadowScaleBoost 1.05.
-/// <c>0x0046427B</c> is <c>push 0x3DCCCCCD</c>. Dest is not an
-/// immediate 325/140: <c>mov ecx, 0x0089D758</c> then
-/// <c>call 0x00468750</c> at <c>0x00464285</c>
-/// <c>fadd [0x005D8C20]=140.0</c>, then <c>call 0x00468730</c>
-/// at <c>0x00464299</c> <c>fadd [0x005DB4A8]=325.0</c>. Those
+/// <c>0x0046427B</c> is a push of constant 0x3DCCCCCD. Dest is not an
+/// immediate 325/140: a load of constant 0x0089D758 into ecx then
+/// a direct call to 0x00468750 at <c>0x00464285</c>: a float add of the
+/// value at 0x005D8C20 (value 140.0), then a direct call to 0x00468730
+/// at <c>0x00464299</c>: a float add of the value at 0x005DB4A8 (value 325.0). Those
 /// addends are the already-measured title-logo ellipse centre
 /// (320+5, 130+10). Both helpers land on the already-owned
 /// GetShadowOffset leaves. The ellipse itself is
@@ -52,7 +52,7 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Call.</b> Eleven cdecl dwords into
 /// <c>CDXSurf__RenderSurface</c> at <c>0x005563D0</c> (call at
-/// <c>0x004642A8</c>, <c>add esp, 0x2C</c> at <c>0x004642AD</c>).
+/// <c>0x004642A8</c>, a stack cleanup of 0x2C bytes at <c>0x004642AD</c>).
 /// The leftover 0.1 push is Z, not scale. Dest is helper plus
 /// addend. Mode 4 is the centre-anchor. The 2-D consumer ignores
 /// z. Not a 29% title-logo scale. Not a sheen.</para>
@@ -78,7 +78,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuTitleLogoShadowZ
 {
-    /// <summary><c>mov eax, [0x0089D88C]</c> at <c>0x00464251</c>.</summary>
+    /// <summary>A load of the value at 0x0089D88C into eax at <c>0x00464251</c>.</summary>
     public const uint TextureLoadSite = 0x00464251u;
 
     /// <summary>Title-logo texture global. Same Title2 as the body.</summary>
@@ -90,28 +90,28 @@ public static class RetailMainMenuTitleLogoShadowZ
     /// <summary>Load identity string. Not writing-chrome, not the selector bar.</summary>
     public const string TexturePath = @"FrontEnd\v3\FE_BEA_Title2.tga";
 
-    /// <summary><c>mov [ebp+0x12C], eax</c> at <c>0x00468E60</c>.</summary>
+    /// <summary>A store of eax to frame local +0x12C at <c>0x00468E60</c>.</summary>
     public const uint TextureStoreSite = 0x00468E60u;
 
     /// <summary>Store displacement. Previous load of <see cref="TexturePath"/>.</summary>
     public const int TextureStoreOffset = 0x12C;
 
-    /// <summary><c>push 0x3DCCCCCD</c> at <c>0x0046427B</c>.</summary>
+    /// <summary>A push of constant 0x3DCCCCCD at <c>0x0046427B</c>.</summary>
     public const uint ZPushSite = 0x0046427Bu;
 
-    /// <summary><c>mov ecx, 0x0089D758</c> at <c>0x00464280</c>.</summary>
+    /// <summary>A load of constant 0x0089D758 into ecx at <c>0x00464280</c>.</summary>
     public const uint SurfThisLoadSite = 0x00464280u;
 
     /// <summary>CDXSurf this-pointer global. The offset helpers ignore ecx.</summary>
     public const uint SurfThis = 0x0089D758u;
 
-    /// <summary><c>call 0x00468750</c> at <c>0x00464285</c>.</summary>
+    /// <summary>A direct call to 0x00468750 at <c>0x00464285</c>.</summary>
     public const uint YHelperSite = 0x00464285u;
 
     /// <summary>Already-owned GetShadowOffsetY leaf. Not an immediate dest.</summary>
     public const uint YHelper = 0x00468750u;
 
-    /// <summary><c>fadd [0x005D8C20]</c> at <c>0x0046428A</c>.</summary>
+    /// <summary>A float add of the value at 0x005D8C20 at <c>0x0046428A</c>.</summary>
     public const uint DestYAddSite = 0x0046428Au;
 
     /// <summary>Dest-Y addend pool. Not a RenderSurface immediate.</summary>
@@ -123,13 +123,13 @@ public static class RetailMainMenuTitleLogoShadowZ
     /// <summary>Mode-4 dest Y addend. Title-logo ellipse centre, not a dest push.</summary>
     public static float DestYAdd => BitConverter.UInt32BitsToSingle(DestYAddBits);
 
-    /// <summary><c>call 0x00468730</c> at <c>0x00464299</c>.</summary>
+    /// <summary>A direct call to 0x00468730 at <c>0x00464299</c>.</summary>
     public const uint XHelperSite = 0x00464299u;
 
     /// <summary>Already-owned GetShadowOffsetX leaf. Not an immediate dest.</summary>
     public const uint XHelper = 0x00468730u;
 
-    /// <summary><c>fadd [0x005DB4A8]</c> at <c>0x0046429E</c>.</summary>
+    /// <summary>A float add of the value at 0x005DB4A8 at <c>0x0046429E</c>.</summary>
     public const uint DestXAddSite = 0x0046429Eu;
 
     /// <summary>Dest-X addend pool. Not a RenderSurface immediate.</summary>
@@ -141,13 +141,13 @@ public static class RetailMainMenuTitleLogoShadowZ
     /// <summary>Mode-4 dest X addend. Title-logo ellipse centre, not a dest push.</summary>
     public static float DestXAdd => BitConverter.UInt32BitsToSingle(DestXAddBits);
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x004642A8</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x004642A8</c>.</summary>
     public const uint CallSite = 0x004642A8u;
 
-    /// <summary><c>push 0x3F866666</c> at <c>0x00464269</c>. Already ShadowScaleBoost.</summary>
+    /// <summary>A push of constant 0x3F866666 at <c>0x00464269</c>. Already ShadowScaleBoost.</summary>
     public const uint ScalePushSite = 0x00464269u;
 
-    /// <summary><c>push 0x3F866666</c> at <c>0x00464274</c>. Second scale slot.</summary>
+    /// <summary>A push of constant 0x3F866666 at <c>0x00464274</c>. Second scale slot.</summary>
     public const uint ScaleYPushSite = 0x00464274u;
 
     /// <summary>Shadow scale immediate. Already ShadowScaleBoost 1.05, not 0.1.</summary>

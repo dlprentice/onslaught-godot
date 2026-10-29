@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay dest leftover and Z —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -16,26 +16,26 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailMainMenuVersionOverlay"/>. This leftover starts
 /// after that pack. Do not redo the sprintf or the colour OR.</para>
 ///
-/// <para><b>Site.</b> Identity scale <c>push 0x3F800000</c> at
+/// <para><b>Site.</b> Identity scale (a push of constant 0x3F800000) at
 /// <c>0x004641BA</c> / <c>0x004641BF</c> is 1.0, not 0.01.
-/// <c>0x004641C4</c> is <c>push 0x3C23D70A</c>. Dest is not an
-/// immediate 464: <c>call 0x00515B00</c> at <c>0x004641C9</c>
+/// <c>0x004641C4</c> is a push of constant 0x3C23D70A. Dest is not an
+/// immediate 464: a direct call to 0x00515B00 at <c>0x004641C9</c>
 /// is <c>PLATFORM__GetWindowHeight</c>
-/// (<c>mov eax, [0x00888A0C]; ret</c>), then
-/// <c>sub eax, 0x10</c> at <c>0x004641CE</c>,
-/// <c>fild [esp+0x4C]</c>, <c>fstp [esp]</c>. That height global
+/// (a load of the value at 0x00888A0C into eax, then return), then
+/// a subtraction of 0x10 from eax at <c>0x004641CE</c>,
+/// an integer-to-float load of stack local +0x4C, a float store to the top of the stack. That height global
 /// sits past the image, so image-initial dest is not 464.
-/// Dest X is <c>push 0</c> at <c>0x004641E2</c>.
-/// <c>push 1</c> at <c>0x004641E4</c> is the
+/// Dest X is a push of constant 0 at <c>0x004641E2</c>.
+/// A push of constant 1 at <c>0x004641E4</c> is the
 /// <c>CPlatform__Font</c> slot, then
 /// <c>CDXFont__DrawTextDynamic</c>. Do not invent dest
 /// immediates. Do not invent a 2px kerning hack. Do not invent
 /// a 29% title-logo scale.</para>
 ///
 /// <para><b>Call.</b> <c>CPlatform__Font</c> at <c>0x00515A70</c>
-/// (<c>RET 4</c>) then <c>CDXFont__DrawTextDynamic</c> at
+/// (a return that pops 4 bytes of arguments) then <c>CDXFont__DrawTextDynamic</c> at
 /// <c>0x00465710</c> (call at <c>0x004641ED</c>,
-/// <c>RET 0x28</c>). The leftover 0.01 push is Z, not scale.
+/// a return that pops 40 bytes of arguments). The leftover 0.01 push is Z, not scale.
 /// Dest Y is helper minus 16. Dest X is 0. The 2-D consumer
 /// ignores z. Not a 29% title-logo scale. Not a sheen.</para>
 ///
@@ -61,58 +61,58 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuVersionOverlayZ
 {
-    /// <summary><c>call 0x00515B00</c> at <c>0x004641C9</c>.</summary>
+    /// <summary>A direct call to 0x00515B00 at <c>0x004641C9</c>.</summary>
     public const uint HeightHelperSite = 0x004641C9u;
 
-    /// <summary><c>PLATFORM__GetWindowHeight</c>. <c>mov eax, [0x00888A0C]; ret</c>.</summary>
+    /// <summary><c>PLATFORM__GetWindowHeight</c>. A load of the value at 0x00888A0C into eax, then return.</summary>
     public const uint HeightHelper = 0x00515B00u;
 
     /// <summary>Window-height global. Past the image, so not an immediate 464.</summary>
     public const uint HeightGlobal = 0x00888A0Cu;
 
-    /// <summary><c>sub eax, 0x10</c> at <c>0x004641CE</c>.</summary>
+    /// <summary>A subtraction of 0x10 from eax at <c>0x004641CE</c>.</summary>
     public const uint DestYSubSite = 0x004641CEu;
 
     /// <summary>Integer subtract after GetWindowHeight. Not a dest immediate.</summary>
     public const int DestYSubtract = 0x10;
 
-    /// <summary><c>push 0</c> at <c>0x004641E2</c>.</summary>
+    /// <summary>A push of constant 0 at <c>0x004641E2</c>.</summary>
     public const uint DestXPushSite = 0x004641E2u;
 
     /// <summary>Dest X immediate. Integer 0 is also IEEE 0.0.</summary>
     public const float DestX = 0f;
 
-    /// <summary><c>push 0x3C23D70A</c> at <c>0x004641C4</c>.</summary>
+    /// <summary>A push of constant 0x3C23D70A at <c>0x004641C4</c>.</summary>
     public const uint ZPushSite = 0x004641C4u;
 
     /// <summary>Z immediate. Not scale.</summary>
     public const uint ZBits = 0x3C23D70Au;
 
-    /// <summary><c>push 0x3F800000</c> at <c>0x004641BA</c>.</summary>
+    /// <summary>A push of constant 0x3F800000 at <c>0x004641BA</c>.</summary>
     public const uint ScalePushSite = 0x004641BAu;
 
-    /// <summary><c>push 0x3F800000</c> at <c>0x004641BF</c>. Second scale slot.</summary>
+    /// <summary>A push of constant 0x3F800000 at <c>0x004641BF</c>. Second scale slot.</summary>
     public const uint ScaleYPushSite = 0x004641BFu;
 
     /// <summary>Identity scale. Already 1.0, not 0.01.</summary>
     public const uint ScaleBits = 0x3F800000u;
 
-    /// <summary><c>mov ecx, 0x0088A0A8</c> at <c>0x004641D6</c>.</summary>
+    /// <summary>A load of constant 0x0088A0A8 into ecx at <c>0x004641D6</c>.</summary>
     public const uint FontThis = 0x0088A0A8u;
 
-    /// <summary><c>CPlatform__Font</c>. <c>RET 4</c>.</summary>
+    /// <summary><c>CPlatform__Font</c>. A return that pops 4 bytes of arguments.</summary>
     public const uint FontHelper = 0x00515A70u;
 
-    /// <summary><c>push 1</c> at <c>0x004641E4</c>.</summary>
+    /// <summary>A push of constant 1 at <c>0x004641E4</c>.</summary>
     public const uint FontSlotPushSite = 0x004641E4u;
 
     /// <summary>Font slot. DrawMainMenu keeps the existing title-font DrawText.</summary>
     public const int FontSlot = 1;
 
-    /// <summary><c>call 0x00465710</c> at <c>0x004641ED</c>.</summary>
+    /// <summary>A direct call to 0x00465710 at <c>0x004641ED</c>.</summary>
     public const uint CallSite = 0x004641EDu;
 
-    /// <summary><c>CDXFont__DrawTextDynamic</c>. <c>RET 0x28</c>.</summary>
+    /// <summary><c>CDXFont__DrawTextDynamic</c>. A return that pops 40 bytes of arguments.</summary>
     public const uint DrawTextDynamic = 0x00465710u;
 
     /// <summary>Already-shipped format sibling. Not this leftover.</summary>

@@ -6,16 +6,16 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the retail FMV abort law recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle).
 ///
 /// <para><b>Receiver.</b> <c>CFMV::ReceiveButtonAction</c> <c>0x004656E0</c>–
-/// <c>0x00465708</c> (<c>c2 0c 00</c>). File offset = VA − <c>0x400000</c>.
+/// <c>0x00465708</c>. File offset = VA − <c>0x400000</c>.
 /// Independently disassembled this cycle:
-/// <c>cmp eax,7 / je write</c>, <c>cmp eax,0x42 / jne ret</c>,
-/// <c>test [ecx+0x0C] / jz ret</c>, then
-/// <c>mov [ecx+8],1</c> and <c>mov [0x006630CC],0</c>.</para>
+/// a compare of eax with 7, branching when equal, a compare of eax with 0x42, branching when not equal,
+/// a bit test of field +0x0C of ecx, branching when zero, then
+/// a store of constant 1 to field +8 of ecx and a store of constant 0 to the value at 0x006630CC.</para>
 ///
 /// <para><b>Default keys.</b> <c>OptionsEntries__InitDefaultSingleBindingsTable</c>
 /// <c>0x00514210</c> issues four <c>KEY_ONCE=8</c> rows for button 7 with
@@ -37,7 +37,7 @@ public sealed class RetailFmvSkipTests
     [Fact]
     public void OnlyButtonSevenAlwaysWritesTheQuitFlag()
     {
-        // 0x004656E4 cmp eax,7 / je write. Controller.h BUTTON_SKIP_CUTSCENE=7.
+        // 0x004656E4: a compare of eax with 7 / je write. Controller.h BUTTON_SKIP_CUTSCENE=7.
         Assert.Equal(7, RetailFmvSkip.SkipCutsceneButton);
         Assert.True(RetailFmvSkip.AcceptsButton(7, attractGate: false));
         Assert.True(RetailFmvSkip.AcceptsButton(7, attractGate: true));
@@ -50,7 +50,7 @@ public sealed class RetailFmvSkipTests
     [Fact]
     public void ButtonSixtySixWritesOnlyWhenTheAttractGateIsNonzero()
     {
-        // 0x004656E9 cmp eax,0x42; 0x004656EE mov eax,[ecx+0x0C]; test/jz ret.
+        // 0x004656E9: a compare of eax with 0x42; 0x004656EE: a load of field +0x0C of ecx into eax; test/jz ret.
         // Controller.h BUTTON_BREAK_ATTRACT_MODE=66. No default keyboard row
         // for 0x42 was found in 0x00514210 this cycle; the predicate is still
         // the receiver's.
@@ -77,7 +77,7 @@ public sealed class RetailFmvSkipTests
     [Fact]
     public void AnyOfTheThreeBackendLatchSlotsQuitsAndExtraMouseButtonsDoNot()
     {
-        // 0x0053F2EB mov eax,[0x0089BDF8] / test / jnz quit, then +0x18, +0x18.
+        // 0x0053F2EB: a load of the value at 0x0089BDF8 into eax / test / jnz quit, then +0x18, +0x18.
         Assert.True(RetailFmvSkip.AcceptsMouseLatch(left: true, middle: false, right: false));
         Assert.True(RetailFmvSkip.AcceptsMouseLatch(left: false, middle: true, right: false));
         Assert.True(RetailFmvSkip.AcceptsMouseLatch(left: false, middle: false, right: true));

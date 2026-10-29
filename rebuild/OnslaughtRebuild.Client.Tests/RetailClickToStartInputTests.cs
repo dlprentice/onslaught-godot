@@ -6,15 +6,15 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the CFEPIntro click-to-start input law recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
 /// <para><b>Action.</b> <c>CFEPIntro</c> handler <c>0x0051B660</c>–<c>0x0051B6AA</c>
-/// (<c>RET 8</c>): <c>cmp [esp+4], 0x2C / jne ret</c>, then
-/// <c>mov eax,[ecx+0x0C]; test/jnz ret</c>. Only action <c>0x2C</c> with
+/// (a return that pops 8 bytes of arguments): a compare of stack local +4 with 0x2C, branching when not equal, then
+/// a load of field +0x0C of ecx into eax, then test, branching when not zero. Only action <c>0x2C</c> with
 /// page substate 0 continues. Cold-start globals take
-/// <c>push 0x32; push 0; call CFrontEnd::SetPage 0x00466AE0</c>
+/// (a push of constant 0x32, then push of constant 0, then direct call to CFrontEnd::SetPage 0x00466AE0)
 /// (<c>0x0051B686</c>/<c>0x0051B690</c>).</para>
 ///
 /// <para><b>Default keys.</b> <c>OptionsEntries__InitDefaultSingleBindingsTable</c>
@@ -40,7 +40,7 @@ public sealed class RetailClickToStartInputTests
     [Fact]
     public void OnlyActionZeroX2CWithZeroSubstateIsAccepted()
     {
-        // 0x0051B660 cmp [esp+4], 0x2C / jne ret; 0x0051B667 [ecx+0x0C] test/jnz.
+        // 0x0051B660: a compare of stack local +4 with 0x2C / jne ret; 0x0051B667 [ecx+0x0C] test/jnz.
         Assert.Equal(0x2C, RetailClickToStartInput.ConfirmAction);
         Assert.True(RetailClickToStartInput.AcceptsAction(0x2C, pageSubstate: 0));
         Assert.False(RetailClickToStartInput.AcceptsAction(0x2C, pageSubstate: 1));
@@ -53,7 +53,7 @@ public sealed class RetailClickToStartInputTests
     [Fact]
     public void ColdStartSetPageIsFepMainOverFiftyFrames()
     {
-        // 0x0051B686 push 0x32; 0x0051B690 push 0; call 0x00466AE0.
+        // 0x0051B686: a push of constant 0x32; 0x0051B690 push 0; a direct call to 0x00466AE0.
         // The other two SetPage pairs (page 0x16 / page 0x14) are gated on
         // [0x0083D448] and [0x008A9AB4] and are not this cold-start path.
         Assert.Equal(0, RetailClickToStartInput.SetPageOrdinal);
@@ -63,7 +63,7 @@ public sealed class RetailClickToStartInputTests
     [Fact]
     public void DefaultConfirmScanCodesAreEnterAndSpaceOnly()
     {
-        // 0x00514448 push 0x1C; 0x0051445C push 0x39. KEY_ONCE=8, action 0x2C.
+        // 0x00514448: a push of constant 0x1C; 0x0051445C: a push of constant 0x39. KEY_ONCE=8, action 0x2C.
         Assert.Equal(new[] { 0x1C, 0x39 }, RetailClickToStartInput.DefaultConfirmScanCodes);
         Assert.True(RetailClickToStartInput.AcceptsDefaultConfirmScanCode(0x1C));
         Assert.True(RetailClickToStartInput.AcceptsDefaultConfirmScanCode(0x39));

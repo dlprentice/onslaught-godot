@@ -217,7 +217,7 @@ public sealed class RetailEventSchedulerTests
     // Pins the whole routing decision of 0x0044B370 at mTime = 0, slot 0:
     // the inclusive 0.051f window (eventmanager.cpp:186 / 0x005DB294), the
     // floor((time - mTime - 0.001f) * 20) bucket (:209-212), the >= 198
-    // overflow threshold (cmp ecx, 0xC6 at 0x0044B42D), and the STRICT
+    // overflow threshold (a compare of ecx with 0xC6 at 0x0044B42D), and the STRICT
     // > 1000000.0f drop (:202) - note 1000000.0f itself is still accepted, into
     // overflow. Each row would fail under an off-by-one threshold, a
     // round-instead-of-floor, or a non-strict ceiling. Does not pin behaviour at
@@ -397,7 +397,7 @@ public sealed class RetailEventSchedulerTests
         Assert.Equal(RetailEventScheduler.MaxEvents, scheduler.FreeEventCount());
     }
 
-    // Pins the STRICT overflow gate at 0x0044B6D9 (test ah,1 / je - C0 only, so
+    // Pins the STRICT overflow gate at 0x0044B6D9 (a bit test of ah against 1 / je - C0 only, so
     // "less than", never "equal"): an overflow event due exactly on the frame
     // boundary waits one more frame. 10.0f is due at frame 200 (mTime 10.0f
     // exactly) but only fires at frame 201. A <= gate fires it one frame early

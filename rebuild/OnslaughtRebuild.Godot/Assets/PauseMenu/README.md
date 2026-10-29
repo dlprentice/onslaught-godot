@@ -20,7 +20,7 @@ Decoded from the 291-byte source above (one AYA zlib record, 1152-byte `DDS `
 payload): **32×32, `DXT2` FourCC, no mip chain**, 1024 bytes of block data =
 exactly 64 4×4 blocks for a single 32×32 level. The 32×32 read in the panel
 frame is therefore the texture's native size, and matches the measured corner
-scalar `_DAT_005DB2B8` = 32.0.
+scalar `0x005DB2B8` = 32.0.
 
 Alpha content, from the decoded 1024 texels: 753 fully opaque (255), 208 fully
 transparent (0), 63 intermediate spread evenly across the 4-bit ramp — a soft

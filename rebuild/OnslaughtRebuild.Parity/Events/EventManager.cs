@@ -219,7 +219,8 @@ public sealed class EventManager
                 return;
             }
 
-            // fld time; fsub mTime; fsub 0.001f; fmul 20.0f; fstp qword; call floor; fistp qword.
+            // fld time; a float subtract of mTime; a float subtract of 0.001f;
+            // a float multiply by 20.0f; fstp qword; call floor; fistp qword.
             float delay = (time - Time - 0.001f) * GameFrameRate;
             offsetBuffer = X87.Fist(Math.Floor(delay));
             if (offsetBuffer >= BufferCount - 2)

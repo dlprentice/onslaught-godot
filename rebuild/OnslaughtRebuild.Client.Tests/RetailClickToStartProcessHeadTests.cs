@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the unread CFEPIntro::Process head —
 /// <c>0x0051B6B0</c>–<c>0x0051B705</c> — recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
@@ -15,20 +15,20 @@ namespace OnslaughtRebuild.Client.Tests;
 /// handshake, and the full-window mouse rect are other helpers. This is
 /// the unread prologue in front of them. Not a fade. Not pixels.</para>
 ///
-/// <para><b>Early-out.</b> <c>mov eax,[esp+4]; test / jne 0x0051B83B</c>
-/// pops esi and <c>RET 4</c>. A nonzero stack arg skips HUD, ResetFlags,
+/// <para><b>Early-out.</b> a load of stack local +4 into eax, then test, branching to 0x0051B83B when not equal
+/// pops esi and a return that pops 4 bytes of arguments. A nonzero stack arg skips HUD, ResetFlags,
 /// the 3 s dispatch, idle, clock, handshake, and mouse.</para>
 ///
 /// <para><b>HUD.</b> Zero-arg fall-through does
-/// <c>mov ecx, 0x00704858; call 0x0041A200</c>. That body is
-/// <c>xor al, al; ret</c>, so <c>test al,al / je 0x0051B6D4</c> never
+/// (a load of constant 0x00704858 into ecx, then direct call to 0x0041A200). That body is
+/// a zeroing of al, then return, so a zero test of al, branching to 0x0051B6D4 when equal never
 /// reaches ResetFlags <c>0x0051B610</c> from this site.</para>
 ///
 /// <para><b>Dev-mode confirm.</b> <c>0x00662DF4</c> is uninitialised
 /// <c>.data</c> (image-initial 0). Nonzero plus
 /// <c>GetTime()-[this+4]</c> strictly greater than <c>3.0f</c> at
-/// <c>0x005D8CC0</c> (<c>test ah,0x41 / jne skip</c>) then
-/// <c>CALL [vtable+0x0C]</c> with action <c>0x2C</c> and
+/// <c>0x005D8CC0</c> (a bit test of ah against 0x41, branching when not equal) then
+/// an indirect call through vtable slot 3 with action <c>0x2C</c> and
 /// <c>0x3F800000</c> (1.0f). Cold Process therefore never auto-confirms.
 /// The mutations these cases kill are a 3 s click-to-start skip on the
 /// cold path, inventing ResetFlags from a live HUD, and wiring this head
@@ -39,7 +39,8 @@ public sealed class RetailClickToStartProcessHeadTests
     [Fact]
     public void NonzeroStackArgReturnsImmediately()
     {
-        // 0x0051B6B0 mov eax,[esp+4]; test eax,eax / jne 0x0051B83B.
+        // 0x0051B6B0: a load of stack local +4 into eax; a zero test of eax,
+        // then conditional branch to 0x0051B83B (taken when not equal).
         Assert.Equal(0x0051B6B0u, RetailClickToStartProcessHead.ProcessVa);
         Assert.Equal(0x0051B83Bu, RetailClickToStartProcessHead.EarlyOutVa);
         Assert.Equal(4, RetailClickToStartProcessHead.StackArgBytes);
@@ -57,8 +58,8 @@ public sealed class RetailClickToStartProcessHeadTests
     [Fact]
     public void ImageGetShowHudIsXorAlAlSoResetFlagsIsSkipped()
     {
-        // 0x0051B6BF mov ecx, 0x00704858; call 0x0041A200.
-        // 0x0041A200 xor al, al; ret. test al,al / je 0x0051B6D4.
+        // 0x0051B6BF: a load of constant 0x00704858 into ecx; a direct call to 0x0041A200.
+        // 0x0041A200: a zeroing of al; ret. A zero test of al, then conditional branch to 0x0051B6D4 (taken when equal).
         Assert.Equal(0x0041A200u, RetailClickToStartProcessHead.GetShowHudVa);
         Assert.Equal(0x00704858u, RetailClickToStartProcessHead.ShowHudObject);
         Assert.Equal(0x0051B610u, RetailClickToStartProcessHead.ResetFlagsVa);
@@ -77,7 +78,7 @@ public sealed class RetailClickToStartProcessHeadTests
     [Fact]
     public void ShowHudTrueWouldCallResetFlags()
     {
-        // Counterfactual of test al,al / je. This image never takes it.
+        // Counterfactual of a zero test of al / je. This image never takes it.
         RetailClickToStartProcessHead.Tick tick = RetailClickToStartProcessHead.Evaluate(
             processState: 0,
             showHud: true,
@@ -91,7 +92,7 @@ public sealed class RetailClickToStartProcessHeadTests
     [Fact]
     public void ImageInitialDevModeSkipsTheThreeSecondConfirm()
     {
-        // 0x0051B6D4 mov eax,[0x00662DF4]; test / je 0x0051B705.
+        // 0x0051B6D4: a load of the value at 0x00662DF4 into eax; test / a conditional branch to 0x0051B705 (taken when equal).
         // pe_read_va: VA is in the uninitialised part of .data.
         Assert.Equal(0x00662DF4u, RetailClickToStartProcessHead.DevModeGlobal);
         Assert.Equal(0u, RetailClickToStartProcessHead.ImageInitialDevMode);
@@ -112,8 +113,9 @@ public sealed class RetailClickToStartProcessHeadTests
     [Fact]
     public void DevModeAfterThreeSecondsDispatchesAction2CFloatOne()
     {
-        // 0x0051B6EA fcomp [0x005D8CC0]=3.0f; test ah,0x41 / jne 0x0051B705.
-        // Then push 0x3F800000, push 0x2C, call [esi]+0x0C.
+        // 0x0051B6EA: a float compare against the value at 0x005D8CC0, popping the result=3.0f; a
+        // bit test of ah against 0x41, then conditional branch to 0x0051B705 (taken when not equal).
+        // Then a push of constant 0x3F800000, a push of constant 0x2C, an indirect call through the pointer in esi+0x0C.
         Assert.Equal(0x2C, RetailClickToStartProcessHead.ConfirmAction);
         Assert.Equal(RetailClickToStartInput.ConfirmAction, RetailClickToStartProcessHead.ConfirmAction);
         Assert.Equal(0x3F800000u, RetailClickToStartProcessHead.ConfirmValueBits);

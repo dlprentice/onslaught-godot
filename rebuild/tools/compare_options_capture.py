@@ -20,7 +20,7 @@ is the outlier, and our page sits within ~1.5 units of retail's video-on truth.
 The conclusion below is unaffected - an ink mask is opaque glyph core either way
 - but the reason mattered enough to get wrong twice, so it is stated correctly
 here. Video-on references now exist at
-local-lab/retail-reference-pristine/nofmv-options-2026-07-31/{run1,run2}.
+a private retail reference capture.
 
 What discriminates instead is an INK MASK: the pixels bright enough to be glyph
 core rather than background or arc. Text either lands on retail's pixels or it

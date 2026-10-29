@@ -101,7 +101,7 @@ public sealed class Level100TerrainCompositorTests
             "rebuild/OnslaughtRebuild.Godot/Level100TerrainAppearanceAsset.cs");
 
         // Stage 3 (0x005459a4-0x005459fd): the angle is the double at
-        // 0x005d87e0, 1.0 (`fld qword`; read as a float32 its low dword is
+        // 0x005d87e0, 1.0 (a float load of qword; read as a float32 its low dword is
         // 0.0, which an earlier reading took for the angle). sin is stored as a
         // float32, then both are scaled by 0x005d858c = 0.25: _11 = _22 =
         // 0x3e0a5140, _12 = -_21 = 0x3e576aa4, offset (0.3, 0.3).

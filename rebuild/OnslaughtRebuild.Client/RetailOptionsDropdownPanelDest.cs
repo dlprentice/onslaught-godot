@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> expanded panel dest leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -21,30 +21,30 @@ namespace OnslaughtRebuild.Client;
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is
 /// the expanded-arm <c>CVBufTexture__DrawSpriteEx</c> dest and the
-/// <c>add ebp, 3</c> width leftover. Do not redo those. Do not
+/// addition of 3 to ebp width leftover. Do not redo those. Do not
 /// invent dest Y as 5, 15.5, 268, 284, or 304. Do not invent dest
 /// X as 322.5 or the 2.0 constant.</para>
 ///
 /// <para><b>Dest X.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3D38</c> is <c>fadd [0x005D8BA0]</c>.
-/// <c>0x004A3D3E</c> is <c>fstp [esp+0x18]</c>.
-/// After <c>push ebp</c> that store aliases <c>[esp+0x1C]</c>.
-/// <c>0x004A3F16</c> is <c>mov ecx, [esp+0x34]</c>, which aliases
+/// <c>0x004A3D38</c> is a float add of the value at 0x005D8BA0.
+/// <c>0x004A3D3E</c> is a float store to stack local +0x18.
+/// After a push of ebp that store aliases <c>[esp+0x1C]</c>.
+/// <c>0x004A3F16</c> is a load of stack local +0x34 into ecx, which aliases
 /// that leftover after the DrawSpriteEx pack pushes.
-/// <c>0x004A3F36</c> is <c>push ecx</c>. Dest X is the collapsed
+/// <c>0x004A3F36</c> is a push of ecx. Dest X is the collapsed
 /// dest leftover. Dest is not 2.0.</para>
 ///
-/// <para><b>Dest Y.</b> <c>0x004A3E01</c> is <c>dec eax</c>.
-/// <c>0x004A3E02</c> is <c>imul [esp+0x24]</c> (label SIZE.cy).
+/// <para><b>Dest Y.</b> <c>0x004A3E01</c> is a decrement of eax.
+/// <c>0x004A3E02</c> is a signed multiply by stack local +0x24 (label SIZE.cy).
 /// <c>0x004A3E07</c> / <c>0x004A3E0A</c> are <c>cdq</c> /
-/// <c>sar eax, 1</c>. <c>0x004A3E14</c> is
-/// <c>fsubr [esp+0x110]</c> incoming dest Y.
-/// <c>0x004A3F00</c> is <c>mov ebp, [esp+0x24]</c>.
-/// <c>0x004A3F35</c> is <c>push ebp</c>. Dest Y is incoming dest Y
+/// an arithmetic right shift of eax by 1. <c>0x004A3E14</c> is
+/// a reversed float subtract of stack local +0x110 incoming dest Y.
+/// <c>0x004A3F00</c> is a load of stack local +0x24 into ebp.
+/// <c>0x004A3F35</c> is a push of ebp. Dest Y is incoming dest Y
 /// minus integer-half of (count-1)*cy, then clamped against 0.0
 /// and 480.0. Dest is not 15.5 and not currentIndex.</para>
 ///
-/// <para><b>Width.</b> <c>0x004A3EF4</c> is <c>add ebp, 3</c>
+/// <para><b>Width.</b> <c>0x004A3EF4</c> is an addition of 3 to ebp
 /// after the max state SIZE.cx walk. Width is max cx plus 3.
 /// Nearby 2.0 is the dest X pad leftover, not width.</para>
 ///
@@ -61,19 +61,19 @@ public static class RetailOptionsDropdownPanelDest
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>dec eax</c>. Count minus one before the half.</summary>
+    /// <summary>A decrement of eax. Count minus one before the half.</summary>
     public const uint CountDecSite = 0x004A3E01u;
 
-    /// <summary><c>imul [esp+0x24]</c>. Label SIZE.cy leftover, not dest.</summary>
+    /// <summary>A signed multiply by stack local +0x24. Label SIZE.cy leftover, not dest.</summary>
     public const uint PitchImulSite = 0x004A3E02u;
 
     /// <summary><c>cdq</c> before the signed half.</summary>
     public const uint CdqSite = 0x004A3E07u;
 
-    /// <summary><c>sar eax, 1</c>. Integer-half of (count-1)*cy.</summary>
+    /// <summary>An arithmetic right shift of eax by 1. Integer-half of (count-1)*cy.</summary>
     public const uint HalfSarSite = 0x004A3E0Au;
 
-    /// <summary><c>fsubr [esp+0x110]</c>. Incoming dest Y minus that half.</summary>
+    /// <summary>A reversed float subtract of stack local +0x110. Incoming dest Y minus that half.</summary>
     public const uint DestYSubSite = 0x004A3E14u;
 
     /// <summary>0.0 source. Leftover min dest Y, not dest Y itself.</summary>
@@ -88,34 +88,34 @@ public static class RetailOptionsDropdownPanelDest
     /// <summary>IEEE bits at <see cref="ClampMaxGlobal"/>. 480.0.</summary>
     public const uint ClampMaxBits = 0x43F00000u;
 
-    /// <summary><c>add ebp, 3</c>. Width leftover, not dest X.</summary>
+    /// <summary>An addition of 3 to ebp. Width leftover, not dest X.</summary>
     public const uint WidthAddSite = 0x004A3EF4u;
 
     /// <summary>Immediate at <see cref="WidthAddSite"/>.</summary>
     public const int WidthPad = 3;
 
-    /// <summary><c>mov [esp+0x28], ebp</c>. Max cx plus 3.</summary>
+    /// <summary>A store of ebp to stack local +0x28. Max cx plus 3.</summary>
     public const uint WidthStoreSite = 0x004A3EFCu;
 
-    /// <summary><c>mov ebp, [esp+0x24]</c>. Dest Y leftover.</summary>
+    /// <summary>A load of stack local +0x24 into ebp. Dest Y leftover.</summary>
     public const uint DestYLoadSite = 0x004A3F00u;
 
-    /// <summary><c>mov ecx, [esp+0x34]</c>. Dest X leftover.</summary>
+    /// <summary>A load of stack local +0x34 into ecx. Dest X leftover.</summary>
     public const uint DestXLoadSite = 0x004A3F16u;
 
-    /// <summary><c>push ebp</c>. Dest Y into DrawSpriteEx.</summary>
+    /// <summary>A push of ebp. Dest Y into DrawSpriteEx.</summary>
     public const uint DestYPushSite = 0x004A3F35u;
 
-    /// <summary><c>push ecx</c>. Dest X into DrawSpriteEx.</summary>
+    /// <summary>A push of ecx. Dest X into DrawSpriteEx.</summary>
     public const uint DestXPushSite = 0x004A3F36u;
 
-    /// <summary><c>call 0x00555BE0</c>.</summary>
+    /// <summary>A direct call to 0x00555BE0.</summary>
     public const uint DrawSpriteCallSite = 0x004A3F37u;
 
     /// <summary>Expanded panel draw. Not DrawText.</summary>
     public const uint DrawSpriteEx = 0x00555BE0u;
 
-    /// <summary><c>add esp, 0x3C</c> after DrawSpriteEx.</summary>
+    /// <summary>A stack cleanup of 0x3C bytes after DrawSpriteEx.</summary>
     public const uint DrawSpritePop = 0x3Cu;
 
     /// <summary>2.0 source. Pad leftover, not dest X itself.</summary>
@@ -127,10 +127,10 @@ public static class RetailOptionsDropdownPanelDest
     /// <summary>Expanded flag at <c>[this+0x24]</c>.</summary>
     public const uint ExpandByteOffset = 0x24u;
 
-    /// <summary><c>mov al, [esi+0x24]</c>.</summary>
+    /// <summary>A load of field +0x24 of esi into al.</summary>
     public const uint ExpandTestSite = 0x004A3DA8u;
 
-    /// <summary><c>je 0x004A409B</c>.</summary>
+    /// <summary>A conditional branch to 0x004A409B (taken when equal).</summary>
     public const uint CollapseJumpSite = 0x004A3DADu;
 
     /// <summary>Collapsed arm. Not this leftover.</summary>
@@ -233,7 +233,8 @@ public static class RetailOptionsDropdownPanelDest
     public static float ClampMax => BitConverter.UInt32BitsToSingle(ClampMaxBits);
 
     /// <summary>
-    /// <c>cdq / sub eax,edx / sar eax,1</c>. Toward-zero half of
+    /// A sign extension of eax into edx, then subtraction of edx from
+    /// eax, then arithmetic right shift of eax by 1. Toward-zero half of
     /// (count-1)*cy. Not float half.
     /// </summary>
     public static int IntegerHalf(int value) => value / 2;
@@ -271,7 +272,7 @@ public static class RetailOptionsDropdownPanelDest
     }
 
     /// <summary>
-    /// Max state SIZE.cx plus the <c>add ebp, 3</c> leftover.
+    /// Max state SIZE.cx plus the addition of 3 to ebp leftover.
     /// Width is not dest X.
     /// </summary>
     public static float Width(int maxCx) => maxCx + WidthPad;

@@ -1207,7 +1207,7 @@ internal sealed class Level100ChainAutopilot
     /// morph exists for exactly one reason: <c>TargetZoneN.msl</c>'s
     /// <c>hit()</c> tests <c>InJetMode() == FALSE</c>, and that released builtin
     /// - <c>0x005380F0</c> negating <c>0x00408120</c> against the shipped 0.5 s
-    /// threshold at <c>_DAT_005D85EC</c>, recorded at
+    /// threshold at <c>0x005D85EC</c>, recorded at
     /// <see cref="Level100MissionTiming.JetModeState"/> - is FALSE <b>only for a
     /// walker whose last ground contact is inside fifteen ticks</b>. A walker
     /// that morphs tens of metres up is airborne for its whole fall and reads as
@@ -1936,7 +1936,7 @@ internal sealed class Level100ChainAutopilot
                 // is sampled against: measured against Target Warehouse, whose
                 // authored origin is 0.6 m below the ground the walker stands
                 // on (buildings are not ground-seated - see the open list in
-                // local-lab/INDEX.md), every rung of the ladder was under
+                // the private lab note INDEX.md), every rung of the ladder was under
                 // ground + LineOfSightClearanceMillimeters, so `clear` was
                 // false at every point on a 3.3 m orbit and the driver circled
                 // for 34,000 ticks. Backing out restores the ladder's reach.
@@ -2909,7 +2909,7 @@ internal sealed class Level100ChainAutopilot
         // The reticle never goes into the dirt. Several released targets carry
         // an authored origin at or below the ground the walker stands on -
         // Target Warehouse's is 0.6 m below it, because buildings are still not
-        // ground-seated (open list, local-lab/INDEX.md). The ladder is bounded
+        // ground-seated (open list, the private lab note INDEX.md). The ladder is bounded
         // in ANGLE, so at short range it collapses to its 100 mm floor and
         // every rung of it can sit under
         // ground + LineOfSightClearanceMillimeters, which makes

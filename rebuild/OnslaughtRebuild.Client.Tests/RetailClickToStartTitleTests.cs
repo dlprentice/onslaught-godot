@@ -6,7 +6,7 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the CFEPIntro title-logo slam recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 ///
 /// <para><b>Body.</b> <c>CFEPIntro::Render</c> <c>0x0051BBA0</c>–<c>0x0051BD8C</c>.
@@ -22,8 +22,8 @@ public sealed class RetailClickToStartTitleTests
     [Fact]
     public void TitleStaysHiddenUntilPageElapsedTimesOnePointTwoExceedsTwo()
     {
-        // 0x0051BBAA fsub [this+4]; 0x0051BBAD fmul [1.2] at 0x005DBCE4;
-        // 0x0051BBB3 fcom [2.0] at 0x005D8BA0; test ah,0x41 / jnz skip.
+        // 0x0051BBAA: a float subtract of field +4 of this; 0x0051BBAD: a float multiply by the constant 1.2 at 0x005DBCE4;
+        // 0x0051BBB3: a float compare against the constant 2.0 at 0x005D8BA0; a bit test of ah against 0x41 / jnz skip.
         Assert.Equal(1.2, RetailClickToStartTitle.TimeScale, 5);
         Assert.Equal(2.0, RetailClickToStartTitle.GateSeconds, 5);
         Assert.False(RetailClickToStartTitle.ShouldDraw(0d));
@@ -35,7 +35,7 @@ public sealed class RetailClickToStartTitleTests
     public void ScaleSlamsFromTwoPointFiveToOneHalfThenFreezes()
     {
         // Remaining ST after the brightness fistp is v=25-12*page while
-        // v >= 1, else 1.0; then fmul [0.5] at 0x0051BC29.
+        // v >= 1, else 1.0; then a float multiply by the constant 0.5 at 0x0051BC29.
         Assert.Equal(2.3f, RetailClickToStartTitle.Scale(1.7d), 5);
         Assert.Equal(0.5f, RetailClickToStartTitle.Scale(2.0d), 5);
         Assert.Equal(0.5f, RetailClickToStartTitle.Scale(3.0d), 5);
@@ -72,8 +72,9 @@ public sealed class RetailClickToStartTitleTests
     [Fact]
     public void SettledColorsAreTheSpecimenBytePacksNotASineAlpha()
     {
-        // Outline: edi=255, lea*5 / shl 5 / sub edi = *159, shl 16, and 0xFF000000.
-        // Body: *255, shl 16, not / and 0x00FFFFFF / xor → 0xFEFFFFFF.
+        // Outline: edi=255, multiplied by 159 (an address scale by 5, a shift left by 5 and a subtraction of edi), shifted left
+        // by 16 and masked with 0xFF000000.
+        // Body: a multiply by 255, a shift left by 16, an inversion, a mask with 0x00FFFFFF and an xor, giving 0xFEFFFFFF.
         Assert.Equal(0x9E000000u, RetailClickToStartTitle.OutlineColor(3.0d));
         Assert.Equal(0xFEFFFFFFu, RetailClickToStartTitle.BodyColor(3.0d));
         Assert.Equal(
@@ -97,8 +98,10 @@ public sealed class RetailClickToStartTitleTests
     [Fact]
     public void SixthPassUsesADifferentGateThanTheFivePassSlam()
     {
-        // After the body call, 0x0051BD01 fcomp [3.0] at 0x005D8CC0 (test ah,1 /
-        // je skip) then 0x0051BD16 fcomp [0.0] at 0x005D856C (test ah,0x41 /
+        // After the body call, 0x0051BD01: a float compare against the constant
+        // 3.0, popping the result at 0x005D8CC0 (a bit test of ah against 1 /
+        // je skip) then 0x0051BD16: a float compare against the constant 0.0,
+        // popping the result at 0x005D856C (a bit test of ah against 0x41 /
         // jne skip). Both load the [esp+0x14] slot: -1 when v>=1, else 1-v.
         // That is 0 < 1-v < 3, i.e. 2 < page < 2.25. It is not page*1.2 > 2.
         Assert.Equal(3.0f, RetailClickToStartTitle.SixthFadeLimit);
@@ -119,7 +122,7 @@ public sealed class RetailClickToStartTitleTests
     [Fact]
     public void SixthPassIsTheZEqualsZeroPointZeroTwoCopyAtTheBodyDest()
     {
-        // Pushes at 0x0051BD78 / 0x0051BD7D / 0x0051BD82 then call 0x005563D0.
+        // Pushes at 0x0051BD78 / 0x0051BD7D / 0x0051BD82 then a direct call to 0x005563D0.
         // 0x3CA3D70A = 0.02; 0x43910000 = 290; 0x437A0000 = 250. Outline:false
         // because the colour pack is the body *255/not/and/xor, not *159.
         Assert.Equal(0x3CA3D70Au, RetailClickToStartTitle.SixthZBits);
@@ -135,8 +138,9 @@ public sealed class RetailClickToStartTitleTests
     [Fact]
     public void SixthScaleAndColorUseOneMinusVAndTheThirtyTwoOverWPack()
     {
-        // Remaining ST after fistp is 2*(1-v); fmul [0.5] at 0x0051BD5A → 1-v.
-        // Brightness is fdivr [1] / fmul [128] of 4*(1-v) = 32/(1-v), then the
+        // Remaining ST after fistp is 2*(1-v); a float multiply by the constant 0.5 at 0x0051BD5A → 1-v.
+        // Brightness is a reversed float divide by the value at 1, then
+        // float multiply by the value at 128 of 4*(1-v) = 32/(1-v), then the
         // same body pack as 0x0051BCCA.
         const double page = 25.0 / 12.0; // 1-v = 1 exactly
         Assert.Equal(1.0f, RetailClickToStartTitle.SixthScale(page), 5);

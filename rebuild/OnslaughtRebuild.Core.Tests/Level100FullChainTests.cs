@@ -554,7 +554,7 @@ public sealed class Level100FullChainTests
     /// <para><b>Why this is the assertion.</b> Retail issues exactly one
     /// <c>CSoundManager::PlayEffect</c> per launch instant and then spawns the
     /// whole volley. Byte-verified in the pristine specimen
-    /// (<c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+    /// (a private pristine copy, sha256
     /// <c>74154bfa…</c> - not the installed executable, which is patched):
     /// <c>ProjectileBurst__SpawnFromCurrentPreset</c> at <c>0x005069f0</c>
     /// calls <c>0x004e1940</c> at <c>0x00506a96</c>, loads

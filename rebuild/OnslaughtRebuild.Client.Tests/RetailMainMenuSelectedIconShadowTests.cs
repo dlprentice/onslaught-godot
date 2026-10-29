@@ -7,16 +7,16 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render selected-row icon shadow colour at
 /// <c>0x0046407C</c>, recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 /// Independently re-read official 74154bfa this cycle (image base 0x400000).
 ///
 /// <para>The keep-going leftover labeled <c>0x00464075</c> as
-/// <c>mov ecx, esi</c>. That byte is <c>7E 05</c> — the signed-clamp
-/// <c>jle</c> after <c>cmp esi, 255</c>. The pack is
-/// <c>mov ecx, esi</c> at <c>0x0046407C</c>, then
-/// <c>shl 6 / sub esi / shl 16 / and 0xFF000000</c>. ESI is the
+/// a copy of esi into ecx. That byte is the signed-clamp
+/// <c>jle</c> after a compare of esi with 255. The pack is
+/// a copy of esi into ecx at <c>0x0046407C</c>, then
+/// a left shift by 6, then subtraction of esi, then left shift by 16, then mask with 0xFF000000. ESI is the
 /// 0x0046405F <c>fistp</c> icon-fade byte after the 0x00464067
 /// signed 0..255 clamp. Settled 255 submits <c>0x3E000000</c>,
 /// which is capture ShadowTint. DrawMainMenu keeps ShadowTint.

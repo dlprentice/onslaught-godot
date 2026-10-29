@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay post-draw flag leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -22,27 +22,26 @@ namespace OnslaughtRebuild.GodotClient;
 /// redo the sprintf, the colour OR, dest/Z, or the font slot.</para>
 ///
 /// <para><b>Stores.</b> After the draw at <c>0x004641ED</c>,
-/// <c>0x004641FC</c> is <c>mov byte [0x00679B40], 1</c>,
-/// <c>0x00464203</c> is <c>mov byte [0x009C68AC], 0</c>, and
-/// <c>0x0046420A</c> is <c>mov byte [0x009C690D], 1</c>. Those
+/// <c>0x004641FC</c> is a store of constant 1 to the byte value at 0x00679B40,
+/// <c>0x00464203</c> is a store of constant 0 to the byte value at 0x009C68AC, and
+/// <c>0x0046420A</c> is a store of constant 1 to the byte value at 0x009C690D. Those
 /// three writes are unconditional. The same <c>0x009C68AC=0</c> /
 /// <c>0x009C690D=1</c> pair already sits at the CFEPMain::Render
 /// prologue <c>0x00462D5E</c> / <c>0x00462D65</c>. The earlier
-/// <c>mov byte [0x00679B40], 0</c> at <c>0x00464180</c> (after
+/// (a store of constant 0 to the byte value at 0x00679B40) at <c>0x00464180</c> (after
 /// sprintf, before dest/Z) is already
 /// <see cref="RetailMainMenuVersionOverlayEnable"/>, not this one.
 /// A two-instruction reader at <c>0x00465F00</c> is
-/// <c>mov al, [0x00679B40]; ret</c>. Do not invent a meaning
+/// a load of the value at 0x00679B40 into al, then return. Do not invent a meaning
 /// beyond the store bytes.</para>
 ///
 /// <para><b>Not a fade.</b> <c>0x004641F2</c> is
-/// <c>fld [esp+0x38]</c> and <c>0x004641F6</c> is
-/// <c>fcom [0x005D856C]</c>. That dword is image
+/// a float load of stack local +0x38 and <c>0x004641F6</c> is
+/// a float compare against the value at 0x005D856C. That dword is image
 /// <c>0x00000000</c> / <c>+0.0f</c>. The compare is consumed
-/// later at <c>0x00464211</c> <c>fnstsw ax</c> /
-/// <c>test ah, 1</c> by the already-owned title-logo shadow
+/// later at <c>0x00464211</c>: an FPU status-word read, then bit test of ah against 1 by the already-owned title-logo shadow
 /// clamp (<c>0.0</c> / <c>1.0</c> at <c>0x005D8568</c> then
-/// <c>fmul [0x005D8C70]</c> = 255, then
+/// a float multiply by the value at 0x005D8C70 = 255, then
 /// <see cref="RetailMainMenuTitleLogoShadow"/> at
 /// <c>0x0046423D</c>). The three stores sit between
 /// <c>fcom</c> and <c>fnstsw</c>. This type does not invent a
@@ -68,16 +67,16 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuVersionOverlayFlags
 {
-    /// <summary><c>call 0x00465710</c> at <c>0x004641ED</c>.</summary>
+    /// <summary>A direct call to 0x00465710 at <c>0x004641ED</c>.</summary>
     public const uint DrawCallSite = 0x004641EDu;
 
-    /// <summary><c>CDXFont__DrawTextDynamic</c>. <c>RET 0x28</c>.</summary>
+    /// <summary><c>CDXFont__DrawTextDynamic</c>. A return that pops 40 bytes of arguments.</summary>
     public const uint DrawTextDynamic = 0x00465710u;
 
-    /// <summary><c>fld [esp+0x38]</c> at <c>0x004641F2</c>.</summary>
+    /// <summary>A float load of stack local +0x38 at <c>0x004641F2</c>.</summary>
     public const uint FldSite = 0x004641F2u;
 
-    /// <summary><c>fcom [0x005D856C]</c> at <c>0x004641F6</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D856C at <c>0x004641F6</c>.</summary>
     public const uint FcomSite = 0x004641F6u;
 
     /// <summary>Image dword at the <c>fcom</c>. <c>+0.0f</c>.</summary>
@@ -86,10 +85,10 @@ public static class RetailMainMenuVersionOverlayFlags
     /// <summary>Image bits at <see cref="FcomZeroGlobal"/>.</summary>
     public const uint FcomZeroBits = 0x00000000u;
 
-    /// <summary><c>fnstsw ax</c> at <c>0x00464211</c>. Consumes the <c>fcom</c>.</summary>
+    /// <summary>An FPU status-word read at <c>0x00464211</c>. Consumes the <c>fcom</c>.</summary>
     public const uint FnstswSite = 0x00464211u;
 
-    /// <summary><c>mov byte [0x00679B40], 1</c> at <c>0x004641FC</c>.</summary>
+    /// <summary>A store of constant 1 to the byte value at 0x00679B40 at <c>0x004641FC</c>.</summary>
     public const uint EnableByteStoreSite = 0x004641FCu;
 
     /// <summary>Post-draw enable-byte global.</summary>
@@ -100,17 +99,17 @@ public static class RetailMainMenuVersionOverlayFlags
 
     /// <summary>
     /// Sibling leftover after sprintf. Not this leftover.
-    /// <c>mov byte [0x00679B40], 0</c>.
+    /// A store of constant 0 to the byte value at 0x00679B40.
     /// </summary>
     public const uint EnableByteBeforeDrawSite = 0x00464180u;
 
     /// <summary>Immediate at <see cref="EnableByteBeforeDrawSite"/>.</summary>
     public const byte EnableByteBeforeDraw = 0;
 
-    /// <summary><c>mov al, [0x00679B40]; ret</c>.</summary>
+    /// <summary>A load of the value at 0x00679B40 into al, then return.</summary>
     public const uint EnableByteReader = 0x00465F00u;
 
-    /// <summary><c>mov byte [0x009C68AC], 0</c> at <c>0x00464203</c>.</summary>
+    /// <summary>A store of constant 0 to the byte value at 0x009C68AC at <c>0x00464203</c>.</summary>
     public const uint StateAStoreSite = 0x00464203u;
 
     /// <summary>First render-state global of the pair.</summary>
@@ -122,7 +121,7 @@ public static class RetailMainMenuVersionOverlayFlags
     /// <summary>Same pair at CFEPMain::Render prologue.</summary>
     public const uint StateAPrologueSite = 0x00462D5Eu;
 
-    /// <summary><c>mov byte [0x009C690D], 1</c> at <c>0x0046420A</c>.</summary>
+    /// <summary>A store of constant 1 to the byte value at 0x009C690D at <c>0x0046420A</c>.</summary>
     public const uint StateBStoreSite = 0x0046420Au;
 
     /// <summary>Second render-state global of the pair.</summary>

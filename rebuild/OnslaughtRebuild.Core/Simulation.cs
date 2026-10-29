@@ -197,7 +197,7 @@ public sealed partial class Simulation
     /// Measurement seam. Applies exactly the two <em>capability grants</em> the
     /// released LevelScript performs at the head of beat 6 —
     /// <c>player.EnableFlightMode()</c> (including
-    /// <c>mov [ecx+0x58c], 1</c>) and, for one Target Zone,
+    /// (a store of constant 1 to field +0x58c of ecx)) and, for one Target Zone,
     /// <c>target.SetObjective(); target.Activate();</c> — so that the three
     /// "fly there and land" legs can be measured while beats 3–5 are still
     /// mechanically blocked by causes outside this lane (Target Truck and
@@ -232,7 +232,7 @@ public sealed partial class Simulation
     /// <summary>
     /// Isolated <see cref="WorldSnapshot.Level100FlightEnabled"/>
     /// names the rebuild bool. This is official
-    /// <c>mov [ecx+0x58c], 1</c>. Disable's clear stays
+    /// (a store of constant 1 to field +0x58c of ecx). Disable's clear stays
     /// unclaimed.
     /// </summary>
     internal int Level100FlightModeFlag => _flightModeFlag;
@@ -2068,8 +2068,8 @@ public sealed partial class Simulation
         {
             // THE SLOW-FLIGHT GATE IS 1.5 RELEASED UNITS PER UPDATE, NOT 1.0.
             // `BattleEngineJetPart.cpp:628` reads `if (velocity<1.5f)`, and the
-            // pristine 74154bfa image agrees byte for byte: the `fcomp dword
-            // ptr [0x005D8BD8]` at 0x00411B39 inside
+            // pristine 74154bfa image agrees byte for byte: the float compare against
+            // the value at 0x005D8BD8, popping the result at 0x00411B39 inside
             // CBattleEngineJetPart::GetFriction (0x00411AA0) loads 0x3FC00000
             // = 1.5f. One released unit per update is
             // SimulationConstants.MillimetersPerRetailUnit = 1_000 Core
@@ -3403,7 +3403,7 @@ public sealed partial class Simulation
     //
     // All five Level 100 trigger volumes are authored at retail Z = 0, and
     // released CThing::Init (0x004F34A0) raises an authored thing to the height
-    // field sample -- see local-lab/STATIC-OBJECT-SEATING-2026-07-26.md.
+    // field sample -- see the private lab note STATIC-OBJECT-SEATING-2026-07-26.md.
     // Without that the test would be stricter than retail by the terrain height
     // under each volume: 898 mm at Target Zone 2, which costs 434 mm of
     // horizontal tolerance.
@@ -3516,7 +3516,7 @@ public sealed partial class Simulation
 
     private void UpdateResources(bool playerPartMoveStarted)
     {
-        // The released outer CBattleEngine::Move does not call WalkerPart::Move
+        // The released outer CBattleEngine::Move does not a direct call to WalkerPart::Move
         // or JetPart::Move once IsDying() is true. Resource regeneration/drain
         // belongs to those part moves, so a pre-Move lethal hit skips it. A
         // lethal water skim occurs near the END of JetPart::Move, after its

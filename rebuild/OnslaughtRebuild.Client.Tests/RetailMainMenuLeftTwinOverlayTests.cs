@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D898 not/and/xor overlay at
 /// <c>0x00463AD3</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -15,11 +15,11 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>The keep-going leftover labeled <c>0x00463AD3</c> as the
 /// not/and/xor pack on leftover left-twin 0x0089D898, not D894 /
 /// D8A0 / D8A4. Official bytes independently re-read this cycle:
-/// <c>mov eax, esi</c> at <c>0x00463AD3</c> (<c>8b c6</c>),
-/// <c>mov ecx, [esp+0x40]</c> at <c>0x00463AD5</c>, then
-/// <c>shl 8 / sub esi / push ebp / shl 16 / mov edx, eax / push
-/// 0x3F800000 / not edx / and 0x00FFFFFF / xor eax</c>. Texture
-/// load at <c>0x00463AF8</c> is <c>mov eax, [0x0089D898]</c>. Dest
+/// a copy of esi into eax at <c>0x00463AD3</c>,
+/// a load of stack local +0x40 into ecx at <c>0x00463AD5</c>, then
+/// a left shift by 8, then subtraction of esi, then push of ebp, then left shift by 16, then copy of eax into edx,
+/// then push of constant 0x3F800000, then bitwise not of edx, then mask with 0x00FFFFFF, then xor with eax. Texture
+/// load at <c>0x00463AF8</c> is a load of the value at 0x0089D898 into eax. Dest
 /// immediates <c>0x00463B05</c>=344.0 / <c>0x00463B0A</c>=219.0.
 /// The leftover 0.3 push at <c>0x00463B00</c> is CDXSurf Z
 /// <c>0x3E99999A</c>, not scale and not a 29% title-logo. Then

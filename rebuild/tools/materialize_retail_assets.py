@@ -618,19 +618,18 @@ PINE_IMPOSTER_TEXTURE = (
     "7368ba0c586221ff1b1572cee8f84de2bf6db426c005a73a10bad54a938ad882",
 )
 # Retail's AUTHORED default, read from the pristine specimen
-# local-lab/safe-copy-bea-pristine/BEA.exe.original.backup (sha256
+# a private pristine copy (sha256
 # 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750).
 # It is deliberately NOT read from defaultoptions.bea, which is per-machine run
 # state; see GOAL.md's defaults rule and task #137.
 #
 # The "Geometry detail:" setter at VA 0x004DD6B0 dispatches its state argument
-# to exactly three arms, each a `mov dword [0x006321A0], imm32`
-# (opcode bytes C7 05 A0 21 63 00):
-#     0x004DD737  00 00 20 41 = 10.0  Low     (bias 3.0, scale 0.1)
-#     0x004DD6FF  00 00 F0 41 = 30.0  Medium  (bias 1.0, scale 1.0)
-#     0x004DD6CA  00 00 8C 42 = 70.0  High    (bias 0.3, scale 2.0)
+# to exactly three arms, each a store of an immediate to the value at 0x006321A0:
+#     0x004DD737 10.0 Low (bias 3.0, scale 0.1)
+#     0x004DD6FF 30.0 Medium (bias 1.0, scale 1.0)
+#     0x004DD6CA 70.0 High (bias 0.3, scale 2.0)
 # The image's own static initialisers pick out exactly one of those arms:
-# .data 0x006321A0 (file 0x2321A0) = 00 00 F0 41 = 30.0, LOD bias 0x00631E88
+# .data 0x006321A0 (file 0x2321A0) = 30.0, LOD bias 0x00631E88
 # (file 0x231E88) = 1.0, quality scale 0x00630E0C (file 0x230E0C) = 1.0. That is
 # arm 1 and only arm 1, so the released out-of-box Geometry detail is Medium and
 # the authored mesh-quality distance is 30.0.
@@ -640,8 +639,7 @@ PINE_IMPOSTER_TEXTURE = (
 # while proof_defaultoptions.bea from the same install holds 30.0/1.0/1.0 at the
 # identical offsets, and no .bea appears anywhere in INSTALL.LOG's 5,773
 # installed-file lines. OptionsTail +0x0C is bound to 0x006321A0 by the
-# serializer itself: 0x00420E0F `A3 A0 21 63 00` on load, 0x00420BA0
-# `8B 0D A0 21 63 00` on save.
+# serializer itself: 0x00420E0F on load, 0x00420BA0 on save.
 PINE_MESH_QUALITY_DISTANCE = 30.0
 # Steam's fast standing view is address-derived, but the exact runtime owner
 # sequence and phase are unresolved. This reconstruction-owned phase makes the
@@ -792,7 +790,7 @@ DIRECT_ASSETS = (
     (GODOT_ASSETS / "PauseMenu/circle-02.texture.aya", "data/resources/dxtntextures/pausemenu%pause_circle02.tga(0)A8R8G8B8.aya", "4cd5e553a8a093d3a895f3639136fb6548267371c28914b00d3ccbb3c153516f"),
     # CMessageLog__RenderPanelFrame (0x004B9010) corner cell: one 32x32 DXT2
     # quarter curve, opaque toward the lower-left, drawn at the measured 32.0
-    # corner size (_DAT_005DB2B8) and flipped per corner.
+    # corner size (0x005DB2B8) and flipped per corner.
     (GODOT_ASSETS / "PauseMenu/endcurve.texture.aya", "data/resources/dxtntextures/MessageLog%endcurve.tga(0)A8R8G8B8.aya", "843defb41f22782e01c037d36a1b03b3ab8ba6c81624b9ad6e0b6e61e2568635"),
     (GODOT_ASSETS / "Level100/Sky/cube25-cent.texture.aya", "data/resources/dxtntextures/cubes%cube25_cent.tga(0)X8R8G8B8.aya", "1aad6cc8f85b6bb7ccbb8d2c7b0e6aa31722a9adbde5a3f19b248430ca83469e"),
     (GODOT_ASSETS / "Level100/Sky/cube25-down.texture.aya", "data/resources/dxtntextures/cubes%cube25_down.tga(0)X8R8G8B8.aya", "4770829ba631e93fbc33db2012754da75a06bfccc2fb2b36875e92032e22d19d"),
@@ -978,21 +976,21 @@ FRONTEND_ASSETS = (
     # CFrontEnd::DrawBar (FrontEnd.cpp:1073) and CFrontEnd__LoadSharedResources
     # (0x004687e0) name FrontEnd\BarL/BarC/BarR.tga. These are header-bar white
     # masks, not CConsole__RenderLoadingScreen (0x0042C810). Safe-copy hashes
-    # from local-lab/safe-copy-bea-pristine/data/resources/dxtntextures/.
+    # from a private copy of the pristine game data.
     (GODOT_ASSETS / "Frontend/bar-l.texture.aya", "data/resources/dxtntextures/FrontEnd%BarL.tga(0)A8R8G8B8.aya", "fbd28ca720ebe91cb8f58a9f5be5e4e9ee5c013fc42052fd1bec6b41dfd094bd"),
     (GODOT_ASSETS / "Frontend/bar-c.texture.aya", "data/resources/dxtntextures/FrontEnd%BarC.tga(0)A8R8G8B8.aya", "347828edf9f97dd3463ce7374e167e57f8bd837113cbfad71cb8cbc6bcde68a5"),
     (GODOT_ASSETS / "Frontend/bar-r.texture.aya", "data/resources/dxtntextures/FrontEnd%BarR.tga(0)A8R8G8B8.aya", "9995d4a41ff140d3d33004086e82f940db946c0db45635b5c853662ace6c6199"),
     # The mouse cursor sprite. Retail closes every interactive frontend frame
     # with a 32x32 quad of this texture at the pointer position, measured on 14
     # draws across 13 pages and 4 launches in the 2026-07-27 d3d9 sweep
-    # (local-lab/D3D9-FULL-SWEEP-2026-07-27.md).
+    # (the private lab note D3D9-FULL-SWEEP-2026-07-27.md).
     #
     # The name is read from the pristine specimen
-    # local-lab/safe-copy-bea-pristine/BEA.exe.original.backup (sha256
+    # a private pristine copy (sha256
     # 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750): VA
     # 0x00640058 / file 0x240058 holds "mouse.tga\0", the string the cursor
     # renderer at 0x00523A70 hands to CTexture::FindTexture, and VA 0x00640054
-    # holds FF 00 00 00, which that renderer packs into the 0xFFFFFFFF diffuse
+    # holds 0x000000FF, which that renderer packs into the 0xFFFFFFFF diffuse
     # the sweep measured.
     #
     # The file is DXT2 on disk (128x128, mipMapCount 8) even though the sweep
@@ -1196,8 +1194,8 @@ def _definition_string(
     return value[:-1].decode("ascii")
 
 
-# The profile constructor's MinAltitude default, 4.0 (`mov [ebx+0x15c],
-# 0x40800000` at 0x0042f0e9); no released air profile sets field 42.
+# The profile constructor's MinAltitude default, 4.0 (a store of constant 0x40800000
+# to field +0x15c of ebx at 0x0042f0e9); no released air profile sets field 42.
 AIR_UNIT_DEFAULT_MINIMUM_ALTITUDE_BITS = 0x40800000
 
 
@@ -3001,7 +2999,7 @@ def _parse_level_world_actors_and_waypoints(
     # A named path's uint16 entries are RLWD *initial-actor ordinals* of the 30
     # thingType-18 marker records, not indices into the navigation graph above.
     # Three independent legs establish this, all measured from the shipped
-    # archive (local-lab/AMBIENT-LIFE-INVENTORY-2026-07-27.md section 1.4):
+    # archive (the private lab note AMBIENT-LIFE-INVENTORY-2026-07-27.md section 1.4):
     #   1. the union of all eight index lists is exactly the 30 thingType-18
     #      ordinals, each used exactly once - which the guard below re-checks
     #      on every materialization rather than trusting the note;
@@ -3428,7 +3426,7 @@ def _actor_pose(
             #
             # `_core_elevation_millimeters` is the whole producer half. Retail's
             # `CThing::Init` (0x004F34A0), read from the pristine specimen
-            # local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256
+            # (a private pristine copy), sha256
             # 74154BFAE14DDC8ECB87A0766F5BC381C7B7F1AB334ED7A753040EDA1E1E7750,
             # copies the authored position in and then applies two clamps and
             # nothing else - `pos[2] = min(pos[2], SampleGroundHeight(x, y))`
@@ -3445,8 +3443,8 @@ def _actor_pose(
             # accidentally near-ground Core Y of 0 to a genuinely-authored but
             # unclamped -10000 - 10 m under the terrain - and leave 32 of the 33
             # static instances disagreeing with the elevation the renderer draws
-            # them at. See local-lab/TARGET-CONTACT-GEOMETRY-2026-07-26.md
-            # section 4 and local-lab/TTD-DATUM-ORIENTATION-2026-07-31.md.
+            # them at. See the private lab note TARGET-CONTACT-GEOMETRY-2026-07-26.md
+            # section 4 and the private lab note TTD-DATUM-ORIENTATION-2026-07-31.md.
             _core_elevation_millimeters(retail_position[2]),
             _round_away_from_zero((retail_position[1] - LEVEL100_PLAYER_START_Y) * 1_000.0),
         ],
@@ -4870,9 +4868,9 @@ def _level100_contact_asset(
                 # removed rather than zeroed because it has no retail
                 # counterpart at all: `CThing::Init` @0x004F34A0 writes the
                 # height-field sample straight into the pivot
-                # (`FSTP [ESP+0x14]` @0x004F3529, then `CALL [EAX+0x50]`) and
+                # (a float store to stack local +0x14 @0x004F3529, then an indirect call through vtable slot 20) and
                 # then clamps the pivot to the water level
-                # (`FSTP [ESI+0x24]` @0x004F3559). No mesh extent is read on
+                # (a float store to field +0x24 of esi @0x004F3559). No mesh extent is read on
                 # that path. The renderer stopped applying the lift for world
                 # objects (`Level100StaticWorldAsset.Load` seats them at
                 # `max(PlayerStartElevation - retailZ, terrain, water)`), so
@@ -6527,7 +6525,7 @@ def _materialize(game_root: Path, stage: Path) -> tuple[tuple[Path, str], ...]:
 # Play("TWIMTBP_GefFX_640x480_Audio") between them is not materialized, but NOT
 # because it is dead code — that first reading was wrong. Its gate [0x83d404] is
 # the value field of a CVar named "TWIMTBP" constructed at 0x83d3f8 (0x004efae0)
-# and written object-relative by CVar::Init's `mov [eax+0xc], ecx`, which an
+# and written object-relative by CVar::Init's (a store of ecx to field +0xc of eax), which an
 # absolute-address scan cannot see; the shipped cardid.txt sets
 # `Tweak:TWIMTBP 1` for exactly one device, Vendor:10DE Device:0330 GeForce FX
 # 5900 Ultra. It is omitted because no modern adapter matches that entry and the
@@ -6558,7 +6556,7 @@ def _materialize(game_root: Path, stage: Path) -> tuple[tuple[Path, str], ...]:
 # startup-media.json the client already reads; a second recipe for the same job
 # is how the half-rate FEBack strip happened. Which clip: the campaign FMV table
 # at file offset 0x23FD70 (VA 0x0063FD70) of the pristine specimen
-# local-lab/safe-copy-bea-pristine/BEA.exe.original.backup (sha256 74154bfa…)
+# a private pristine copy (sha256 74154bfa…)
 # holds [level][intro][outroA][outroB] records, and row 0 is (100, 1, 2, -1).
 # game.cpp:1130 formats that id as "cutscenes\\%02d".
 #
@@ -6573,7 +6571,7 @@ def _materialize(game_root: Path, stage: Path) -> tuple[tuple[Path, str], ...]:
 # shipped language — and for two days nothing was decoded because guessing which
 # one is English was refused. It is now read out of the shipped binary. All file
 # offsets below are VA - 0x400000 in the pristine specimen
-# local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256 74154bfa….
+# (a private pristine copy), sha256 74154bfa….
 #
 #   1. CText::Init's jump table at 0x004f2498 selects the language string. Its
 #      five arms load, IN THIS ORDER BY CASE: 0 -> 0x00632D74 "english",

@@ -26,7 +26,7 @@ public sealed class Level100BattleEngineRefreshTests
     [InlineData(int.MinValue, 7.0f)]
     public void DueTimes_AreSampleTimesScalePlusNowPlusDelayInSinglePrecision(int draw, float now)
     {
-        // r and 0x8000ffff; fild; fmul scale; fadd mTime; fadd delay; fstp.
+        // r and 0x8000ffff; fild; fmul scale; a float add of mTime; fadd delay; fstp.
         int sample = draw % 65536;
         float crosshair = ((sample * BitConverter.UInt32BitsToSingle(0x364ccccd)) + now) + 0.1f;
         float autoAim = ((sample * BitConverter.UInt32BitsToSingle(0x35cccccd)) + now) + 0.2f;

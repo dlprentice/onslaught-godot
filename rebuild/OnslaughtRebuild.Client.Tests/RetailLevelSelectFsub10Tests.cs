@@ -7,32 +7,30 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> leftover after the 148.0
-/// fsub window — <c>0x00460C90</c> <c>fld [esp+0x14]</c> /
-/// <c>0x00460C94</c> <c>fsub [0x005D85CC]</c> (10.0) /
-/// <c>0x00460CE7</c> <c>fstp [esp]</c> — recovered from official
+/// fsub window — <c>0x00460C90</c>: a float load of stack local +0x14;
+/// <c>0x00460C94</c>: a float subtract of the value at 0x005D85CC (10.0) /
+/// <c>0x00460CE7</c>: a float store to the top of the stack — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00460C90</c> <c>fld [esp+0x14]</c>
-/// (<c>d9 44 24 14</c>), <c>0x00460C94</c>
-/// <c>fsub [0x005D85CC]</c> (<c>d8 25 cc 85 5d 00</c>),
-/// <c>0x005D85CC</c> is <c>00 00 20 41</c> (10.0). The prior leftover
-/// labelled the second opcode <c>fld</c>; the bytes are <c>d8 25</c>
-/// (<c>fsub m32</c>), not <c>d9 05</c>. First consumer is
-/// <c>0x00460CE7</c> <c>fstp [esp]</c> (<c>d9 1c 24</c>) before
-/// <c>0x00460CEA</c> <c>call 0x005563D0</c>
+/// <c>0x00460C90</c>: a float load of stack local +0x14, <c>0x00460C94</c>: a float subtract of the value at 0x005D85CC,
+/// <c>0x005D85CC</c> is 10.0. The prior leftover
+/// labelled the second opcode <c>fld</c>; the instruction is a float subtract
+/// with a 32-bit memory operand, not a float load. First consumer is
+/// <c>0x00460CE7</c>: a float store to the top of the stack before
+/// <c>0x00460CEA</c>: a direct call to 0x005563D0
 /// (<c>CDXSurf__RenderSurface</c>). Settled pad is 148.0 so settled
-/// delta is 138.0. That is not dest. The nearby <c>push 0x43A10000</c>
+/// delta is 138.0. That is not dest. The nearby push of constant 0x43A10000
 /// (322.0) at <c>0x00460CE1</c> is later. The later triple at
 /// <c>0x00460E24</c> is later. The other
-/// <c>fld [esp+0x14]</c> / <c>fsub 10.0</c> pair at
+/// sequence (float load of stack local +0x14, then float subtract of 10.0) pair at
 /// <c>0x004721D7</c> is later. Sliding-borders already owns
 /// <c>0x00460B61</c>. 148.0 fsub already owns <c>0x00460B66</c>.
 /// Latch SET already owns <c>0x0042D5CF</c>. FMV skip already owns

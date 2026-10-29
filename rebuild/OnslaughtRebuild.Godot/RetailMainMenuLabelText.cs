@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render label DrawTextDynamic leftover — recovered
 /// from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -15,10 +15,10 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailMainMenuLabelColor"/>. Language sine at
 /// <c>0x0046319E</c> is already
 /// <see cref="RetailMainMenuLanguageSine"/> and is the
-/// <c>cmp ebx, -1 / je 0x00463191</c> arm. Version overlay
+/// compare of ebx with -1, branching to 0x00463191 when equal arm. Version overlay
 /// DrawTextDynamic tail at <c>0x004641ED</c> is already
 /// <see cref="RetailMainMenuVersionOverlayTail"/>. This leftover
-/// is the other <c>call 0x00465710</c>. Do not redo those.</para>
+/// is the other direct call to 0x00465710. Do not redo those.</para>
 ///
 /// <para><b>Call.</b> Regular rows (ebx != -1) save the
 /// <c>[edx+0x30]</c> text pointer at <c>[esp+0x28]</c> and
@@ -27,14 +27,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// <c>0x0046313D</c> / <c>0x00463141</c> reload
 /// <c>[esp+0x28]</c> / <c>[esp+0x24]</c>. Then
 /// <c>0x00463145</c> / <c>0x00463147</c> / <c>0x00463149</c>
-/// push 0 / 0 / <c>0x447A0000</c>, <c>push eax</c> /
-/// <c>push ebp</c> / 1.0 / 1.0 / <c>0x3EA3D70A</c> /
-/// <c>push ecx</c> / <c>push ebx</c> / <c>push 1</c>,
-/// <c>mov ecx, 0x0088A0A8</c>, <c>call 0x00515A70</c> at
-/// <c>0x00463168</c>, <c>mov ecx, eax</c>,
-/// <c>call 0x00465710</c> at <c>0x0046316F</c>. The body
-/// exits <c>RET 0x28</c>. Dest is ebx (X) and ecx (Y), not
-/// immediates. The leftover float is past fcom 0.0 / 0.25 /
+/// push 0 / 0 / <c>0x447A0000</c>, a push of eax, then push of ebp / 1.0 / 1.0 / <c>0x3EA3D70A</c> /
+/// a push of ecx, then push of ebx, then push of constant 1,
+/// a load of constant 0x0088A0A8 into ecx, a direct call to 0x00515A70 at
+/// <c>0x00463168</c>, a copy of eax into ecx,
+/// a direct call to 0x00465710 at <c>0x0046316F</c>. The body
+/// exits (a return that pops 40 bytes of arguments). Dest is ebx (X) and ecx (Y), not
+/// immediates. The leftover float is past (a float compare against 0.0) / 0.25 /
 /// 0.5. Arg 9 is 0 so that colour arm is skipped.</para>
 ///
 /// <para><b>Z.</b> <c>0x3EA3D70A</c> is IEEE 0.32. It is not
@@ -42,20 +41,20 @@ namespace OnslaughtRebuild.GodotClient;
 /// version overlay Z 0.01. Identity scales stay 1.0. The 2-D
 /// consumer ignores z.</para>
 ///
-/// <para><b>Cite-fix.</b> <c>cmp ebx, 0x3E8</c> is at
-/// <c>0x00465771</c> (<c>81 fb e8 03 00 00</c>).
-/// <c>0x00465777</c> is <c>mov word [eax], 0</c>. Do not
+/// <para><b>Cite-fix.</b> a compare of ebx with 0x3E8 is at
+/// <c>0x00465771</c>.
+/// <c>0x00465777</c> is a store of constant 0 to 16-bit word value pointed to by eax. Do not
 /// invent wrap from either site. This is not a new leftover.</para>
 ///
 /// <para><b>Not dest immediates.</b> Dest X is ebx after
-/// <c>fsubr [0x005DB5E0]</c> (219.0 minus half extent). Dest
-/// Y is <c>[esp+0x24]</c> after <c>fsubr [esp+0x10]</c>
+/// a reversed float subtract of the value at 0x005DB5E0 (219.0 minus half extent). Dest
+/// Y is <c>[esp+0x24]</c> after a reversed float subtract of stack local +0x10
 /// (row Y minus half height). Do not invent dest immediates.
 /// The 2px MeasureText residual stays open. DrawMainMenu
 /// keeps LabelColor, MeasureText dest, and scale 1.0.</para>
 ///
 /// <para><b>Not a fade.</b> Post-call
-/// <c>fld [esp+0x10] / fadd [0x005D857C]</c> is the 20.0 row
+/// (a float load of stack local +0x10, then float add of the value at 0x005D857C) is the 20.0 row
 /// pitch into the loop increment at <c>0x0046364D</c>, not a
 /// label fade. <c>0x009C68AC</c> / <c>0x009C690D</c> stores
 /// are already <see cref="RetailMainMenuVersionOverlayFlags"/>.
@@ -80,112 +79,112 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuLabelText
 {
-    /// <summary><c>mov [esp+0x28], eax</c> after <c>[edx+0x30]</c>.</summary>
+    /// <summary>A store of eax to stack local +0x28 after <c>[edx+0x30]</c>.</summary>
     public const uint TextSaveSite = 0x00462F29u;
 
-    /// <summary><c>call 0x00540680</c> at <c>0x00462F3D</c>.</summary>
+    /// <summary>A direct call to 0x00540680 at <c>0x00462F3D</c>.</summary>
     public const uint GetTextExtentSite = 0x00462F3Du;
 
     /// <summary><c>CDXFont__GetTextExtent</c>. Not dest and not a 2px hack.</summary>
     public const uint GetTextExtent = 0x00540680u;
 
-    /// <summary><c>cmp ebx, -1 / je 0x00463191</c> at <c>0x00462F14</c>.</summary>
+    /// <summary>A compare of ebx with -1, branching to 0x00463191 when equal at <c>0x00462F14</c>.</summary>
     public const uint LanguageRowGateSite = 0x00462F17u;
 
     /// <summary>Language-sine arm. Already <see cref="RetailMainMenuLanguageSine"/>.</summary>
     public const uint LanguageRowTarget = 0x00463191u;
 
-    /// <summary><c>mov eax, [esp+0x28]</c>. Text pointer.</summary>
+    /// <summary>A load of stack local +0x28 into eax. Text pointer.</summary>
     public const uint TextLoadSite = 0x0046313Du;
 
-    /// <summary><c>mov ecx, [esp+0x24]</c>. Dest Y, not an immediate.</summary>
+    /// <summary>A load of stack local +0x24 into ecx. Dest Y, not an immediate.</summary>
     public const uint DestYLoadSite = 0x00463141u;
 
-    /// <summary><c>push 0</c>. DrawTextDynamic stack arg 10.</summary>
+    /// <summary>A push of constant 0. DrawTextDynamic stack arg 10.</summary>
     public const uint FirstLeftoverPushSite = 0x00463145u;
 
-    /// <summary>Second <c>push 0</c>. DrawTextDynamic stack arg 9.</summary>
+    /// <summary>Second push of constant 0. DrawTextDynamic stack arg 9.</summary>
     public const uint SecondLeftoverPushSite = 0x00463147u;
 
-    /// <summary><c>push 0x447A0000</c>. DrawTextDynamic stack arg 8.</summary>
+    /// <summary>A push of constant 0x447A0000. DrawTextDynamic stack arg 8.</summary>
     public const uint FloatLeftoverPushSite = 0x00463149u;
 
     /// <summary>IEEE bits of stack arg 8. Not dest and not wrap.</summary>
     public const uint FloatSlotBits = 0x447A0000u;
 
-    /// <summary><c>push eax</c>. Wide text from <see cref="TextLoadSite"/>.</summary>
+    /// <summary>A push of eax. Wide text from <see cref="TextLoadSite"/>.</summary>
     public const uint TextPushSite = 0x0046314Eu;
 
-    /// <summary><c>push ebp</c>. Already <see cref="RetailMainMenuLabelColor"/>.</summary>
+    /// <summary>A push of ebp. Already <see cref="RetailMainMenuLabelColor"/>.</summary>
     public const uint ColorPushSite = 0x0046314Fu;
 
-    /// <summary><c>push 0x3F800000</c>. Identity scale Y.</summary>
+    /// <summary>A push of constant 0x3F800000. Identity scale Y.</summary>
     public const uint ScaleYPushSite = 0x00463150u;
 
-    /// <summary><c>push 0x3F800000</c>. Identity scale X.</summary>
+    /// <summary>A push of constant 0x3F800000. Identity scale X.</summary>
     public const uint ScaleXPushSite = 0x00463155u;
 
     /// <summary>Identity scale immediate. Not Z.</summary>
     public const uint ScaleBits = 0x3F800000u;
 
-    /// <summary><c>push 0x3EA3D70A</c>. Z, not scale.</summary>
+    /// <summary>A push of constant 0x3EA3D70A. Z, not scale.</summary>
     public const uint ZPushSite = 0x0046315Au;
 
     /// <summary>Z immediate. Not writing 0.9 and not selector-bar 0.33.</summary>
     public const uint ZBits = 0x3EA3D70Au;
 
-    /// <summary><c>push ecx</c>. Dest Y from <see cref="DestYLoadSite"/>.</summary>
+    /// <summary>A push of ecx. Dest Y from <see cref="DestYLoadSite"/>.</summary>
     public const uint DestYPushSite = 0x0046315Fu;
 
-    /// <summary><c>push ebx</c>. Dest X. Not an immediate.</summary>
+    /// <summary>A push of ebx. Dest X. Not an immediate.</summary>
     public const uint DestXPushSite = 0x00463160u;
 
-    /// <summary><c>push 1</c>. FONT_SMALL for <see cref="FontHelper"/>.</summary>
+    /// <summary>A push of constant 1. FONT_SMALL for <see cref="FontHelper"/>.</summary>
     public const uint FontSlotPushSite = 0x00463161u;
 
     /// <summary>GPL <c>FONT_SMALL</c>. Same slot as the version overlay.</summary>
     public const int FontSlot = 1;
 
-    /// <summary><c>mov ecx, 0x0088A0A8</c> at <c>0x00463163</c>.</summary>
+    /// <summary>A load of constant 0x0088A0A8 into ecx at <c>0x00463163</c>.</summary>
     public const uint FontThis = 0x0088A0A8u;
 
-    /// <summary><c>call 0x00515A70</c> at <c>0x00463168</c>.</summary>
+    /// <summary>A direct call to 0x00515A70 at <c>0x00463168</c>.</summary>
     public const uint FontCallSite = 0x00463168u;
 
-    /// <summary><c>CPlatform__Font</c>. <c>RET 4</c>.</summary>
+    /// <summary><c>CPlatform__Font</c>. A return that pops 4 bytes of arguments.</summary>
     public const uint FontHelper = 0x00515A70u;
 
-    /// <summary><c>call 0x00465710</c> at <c>0x0046316F</c>.</summary>
+    /// <summary>A direct call to 0x00465710 at <c>0x0046316F</c>.</summary>
     public const uint CallSite = 0x0046316Fu;
 
     /// <summary><c>CDXFont__DrawTextDynamic</c>.</summary>
     public const uint DrawTextDynamic = 0x00465710u;
 
-    /// <summary><c>RET 0x28</c> at <c>0x00465997</c>.</summary>
+    /// <summary>A return that pops 40 bytes of arguments at <c>0x00465997</c>.</summary>
     public const uint BodyRetSite = 0x00465997u;
 
-    /// <summary>Ten stack dwords. Not <c>RET 0x2C</c>.</summary>
+    /// <summary>Ten stack dwords. Not a return that pops 44 bytes of arguments.</summary>
     public const int BodyRetImmediate = 0x28;
 
     /// <summary>Thiscall stack arity implied by <see cref="BodyRetImmediate"/>.</summary>
     public const int StackArgCount = 10;
 
-    /// <summary><c>jmp 0x0046364D</c> after the two flag stores.</summary>
+    /// <summary>A jump to 0x0046364D after the two flag stores.</summary>
     public const uint PostCallJmpSite = 0x0046318Cu;
 
     /// <summary>Loop increment. Adds 20.0 to row Y. Not a fade.</summary>
     public const uint PostCallJmpTarget = 0x0046364Du;
 
-    /// <summary><c>cmp ebx, 0x3E8</c>. Cite-fix: not 0x00465777.</summary>
+    /// <summary>A compare of ebx with 0x3E8. Cite-fix: not 0x00465777.</summary>
     public const uint LengthClampSite = 0x00465771u;
 
-    /// <summary><c>mov word [eax], 0</c>. Not the cmp and not wrap.</summary>
+    /// <summary>A store of constant 0 to 16-bit word value pointed to by eax. Not the cmp and not wrap.</summary>
     public const uint LengthClampStoreSite = 0x00465777u;
 
     /// <summary>Wchar-count clamp. Not the leftover float.</summary>
     public const int LengthClampImmediate = 0x3E8;
 
-    /// <summary><c>fsubr [0x005DB5E0]</c> source. Dest X is not a push immediate.</summary>
+    /// <summary>A reversed float subtract of the value at 0x005DB5E0 source. Dest X is not a push immediate.</summary>
     public const uint DestXGlobal = 0x005DB5E0u;
 
     /// <summary>IEEE bits at <see cref="DestXGlobal"/>. 219.0.</summary>

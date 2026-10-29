@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D898 *63 alpha shadow pack at
 /// <c>0x00463A8F</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -15,13 +15,13 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>The keep-going leftover labeled <c>0x00463A8F</c> as the
 /// *63 pack on leftover left-twin 0x0089D898, not D894 / D8A0 /
 /// D8A4. Official bytes independently re-read this cycle:
-/// <c>mov eax, [0x0089D898]</c> at <c>0x00463A76</c>,
-/// <c>mov ecx, esi</c> at <c>0x00463A8F</c>, then
-/// <c>shl 6 / sub esi / shl 16 / and 0xFF000000</c>. The leftover
+/// a load of the value at 0x0089D898 into eax at <c>0x00463A76</c>,
+/// a copy of esi into ecx at <c>0x00463A8F</c>, then
+/// a left shift by 6, then subtraction of esi, then left shift by 16, then mask with 0xFF000000. The leftover
 /// 0.35 push at <c>0x00463AA1</c> is CDXSurf Z <c>0x3EB33333</c>,
 /// not scale and not a 29% title-logo. Dest addends are
-/// <c>fadd [0x005DB5D0]=349.0</c> then
-/// <c>fadd [0x005DB5CC]=224.0</c> before <c>CDXSurf__RenderSurface</c>
+/// a float add of the value at 0x005DB5D0 (value 349.0) then
+/// a float add of the value at 0x005DB5CC (value 224.0) before <c>CDXSurf__RenderSurface</c>
 /// (<c>0x005563D0</c>). Both dest helpers at <c>0x00463AAB</c> and
 /// <c>0x00463ABF</c> land on <c>0x00468730</c>. Dest is the leftover
 /// left-twin pair (219+5, 344+5), not 0x0089D894 primary and not

@@ -8,25 +8,25 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the <c>CMenuItem__Render</c> label dest leftover at
 /// <c>0x004A3394</c> — SIZE.cx integer-half then incoming dest X
 /// minus that half — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A337B</c> <c>lea ecx, [esp+0x0C]</c>,
-/// <c>0x004A338F</c> <c>call 0x00540680</c> (RET 8 at
-/// <c>0x00540823</c>), <c>0x004A3394</c> <c>mov eax, [esp+0x0C]</c>,
-/// <c>0x004A3398</c> <c>mov [esp+0x20], 0x3F800000</c> (1.0),
-/// <c>0x004A33A0</c> <c>cdq / sub eax, edx / sar eax, 1</c>,
-/// <c>0x004A33A9</c> <c>fild [esp+0x24]</c>,
-/// <c>0x004A33AD</c> <c>fld [esp+0x18]</c>,
-/// <c>0x004A33B1</c> <c>fsub st(1)</c>,
-/// <c>0x004A33B3</c> <c>fstp [esp+0x24]</c>,
-/// <c>0x004A33BB</c> <c>fcomp [0x005D85D8]</c>,
-/// <c>0x005D85D8</c> is <c>00 00 A0 40</c> (5.0).
+/// <c>0x004A337B</c>: an address computation (esp+0x0C) into ecx,
+/// <c>0x004A338F</c>: a direct call to 0x00540680 (RET 8 at
+/// <c>0x00540823</c>), <c>0x004A3394</c>: a load of stack local +0x0C into eax,
+/// <c>0x004A3398</c>: a store of constant 0x3F800000 to stack local +0x20 (1.0),
+/// <c>0x004A33A0</c>: a sign extension of eax into edx, then subtraction of edx from eax, then arithmetic right shift of eax by 1,
+/// <c>0x004A33A9</c>: an integer-to-float load of stack local +0x24,
+/// <c>0x004A33AD</c>: a float load of stack local +0x18,
+/// <c>0x004A33B1</c>: a float subtract using the FPU stack,
+/// <c>0x004A33B3</c>: a float store to stack local +0x24,
+/// <c>0x004A33BB</c>: a float compare against the value at 0x005D85D8, popping the result,
+/// <c>0x005D85D8</c> is 5.0.
 /// Dest Y is incoming <c>[esp+0x1C]</c>, not a 5.0 push.
-/// Nearby <c>and esi, ebp</c> at <c>0x004A33FC</c> is already
+/// Nearby mask of esi with ebp at <c>0x004A33FC</c> is already
 /// <c>RetailOptionsMenuItemColor</c>. DrawOptionTextCentered
 /// consumes DestX. Dest Y keeps the row top. Do not invent dest
 /// Y=5, dest X=5, dest Y=268, dest Y=284, dest Y=304, wrap, fade,

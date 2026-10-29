@@ -188,7 +188,7 @@ public sealed partial class IScript : Monitor
 
     /// <summary>
     /// IScript::Shutdown (CComplexThing's SHUTDOWN event, while the game is at most playing): the shutdown event only. It
-    /// does not call CMonitor::Shutdown, so readers of the script are not told.
+    /// does not a direct call to CMonitor::Shutdown, so readers of the script are not told.
     /// </summary>
     public override void Shutdown() => Notify(ScriptEventIndex.Shutdown);
 

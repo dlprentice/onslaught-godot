@@ -5,12 +5,12 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> click-hit sound leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Expanded list click at <c>0x004A4010</c> is
@@ -34,15 +34,15 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemIconDest"/>. Post-loop cancel at
 /// <c>0x004A4059</c> is already
 /// <see cref="RetailOptionsDropdownListCancel"/>. This leftover is the
-/// post-write <c>push 1</c> / <c>call 0x00468770</c>. Do not redo
+/// post-write (a push of constant 1, then direct call to 0x00468770). Do not redo
 /// those. Do not invent dest Y as 5, 15.5, 268, 284, or 304. Do not
 /// invent dest X as 322.5 or dest from 148.0. Do not invent dest as
 /// the 2.0 constant.</para>
 ///
 /// <para><b>Sound.</b> Official 74154bfa independently re-read:
-/// <c>0x004A403A</c> is <c>push 1</c>.
-/// <c>0x004A403C</c> is <c>call 0x00468770</c>.
-/// <c>0x004A4041</c> is <c>add esp, 4</c>.
+/// <c>0x004A403A</c> is a push of constant 1.
+/// <c>0x004A403C</c> is a direct call to 0x00468770.
+/// <c>0x004A4041</c> is a stack cleanup of 4 bytes.
 /// Pending skip and live apply both join at the push. A miss jumps to
 /// <c>0x004A4044</c> and skips the call. That is
 /// <c>CFrontEnd__PlaySound(1)</c> Front End Select after the click
@@ -68,22 +68,22 @@ public static class RetailOptionsDropdownListClickSound
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>push 1</c>. Select sound leftover. Not dest.</summary>
+    /// <summary>A push of constant 1. Select sound leftover. Not dest.</summary>
     public const uint SoundPushSite = 0x004A403Au;
 
     /// <summary><c>CFrontEnd__PlaySound(1)</c>. Front End Select. Not dest.</summary>
     public const uint SoundId = 1u;
 
-    /// <summary><c>call 0x00468770</c>. Select sound leftover. Not dest.</summary>
+    /// <summary>A direct call to 0x00468770. Select sound leftover. Not dest.</summary>
     public const uint SoundCallSite = 0x004A403Cu;
 
     /// <summary>PlaySound leftover. Cancel back sound at <c>0x004A4087</c> is already pinned.</summary>
     public const uint PlaySound = 0x00468770u;
 
-    /// <summary><c>add esp, 4</c> after the cdecl sound helper.</summary>
+    /// <summary>A stack cleanup of 4 bytes after the cdecl sound helper.</summary>
     public const uint SoundPopSite = 0x004A4041u;
 
-    /// <summary><c>add esp, 4</c> after the cdecl sound helper.</summary>
+    /// <summary>A stack cleanup of 4 bytes after the cdecl sound helper.</summary>
     public const uint SoundPop = 4u;
 
     /// <summary>Miss target at <c>0x004A4044</c> skips the sound leftover.</summary>
@@ -92,7 +92,7 @@ public static class RetailOptionsDropdownListClickSound
     /// <summary>Click hit at <c>0x004A4010</c> is already <see cref="RetailOptionsDropdownListClick"/>.</summary>
     public const uint ClickHitSite = 0x004A4010u;
 
-    /// <summary><c>call [eax+0x38]</c> is already click leftover. Sound is after it.</summary>
+    /// <summary>An indirect call through vtable slot 14 is already click leftover. Sound is after it.</summary>
     public const uint SetCallSite = 0x004A4037u;
 
     /// <summary>Cancel at <c>0x004A4059</c> is already <see cref="RetailOptionsDropdownListCancel"/>.</summary>

@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay Text__AsciiToWideScratch leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -27,13 +27,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// store, or the post-draw stores.</para>
 ///
 /// <para><b>Call.</b> After the enable-byte store,
-/// <c>0x00464187</c> is <c>push 0</c>, <c>0x00464189</c> is
-/// <c>push 0</c>, <c>0x0046418B</c> is <c>push 0x447A0000</c>,
-/// <c>0x00464190</c> is <c>push edx</c> (the
-/// <c>lea edx, [esp+0x3C]</c> sprintf buffer), and
-/// <c>0x00464191</c> is <c>call 0x004F7BF0</c>. The body loads
-/// <c>[esp+8]</c> after <c>push esi</c>, so one cdecl argument.
-/// <c>add esp, 4</c> at <c>0x004641A0</c> pops only that
+/// <c>0x00464187</c> is a push of constant 0, <c>0x00464189</c> is
+/// a push of constant 0, <c>0x0046418B</c> is a push of constant 0x447A0000,
+/// <c>0x00464190</c> is a push of edx (the
+/// address computation (esp+0x3C) into edx sprintf buffer), and
+/// <c>0x00464191</c> is a direct call to 0x004F7BF0. The body loads
+/// <c>[esp+8]</c> after a push of esi, so one cdecl argument.
+/// A stack cleanup of 4 bytes at <c>0x004641A0</c> pops only that
 /// argument. EAX is then pushed at <c>0x004641A8</c> as the wide
 /// pointer into the DrawTextDynamic setup. The three earlier
 /// pushes remain on the stack; this type does not invent dest,
@@ -42,10 +42,10 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Body.</b> <c>0x004F7BF0</c> through near <c>ret</c>
 /// at <c>0x004F7C62</c> (not <c>ret n</c>). Ring dword
 /// <c>[0x00854D40]</c> increments and wraps at 4. Bank base
-/// <c>0x0084CD40</c>. Each slot is <c>shl 0xC</c> wchar units;
-/// the returned pointer is <c>shl 0xD</c> bytes from the bank.
-/// Per byte: <c>movsx di, bl</c>, <c>test bl, 0x80</c>, then
-/// <c>add edi, 0x100</c> when the high bit is set, store
+/// <c>0x0084CD40</c>. Each slot is a left shift by 0xC wchar units;
+/// the returned pointer is a left shift by 0xD bytes from the bank.
+/// Per byte: a sign-extending load of bl into di, a bit test of bl against 0x80, then
+/// an addition of 0x100 to edi when the high bit is set, store
 /// <c>word</c>. The stored unit for <c>0x80</c> is
 /// <c>0x0080</c>, not <c>0x0180</c>: the addend undoes the
 /// sign-extend so the wide unit is the unsigned byte. Cold
@@ -53,9 +53,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// the four-slot scratch lifetime.</para>
 ///
 /// <para><b>Not a fade.</b> The post-call
-/// <c>fmul [0x005D8C70]</c> is already the colour-pack 255 scale
+/// (a float multiply by the value at 0x005D8C70) is already the colour-pack 255 scale
 /// in <see cref="RetailMainMenuVersionOverlay"/>. The post-draw
-/// <c>fcom [0.0]</c> is already the title-logo shadow clamp in
+/// (a float compare against the constant 0.0) is already the title-logo shadow clamp in
 /// <see cref="RetailMainMenuVersionOverlayFlags"/>. This type
 /// does not invent a version fade, a sheen, dest immediates, a
 /// wrap width, or a 2px kerning hack. DrawMainMenu keeps
@@ -83,22 +83,22 @@ public static class RetailMainMenuVersionOverlayWiden
     /// <summary>Already <see cref="RetailMainMenuVersionOverlayEnable"/>.</summary>
     public const uint EnableSiblingSite = 0x00464180u;
 
-    /// <summary><c>push 0</c> immediately after the enable-byte store.</summary>
+    /// <summary>A push of constant 0 immediately after the enable-byte store.</summary>
     public const uint FirstLeftoverPushSite = 0x00464187u;
 
-    /// <summary>Second <c>push 0</c>. Not an argument of this call.</summary>
+    /// <summary>Second push of constant 0. Not an argument of this call.</summary>
     public const uint SecondLeftoverPushSite = 0x00464189u;
 
-    /// <summary><c>push 0x447A0000</c>. Not an argument of this call.</summary>
+    /// <summary>A push of constant 0x447A0000. Not an argument of this call.</summary>
     public const uint FloatLeftoverPushSite = 0x0046418Bu;
 
     /// <summary>IEEE bits of the leftover float push. Not dest or wrap.</summary>
     public const uint FloatLeftoverBits = 0x447A0000u;
 
-    /// <summary><c>push edx</c> of the sprintf buffer.</summary>
+    /// <summary>A push of edx of the sprintf buffer.</summary>
     public const uint ArgPushSite = 0x00464190u;
 
-    /// <summary><c>call 0x004F7BF0</c> at <c>0x00464191</c>.</summary>
+    /// <summary>A direct call to 0x004F7BF0 at <c>0x00464191</c>.</summary>
     public const uint CallSite = 0x00464191u;
 
     /// <summary><c>Text__AsciiToWideScratch</c>.</summary>
@@ -110,7 +110,7 @@ public static class RetailMainMenuVersionOverlayWiden
     /// <summary>First byte of the near ret.</summary>
     public const byte BodyRetOpcode = 0xC3;
 
-    /// <summary><c>add esp, 4</c> after the call.</summary>
+    /// <summary>A stack cleanup of 4 bytes after the call.</summary>
     public const uint AddEspSite = 0x004641A0u;
 
     /// <summary>One cdecl dword popped. The three leftover pushes stay.</summary>
@@ -119,7 +119,7 @@ public static class RetailMainMenuVersionOverlayWiden
     /// <summary>The body consumes one stack pointer.</summary>
     public const int ArgCount = 1;
 
-    /// <summary><c>push eax</c> of the returned wide pointer.</summary>
+    /// <summary>A push of eax of the returned wide pointer.</summary>
     public const uint ReturnPushSite = 0x004641A8u;
 
     /// <summary>Already <see cref="RetailMainMenuVersionOverlay"/>.</summary>
@@ -134,16 +134,16 @@ public static class RetailMainMenuVersionOverlayWiden
     /// <summary>Ring wraps when the incremented index reaches this.</summary>
     public const int SlotCount = 4;
 
-    /// <summary><c>shl ebx, 0xC</c> wchar units per slot.</summary>
+    /// <summary>A left shift of ebx by 0xC wchar units per slot.</summary>
     public const int SlotIndexShift = 0xC;
 
-    /// <summary><c>shl eax, 0xD</c> byte return offset.</summary>
+    /// <summary>A left shift of eax by 0xD byte return offset.</summary>
     public const int ReturnShift = 0xD;
 
-    /// <summary><c>test bl, 0x80</c>.</summary>
+    /// <summary>A bit test of bl against 0x80.</summary>
     public const int HighBitMask = 0x80;
 
-    /// <summary><c>add edi, 0x100</c> undoes <c>movsx</c> for high bytes.</summary>
+    /// <summary>An addition of 0x100 to edi undoes <c>movsx</c> for high bytes.</summary>
     public const int HighBitAddend = 0x100;
 
     /// <summary>Already the enable leftover's sprintf-buffer lea.</summary>

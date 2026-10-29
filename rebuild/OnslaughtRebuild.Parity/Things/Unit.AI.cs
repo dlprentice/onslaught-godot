@@ -104,7 +104,7 @@ public abstract partial class Unit
         Context.Skip("CUnit::SpawnComponentEffects (post-fire)");
         Unknown1E8 = 0;
         float reload = CurrentWeapon?.Mode?.PostFireDelay ?? 0;
-        // FCOMP / TEST AH,40 at 004fc1d4..004fc1e5 rejects both equal and unordered operands.
+        // FCOMP / a bit test of ah against 40 at 004fc1d4..004fc1e5 rejects both equal and unordered operands.
         if (CurrentWeapon is not null && reload != 0 && !float.IsNaN(reload))
         {
             Unknown16C = Context.Events.Time + reload;

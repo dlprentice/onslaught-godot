@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render language-row fall-through increment —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -17,7 +17,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailMainMenuLabelDest"/>. Label
 /// DrawTextDynamic at <c>0x0046316F</c> is already
 /// <see cref="RetailMainMenuLabelText"/> and is the
-/// <c>jmp 0x0046364D</c> arm after <c>fadd [0x005D857C]</c>
+/// jump to 0x0046364D arm after a float add of the value at 0x005D857C
 /// (20.0). Language hover centres at 268 / 304 are already
 /// <see cref="RetailMainMenuHitTest"/>. This leftover is
 /// the language fall-through that reaches
@@ -26,24 +26,24 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Reach.</b> Official 74154bfa independently
 /// re-read: <c>0x004634EE</c> is
-/// <c>jne 0x00463643</c>. After
+/// a conditional branch to 0x00463643 (taken when not equal). After
 /// <c>CDXSurf__RenderSurface</c> at <c>0x0046363B</c>,
-/// <c>0x00463640</c> is <c>add esp, 0x58</c> and
+/// <c>0x00463640</c> is a stack cleanup of 0x58 bytes and
 /// falls through into the same site. Labels never land
-/// here: they <c>jmp 0x0046364D</c> from
+/// here: they (a jump to 0x0046364D) from
 /// <c>0x0046318C</c>.</para>
 ///
 /// <para><b>Add.</b> <c>0x00463643</c> is
-/// <c>fld [esp+0x10]</c>. <c>0x00463647</c> is
-/// <c>fadd [0x005DB5D8]</c> (36.0). The shared tail at
-/// <c>0x0046364D</c> is <c>mov ebx, [esp+0x20]</c>,
-/// then <c>0x00463653</c> <c>fstp [esp+0x10]</c>,
-/// then <c>0x00463657</c> <c>inc ebx</c>. Cold language
+/// a float load of stack local +0x10. <c>0x00463647</c> is
+/// a float add of the value at 0x005DB5D8 (36.0). The shared tail at
+/// <c>0x0046364D</c> is a load of stack local +0x20 into ebx,
+/// then <c>0x00463653</c>: a float store to stack local +0x10,
+/// then <c>0x00463657</c>: an increment of ebx. Cold language
 /// 268.0 plus 36.0 is 304.0, which is
 /// <see cref="RetailMainMenuRowY.NonzeroSlotY"/>.</para>
 ///
 /// <para><b>Not dest.</b> Nearby
-/// <c>push 0x438E0000</c> at <c>0x00463636</c> is 284.0
+/// push of constant 0x438E0000 at <c>0x00463636</c> is 284.0
 /// and is not this leftover. Dest Y stays the dest
 /// leftover: row-Y slot minus integer-half cy.
 /// DrawMainMenu keeps dest Y as <c>rowY - 8</c> and
@@ -72,10 +72,10 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuLanguagePitch
 {
-    /// <summary><c>fld [esp+0x10]</c>.</summary>
+    /// <summary>A float load of stack local +0x10.</summary>
     public const uint FldSite = 0x00463643u;
 
-    /// <summary><c>fadd [0x005DB5D8]</c>.</summary>
+    /// <summary>A float add of the value at 0x005DB5D8.</summary>
     public const uint AddSite = 0x00463647u;
 
     /// <summary>36.0 source. Same dword as <see cref="RetailMainMenuRowY.SkippedPitchGlobal"/>.</summary>
@@ -87,40 +87,40 @@ public static class RetailMainMenuLanguagePitch
     /// <summary>Shared tail. Labels <c>jmp</c> here after adding 20.0.</summary>
     public const uint SharedTailSite = 0x0046364Du;
 
-    /// <summary><c>fstp [esp+0x10]</c> after the add.</summary>
+    /// <summary>A float store to stack local +0x10 after the add.</summary>
     public const uint FstpSite = 0x00463653u;
 
-    /// <summary><c>inc ebx</c> after the store.</summary>
+    /// <summary>An increment of ebx after the store.</summary>
     public const uint IncSite = 0x00463657u;
 
-    /// <summary><c>jne 0x00463643</c>.</summary>
+    /// <summary>A conditional branch to 0x00463643 (taken when not equal).</summary>
     public const uint ReachJneSite = 0x004634EEu;
 
     /// <summary>Direct language skip onto the fld.</summary>
     public const uint ReachJneTarget = 0x00463643u;
 
-    /// <summary><c>call 0x005563D0</c> immediately before the fall-through.</summary>
+    /// <summary>A direct call to 0x005563D0 immediately before the fall-through.</summary>
     public const uint FallthroughCallSite = 0x0046363Bu;
 
     /// <summary><c>CDXSurf__RenderSurface</c>.</summary>
     public const uint RenderSurface = 0x005563D0u;
 
-    /// <summary><c>add esp, 0x58</c> then fall through into <see cref="FldSite"/>.</summary>
+    /// <summary>A stack cleanup of 0x58 bytes then fall through into <see cref="FldSite"/>.</summary>
     public const uint FallthroughAddEspSite = 0x00463640u;
 
     /// <summary>Stack pop after the surface. Not dest.</summary>
     public const int FallthroughAddEspImmediate = 0x58;
 
-    /// <summary><c>push 0x438E0000</c>. Nearby dest Y. Not this leftover.</summary>
+    /// <summary>A push of constant 0x438E0000. Nearby dest Y. Not this leftover.</summary>
     public const uint NearbyDestYPushSite = 0x00463636u;
 
     /// <summary>IEEE bits of the nearby dest Y push. 284.0.</summary>
     public const uint NearbyDestYBits = 0x438E0000u;
 
-    /// <summary><c>jmp 0x0046364D</c> after the label 20.0 add.</summary>
+    /// <summary>A jump to 0x0046364D after the label 20.0 add.</summary>
     public const uint LabelJmpSite = 0x0046318Cu;
 
-    /// <summary><c>fadd [0x005D857C]</c> on the label arm.</summary>
+    /// <summary>A float add of the value at 0x005D857C on the label arm.</summary>
     public const uint LabelPitchAddSite = 0x00463178u;
 
     /// <summary>20.0 source. Already <see cref="RetailMainMenuLabelText"/>.</summary>

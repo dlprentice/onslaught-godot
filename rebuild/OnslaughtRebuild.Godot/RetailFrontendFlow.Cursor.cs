@@ -17,7 +17,7 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>MEASURED — retail draws it as the LAST draw of every interactive
 /// frontend frame.</b> 2026-07-27 d3d9-proxy sweep,
-/// <c>local-lab/D3D9-FULL-SWEEP-2026-07-27.md</c>; per-draw inventories under
+/// the private lab note D3D9-FULL-SWEEP-2026-07-27.md; per-draw inventories under
 /// <c><maintainer evidence>\bea-frontend-pages\SWEEP-2026-07-27\inventories\</c>. Thirteen distinct
 /// pages, four independent launches, and in every one of them the final draw of
 /// the frame is a 32x32 screen-space (<c>D3DFVF_XYZRHW</c>) TRISTRIP whose
@@ -58,7 +58,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// proxy does not wrap textures, so the sweep measured only
 /// dimensions/format/mip-count — 128x128, <c>D3DFMT_A8R8G8B8</c>, 8 levels. The
 /// name comes from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+/// (a private pristine copy), sha256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (verified in this session, <b>not</b> the installed executable, which is
 /// deliberately patched):</para>
@@ -67,7 +67,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <item>VA <c>0x00640058</c> (file <c>0x240058</c>) holds the ASCII
 /// <c>"mouse.tga\0"</c> — the string the cursor renderer at <c>0x00523A70</c>
 /// passes to <c>CTexture::FindTexture</c>.</item>
-/// <item>VA <c>0x00640054</c> (file <c>0x240054</c>) holds <c>FF 00 00 00</c>,
+/// <item>VA <c>0x00640054</c> (file <c>0x240054</c>) holds 0x000000FF,
 /// and the renderer builds its diffuse as <c>(that &lt;&lt; 24) | 0xFFFFFF</c> =
 /// <c>0xFFFFFFFF</c> — exactly the diffuse the sweep measured on all fourteen
 /// draws.</item>

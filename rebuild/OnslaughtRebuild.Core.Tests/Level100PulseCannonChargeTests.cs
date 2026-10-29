@@ -15,7 +15,7 @@ namespace OnslaughtRebuild.Core.Tests;
 /// </summary>
 /// <remarks>
 /// Every scalar is a dword out of
-/// <c>local-lab/safe-copy-bea-pristine/data/default physics.dat</c>
+/// <c>default physics.dat</c> in a private copy of the pristine game data
 /// (175,603 bytes, SHA-256
 /// <c>e1fb3dedbeb29b4b4151da2c8cbbdc940b716b1a2321e1d6a9ba1542c74ada14</c>),
 /// statement <c>Pulse Cannon Pod</c> at file offset <c>0x17463</c>. The

@@ -8,13 +8,13 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the CFEPMain::Render version overlay leftover stack
 /// 0 / 0 / <c>0x447A0000</c> as CDXFont__DrawTextDynamic's last
 /// three stack args, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>RetailMainMenuVersionOverlayWiden already owns the cdecl
-/// <c>add esp, 4</c> and does not own these three pushes.
+/// (a stack cleanup of 4 bytes) and does not own these three pushes.
 /// RetailMainMenuVersionOverlay already owns the sprintf and the
 /// settled pack. RetailMainMenuVersionOverlayZ already owns
 /// GetWindowHeight-16 dest Y, dest X push 0, and Z 0.01.
@@ -25,16 +25,14 @@ namespace OnslaughtRebuild.Client.Tests;
 /// re-read this cycle: after the enable-byte store,
 /// <c>0x00464187</c> / <c>0x00464189</c> / <c>0x0046418B</c> push
 /// 0 / 0 / <c>0x447A0000</c>. Those three dwords remain after
-/// <c>add esp, 4</c> and become stack args 10 / 9 / 8 of
-/// <c>CDXFont__DrawTextDynamic</c> (<c>RET 0x28</c>). The body
+/// a stack cleanup of 4 bytes and become stack args 10 / 9 / 8 of
+/// <c>CDXFont__DrawTextDynamic</c> (a return that pops 40 bytes of arguments). The body
 /// loads them at <c>[esp+0x2758]</c> / <c>[esp+0x2754]</c> /
-/// <c>fld [esp+0x2750]</c>. The leftover float is past the
+/// a float load of stack local +0x2750. The leftover float is past the
 /// below-zero / below-quarter / below-half compares, and leftover
 /// arg 9 is 0 so that colour arm is skipped. The wchar clamp
-/// <c>cmp ebx, 0x3E8</c> starts at <c>0x00465771</c>
-/// (<c>81 fb e8 03 00 00</c>); <c>0x00465777</c> is the separate
-/// following <c>mov word [eax], 0</c> store
-/// (<c>66 c7 00 00 00</c>). Neither site is this leftover. The
+/// (a compare of ebx with 0x3E8) starts at <c>0x00465771</c>; <c>0x00465777</c> is the separate
+/// following store of constant 0 to 16-bit word value pointed to by eax. Neither site is this leftover. The
 /// 2px MeasureText residual stays open. DrawMainMenu keeps
 /// title-font DrawText. Do not invent dest, wrap, fade, or sheen.
 /// Do not redo version AsciiToWide, version dest/Z, version font

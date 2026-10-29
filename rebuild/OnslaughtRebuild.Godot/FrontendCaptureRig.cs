@@ -31,7 +31,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <list type="bullet">
 /// <item><c>startup</c> — 13 frontend shots at absolute frame ordinals.</item>
 /// <item><c>gameplay</c> — the Level 100 in-level timeline, sampled at the same
-/// level offsets as <c>local-lab/retail-reference-pristine/level100-gameplay/</c>
+/// level offsets as a private retail reference capture
 /// so retail and reconstruction frames pair by offset mechanically.</item>
 /// </list>
 /// </summary>
@@ -149,7 +149,7 @@ public sealed partial class FrontendCaptureRig : Node
     /// FEP_OPTIONS and its three subpages, one settled shot each.
     ///
     /// These exist so the options pages can be COMPARED to the retail frames in
-    /// local-lab/retail-captures-options-pause-2026-07-27/ rather than eyeballed.
+    /// a private retail reference capture rather than eyeballed.
     /// Frames sit well clear of the main-menu entry transition (50 frames from
     /// 129) and of each page change.
     /// </summary>
@@ -660,7 +660,7 @@ public sealed partial class FrontendCaptureRig : Node
         if (shot.LevelOffsetMs is int offsetMs)
         {
             // Field names and shapes mirror
-            // local-lab/retail-reference-pristine/level100-gameplay/manifest.json
+            // a private retail reference capture
             // so a pairing tool reads both manifests with one code path.
             record["file"] = $"{label}.png";
             record["levelOffsetMs"] = offsetMs;

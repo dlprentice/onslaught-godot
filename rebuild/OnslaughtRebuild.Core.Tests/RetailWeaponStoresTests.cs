@@ -32,7 +32,7 @@ public sealed class RetailWeaponStoresTests
 
     // Exact quotient bits, and the clamp. 300/200 must come back as 1.0f
     // exactly, not 1.5f: the ceiling is read from 0x005D8568 and substituted
-    // whole (fstp st(0) / fld at 0x0041445B).
+    // whole (an FPU stack pop / fld at 0x0041445B).
     [Theory]
     [InlineData(1.0f, 3.0f, 0x3EAAAAABu)]
     [InlineData(50.0f, 200.0f, 0x3E800000u)]
@@ -48,7 +48,7 @@ public sealed class RetailWeaponStoresTests
 
     // THE dead-branch test. BattleEngineWalkerPart.cpp:834-837 reads as a real
     // if/else on mStoreHeat, but 0x0041443F loads the flag, executes
-    // `test edx, edx`, and never branches on the flags - both source arms
+    // (a zero test of edx), and never branches on the flags - both source arms
     // denote the same float division, so the compiler folded them. The
     // percentage must therefore be identical for every heat value, including
     // the non-canonical ones.
@@ -66,7 +66,7 @@ public sealed class RetailWeaponStoresTests
 
     // A zero capacity divides by zero on the x87 with the divide exception
     // masked, so the quotient is an infinity or a NaN, and only the infinity is
-    // ordered-greater-than one. `fcom / test ah, 0x41 / jne` returns the NaN
+    // ordered-greater-than one. The float compare, its C0/C3 test and branch return the NaN
     // unclamped; the positive infinity clamps to 1.0f.
     [Fact]
     public void AmmoPercentage_ClampsInfinityButPassesNaNThrough()
@@ -81,7 +81,7 @@ public sealed class RetailWeaponStoresTests
     }
 
     // THE rounding divergence. BattleEngineWalkerPart.cpp:854 is a C cast,
-    // which truncates toward zero. 0x0041449D is a bare `fistp qword` with no
+    // which truncates toward zero. 0x0041449D is a bare float-to-integer store to qword with no
     // rounding-mode change and no helper call - /QIfist codegen - so the
     // conversion uses the ambient control word, which the CRT leaves at 0x027F:
     // round to nearest, ties to even. The third column is the source text, and
@@ -118,7 +118,7 @@ public sealed class RetailWeaponStoresTests
         }
     }
 
-    // An energy store reports no rounds: the `test edx, edx / jne 0x004144AA`
+    // An energy store reports no rounds: the zero test of edx, branching to 0x004144AA when not equal
     // at 0x00414492 is a live branch here, unlike its twin in
     // GetWeaponAmmoPercentage. Any non-zero heat takes it.
     [Theory]
@@ -157,9 +157,9 @@ public sealed class RetailWeaponStoresTests
         Assert.Equal(flag, RetailWeaponStoreReadouts.IsWeaponOverheated(stores, 0));
     }
 
-    // Every one of the four opens with `call GetCurrentWeapon` and a null test,
+    // Every one of the four opens with a direct call to GetCurrentWeapon and a null test,
     // and every no-weapon arm is a plain zero (0x00414466 loads the zeroed
-    // local, the other three are xor eax, eax). Nothing reads a store, so an
+    // local, the other three are a zeroing of eax). Nothing reads a store, so an
     // implementation that defaulted to store 0 would report a live weapon's
     // ammunition with no weapon mounted.
     [Fact]

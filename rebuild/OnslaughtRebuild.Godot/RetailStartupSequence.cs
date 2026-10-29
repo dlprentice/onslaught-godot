@@ -282,7 +282,7 @@ public sealed partial class RetailStartupSequence : Control
         // latches at 0x0053F2EB. Any other key or pad used to abort here; that
         // was not the specimen law. See RetailFmvSkip.
         // One abort still skips every remaining clip: the sequencer's
-        // `test eax,eax / jne done` after each Play().
+        // (a zero test of eax, branching when not equal) after each Play.
         bool abort = inputEvent switch
         {
             InputEventMouseButton button when button.Pressed =>

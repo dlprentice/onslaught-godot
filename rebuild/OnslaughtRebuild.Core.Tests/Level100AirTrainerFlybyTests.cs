@@ -199,7 +199,7 @@ public sealed class Level100AirTrainerFlybyTests
     /// doing. <c>IScript::UpdateWaypointFollowing</c> (<c>0x00538470</c>,
     /// pristine specimen sha256 <c>74154BFA…</c>) ends the walk on exactly one
     /// condition: the successor it loaded from <c>[current+0x3c]</c> is NULL
-    /// (<c>mov eax,[esi+0x14]</c> / <c>cmp eax,edi</c> at <c>0x00538500</c>
+    /// (a load of field +0x14 of esi into eax, then compare of eax with edi at <c>0x00538500</c>
     /// with <c>edi</c> zero). When the tail's successor is the head there is no
     /// NULL on the ring, so the completion path is unreachable.
     /// </para>

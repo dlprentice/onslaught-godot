@@ -54,7 +54,7 @@ public sealed class RetailWeaponSelectionTests
                 Stores(2, value, capacity, heat: 1, overheat), ammoStore: 2));
 
     // The ammunition arm at 0x004125F1 compares against the shared +0.0f word
-    // with test ah, 0x41, so it is a plain ordered strictly-greater. Negative
+    // with a bit test of ah against 0x41, so it is a plain ordered strictly-greater. Negative
     // zero compares equal and refuses. The capacity and overheat words are not
     // read on this arm at all.
     [Theory]
@@ -123,8 +123,8 @@ public sealed class RetailWeaponSelectionTests
             ammoStore: 3));
 
     // The two arms read the status word differently and it shows on a NaN. The
-    // energy arm is `test ah, 1` - C0 alone - so an unordered value counts as
-    // below capacity and the gate OPENS. The ammunition arm is `test ah, 0x41`
+    // energy arm is a bit test of ah against 1 - C0 alone - so an unordered value counts as
+    // below capacity and the gate OPENS. The ammunition arm is a bit test of ah against 0x41
     // with jne and the gate CLOSES. Written the source's way both would close.
     [Fact]
     public void CanWeaponFire_SplitsOnUnorderedStoreValues()
@@ -138,8 +138,8 @@ public sealed class RetailWeaponSelectionTests
         Assert.False(float.NaN < 100.0f);
     }
 
-    // The acceptance test is `fld consumption / fcomp storeValue / test ah,
-    // 0x41 / jne accept`, so equality accepts and an unordered compare accepts.
+    // The acceptance test is `fld consumption / fcomp storeValue / a bit test of ah
+    // against 0x41 / jne accept`, so equality accepts and an unordered compare accepts.
     // Written as `value >= consumption` in C# the NaN row would reject.
     [Theory]
     [InlineData(0, 5.0f, 10.0f, true)]

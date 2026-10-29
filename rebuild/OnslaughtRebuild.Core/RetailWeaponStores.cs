@@ -61,7 +61,7 @@ public sealed class RetailWeaponStores
 /// <item><c>0x004121B0</c>, <c>0x004122B0</c>, <c>0x00412310</c> — the jet twins.</item>
 /// </list>
 /// <para>
-/// All four begin with <c>call 0x00414030</c> (<c>GetCurrentWeapon</c>) and a
+/// All four begin with a direct call to 0x00414030 (<c>GetCurrentWeapon</c>) and a
 /// null test. That walker/jet part is a linked-list walk over mounted weapons
 /// and stays outside Core; the "no current weapon" arm is modelled here as a
 /// null <paramref name="ammoStore"/>, which is exactly the information the four
@@ -71,8 +71,8 @@ public sealed class RetailWeaponStores
 /// <b>Source and retail DIVERGE in <c>GetWeaponAmmoCount</c>, and retail
 /// wins.</b> <c>BattleEngineWalkerPart.cpp:854</c> is
 /// <c>(SINT)mMainPart-&gt;mStoreValue[store]</c>, a C cast, which truncates
-/// toward zero. The shipped body is <c>fld dword ptr [store]</c> then
-/// <c>fistp qword ptr [esp + 4]</c> then a 32-bit read of that slot — no call
+/// toward zero. The shipped body is a float load of store then
+/// a float-to-integer store to 64-bit stack local +4 then a 32-bit read of that slot — no call
 /// to a conversion helper and no rounding-mode change anywhere near it. That is
 /// <c>/QIfist</c> codegen: the conversion uses the <b>ambient</b> x87 rounding
 /// mode, which the CRT leaves at round-to-nearest-even (the control word the
@@ -85,7 +85,7 @@ public sealed class RetailWeaponStores
 /// body between <c>0x00414470</c> and <c>0x004144B0</c> contains no
 /// control-word instruction and no call between entry and the conversion; the
 /// image converts float to int inline rather than through a helper, with 668
-/// occurrences of the <c>DF 7C</c> (<c>fistp qword ptr</c>) opcode pair; and the
+/// occurrences of the <c>fistp qword ptr</c> opcode pair; and the
 /// CRT's own guard tests for <c>0x027F</c>. What is <b>assumed</b> is that no
 /// caller on the path in has left a truncating control word in place. A
 /// whole-image proof of that needs real instruction boundaries — a byte scan
@@ -99,7 +99,7 @@ public sealed class RetailWeaponStores
 /// dead.</b> <c>BattleEngineWalkerPart.cpp:834-837</c> reads as a real
 /// distinction — energy stores divide floats, ammunition stores cast both sides
 /// to float first. Retail loads <c>mStoreHeat[store]</c> at <c>0x00414431</c>
-/// and executes <c>test edx, edx</c> at <c>0x0041443F</c> whose flags are
+/// and executes (a zero test of edx) at <c>0x0041443F</c> whose flags are
 /// <b>never consumed</b>: there is no conditional jump between it and the
 /// division. Both source arms denote the same operation, because
 /// <c>mStoreValue</c> is already <c>float</c> on both sides, so the compiler
@@ -109,7 +109,7 @@ public sealed class RetailWeaponStores
 /// <para>
 /// <b>The two predicates return raw stored words, not booleans.</b>
 /// <c>0x004144D9</c> and <c>0x00414509</c> are a single
-/// <c>mov eax, [array + store*4]</c> followed by <c>ret</c> — no
+/// load of indexed table entry of array into eax followed by <c>ret</c> — no
 /// normalisation. A <c>mStoreHeat</c> entry of 2 is returned as 2. This is
 /// visible to any caller that compares against <c>TRUE</c> rather than testing
 /// for non-zero, which is exactly what
@@ -142,7 +142,7 @@ public sealed class RetailWeaponStores
 /// </remarks>
 public static class RetailWeaponStoreReadouts
 {
-    /// <summary>The percentage ceiling — <c>fcom dword ptr [0x005D8568]</c> at <c>0x0041444E</c>.</summary>
+    /// <summary>The percentage ceiling — a float compare against the value at 0x005D8568 at <c>0x0041444E</c>.</summary>
     public const float FullAmmoPercentage = 1.0f;
 
     /// <summary>
@@ -164,7 +164,7 @@ public static class RetailWeaponStoreReadouts
         double value = (double)stores.StoreValue[store] /
             (double)stores.ConfigurationStoreValue[store];
 
-        // fcom / test ah, 0x41 / jne: the clamp arm is taken only when the
+        // fcom / a bit test of ah against 0x41 / jne: the clamp arm is taken only when the
         // quotient is ordered and strictly greater than one, so a NaN quotient
         // is returned unclamped.
         return value > (double)FullAmmoPercentage ? FullAmmoPercentage : (float)value;

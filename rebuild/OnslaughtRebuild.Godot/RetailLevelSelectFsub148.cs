@@ -4,14 +4,14 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the sliding-borders
-/// call — <c>fld [0x005DB53C]</c> (148.0) / <c>fsub [esi+0x3460]</c>
-/// / <c>fstp [esp+0x14]</c> — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// call — a float load of the value at 0x005DB53C (148.0) / a float subtract of field
+/// +0x3460 of esi, then float store to stack local +0x14 — recovered from official 74154bfa
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -28,13 +28,11 @@ namespace OnslaughtRebuild.GodotClient;
 /// Do not invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>Pad.</b> Official 74154bfa independently re-read:
-/// <c>0x00460B66</c> is <c>fld [0x005DB53C]</c>
-/// (<c>d9 05 3c b5 5d 00</c>). <c>0x005DB53C</c> is
-/// <c>00 00 14 43</c> (148.0). <c>0x00460B6C</c> is
-/// <c>fsub [esi+0x3460]</c> (<c>d8 a6 60 34 00 00</c>).
-/// <c>0x00460B72</c> is <c>fstp [esp+0x14]</c>
-/// (<c>d9 5c 24 14</c>). The <c>fld</c> / <c>fsub</c> /
-/// <c>fstp [esp+0x14]</c> triple also sits later at
+/// <c>0x00460B66</c> is a float load of the value at 0x005DB53C. <c>0x005DB53C</c> is
+/// 148.0. <c>0x00460B6C</c> is
+/// a float subtract of field +0x3460 of esi.
+/// <c>0x00460B72</c> is a float store to stack local +0x14. The <c>fld</c> / <c>fsub</c> /
+/// a float store to stack local +0x14 triple also sits later at
 /// <c>0x00460E24</c>; that is not this leftover. Dest does
 /// not. Colour leftover already consults currentIndex. Hover
 /// leftover already owns <c>0x004A3FA6</c>. Click leftover already
@@ -44,21 +42,21 @@ namespace OnslaughtRebuild.GodotClient;
 /// measurements, not dest. Dest is not the 2.0 constant.</para>
 ///
 /// <para><b>Window.</b> First consumers of <c>[esp+0x14]</c> are
-/// <c>0x00460BE4</c> <c>fld [esp+0x14]</c> /
-/// <c>fcomp [0x005DB5B0]</c> (610.0) and <c>0x00460BF9</c>
-/// <c>fld [esp+0x14]</c> / <c>fcomp [0x005D856C]</c> (0.0).
-/// <c>test ah, 1</c> / <c>jz</c> skips when the pad is not below
-/// 610.0. <c>test ah, 1</c> / <c>jnz</c> skips when the pad is
+/// <c>0x00460BE4</c>: a float load of stack local +0x14, then float compare against the value
+/// at 0x005DB5B0, popping the result (610.0) and <c>0x00460BF9</c>: a float load of stack local
+/// +0x14, then float compare against the value at 0x005D856C, popping the result (0.0).
+/// A bit test of ah against 1 / <c>jz</c> skips when the pad is not below
+/// 610.0. A bit test of ah against 1 / <c>jnz</c> skips when the pad is
 /// below 0.0. The loop body therefore runs when
 /// <c>0.0 &lt;= pad &lt; 610.0</c>. That is not dest.
-/// <c>0x00460C90</c> <c>fld [esp+0x14]</c> /
-/// <c>fld [0x005D85CC]</c> (10.0) is later. The second triple at
+/// <c>0x00460C90</c>: a float load of stack local +0x14, then float load
+/// of the value at 0x005D85CC (10.0) is later. The second triple at
 /// <c>0x00460E24</c> is later.</para>
 ///
 /// <para><b>Settled field.</b> <c>CFEPLevelSelect__Init</c> at
 /// <c>0x004603D0</c> writes 0 to <c>[esi+0x3468]</c> at
 /// <c>0x004603D8</c>, <c>fild</c>s that dword, and
-/// <c>fstp [esi+0x3460]</c> at <c>0x00460464</c>. Settled field
+/// a float store to field +0x3460 of esi at <c>0x00460464</c>. Settled field
 /// is 0. Settled pad is 148.0. That pad sits inside the window.
 /// DrawLevelSelect already owns the measured node centres.
 /// Do not invent dest from 148.0.</para>
@@ -82,7 +80,7 @@ public static class RetailLevelSelectFsub148
     /// <summary>Already <see cref="RetailLevelSelectSlidingBorders.CallSite"/>.</summary>
     public const uint SlidingCallSite = 0x00460B61u;
 
-    /// <summary><c>fld [0x005DB53C]</c> at <c>0x00460B66</c>. First leftover after the call.</summary>
+    /// <summary>A float load of the value at 0x005DB53C at <c>0x00460B66</c>. First leftover after the call.</summary>
     public const uint FldSite = 0x00460B66u;
 
     /// <summary>148.0 source. Same dword as <see cref="RetailLevelSelectSlidingBorders.LaterConst"/>.</summary>
@@ -91,19 +89,20 @@ public static class RetailLevelSelectFsub148
     /// <summary>IEEE bits at <see cref="OffsetConst"/>. 148.0. Not dest.</summary>
     public const uint OffsetBits = 0x43140000u;
 
-    /// <summary><c>fsub [esi+0x3460]</c> at <c>0x00460B6C</c>.</summary>
+    /// <summary>A float subtract of field +0x3460 of esi at <c>0x00460B6C</c>.</summary>
     public const uint FsubSite = 0x00460B6Cu;
 
     /// <summary><c>this+0x3460</c>. Subtracted field, not dest.</summary>
     public const int FieldOffset = 0x3460;
 
-    /// <summary><c>fstp [esp+0x14]</c> at <c>0x00460B72</c>.</summary>
+    /// <summary>A float store to stack local +0x14 at <c>0x00460B72</c>.</summary>
     public const uint FstpSite = 0x00460B72u;
 
     /// <summary>Stack local that receives the pad. Not dest.</summary>
     public const int StackLocal = 0x14;
 
-    /// <summary><c>fld [esp+0x14]</c> / <c>fcomp 610.0</c> at <c>0x00460BE4</c>.</summary>
+    /// <summary>A float load of stack local +0x14, then float compare
+    /// against 610.0, popping the result at <c>0x00460BE4</c>.</summary>
     public const uint WindowHighFldSite = 0x00460BE4u;
 
     /// <summary>610.0 source. Window high, not dest.</summary>
@@ -112,7 +111,8 @@ public static class RetailLevelSelectFsub148
     /// <summary>IEEE bits at <see cref="WindowHighConst"/>. 610.0.</summary>
     public const uint WindowHighBits = 0x44188000u;
 
-    /// <summary><c>fld [esp+0x14]</c> / <c>fcomp 0.0</c> at <c>0x00460BF9</c>.</summary>
+    /// <summary>A float load of stack local +0x14, then float compare
+    /// against 0.0, popping the result at <c>0x00460BF9</c>.</summary>
     public const uint WindowLowFldSite = 0x00460BF9u;
 
     /// <summary>0.0 source. Window low, not dest.</summary>
@@ -124,7 +124,7 @@ public static class RetailLevelSelectFsub148
     /// <summary>Later identical triple at <c>0x00460E24</c>. Not this leftover.</summary>
     public const uint LaterTripleSite = 0x00460E24u;
 
-    /// <summary>Later <c>fld [esp+0x14]</c> / <c>fld 10.0</c> at <c>0x00460C90</c>. Not dest.</summary>
+    /// <summary>Later sequence (float load of stack local +0x14, then float load of 10.0) at <c>0x00460C90</c>. Not dest.</summary>
     public const uint LaterTenFldSite = 0x00460C90u;
 
     /// <summary>10.0 source used later. Not this leftover and not dest.</summary>
@@ -133,10 +133,10 @@ public static class RetailLevelSelectFsub148
     /// <summary>IEEE bits at <see cref="LaterTenConst"/>. 10.0.</summary>
     public const uint LaterTenBits = 0x41200000u;
 
-    /// <summary><c>mov [esi+0x3468], 0</c> at <c>0x004603D8</c>. Init seed, not dest.</summary>
+    /// <summary>A store of constant 0 to field +0x3468 of esi at <c>0x004603D8</c>. Init seed, not dest.</summary>
     public const uint InitZeroSite = 0x004603D8u;
 
-    /// <summary><c>fstp [esi+0x3460]</c> at <c>0x00460464</c>. Init seed, not dest.</summary>
+    /// <summary>A float store to field +0x3460 of esi at <c>0x00460464</c>. Init seed, not dest.</summary>
     public const uint InitFstpSite = 0x00460464u;
 
     /// <summary>Latch SET at <c>0x0042D5CF</c> is already owned.</summary>

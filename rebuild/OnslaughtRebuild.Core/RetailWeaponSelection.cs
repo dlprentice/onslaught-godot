@@ -203,10 +203,10 @@ public sealed class RetailMountedWeapon
 /// <c>if (weapon-&gt;IsActive())</c> at
 /// <c>BattleEngineWalkerPart.cpp:940</c> wrapping the whole body, and the
 /// shipped walker has it too —
-/// <c>mov ecx, dword ptr [eax + 0x9C]</c> at <c>0x0041463C</c> followed by
-/// <c>test ecx, ecx / je</c> to the failure label. The jet's body goes straight
+/// a load of field +0x9C of eax into ecx at <c>0x0041463C</c> followed by
+/// a zero test of ecx, branching when equal to the failure label. The jet's body goes straight
 /// from the null test at <c>0x004125AB</c> to
-/// <c>mov edx, dword ptr [eax + 0xA4]</c> with no such load anywhere in it. So
+/// a load of field +0xA4 of eax into edx with no such load anywhere in it. So
 /// a deactivated weapon that is somehow current can still fire on a jet and
 /// cannot on a walker, and a rebuild that shares one implementation between
 /// the two chassis is wrong for one of them whichever way it picks. Both are
@@ -229,12 +229,12 @@ public sealed class RetailMountedWeapon
 /// </para>
 /// <para>
 /// <b>Source and retail DIVERGE on an unordered store value in the energy arm,
-/// and retail wins.</b> <c>0x004125DA</c> is <c>test ah, 1</c> — C0 alone — and
+/// and retail wins.</b> <c>0x004125DA</c> is a bit test of ah against 1 — C0 alone — and
 /// an unordered compare sets C0, so a NaN store value is treated as
 /// <i>below</i> capacity and the gate opens if the overheat word is clear. The
 /// C text (<c>mStoreValue[store] &lt; mConfiguration-&gt;mStoreValue[store]</c>)
 /// is false for a NaN and would close the gate. The ammunition arm is different
-/// and does <b>not</b> diverge: <c>0x00412600</c> is <c>test ah, 0x41</c> with
+/// and does <b>not</b> diverge: <c>0x00412600</c> is a bit test of ah against 0x41 with
 /// <c>jne</c> to the failure label, and an unordered compare sets both bits, so
 /// a NaN there closes the gate exactly as <c>&gt; 0</c> would.
 /// </para>
@@ -262,7 +262,7 @@ public static class RetailWeaponFireGate
             throw new ArgumentNullException(nameof(stores));
         }
 
-        // mov ecx, [weapon + 0x9C] / test ecx, ecx / je: the raw word, tested
+        // A load of field +0x9C of weapon into ecx, then zero test of ecx / je: the raw word, tested
         // for non-zero exactly as the selection laws test it.
         return isActive != 0 && CanWeaponFire(stores, ammoStore);
     }
@@ -285,7 +285,7 @@ public static class RetailWeaponFireGate
 
         if (stores.StoreHeat[store] != 0)
         {
-            // test ah, 1 - C0 alone, so an unordered value counts as below capacity.
+            // A bit test of ah against 1 - C0 alone, so an unordered value counts as below capacity.
             if (stores.StoreValue[store] >= stores.ConfigurationStoreValue[store])
             {
                 return false;
@@ -294,7 +294,7 @@ public static class RetailWeaponFireGate
             return stores.StoreOverheat[store] == 0;
         }
 
-        // test ah, 0x41 with jne: an unordered value closes the gate.
+        // A bit test of ah against 0x41 with jne: an unordered value closes the gate.
         return stores.StoreValue[store] > 0.0f;
     }
 }
@@ -334,12 +334,12 @@ public readonly record struct RetailWeaponCycleResult(
 /// <para>
 /// <b>Source and retail agree on the search, the acceptance test and the
 /// aftermath.</b> The scan starts at <c>mCurrentWeapon + 1</c>
-/// (<c>lea ebx, [ecx + 1]</c> at <c>0x00411EBA</c>), the count is a full walk of
+/// (an address computation (ecx+1) into ebx at <c>0x00411EBA</c>), the count is a full walk of
 /// the weapon list taken <b>before</b> the loop, an index past the end yields no
 /// weapon rather than wrapping, and the wrap is <c>n &gt;= total → 0</c> applied
 /// after the increment. On acceptance retail writes the new index, clears
 /// <c>mSlowMovement</c> at <c>mMainPart + 0x588</c>, runs the same
-/// <c>mov dword ptr [weapon + 0x60], 0</c> that
+/// store of constant 0 to field +0x60 of weapon that
 /// <see cref="RetailWeaponCharge.LoseCharge"/> documents, and compares the new
 /// weapon's zoom mode against the entry one, calling <c>AutoZoomOut</c> at
 /// <c>0x00409E80</c> when they differ. On no acceptance it returns having
@@ -347,19 +347,19 @@ public readonly record struct RetailWeaponCycleResult(
 /// </para>
 /// <para>
 /// <b>Source and retail DIVERGE on an unordered consumption or store value, and
-/// retail wins.</b> <c>0x00411F46</c> is <c>test ah, 0x41</c> with <c>jne</c> to
+/// retail wins.</b> <c>0x00411F46</c> is a bit test of ah against 0x41 with <c>jne</c> to
 /// the <i>acceptance</i> label, so C0 or C3 accepts — and an unordered compare
 /// sets both. The C text is
 /// <c>mStoreValue[store] &gt;= weapon-&gt;GetConsumption()</c>, which is false
 /// for a NaN and would reject. The comparison is also written the other way
-/// round in the image (<c>fld consumption</c> then
-/// <c>fcomp mStoreValue</c>), which is why the model below is
+/// round in the image (a float load of consumption then
+/// a float compare against mStoreValue, popping the result), which is why the model below is
 /// <c>!(consumption &gt; value)</c> and not <c>value &gt;= consumption</c>.
 /// </para>
 /// <para>
 /// <b>The wrap boundary itself is not observable, and that is a proof rather
 /// than an untested corner.</b> Retail wraps at <c>n &gt;= total</c>
-/// (<c>cmp ebx, eax / jl</c>); wrapping at <c>n &gt; total</c> instead would
+/// (a compare of ebx with eax, branching when less); wrapping at <c>n &gt; total</c> instead would
 /// only add a probe of the one-past-the-end index, which
 /// <c>GetWeapon</c> answers with nothing, and would then wrap on the following
 /// step. An exhaustive replay over every list of length 1..6, every
@@ -381,7 +381,7 @@ public readonly record struct RetailWeaponCycleResult(
 /// <b>Not established here.</b> Entering with no current weapon faults in both:
 /// <c>BattleEngineJetPart.cpp:703</c> calls
 /// <c>GetCurrentWeapon()-&gt;GetZoomMode()</c> unguarded and retail reaches
-/// <c>mov ecx, dword ptr [eax + 0xA4]</c> at <c>0x00411EA4</c> with
+/// (a load of field +0xA4 of eax into ecx) at <c>0x00411EA4</c> with
 /// <c>eax</c> zeroed one instruction earlier. An access violation is not a
 /// value, so <see cref="ChangeWeapon"/> throws instead of pretending to have an
 /// answer. The list walk itself is <c>SPtrSet</c> plumbing that the task brief
@@ -426,7 +426,7 @@ public static class RetailWeaponCycle
             return true;
         }
 
-        // fld consumption / fcomp mStoreValue / test ah, 0x41 / jne accept:
+        // fld consumption / a float compare against mStoreValue, popping the result, then bit test of ah against 0x41 / jne accept:
         // unordered accepts, so this is a negated strictly-greater.
         return !(weapon.Consumption > stores.StoreValue[weapon.AmmoStore]);
     }

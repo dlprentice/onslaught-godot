@@ -4,14 +4,14 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the 148.0 fsub
-/// window — <c>fld [esp+0x14]</c> / <c>fsub [0x005D85CC]</c>
-/// (10.0) / <c>fstp [esp]</c> — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// window — a float load of stack local +0x14, then float subtract of the value at 0x005D85CC
+/// (10.0) / a float store to the top of the stack — recovered from official 74154bfa
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -31,13 +31,12 @@ namespace OnslaughtRebuild.GodotClient;
 /// constant.</para>
 ///
 /// <para><b>Delta.</b> Official 74154bfa independently re-read:
-/// <c>0x00460C90</c> is <c>fld [esp+0x14]</c>
-/// (<c>d9 44 24 14</c>). <c>0x00460C94</c> is
-/// <c>fsub [0x005D85CC]</c> (<c>d8 25 cc 85 5d 00</c>).
-/// <c>0x005D85CC</c> is <c>00 00 20 41</c> (10.0). The prior leftover
-/// labelled this second opcode <c>fld</c>; the bytes are
-/// <c>d8 /4</c> with ModR/M <c>25</c> — <c>fsub m32</c> — not
-/// <c>d9 05</c> <c>fld m32</c>. The same pair also sits at
+/// <c>0x00460C90</c> is a float load of stack local +0x14. <c>0x00460C94</c> is
+/// a float subtract of the value at 0x005D85CC.
+/// <c>0x005D85CC</c> is 10.0. The prior leftover
+/// labelled this second opcode <c>fld</c>; the instruction is
+/// a float subtract with a 32-bit memory operand — not
+/// a float load. The same pair also sits at
 /// <c>0x004721D7</c>; that is not this leftover. Dest does not.
 /// Colour leftover already consults currentIndex. Hover leftover
 /// already owns <c>0x004A3FA6</c>. Click leftover already owns
@@ -47,15 +46,15 @@ namespace OnslaughtRebuild.GodotClient;
 /// measurements, not dest. Dest is not the 2.0 constant.</para>
 ///
 /// <para><b>First consumer.</b> <c>0x00460CE7</c> is
-/// <c>fstp [esp]</c> (<c>d9 1c 24</c>) immediately before
-/// <c>0x00460CEA</c> <c>call 0x005563D0</c>
-/// (<c>CDXSurf__RenderSurface</c>, <c>add esp, 0x2C</c>). That
+/// a float store to the top of the stack immediately before
+/// <c>0x00460CEA</c>: a direct call to 0x005563D0
+/// (<c>CDXSurf__RenderSurface</c>, a stack cleanup of 0x2C bytes). That
 /// overwrites the last push with <c>pad - 10.0</c>. Settled pad is
 /// 148.0 so settled delta is 138.0. That is not dest. The nearby
-/// <c>push 0x43A10000</c> (322.0) at <c>0x00460CE1</c> and
-/// <c>push 0x3F747AE1</c> at <c>0x00460CDC</c> are later. The later
+/// push of constant 0x43A10000 (322.0) at <c>0x00460CE1</c> and
+/// a push of constant 0x3F747AE1 at <c>0x00460CDC</c> are later. The later
 /// triple at <c>0x00460E24</c> is later. Texture load
-/// <c>mov ecx, [0x0089D888]</c> at <c>0x00460CD5</c> is later.
+/// (a load of the value at 0x0089D888 into ecx) at <c>0x00460CD5</c> is later.
 /// DrawLevelSelect already owns the measured node centres. Do not
 /// invent dest from 10.0.</para>
 ///
@@ -81,13 +80,13 @@ public static class RetailLevelSelectFsub10
     /// <summary>Already <see cref="RetailLevelSelectFsub148.FldSite"/>.</summary>
     public const uint Fsub148Site = 0x00460B66u;
 
-    /// <summary><c>fld [esp+0x14]</c> at <c>0x00460C90</c>. Reloads the pad.</summary>
+    /// <summary>A float load of stack local +0x14 at <c>0x00460C90</c>. Reloads the pad.</summary>
     public const uint FldSite = 0x00460C90u;
 
     /// <summary>Stack local that holds the pad. Same slot as the 148.0 fsub.</summary>
     public const int StackLocal = 0x14;
 
-    /// <summary><c>fsub [0x005D85CC]</c> at <c>0x00460C94</c>. First leftover after the window.</summary>
+    /// <summary>A float subtract of the value at 0x005D85CC at <c>0x00460C94</c>. First leftover after the window.</summary>
     public const uint FsubSite = 0x00460C94u;
 
     /// <summary>10.0 source. Same dword as <see cref="RetailLevelSelectFsub148.LaterTenConst"/>.</summary>
@@ -96,28 +95,28 @@ public static class RetailLevelSelectFsub10
     /// <summary>IEEE bits at <see cref="TenConst"/>. 10.0. Not dest.</summary>
     public const uint TenBits = 0x41200000u;
 
-    /// <summary><c>fstp [esp]</c> at <c>0x00460CE7</c>. First consumer. Not dest.</summary>
+    /// <summary>A float store to the top of the stack at <c>0x00460CE7</c>. First consumer. Not dest.</summary>
     public const uint FstpSite = 0x00460CE7u;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x00460CEA</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x00460CEA</c>.</summary>
     public const uint CallSite = 0x00460CEAu;
 
     /// <summary><c>CDXSurf__RenderSurface</c>. Same callee as the writing-chrome tiles.</summary>
     public const uint RenderSurface = 0x005563D0u;
 
-    /// <summary><c>mov ecx, [0x0089D888]</c> at <c>0x00460CD5</c>. Later. Not dest.</summary>
+    /// <summary>A load of the value at 0x0089D888 into ecx at <c>0x00460CD5</c>. Later. Not dest.</summary>
     public const uint TextureLoadSite = 0x00460CD5u;
 
     /// <summary>Texture global loaded for the submit. Later. Not dest.</summary>
     public const uint TextureGlobal = 0x0089D888u;
 
-    /// <summary><c>push 0x43A10000</c> at <c>0x00460CE1</c>. Later. Not dest.</summary>
+    /// <summary>A push of constant 0x43A10000 at <c>0x00460CE1</c>. Later. Not dest.</summary>
     public const uint Later322PushSite = 0x00460CE1u;
 
     /// <summary>IEEE bits of the later 322.0 push. Not this leftover and not dest.</summary>
     public const uint Later322Bits = 0x43A10000u;
 
-    /// <summary><c>push 0x3F747AE1</c> at <c>0x00460CDC</c>. Later. Not dest.</summary>
+    /// <summary>A push of constant 0x3F747AE1 at <c>0x00460CDC</c>. Later. Not dest.</summary>
     public const uint LaterZPushSite = 0x00460CDCu;
 
     /// <summary>IEEE bits of the later 0.955 push. Not this leftover and not dest.</summary>
@@ -126,7 +125,7 @@ public static class RetailLevelSelectFsub10
     /// <summary>Later identical 148.0 triple at <c>0x00460E24</c>. Not this leftover.</summary>
     public const uint LaterTripleSite = 0x00460E24u;
 
-    /// <summary>Other <c>fld [esp+0x14]</c> / <c>fsub 10.0</c> pair at <c>0x004721D7</c>.</summary>
+    /// <summary>Other sequence (float load of stack local +0x14, then float subtract of 10.0) pair at <c>0x004721D7</c>.</summary>
     public const uint OtherPairSite = 0x004721D7u;
 
     /// <summary>Latch SET at <c>0x0042D5CF</c> is already owned.</summary>

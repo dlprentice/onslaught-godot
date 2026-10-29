@@ -56,7 +56,7 @@ public sealed class RetailCareerNodesTests
         Assert.Equal(0x5A5A5A5A, node.IsStartOfNewIsland);
     }
 
-    // THE BOOL-literal test. 0x0041B788 is `cmp dword ptr [esp+0xC], 1`, so the
+    // THE BOOL-literal test. 0x0041B788 is a compare of stack local +0xC with 1, so the
     // set arm needs exactly 1. Every other value - including the 2 and -1 a
     // sloppy BOOL can hold, and END_LEVEL_DATA.mBaseThingsLeft is forwarded
     // straight in at Career.cpp:526 - lands on the clear arm.
@@ -81,7 +81,7 @@ public sealed class RetailCareerNodesTests
     // Offset 31 must land on the sign bit of word 0, offset 32 on bit 0 of word
     // 1, offset 287 on the top bit of word 8 - the last bit the 288-bit map
     // holds. An implementation that used `1 << (offset % 32)` on a signed int
-    // without the `and 31` would agree here; one that shifted by the whole
+    // without the mask with 31 would agree here; one that shifted by the whole
     // offset would not.
     [Theory]
     [InlineData(0, 0, 0x00000001u)]
@@ -151,7 +151,7 @@ public sealed class RetailCareerNodesTests
     // Two different misses, kept apart because retail keeps them apart.
     // CCareer::DoesBaseThingExist checks the pointer and answers TRUE for an
     // unknown world (0x0041BB75, Career.cpp:319-320); IsEpisodeAvailable does
-    // not check and executes `cmp dword ptr [eax+4]` against the zero
+    // not check and compares the dword at offset 4 of the zero
     // 0x0041B924 just returned. Find models the first, CompleteFlagOf the
     // second.
     [Fact]

@@ -67,7 +67,8 @@ public sealed class ScriptVmTests
     [Fact]
     public void ArithmeticTakesTheLeftOperandsKind()
     {
-        // PLUS asks the lower value (a->Add(b)): Int 7 + Float 0.5 is an int add of GetInt (fistp 0.5 = 0, to even);
+        // PLUS asks the lower value (a->Add(b)): Int 7 + Float 0.5 is an
+        // int add of GetInt (a float-to-integer store to 0.5 = 0, to even);
         // Float 0.5 + Int 7 is a float add.
         ThingContext context = NewContext();
         IScript script = Start(context, Code(

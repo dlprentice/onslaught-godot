@@ -7,12 +7,12 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPIntro "Click to start" glyph submits recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle).
 ///
 /// <para><b>Body.</b> <c>CFEPIntro::Render</c> <c>0x0051B92F</c>–<c>0x0051BAC2</c>.
-/// File offset = VA − <c>0x400000</c>. <c>push 0x77</c> then
+/// File offset = VA − <c>0x400000</c>. A push of constant 0x77 then
 /// <c>Localization__GetStringById</c> (<c>0x00524830</c>),
 /// <c>CPlatform__Font</c> slot 0 (<c>0x00515A70</c>),
 /// <c>CDXFont__GetTextExtent</c> (<c>0x00540680</c>), then five
@@ -33,8 +33,8 @@ public sealed class RetailClickToStartGlyphsTests
     [Fact]
     public void PromptLooksUpLocalizationSeventySevenOnFontSlotZero()
     {
-        // 0x0051B92F push 0x77; 0x0051B931 call Localization__GetStringById.
-        // 0x0051B941 push 0; mov ecx, 0x0088A0A8; call CPlatform__Font.
+        // 0x0051B92F: a push of constant 0x77; 0x0051B931: a direct call to Localization__GetStringById.
+        // 0x0051B941 push 0; a load of constant 0x0088A0A8 into ecx; a direct call to CPlatform__Font.
         Assert.Equal(0x77, RetailClickToStartGlyphs.LocalizationId);
         Assert.Equal(0, RetailClickToStartGlyphs.FontSlot);
     }
@@ -43,8 +43,8 @@ public sealed class RetailClickToStartGlyphsTests
     public void FivePassesAreThePlusOrMinusOneOutlineThenTheBody()
     {
         // Y immediates 0x43C88000 / 0x43C78000 / 0x43C80000.
-        // Outline colour push 0xFF000000; body push -1.
-        // dx from fsub / fadd [1.0f] at 0x005D8568 around 320 - width*0.5.
+        // Outline colour (a push of constant 0xFF000000); body push -1.
+        // dx from fsub / a float add of the constant 1.0f at 0x005D8568 around 320 - width*0.5.
         Assert.Equal(5, RetailClickToStartGlyphs.Passes.Length);
         Assert.Equal(
             new RetailClickToStartGlyphs.Pass(-1f, 401f, 0xFF000000u),
@@ -68,8 +68,8 @@ public sealed class RetailClickToStartGlyphsTests
     [Fact]
     public void XIsCentreMinusHalfExtentPlusDxNotAScaleTwoMeasure()
     {
-        // fild [esp+8] (GetTextExtent width); fmul [0.5] at 0x005D85EC;
-        // fsubr [320.0] at 0x005DB3E8; then fsub/fadd [1.0] or nothing.
+        // An integer-to-float load of stack local +8 (GetTextExtent width); a float multiply by the constant 0.5 at 0x005D85EC;
+        // a reversed float subtract of the constant 320.0 at 0x005DB3E8; then fsub/a float add of the constant 1.0 or nothing.
         Assert.Equal(320f, RetailClickToStartGlyphs.CentreX);
         Assert.Equal(0.5f, RetailClickToStartGlyphs.HalfWidth);
         Assert.Equal(1f, RetailClickToStartGlyphs.ScaleX);

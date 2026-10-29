@@ -293,16 +293,10 @@ for a Ghidra lane, which is now retired as an authority.)
 > apply it once (such as roll) may not."
 >
 > The operator is at `0x00411a60`, read from the pristine specimen
-> (`local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, sha256
+> (a private pristine copy, sha256
 > `74154bfa…` — **not** the installed executable, which is patched). Its whole
-> body is nine x87 pairs and three stores:
->
-> ```
-> fld [ecx]    fmul [eax+4]   fld [ecx+4]  fmul [eax]    fsubp   ; a.x*b.y - a.y*b.x
-> fld [ecx+8]  fmul [eax]     fld [eax+8]  fmul [ecx]    fsubp   ; a.z*b.x - a.x*b.z
-> fld [ecx+4]  fmul [eax+8]   fld [ecx+8]  fmul [eax+4]  fsubp   ; a.y*b.z - a.z*b.y
-> fstp [eax]   fstp [eax+4]   fstp [eax+8]                       ; x, y, z
-> ```
+> body computes three differences of two products each, in this order, then makes three stores:
+> `a.x*b.y − a.y*b.x`, `a.z*b.x − a.x*b.z` and `a.y*b.z − a.z*b.y`.
 >
 > Popped in stack order that stores `a.y*b.z − a.z*b.y` to x, `a.z*b.x − a.x*b.z`
 > to y, `a.x*b.y − a.y*b.x` to z — **the conventional right-handed cross product,
@@ -359,7 +353,7 @@ decode measured these exact source/output identities:
 
 These match the source track IDs/rate and the existing less-than-one-audio-frame
 overhang law. The source was the user's Linux Steam installation; the generated
-audio remains under ignored `local-lab/startup-media/`. Decode identity does not
+audio remains under an ignored private folder. Decode identity does not
 establish native playback timing, volume or mixing parity.
 
 The career reader ports Stuart's raw version-plus-`CCareer` shape
@@ -441,7 +435,7 @@ evidence stays with the RE lane
 ([`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md),
 [`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md)),
 and its code, tests and mutation receipts stay in Git history and the ignored
-`local-lab/rebuild-world110-*` receipts.
+private rebuild-world110 receipts.
 
 The Level-100 configuration page now owns the one row named by the released
 `WorldHeaders.dat`: page-list index 0 selects `Aquila Prototype`, catalog record
@@ -469,12 +463,12 @@ constructs only world 100. The loading page
 uses the exact image and `Loading...` text established by
 `CConsole__RenderLoadingScreen` (`0x0042C810`). The Options page is retail's
 own rather than a new surface: read from the pristine specimen
-(`local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, SHA-256
+(a private pristine copy, SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`,
 2,506,752 bytes) during this pass, the vtable at `0x005DB8A8` holds eight
 entries inside one `.text` cluster (`0x0051F4B0`–`0x0051F7E0`), and within that
-cluster at `0x0051F8A6` the image executes `6a 01 8b c8 e8 b1 e5 fa ff` —
-`push 1; mov ecx,eax; call 0x004CDE60`. That branch lazily creates the frontend
+cluster at `0x0051F8A6` the image executes a push of constant 1, a copy of eax into ecx and a direct call to 0x004CDE60. That branch lazily creates the
+frontend
 Options context with mode `1`; it is not taken on every entry. A replayable
 manual trace observed the same non-null frontend context reused across two
 entries. Static branch evidence shows that state takes the reuse path, and both
@@ -537,7 +531,7 @@ or inside the selected profile's horizontal mesh-quality distance and queues
 its six-view imposter outside that boundary. **That distance is retail's
 authored default `30.0`, corrected from `70.0` on 2026-07-27 under GOAL.md's
 defaults rule.** The pristine specimen
-(`local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, sha256
+(a private pristine copy, sha256
 `74154bfa…`) dispatches "Geometry detail" at `0x004DD6B0` to three arms writing
 `10.0` / `30.0` / `70.0` to `0x006321A0`, and the image's own static
 initialisers are uniquely the middle arm, so the released out-of-box state is
@@ -547,9 +541,9 @@ Medium. **File offset is `VA − 0x400000` uniformly** — the three section del
 
 | global | VA | file | bytes | value |
 | --- | --- | --- | --- | --- |
-| mesh-quality distance | `0x006321A0` | `0x2321A0` | `00 00 f0 41` | `30.0` |
-| LOD bias | `0x00631E88` | `0x231E88` | `00 00 80 3f` | `1.0` |
-| quality scale | `0x00630E0C` | `0x230E0C` | `00 00 80 3f` | `1.0` |
+| mesh-quality distance | `0x006321A0` | `0x2321A0` | `0x41F00000` | `30.0` |
+| LOD bias | `0x00631E88` | `0x231E88` | `0x3F800000` | `1.0` |
+| quality scale | `0x00630E0C` | `0x230E0C` | `0x3F800000` | `1.0` |
 
 > **Corrected 2026-07-27.** This table first shipped with the file offsets
 > `0x231CA0`, `0x231988` and `0x230F0C`. All three were wrong — `0x231CA0`
@@ -578,7 +572,7 @@ The previous `70.0` came from this machine's `defaultoptions.bea` at OptionsTail
 `+0x0C` (file `0x26CA`), which is persisted run state. The decisive proof is in
 code, not in file comparison: the only writer of that file
 (`0x0051F595 → Serialise → OptionsTail_Write 0x00420B10`) reads the **live
-globals** — `mov ecx,[0x6321a0]` at `0x00420B9E` — so the file is by
+globals** — a load of the value at 0x6321a0 into ecx at `0x00420B9E` — so the file is by
 construction a snapshot of current state, and no path writes it from authored
 constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence
 is meaningful rather than a category gap. A value read from that file is a
@@ -1101,7 +1095,7 @@ construction, session integration, or campaign-grade promotion.
 
 The controlled reciprocal-call mutation receipt is ignored repo-local machine
 evidence at
-`local-lab/rebuild-player-assign-battle-engine-mutation-kill-20260830/RECEIPT.md`,
+a private mutation-kill receipt (rebuild-player-assign-battle-engine-mutation-kill-20260830),
 SHA-256
 `63b97ad75ddb73a39c2f8a92a48c8471548c5c2fd93c1837e0788780aa9ca401`.
 Omitting the second graph call while retaining its transcript label failed the
@@ -1166,9 +1160,9 @@ remain unproven.
 > configured through, which is persisted run state under `GOAL.md`'s defaults
 > rule and not an authored default. Read
 > during this pass from the pristine specimen
-> (`local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, SHA-256
+> (a private pristine copy, SHA-256
 > `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`): file
-> `0x2254F4` (VA `0x006254F4`) = `00 00 e0 40` = `7.0f`, file `0x1D8CC0`
+> `0x2254F4` (VA `0x006254F4`) = `0x40E00000` = `7.0f`, file `0x1D8CC0`
 > (VA `0x005D8CC0`) = `3.0f`, file `0x1D97C8` (VA `0x005D97C8`) =
 > `0.004333333f`. This document already knew the first of those — see the
 > `proof_defaultoptions.bea` warning above, which cites `0x006254F4` as `7.0` —
@@ -1492,7 +1486,7 @@ At VA `0x004F9E61` / file offset `0x000F9E61`, the 32-byte range through
 `F6A5A6D8AAB47FFDDD06A16B493FBEDACD0583519277AF2F9E035FF314B087A2`:
 it loads life, subtracts damage, stores the remainder, compares the retained
 x87 value with the `+0.0f` constant at VA `0x005D856C` (file offset
-`0x001D856C`, bytes `00 00 00 00`, SHA-256
+`0x001D856C`, the dword 0x00000000, SHA-256
 `DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119`),
 then tests x87 C0 and skips the destruction lane when C0 is clear. Finite
 positive and exact-zero remainders therefore survive; finite negative values

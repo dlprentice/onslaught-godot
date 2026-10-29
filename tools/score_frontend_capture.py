@@ -22,7 +22,7 @@ its verdict is folded into the capture's status.
 What is scored, and what deliberately is not
 --------------------------------------------
 Only pages whose retail reference can actually pin them. Measured 2026-07-26
-(local-lab/STARTUP-NOFMV-BASELINE-2026-07-26.md section 2.2), retail's own two
+(the private lab note STARTUP-NOFMV-BASELINE-2026-07-26.md section 2.2), retail's own two
 runs disagree with each other by:
 
     FEP_MAIN          0.11 - 1.46 %   phase-reproducible from the click anchor

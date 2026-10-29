@@ -4,16 +4,15 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the later 60.0 /
-/// 0.5 / 320.0 scale — <c>fld [esp+0x94]</c> /
-/// <c>fcomp [0x005D8568]</c> (1.0) / <c>fnstsw ax</c> /
-/// <c>test ah, 0x40</c> / <c>jz</c> / first equal-1 consumer
-/// <c>fld [esp+0x18]</c> — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// 0.5 / 320.0 scale — a float load of stack local +0x94, then float compare against the value at 0x005D8568, popping
+/// the result (1.0) / an FPU status-word read, then bit test of ah against 0x40 / <c>jz</c> / first equal-1 consumer
+/// (a float load of stack local +0x18) — recovered from official 74154bfa
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -48,15 +47,14 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Equal-1 compare.</b> Official 74154bfa independently
 /// re-read: <c>0x00460F85</c> is already the later-60 first store
-/// <c>fstp [esp+0x18]</c> (<c>d9 5c 24 18</c>).
-/// <c>0x00460FD2</c> is <c>jz 0x00461069</c>
-/// (<c>0f 84 91 00 00 00</c>). <c>0x00460FD8</c> is
-/// <c>fld [esp+0x94]</c> (<c>d9 84 24 94 00 00 00</c>),
+/// (a float store to stack local +0x18).
+/// <c>0x00460FD2</c> is a conditional branch to 0x00461069 (taken when zero). <c>0x00460FD8</c> is
+/// a float load of stack local +0x94,
 /// not <c>0x00460FD6</c>. <c>0x00460FDF</c> is
-/// <c>fcomp [0x005D8568]</c> (<c>d8 1d 68 85 5d 00</c>).
-/// <c>0x005D8568</c> is <c>00 00 80 3f</c> (1.0).
-/// <c>0x00460FE5</c> is <c>fnstsw ax</c> / <c>test ah, 0x40</c>
-/// / <c>jz 0x00461069</c> — skip when the local is not equal to
+/// a float compare against the value at 0x005D8568, popping the result.
+/// <c>0x005D8568</c> is 1.0.
+/// <c>0x00460FE5</c> is an FPU status-word read, then bit test of ah against 0x40, then
+/// conditional branch to 0x00461069 (taken when zero) — skip when the local is not equal to
 /// 1.0. Dest does not. Colour leftover already consults
 /// currentIndex. Hover leftover already owns <c>0x004A3FA6</c>.
 /// Click leftover already owns <c>0x004A4010</c>. Cancel leftover
@@ -66,9 +64,8 @@ namespace OnslaughtRebuild.GodotClient;
 /// measurements, not dest. Dest is not the 2.0 constant.</para>
 ///
 /// <para><b>First consumer.</b> The equal-1 fall-through first
-/// consumer is <c>0x00460FEC</c> <c>fld [esp+0x18]</c>
-/// (<c>d9 44 24 18</c>). That is a load of the later-60 scaled
-/// local, not dest. The later <c>fadd [0x005D857C]</c> (20.0)
+/// consumer is <c>0x00460FEC</c>: a float load of stack local +0x18. That is a load of the later-60 scaled
+/// local, not dest. The later float add of the value at 0x005D857C (20.0)
 /// at <c>0x00460FF0</c> is later. DrawLevelSelect already owns
 /// the measured node centres. Do not invent dest from 1.0. Do
 /// not invent dest from 20.0. Do not invent a fade.</para>
@@ -116,16 +113,18 @@ public static class RetailLevelSelectLaterEsp94One
     /// <summary>Already <see cref="RetailLevelSelectLater60.FstpSite"/>.</summary>
     public const uint Later60FstpSite = 0x00460F85u;
 
-    /// <summary>Prior <c>jz 0x00461069</c> at <c>0x00460FD2</c>. Skips this leftover. Not dest.</summary>
+    /// <summary>Prior conditional branch to 0x00461069 (taken when zero)
+    /// at <c>0x00460FD2</c>. Skips this leftover. Not dest.</summary>
     public const uint PriorJzSite = 0x00460FD2u;
 
-    /// <summary><c>fld [esp+0x94]</c> at <c>0x00460FD8</c>. Later leftover after the later 60.0 scale. Not <c>0x00460FD6</c>.</summary>
+    /// <summary>A float load of stack local +0x94 at <c>0x00460FD8</c>. Later
+    /// leftover after the later 60.0 scale. Not <c>0x00460FD6</c>.</summary>
     public const uint FldSite = 0x00460FD8u;
 
     /// <summary>Stack local compared against 1.0. Same slot as <see cref="RetailLevelSelectLaterEsp94.StackLocal"/>. Not dest.</summary>
     public const int StackLocal = 0x94;
 
-    /// <summary><c>fcomp [0x005D8568]</c> at <c>0x00460FDF</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D8568, popping the result at <c>0x00460FDF</c>.</summary>
     public const uint FcompSite = 0x00460FDFu;
 
     /// <summary>1.0 source. Equal compare, not dest. Same dword as <see cref="RetailLevelSelectLaterOne.OneConst"/>.</summary>
@@ -134,13 +133,13 @@ public static class RetailLevelSelectLaterEsp94One
     /// <summary>IEEE bits at <see cref="OneConst"/>. 1.0. Not dest.</summary>
     public const uint OneBits = 0x3F800000u;
 
-    /// <summary><c>fld [esp+0x18]</c> at <c>0x00460FEC</c>. First equal-1 consumer. Not dest.</summary>
+    /// <summary>A float load of stack local +0x18 at <c>0x00460FEC</c>. First equal-1 consumer. Not dest.</summary>
     public const uint FirstConsumerSite = 0x00460FECu;
 
     /// <summary>Stack local loaded on the equal-1 fall-through. Same slot as <see cref="RetailLevelSelectLater60.StoreLocal"/>. Not dest.</summary>
     public const int ConsumerLocal = 0x18;
 
-    /// <summary>Later <c>fadd [0x005D857C]</c> (20.0) at <c>0x00460FF0</c>. Not this leftover.</summary>
+    /// <summary>Later float add of the value at 0x005D857C (20.0) at <c>0x00460FF0</c>. Not this leftover.</summary>
     public const uint LaterFadd20Site = 0x00460FF0u;
 
     /// <summary>20.0 source used later. Not this leftover and not dest.</summary>
@@ -382,7 +381,7 @@ public static class RetailLevelSelectLaterEsp94One
 
     /// <summary>
     /// Later consumers of <c>[esp+0x94]</c> after
-    /// <c>fcomp 1.0</c> / <c>test ah, 0x40</c>:
+    /// a float compare against 1.0, popping the result, then bit test of ah against 0x40:
     /// <c>local == 1.0</c>. That is not dest from 1.0 or 20.0.
     /// </summary>
     public static bool Applies(float local) => local == CompareOne;

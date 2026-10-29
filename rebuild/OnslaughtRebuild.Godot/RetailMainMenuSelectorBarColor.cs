@@ -5,19 +5,19 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render selector-bar colour — recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
-/// <para><b>Site.</b> <c>0x00462FB9</c> is <c>mov eax, esi</c> on
+/// <para><b>Site.</b> <c>0x00462FB9</c> is a copy of esi into eax on
 /// the <c>ebx == [edi+8]</c> arm only. <c>0x00462FB5</c> is the
-/// preceding <c>fild [esp+0x18]</c>, not this move. ESI is the
+/// preceding integer-to-float load of stack local +0x18, not this move. ESI is the
 /// icon-fade byte after the 0x00462F9C clamp, not the page-fade
 /// byte. Settled icon-fade is 255.</para>
 ///
-/// <para><b>Pack.</b> <c>shl eax, 7; sub esi; shl 16;
-/// and 0xFF000000</c> = <c>(esi * 127) &lt;&lt; 16</c> in the
+/// <para><b>Pack.</b> a left shift of eax by 7, then subtraction of esi, then left
+/// shift by 16, then mask with 0xFF000000 = <c>(esi * 127) &lt;&lt; 16</c> in the
 /// alpha byte. Settled 255 submits <c>0x7E000000</c>, which is
 /// frame 3000 draw 11. DrawMainMenuSelectorBar is the consumer.
 /// DrawQuitConfirm keeps <c>HighlightTint</c>. Not
@@ -29,16 +29,16 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuSelectorBarColor
 {
-    /// <summary><c>mov eax, esi</c> at <c>0x00462FB9</c>.</summary>
+    /// <summary>A copy of esi into eax at <c>0x00462FB9</c>.</summary>
     public const uint Site = 0x00462FB9u;
 
-    /// <summary><c>shl eax, 7</c> at <c>0x00462FBD</c>.</summary>
+    /// <summary>A left shift of eax by 7 at <c>0x00462FBD</c>.</summary>
     public const uint ShiftSite = 0x00462FBDu;
 
-    /// <summary><c>shl eax, 7</c>.</summary>
+    /// <summary>A left shift of eax by 7.</summary>
     public const int ShiftLeft = 7;
 
-    /// <summary><c>and eax, 0xFF000000</c> at <c>0x00462FE6</c>.</summary>
+    /// <summary>A mask of eax with 0xFF000000 at <c>0x00462FE6</c>.</summary>
     public const uint AlphaMask = 0xFF000000u;
 
     /// <summary>Settled icon-fade <c>fistp</c> after the 0x00462F9C clamp.</summary>
@@ -57,7 +57,7 @@ public static class RetailMainMenuSelectorBarColor
     public const bool IsButtonPressed = false;
 
     /// <summary>
-    /// <c>0x00462F9C</c> signed clamp, then <c>cmp esi, 0xFF</c>.
+    /// <c>0x00462F9C</c> signed clamp, then a compare of esi with 0xFF.
     /// </summary>
     public static int ClampFadeByte(int fadeByte)
     {

@@ -6,35 +6,33 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CMenuItemDropdown::Render</c> post-loop cancel leftover
-/// after <c>0x004A4059</c> <c>mov ecx, 0x675688</c> /
-/// <c>0x004A405E</c> <c>call 0x0044DEA0</c> /
-/// <c>0x004A4068</c> <c>mov eax, [0x0089BE28]</c> /
-/// <c>0x004A4071</c> <c>mov edx, [esi+0x1c]</c> /
-/// <c>0x004A4074</c> <c>mov byte [esi+0x24], 0</c> /
-/// <c>0x004A4078</c> <c>mov [esi+0x20], edx</c> — recovered from official
+/// after <c>0x004A4059</c>: a load of constant 0x675688 into ecx; <c>0x004A405E</c>: a direct call
+/// to 0x0044DEA0; <c>0x004A4068</c>: a load of the value at 0x0089BE28 into eax; <c>0x004A4071</c>:
+/// a load of field +0x1c of esi into edx; <c>0x004A4074</c>: a store of constant 0 to byte field
+/// +0x24 of esi; <c>0x004A4078</c>: a store of edx to field +0x20 of esi — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A4059</c> <c>mov ecx, 0x675688</c>,
-/// <c>0x004A405E</c> <c>call 0x0044DEA0</c>,
-/// <c>0x004A4063</c> <c>test eax, eax</c>,
-/// <c>0x004A4065</c> <c>pop ebp</c>,
-/// <c>0x004A4066</c> <c>jne 0x004A40CF</c>,
-/// <c>0x004A4068</c> <c>mov eax, [0x0089BE28]</c>,
-/// <c>0x004A406D</c> <c>test eax, eax</c>,
-/// <c>0x004A406F</c> <c>je 0x004A40CF</c>,
-/// <c>0x004A4071</c> <c>mov edx, [esi+0x1c]</c>,
-/// <c>0x004A4074</c> <c>mov byte [esi+0x24], 0</c>,
-/// <c>0x004A4078</c> <c>mov [esi+0x20], edx</c>,
-/// <c>0x004A407B</c> <c>push 2</c>,
-/// <c>0x004A407D</c> <c>mov [0x0089BE28], 0</c>,
-/// <c>0x004A4087</c> <c>call 0x00468770</c>.
+/// <c>0x004A4059</c>: a load of constant 0x675688 into ecx,
+/// <c>0x004A405E</c>: a direct call to 0x0044DEA0,
+/// <c>0x004A4063</c>: a zero test of eax,
+/// <c>0x004A4065</c>: a pop into ebp,
+/// <c>0x004A4066</c>: a conditional branch to 0x004A40CF (taken when not equal),
+/// <c>0x004A4068</c>: a load of the value at 0x0089BE28 into eax,
+/// <c>0x004A406D</c>: a zero test of eax,
+/// <c>0x004A406F</c>: a conditional branch to 0x004A40CF (taken when equal),
+/// <c>0x004A4071</c>: a load of field +0x1c of esi into edx,
+/// <c>0x004A4074</c>: a store of constant 0 to byte field +0x24 of esi,
+/// <c>0x004A4078</c>: a store of edx to field +0x20 of esi,
+/// <c>0x004A407B</c>: a push of constant 2,
+/// <c>0x004A407D</c>: a store of constant 0 to the value at 0x0089BE28,
+/// <c>0x004A4087</c>: a direct call to 0x00468770.
 /// <c>0x0044DEA0</c> returns 1 only when <c>[ecx+0x1F8C]</c> and
 /// <c>[ecx+0x1F98]</c> are both nonzero. Cancel writes currentIndex
 /// from committedIndex and the expand byte. Dest Y does not. Colour

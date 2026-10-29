@@ -422,8 +422,8 @@ public sealed partial class Level100ActorMechanics
         int targetYaw = FixedAtan2(-deltaX, deltaZ);
         int targetPitch = FixedAtan2(deltaY, horizontal);
 
-        // |wrapped yaw error| < CWeaponYawTolerance, strict, at
-        // `ABS(fVar2) < mode[+0x84]`.
+        // |wrapped yaw error| < CWeaponYawTolerance, strict: the absolute value is compared with the mode's
+        // field +0x84.
         int yawError = NormalizeMicroRad(targetYaw - ownerYaw);
         if (Math.Abs(yawError) >= mode.YawToleranceMicroRadians)
         {

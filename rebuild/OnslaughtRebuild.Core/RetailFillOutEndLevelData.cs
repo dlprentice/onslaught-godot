@@ -64,8 +64,9 @@ public readonly record struct RetailEndLevelSnapshot(
 /// <c>CWorld::LoadWorld</c> is the outer RLWD parse. <c>this+0x108</c>
 /// / <c>+0x10c</c> / <c>+0x110</c> are RLWD <c>+0x147ba</c> /
 /// <c>+0x147be</c> / next dword = 300.0 / 500.0 / 1.0, so
-/// <c>0x0046d638</c> <c>fld [this+0x10c]</c> / <c>fsub [this+0x108]</c>
-/// / <c>fcomp 0.0</c> / <c>test ah,0x41</c> / <c>jne 0x0046d79b</c>
+/// <c>0x0046d638</c>: a float load of field +0x10c of this, then float subtract of field
+/// +0x108 of this, then float compare against 0.0, popping the result, then bit test of
+/// ah against 0x41, then conditional branch to 0x0046d79b (taken when not equal)
 /// does not skip. Last-wins S/D ints at <c>this+0xf8/+0xfc</c> are
 /// 210 / 70. A zero score stores ranking 0 at <c>0x0046d772</c> and
 /// skips the <c>0x3a83126f</c> (0.001f) replacement that source
@@ -144,7 +145,7 @@ public static class RetailFillOutEndLevelData
     public static int LostReasonWord(int gameLevelLostReason) => gameLevelLostReason;
 
     /// <summary>
-    /// FillOut <c>0x0046d5cb</c> <c>mov [0x00672e24], eax</c> from
+    /// FillOut <c>0x0046d5cb</c>: a store of eax to the value at 0x00672e24 from
     /// <c>[ebp+0xf4]</c>. The score-time arm later fistp-rewrites
     /// <c>CGame+0xf4</c> at <c>0x0046d6ff</c> and does not store
     /// <c>0x00672e24</c> again. First-play <c>this+0xf4</c> stays
@@ -154,7 +155,7 @@ public static class RetailFillOutEndLevelData
     public static int ScoreWord(int gameScore) => gameScore;
 
     /// <summary>
-    /// FillOut <c>0x0046d5c5</c> <c>mov [0x00672e28], ecx</c> from
+    /// FillOut <c>0x0046d5c5</c>: a store of ecx to the value at 0x00672e28 from
     /// <c>[0x00672fd0]</c> (<c>EVENT_MANAGER.GetTime()</c>). The arm
     /// rereads that dword for the multiplier and never writes
     /// <c>0x00672e28</c> again. First-play elapsed stays unclaimed —
@@ -241,7 +242,7 @@ public static class RetailFillOutEndLevelData
     }
 
     /// <summary>
-    /// <c>TF_DYING</c> — <c>0x0046d4d1</c> <c>test byte [eax+0x2c],4</c>.
+    /// <c>TF_DYING</c> — <c>0x0046d4d1</c>: a bit test of byte field +0x2c of eax against 4.
     /// </summary>
     public const int ThingFlagDying = 4;
 
@@ -270,8 +271,8 @@ public static class RetailFillOutEndLevelData
         new int[RetailCareerCounters.KilledTypeCount];
 
     /// <summary>
-    /// FillOut kill copy. <c>0x0046d5ff</c> <c>test eax,eax</c> /
-    /// <c>je 0x0046d61d</c> stores five zeros. A live player copies
+    /// FillOut kill copy. <c>0x0046d5ff</c>: a zero test of eax, then conditional
+    /// branch to 0x0046d61d (taken when equal) stores five zeros. A live player copies
     /// five dwords from <c>player+8</c>. First-play is the live
     /// ctor-zero path. Do not invent those totals.
     /// </summary>
@@ -351,8 +352,8 @@ public static class RetailFillOutEndLevelData
     }
 
     /// <summary>
-    /// <c>0x0046d638</c> <c>fcomp 0.0</c> / <c>test ah,0x41</c> /
-    /// <c>jne 0x0046d79b</c> — skip when (percentage − full) ≤ 0.
+    /// <c>0x0046d638</c>: a float compare against 0.0, popping the result, then bit test of ah against 0x41,
+    /// then conditional branch to 0x0046d79b (taken when not equal) — skip when (percentage − full) ≤ 0.
     /// </summary>
     public static bool ScoreTimeArmSkips(float fullScoreTime, float percentageScoreTime)
     {
@@ -486,7 +487,7 @@ public static class RetailFillOutEndLevelData
     private const float PointZeroZeroOne = 0.001f;
 
     /// <summary>
-    /// <c>0x0046d6ed</c> <c>fistp qword ptr [esp+0x18]</c> under ambient
+    /// <c>0x0046d6ed</c>: a float-to-integer store to 64-bit stack local +0x18 under ambient
     /// <c>/QIfist</c> — round-to-nearest-even, then the low dword.
     /// </summary>
     private static int LowDwordOfFistp(double value)

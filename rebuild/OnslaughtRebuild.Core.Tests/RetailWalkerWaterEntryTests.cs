@@ -180,7 +180,7 @@ public sealed class RetailWalkerWaterEntryTests
             waterLevel: 0.0f, groundHere: here, groundAhead: 0.29999998f));
     }
 
-    // Every comparison in the body is test ah, 0x41 with jne to the failure
+    // Every comparison in the body is a bit test of ah against 0x41 with jne to the failure
     // label, so an unordered sample fails each of them - the same way C's `>`
     // does. But failing the SELECTOR is not failing the function: an unordered
     // ground here falls to the low arm, which never reads it again, so the

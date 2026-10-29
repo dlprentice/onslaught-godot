@@ -12,16 +12,17 @@ namespace OnslaughtRebuild.Core;
 /// Owner in the pinned drop: <c>references/Onslaught/Career.h:28-38</c>. Retail
 /// identity: <c>0x00420AC0</c> in the pristine <c>74154bfa…</c> image, file
 /// offset = VA - 0x400000. The byte <c>'S'</c> is the literal <c>0x53</c> in
-/// two <c>cmp al, 0x53</c> instructions at <c>0x00420AC2</c> and
+/// two (a compare of al with 0x53) instructions at <c>0x00420AC2</c> and
 /// <c>0x00420AD2</c>; there is no <c>.rdata</c> constant to read.
 /// </para>
 /// <para>
 /// <b>Source and retail agree instruction for instruction.</b>
 /// <c>Career.h:35</c> is three statements and the compiled body is three
 /// blocks: <c>this-&gt;grade == 'S'</c> returns the literal <c>1</c>
-/// (<c>mov eax, 1</c>), <c>right.grade == 'S'</c> returns the literal <c>0</c>
-/// (<c>xor eax, eax</c>), and what remains is
-/// <c>xor edx, edx / cmp al, cl / setle dl / mov eax, edx</c>. So the answer is
+/// (a load of constant 1 into eax), <c>right.grade == 'S'</c> returns the literal <c>0</c>
+/// (a zeroing of eax), and what remains is
+/// a zeroing of edx, then compare of al with cl, then set of dl from
+/// the less-or-equal flag, then copy of edx into eax. So the answer is
 /// a normalised <c>0</c> or <c>1</c> — unlike the readouts in
 /// <see cref="RetailWeaponStoreReadouts"/>, this <c>BOOL</c> really is a
 /// boolean.
@@ -72,7 +73,7 @@ namespace OnslaughtRebuild.Core;
 /// </remarks>
 public readonly struct RetailGrade
 {
-    /// <summary>The out-of-ladder sentinel — <c>cmp al, 0x53</c> at <c>0x00420AC2</c>.</summary>
+    /// <summary>The out-of-ladder sentinel — a compare of al with 0x53 at <c>0x00420AC2</c>.</summary>
     public const sbyte PerfectGradeByte = 0x53;
 
     /// <summary><c>char grade</c> — <c>Career.h:37</c>. Signed, as MSVC's <c>char</c> is.</summary>
@@ -125,15 +126,15 @@ public readonly struct RetailGrade
 /// Owner in the pinned drop: <c>references/Onslaught/Career.h:108-207</c>.
 /// Retail identity: <c>0x00420AF0</c> (<c>GetNode</c>) in the pristine
 /// <c>74154bfa…</c> image, with the <c>CAREER</c> singleton itself at
-/// <c>0x00660620</c> — the literal in <c>mov ecx, 0x660620</c> at
+/// <c>0x00660620</c> — the literal in a load of constant 0x660620 into ecx at
 /// <c>0x004218B0</c> and at <c>0x0051F473</c>.
 /// </para>
 /// <para>
 /// <b>Source and retail agree on <c>GetNode</c> exactly, including the missing
 /// upper bound.</b> <c>Career.h:138</c> is
 /// <c>if (num &lt; 0) return NULL; return &amp;mNode[num];</c> and the compiled
-/// body is <c>test eax, eax / jge / xor eax, eax</c> then
-/// <c>shl eax, 6 / lea eax, [eax + ecx + 4]</c>. Nothing checks
+/// body is a zero test of eax, branching when greater or equal, then zeroing of eax then
+/// a left shift of eax by 6, then address computation (eax+ecx+4) into eax. Nothing checks
 /// <c>MAX_NODES</c>, so <see cref="NodeOffset"/> keeps answering past the end of
 /// the array — <c>GetNode(100)</c> is the address of <c>mNodeLink[0]</c>, and
 /// <c>Career.cpp:596</c> walks <c>node_count &lt; num_nodes</c> with
@@ -144,10 +145,16 @@ public readonly struct RetailGrade
 /// every one of the header's array bounds is confirmed independently.</b>
 /// </para>
 /// <list type="bullet">
-/// <item><c>+0x0000</c> <c>mPendingExtraGoodies</c> — the one dword <c>lea eax, [eax + ecx + 4]</c> leaves in front of <c>mNode</c>, and the only data member <c>Career.h</c> declares before <c>protected:</c>.</item>
+/// <item><c>+0x0000</c> <c>mPendingExtraGoodies</c> — the one dword (an address computation (eax+ecx+4) into eax)
+/// leaves in front of <c>mNode</c>, and the only data member <c>Career.h</c> declares before <c>protected:</c>.</item>
 /// <item><c>+0x0004</c> <c>mNode</c> — <c>0x00420B00</c>, and the absolute <c>0x00660624</c> the world scan in <c>GRADE</c> starts from (<c>0x0041C3BE</c>).</item>
-/// <item><c>+0x1904</c> <c>mNodeLink</c> — the displacement at <c>0x0041BC8A</c>. <c>0x1904 - 4 = 0x1900 = 100 * 64</c>, i.e. <c>MAX_NODES</c> nodes of <c>sizeof(CCareerNode)</c>, and the stride is the <c>shl eax, 6</c> above.</item>
-/// <item><c>+0x1F44</c> <c>mGoodies</c> — the absolute <c>0x00662564</c> the constructor's 300-dword <c>rep stosd</c> starts from (<c>mov edi, 0x662564</c> at <c>0x0041B6DC</c>). <c>0x1F44 - 0x1904 = 0x640 = 200 * 8</c>, i.e. <c>MAX_LINKS</c> links of eight bytes, and the 200-iteration eight-byte init loop at <c>0x0041B6C6</c> over <c>0x00661F24</c> confirms both the count and the stride.</item>
+/// <item><c>+0x1904</c> <c>mNodeLink</c> — the displacement at <c>0x0041BC8A</c>.
+/// <c>0x1904 - 4 = 0x1900 = 100 * 64</c>, i.e. <c>MAX_NODES</c> nodes of
+/// <c>sizeof(CCareerNode)</c>, and the stride is the left shift of eax by 6 above.</item>
+/// <item><c>+0x1F44</c> <c>mGoodies</c> — the absolute <c>0x00662564</c> the constructor's 300-dword (a
+/// repeated fill of dwords) starts from (a load of constant 0x662564 into edi at <c>0x0041B6DC</c>). <c>0x1F44
+/// - 0x1904 = 0x640 = 200 * 8</c>, i.e. <c>MAX_LINKS</c> links of eight bytes, and the 200-iteration eight-byte
+/// init loop at <c>0x0041B6C6</c> over <c>0x00661F24</c> confirms both the count and the stride.</item>
 /// <item><c>+0x23F4</c> <c>mKilledThings</c> — <c>0x0041C167</c>. <c>0x23F4 - 0x1F44 = 0x4B0 = 300 * 4</c>, i.e. <c>MAX_NUM_GOODIES</c> goodies of one dword.</item>
 /// <item><c>+0x2408</c> <c>mSlots</c> — the displacement <see cref="RetailCareerSlots"/> measures three ways. <c>0x2408 - 0x23F4 = 0x14 = 5 * 4</c>, i.e. <c>TK_TOTAL</c> counters.</item>
 /// </list>
@@ -158,8 +165,8 @@ public readonly struct RetailGrade
 /// </para>
 /// <para>
 /// <b>The shipped record is eight bytes larger than the header describes, and
-/// retail wins.</b> <c>CCareer::Load</c> copies <c>rep movsd</c> with
-/// <c>ecx = 0x92F</c> — <c>0x00421236</c>, and the same <c>mov ecx, 0x92F</c>
+/// retail wins.</b> <c>CCareer::Load</c> copies (a repeated copy of dwords) with
+/// <c>ecx = 0x92F</c> — <c>0x00421236</c>, and the same load of constant 0x92F into ecx
 /// again at <c>0x0042136C</c> and <c>0x004213EB</c> — and advances its cursor by
 /// <c>0x24BC</c> (<c>0x00421253</c>); <c>0x92F * 4 = 0x24BC</c>, so
 /// <see cref="RecordSize"/> is measured five times and agrees with itself.
@@ -207,16 +214,16 @@ public readonly struct RetailGrade
 /// </remarks>
 public static class RetailCareerRecordLayout
 {
-    /// <summary><c>CAREER</c> — <c>mov ecx, 0x660620</c> at <c>0x004218B0</c>.</summary>
+    /// <summary><c>CAREER</c> — a load of constant 0x660620 into ecx at <c>0x004218B0</c>.</summary>
     public const uint CareerSingletonAddress = 0x00660620u;
 
     /// <summary><c>mPendingExtraGoodies</c> — the dword ahead of <c>mNode</c>.</summary>
     public const int PendingExtraGoodiesOffset = 0x0000;
 
-    /// <summary><c>mNode</c> — the <c>+ 4</c> in <c>lea eax, [eax + ecx + 4]</c>.</summary>
+    /// <summary><c>mNode</c> — the <c>+ 4</c> in an address computation (eax+ecx+4) into eax.</summary>
     public const int NodeArrayOffset = 0x0004;
 
-    /// <summary><c>sizeof(CCareerNode)</c> — the <c>shl eax, 6</c> at <c>0x00420AFD</c>.</summary>
+    /// <summary><c>sizeof(CCareerNode)</c> — the left shift of eax by 6 at <c>0x00420AFD</c>.</summary>
     public const int NodeStride = 64;
 
     /// <summary><c>MAX_NODES</c> — <c>(0x1904 - 4) / 64</c>.</summary>
@@ -243,7 +250,7 @@ public static class RetailCareerRecordLayout
     /// <summary><c>mSlots</c> — the displacement <see cref="RetailCareerSlots"/> measures.</summary>
     public const int SlotArrayOffset = 0x2408;
 
-    /// <summary><c>mCareerInProgress</c> — <c>mov [0x00662AA8], 0</c> at <c>0x0041B6E5</c>.</summary>
+    /// <summary><c>mCareerInProgress</c> — a store of constant 0 to the value at 0x00662AA8 at <c>0x0041B6E5</c>.</summary>
     public const int CareerInProgressOffset = 0x2488;
 
     /// <summary><c>mSoundVolume</c> — the <c>0.8f</c> (<c>0x3F4CCCCD</c>) store at <c>0x0041B70D</c>.</summary>
@@ -342,8 +349,8 @@ public readonly record struct RetailWorldGradeNode(
 /// wrong side of the dereference.</b> <c>COMPLETE_LEVEL(world_num)</c> expands to
 /// <c>CAREER.GetNodeFromWorldNo(a)-&gt;mComplete == TRUE</c> with no null check,
 /// and the shipped body does exactly that: a miss in the first scan falls to
-/// <c>LOG.AddMessage</c> at <c>0x0041C360</c>, then <c>xor eax, eax</c> at
-/// <c>0x0041C36E</c>, then <c>cmp dword ptr [eax + 4], 1</c> at
+/// <c>LOG.AddMessage</c> at <c>0x0041C360</c>, then a zeroing of eax at
+/// <c>0x0041C36E</c>, then a compare of field +4 of eax with 1 at
 /// <c>0x0041C370</c> — an access violation at linear address 4. The source's
 /// <c>if (cn) … else LOG.AddMessage(…)</c> guard sits <i>after</i> that, on a
 /// <b>second</b> scan of the same unchanged table, so it can only fire if the
@@ -353,7 +360,7 @@ public readonly record struct RetailWorldGradeNode(
 /// </para>
 /// <para>
 /// <b><c>mComplete</c> is compared against the literal 1.</b>
-/// <c>0x0041C370</c> is <c>cmp dword ptr [eax + 4], 1</c>, so a
+/// <c>0x0041C370</c> is a compare of field +4 of eax with 1, so a
 /// <c>BOOL</c> of 2 counts as <i>incomplete</i> — the same
 /// <c>== TRUE</c> shape <see cref="RetailCareerSlots"/> and
 /// <see cref="RetailCareerNode.SetBaseThingExistTo"/> have.
@@ -362,7 +369,7 @@ public readonly record struct RetailWorldGradeNode(
 /// <b>The <c>-9999</c> sentinel does not exist at run time.</b>
 /// <c>Career.cpp:642</c> initialises <c>r</c> to <c>-9999</c> and passes it to
 /// <c>GetGradeFromRanking</c> on the failure paths; MSVC folded the whole call.
-/// Both failure arms are a bare <c>mov al, 0x45</c> — <c>'E'</c> — at
+/// Both failure arms are a bare load of constant 0x45 into al — <c>'E'</c> — at
 /// <c>0x0041C3FE</c> (world not complete) and <c>0x0041C3B7</c> (the unreachable
 /// second-scan miss), with no float loaded and no comparison performed. So there
 /// is no path on which a rebuild could observe the sentinel, and
@@ -372,7 +379,7 @@ public readonly record struct RetailWorldGradeNode(
 /// <b>Not established here.</b> The ranking path is
 /// <see cref="RetailCareerGrade.GradeByteFromRanking"/> inlined verbatim
 /// (<c>0x0041C3D8-0x0041C424</c>, including the same
-/// <c>test ah, 0x40</c> that hands a NaN the top grade), and the widening to
+/// bit test of ah against 0x40 that hands a NaN the top grade), and the widening to
 /// <c>WCHAR</c> through <c>0x004F7BF0</c> is the same one that owner declines to
 /// claim outside ASCII. The node scan is
 /// <see cref="RetailCareerNodeTable.Find"/>.
@@ -381,7 +388,7 @@ public readonly record struct RetailWorldGradeNode(
 public static class RetailWorldGrade
 {
     /// <summary>
-    /// The grade an incomplete world holds — <c>mov al, 0x45</c> at
+    /// The grade an incomplete world holds — a load of constant 0x45 into al at
     /// <c>0x0041C3FE</c>. Equal to
     /// <see cref="RetailCareerGrade.FailedGrade"/>, but constant-folded rather
     /// than computed.
@@ -413,7 +420,7 @@ public static class RetailWorldGrade
                 continue;
             }
 
-            // cmp dword ptr [eax + 4], 1: a literal TRUE, not "non-zero".
+            // A compare of field +4 of eax with 1: a literal TRUE, not "non-zero".
             if (nodes[index].Complete != 1)
             {
                 return IncompleteGradeByte;

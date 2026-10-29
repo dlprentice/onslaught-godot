@@ -5,29 +5,29 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins <c>CApplyMenuItem::Render</c> at <c>0x004A4310</c>–<c>0x004A4399</c>,
 /// recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
-/// <para><b>Gate.</b> <c>mov al, [0x00704A88]; test al, al; je 0x004A4373</c>.
-/// The miss arm leaves ESI = −1 (<c>or esi, 0xFFFFFFFF</c> at
+/// <para><b>Gate.</b> a load of the value at 0x00704A88 into al, then zero test of al, branching to 0x004A4373 when equal.
+/// The miss arm leaves ESI = −1 (an or of 0xFFFFFFFF into esi at
 /// <c>0x004A4319</c>) and forwards that packed colour to
 /// <c>CMenuItem__Render</c> <c>0x004A32C0</c>. The hit arm is the cosine
 /// below. <c>0x00704A88</c> is the page-wide pending flag
 /// <see cref="RetailOptionsMenu.HasPendingChanges"/> already pins.</para>
 ///
-/// <para><b>Clock.</b> <c>mov ecx, 0x0088A0A8; call 0x005159E0</c> is
-/// <c>PLATFORM__GetSysTimeFloat</c>. Then <c>fld qword [0x005DB488]</c>
-/// (2.0) and <c>call 0x0055E3EA</c>. That thunk is
-/// <c>CRT__FpuIntrinsicDispatch2Thunk</c>: <c>mov edx, 0x00653330 / jmp
-/// 0x00563A10</c>. The table at <c>0x00653330</c> begins
-/// <c>04 66 6D 6F 64</c> (<c>"fmod"</c>) and its first slot is
+/// <para><b>Clock.</b> a load of constant 0x0088A0A8 into ecx, then direct call to 0x005159E0 is
+/// <c>PLATFORM__GetSysTimeFloat</c>. Then a double load of the 64-bit value at 0x005DB488
+/// (2.0) and a direct call to 0x0055E3EA. That thunk is
+/// <c>CRT__FpuIntrinsicDispatch2Thunk</c>: a load of constant 0x00653330
+/// into edx, then jump to 0x00563A10. The table at <c>0x00653330</c> begins
+/// with the name <c>"fmod"</c> and its first slot is
 /// <c>0x0055E3F4</c> (<c>fFMOD</c>, <c>fxch / fprem</c>). So
 /// ST0 = fmod(time, 2.0).</para>
 ///
-/// <para><b>Colour.</b> <c>fmul [0x005D85E0]</c> (2π) /
-/// <c>fcos</c> / <c>fadd [0x005D8568]</c> (1.0) /
-/// <c>fmul [0x005D85EC]</c> (0.5) / <c>fmul [0x005D8C70]</c> (255.0) /
+/// <para><b>Colour.</b> a float multiply by the value at 0x005D85E0 (2π) /
+/// <c>fcos</c> / a float add of the value at 0x005D8568 (1.0) /
+/// a float multiply by the value at 0x005D85EC (0.5) / a float multiply by the value at 0x005D8C70 (255.0) /
 /// <c>fistp</c>. EAX starts at 0xFF; ESI = 0xFF − rounded pulse, then
 /// <c>((esi | 0xFFFFFF00) &lt;&lt; 8 | ch) &lt;&lt; 8 | ch</c>. That is
 /// <c>0xFFcccccc</c>. This helper does not invent the 0x00463E8D twin
@@ -88,7 +88,7 @@ public sealed class RetailOptionsApplyPulseTests
     [Fact]
     public void DropdownPulseIsTheSameCosineGatedOnCommittedVersusCurrent()
     {
-        // CMenuItemDropdown::Render 0x004A3C69: cmp [esi+0x1c],[esi+0x20] / je.
+        // CMenuItemDropdown::Render 0x004A3C69: a compare of field +0x1c of esi with field +0x20 of esi / je.
         // The cosine that follows is the Apply pack, not a second formula.
         Assert.Equal(0x004A3C69u, RetailOptionsApplyPulse.DropdownCompareSite);
         Assert.False(RetailOptionsApplyPulse.DropdownRowIsPending(3, 3));

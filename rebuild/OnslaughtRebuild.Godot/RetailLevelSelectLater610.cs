@@ -4,16 +4,16 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the later 1.0
-/// fcom / 255.0 fmul — <c>fld [esp+0x14]</c> /
-/// <c>fcomp [0x005DB5B0]</c> (610.0) / <c>fld [esp+0x14]</c> /
-/// <c>fcomp [0x005D856C]</c> (0.0) — recovered from official
+/// fcom / 255.0 fmul — a float load of stack local +0x14, then float compare against the value
+/// at 0x005DB5B0, popping the result (610.0) / a float load of stack local +0x14, then float
+/// compare against the value at 0x005D856C, popping the result (0.0) — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -43,14 +43,12 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>High compare.</b> Official 74154bfa independently
 /// re-read: <c>0x00460E7F</c> is already the later-one first
-/// store consumer <c>fistp [esp+0x4C]</c>
-/// (<c>df 7c 24 4c</c>). <c>0x00460F30</c> is
-/// <c>fld [esp+0x14]</c> (<c>d9 44 24 14</c>).
-/// <c>0x00460F34</c> is <c>fcomp [0x005DB5B0]</c>
-/// (<c>d8 1d b0 b5 5d 00</c>). <c>0x005DB5B0</c> is
-/// <c>00 80 18 44</c> (610.0). <c>0x00460F3A</c> is
-/// <c>fnstsw ax</c> / <c>test ah, 1</c> /
-/// <c>jz 0x004617A8</c> — skip when the local is not below
+/// store consumer (a float-to-integer store to stack local +0x4C). <c>0x00460F30</c> is
+/// a float load of stack local +0x14.
+/// <c>0x00460F34</c> is a float compare against the value at 0x005DB5B0, popping the result. <c>0x005DB5B0</c> is
+/// 610.0. <c>0x00460F3A</c> is
+/// an FPU status-word read, then bit test of ah against 1, then conditional
+/// branch to 0x004617A8 (taken when zero) — skip when the local is not below
 /// 610.0. Dest does not. Colour leftover already consults
 /// currentIndex. Hover leftover already owns <c>0x004A3FA6</c>.
 /// Click leftover already owns <c>0x004A4010</c>. Cancel leftover
@@ -60,21 +58,19 @@ namespace OnslaughtRebuild.GodotClient;
 /// Dest is not the 2.0 constant.</para>
 ///
 /// <para><b>Low compare.</b> <c>0x00460F45</c> is
-/// <c>fld [esp+0x14]</c> (<c>d9 44 24 14</c>).
-/// <c>0x00460F49</c> is <c>fcomp [0x005D856C]</c>
-/// (<c>d8 1d 6c 85 5d 00</c>). <c>0x005D856C</c> is
-/// <c>00 00 00 00</c> (0.0). <c>0x00460F4F</c> is
-/// <c>fnstsw ax</c> / <c>test ah, 1</c> /
-/// <c>jnz 0x0046178B</c> — skip when the local is below 0.0.
+/// a float load of stack local +0x14.
+/// <c>0x00460F49</c> is a float compare against the value at 0x005D856C, popping the result. <c>0x005D856C</c> is
+/// 0.0. <c>0x00460F4F</c> is
+/// an FPU status-word read, then bit test of ah against 1, then conditional
+/// branch to 0x0046178B (taken when not zero) — skip when the local is below 0.0.
 /// The fall-through body therefore runs when
 /// <c>0.0 &lt;= [esp+0x14] &lt; 610.0</c>. First consumer is
-/// <c>0x00460F5A</c> <c>mov eax, [esi+ebx*4+0x4]</c>
-/// (<c>8b 44 9e 04</c>). First store is <c>0x00460F5E</c>
-/// <c>mov [esp+0x28], 0</c> (<c>c7 44 24 28 00 00 00 00</c>).
+/// <c>0x00460F5A</c>: a load of indexed table entry at +0x4 of esi into eax.
+/// First store is <c>0x00460F5E</c>: a store of constant 0 to stack local +0x28.
 /// That is not dest. The earlier identical pair at
 /// <c>0x00460BE4</c> is already
 /// <see cref="RetailLevelSelectFsub148"/>. The later
-/// <c>fmul [0x005DB538]</c> (60.0) at <c>0x00460F73</c> is
+/// float multiply by the value at 0x005DB538 (60.0) at <c>0x00460F73</c> is
 /// later. DrawLevelSelect already owns the measured node
 /// centres. Do not invent dest from 610.0. Do not invent dest
 /// from 0.0. Do not invent a fade.</para>
@@ -118,13 +114,14 @@ public static class RetailLevelSelectLater610
     /// <summary>Already <see cref="RetailLevelSelectLaterOne.FistpSite"/>.</summary>
     public const uint LaterOneFistpSite = 0x00460E7Fu;
 
-    /// <summary>Earlier identical <c>fld [esp+0x14]</c> / <c>fcomp 610.0</c> at <c>0x00460BE4</c>. Already <see cref="RetailLevelSelectFsub148"/>.</summary>
+    /// <summary>Earlier identical (a float load of stack local +0x14, then float compare against 610.0,
+    /// popping the result) at <c>0x00460BE4</c>. Already <see cref="RetailLevelSelectFsub148"/>.</summary>
     public const uint Earlier610Site = 0x00460BE4u;
 
-    /// <summary><c>fld [esp+0x14]</c> at <c>0x00460F30</c>. Later leftover after the later 1.0 fcom.</summary>
+    /// <summary>A float load of stack local +0x14 at <c>0x00460F30</c>. Later leftover after the later 1.0 fcom.</summary>
     public const uint WindowHighFldSite = 0x00460F30u;
 
-    /// <summary><c>fcomp [0x005DB5B0]</c> at <c>0x00460F34</c>.</summary>
+    /// <summary>A float compare against the value at 0x005DB5B0, popping the result at <c>0x00460F34</c>.</summary>
     public const uint WindowHighFcompSite = 0x00460F34u;
 
     /// <summary>610.0 source. Later window high, not dest. Same dword as <see cref="RetailLevelSelectFsub148.WindowHighConst"/>.</summary>
@@ -136,10 +133,10 @@ public static class RetailLevelSelectLater610
     /// <summary>Stack local compared by the later pair. Same slot as <see cref="RetailLevelSelectLater148.StackLocal"/>.</summary>
     public const int StackLocal = 0x14;
 
-    /// <summary><c>fld [esp+0x14]</c> at <c>0x00460F45</c>.</summary>
+    /// <summary>A float load of stack local +0x14 at <c>0x00460F45</c>.</summary>
     public const uint WindowLowFldSite = 0x00460F45u;
 
-    /// <summary><c>fcomp [0x005D856C]</c> at <c>0x00460F49</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D856C, popping the result at <c>0x00460F49</c>.</summary>
     public const uint WindowLowFcompSite = 0x00460F49u;
 
     /// <summary>0.0 source. Later window low, not dest. Same dword as <see cref="RetailLevelSelectLaterEsp94.ZeroConst"/>.</summary>
@@ -148,16 +145,17 @@ public static class RetailLevelSelectLater610
     /// <summary>IEEE bits at <see cref="WindowLowConst"/>. 0.0.</summary>
     public const uint WindowLowBits = 0x00000000u;
 
-    /// <summary><c>mov eax, [esi+ebx*4+0x4]</c> at <c>0x00460F5A</c>. First fall-through consumer. Not dest.</summary>
+    /// <summary>A load of indexed table entry at +0x4 of esi into eax at
+    /// <c>0x00460F5A</c>. First fall-through consumer. Not dest.</summary>
     public const uint FirstConsumerSite = 0x00460F5Au;
 
-    /// <summary><c>mov [esp+0x28], 0</c> at <c>0x00460F5E</c>. First store. Not dest.</summary>
+    /// <summary>A store of constant 0 to stack local +0x28 at <c>0x00460F5E</c>. First store. Not dest.</summary>
     public const uint FirstStoreSite = 0x00460F5Eu;
 
     /// <summary>Stack local that receives the zeroed dword. Not dest.</summary>
     public const int StoreLocal = 0x28;
 
-    /// <summary>Later <c>fmul [0x005DB538]</c> (60.0) at <c>0x00460F73</c>. Not this leftover.</summary>
+    /// <summary>Later float multiply by the value at 0x005DB538 (60.0) at <c>0x00460F73</c>. Not this leftover.</summary>
     public const uint LaterFmul60Site = 0x00460F73u;
 
     /// <summary>60.0 source used later. Not this leftover and not dest.</summary>

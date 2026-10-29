@@ -5,22 +5,22 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render language-chevron colour — recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
 /// <para><b>Sites.</b> Left <c>0x0046336B</c>, right <c>0x004634F4</c>.
-/// Both are <c>mov eax, esi; shl 8; sub esi; shl 16; not edx;
-/// and 0x00FFFFFF; xor eax</c> — the same first pack as
+/// Both are a copy of esi into eax, then left shift by 8, then subtraction of esi, then left shift by
+/// 16, then bitwise not of edx, then mask with 0x00FFFFFF, then xor with eax — the same first pack as
 /// <see cref="RetailClickToStartTitle.BodyColor"/>. ESI is the
 /// 0x00462ECA fade byte, still live because the language iteration
 /// is <c>ebx=-1</c> and jumps from <c>0x00462F17</c> over the
 /// selected-row ESI rewrite. Settled fade is 255.</para>
 ///
-/// <para><b>Unselected.</b> <c>cmp [edi+8], -1 / je 0x004633AD</c>
-/// (right: <c>0x00463533</c>) skips the <c>shr 8 / and / shl 6 /
-/// xor</c> arm. Session cannot hold <c>-1</c>, so settled frames
+/// <para><b>Unselected.</b> a compare of field +8 of edi with -1, branching to 0x004633AD when equal
+/// (right: <c>0x00463533</c>) skips the sequence (logical right shift by 8, then mask,
+/// then left shift by 6, then xor) arm. Session cannot hold <c>-1</c>, so settled frames
 /// take that arm. The draw unpack then submits
 /// <c>0x3EFFFFFF</c>.</para>
 ///
@@ -36,13 +36,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuLanguageChevronColor
 {
-    /// <summary>Left chevron <c>mov eax, esi</c> at <c>0x0046336B</c>.</summary>
+    /// <summary>Left chevron (a copy of esi into eax) at <c>0x0046336B</c>.</summary>
     public const uint LeftSite = 0x0046336Bu;
 
-    /// <summary>Right chevron <c>mov eax, esi</c> at <c>0x004634F4</c>.</summary>
+    /// <summary>Right chevron (a copy of esi into eax) at <c>0x004634F4</c>.</summary>
     public const uint RightSite = 0x004634F4u;
 
-    /// <summary><c>cmp [edi+8], -1</c> at <c>0x00463384</c>.</summary>
+    /// <summary>A compare of field +8 of edi with -1 at <c>0x00463384</c>.</summary>
     public const int SelectedOffset = 0x08;
 
     /// <summary>Hover writes <c>-1</c>. Session cannot store this.</summary>
@@ -53,7 +53,7 @@ public static class RetailMainMenuLanguageChevronColor
     /// </summary>
     public const int ImageSettledFadeByte = 255;
 
-    /// <summary><c>and edx, 0x00FFFFFF</c> at <c>0x00463377</c>.</summary>
+    /// <summary>A mask of edx with 0x00FFFFFF at <c>0x00463377</c>.</summary>
     public const uint RgbMask = 0x00FFFFFFu;
 
     /// <summary>
@@ -82,11 +82,11 @@ public static class RetailMainMenuLanguageChevronColor
     /// </summary>
     public const bool ReplacesChromeTint = false;
 
-    /// <summary><c>cmp [edi+8], -1</c>. Session cannot store this.</summary>
+    /// <summary>A compare of field +8 of edi with -1. Session cannot store this.</summary>
     public static bool IsSelected(int index) => index == LanguageSelectedIndex;
 
     /// <summary>
-    /// <c>0x00462ECA</c> signed clamp, then <c>cmp esi, 0xFF</c>.
+    /// <c>0x00462ECA</c> signed clamp, then a compare of esi with 0xFF.
     /// </summary>
     public static int ClampFadeByte(int fadeByte)
     {
@@ -99,7 +99,7 @@ public static class RetailMainMenuLanguageChevronColor
     }
 
     /// <summary>
-    /// <c>shl 8 / sub / shl 16 / not / and 0x00FFFFFF / xor</c>.
+    /// A left shift by 8, then subtraction, then left shift by 16, then bitwise not, then mask with 0x00FFFFFF, then xor.
     /// </summary>
     public static uint FirstPack(int fadeByte)
     {
@@ -114,7 +114,8 @@ public static class RetailMainMenuLanguageChevronColor
 
     /// <summary>
     /// Unselected arm at <c>0x00463389</c>:
-    /// <c>shr 8 / and / shl 6 / xor / and 0x00FFFFFF / shl 6 / xor</c>.
+    /// a logical right shift by 8, then mask, then left shift by 6, then
+    /// xor, then mask with 0x00FFFFFF, then left shift by 6, then xor.
     /// </summary>
     public static uint UnselectedTransform(uint first)
     {

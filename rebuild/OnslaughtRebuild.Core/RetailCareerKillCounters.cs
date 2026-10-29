@@ -24,7 +24,7 @@ namespace OnslaughtRebuild.Core;
 /// </list>
 /// <para>
 /// <b>Source and retail DIVERGE, and retail wins.</b> The source returns the
-/// whole <c>int</c>. <c>0x0041C16B</c> is <c>and eax, 0xFFFFFF</c> — the shipped
+/// whole <c>int</c>. <c>0x0041C16B</c> is a mask of eax with 0xFFFFFF — the shipped
 /// readout keeps 24 bits and throws the top eight away. That single instruction
 /// is the entry point to a packed field the pinned header does not describe at
 /// all.
@@ -49,18 +49,18 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>The encoding is excess-128, and the biasing instruction is a sign-extended
-/// <c>-0x80</c>.</b> Both packers are <c>add eax, -0x80</c> before the shift
+/// <c>-0x80</c>.</b> Both packers are an addition of -0x80 to eax before the shift
 /// (<c>0x0042194A</c>), which is the same low byte as <c>+0x80</c> because
 /// <c>128 ≡ -128 (mod 256)</c>; MSVC picked the shorter encoding. Both unpackers
-/// are <c>shr eax, 0x18</c> — a <b>logical</b> shift — then
-/// <c>sub eax, 0x80</c>, so the byte reads back over <c>-128..127</c> and a
+/// are a logical right shift of eax by 0x18 — a <b>logical</b> shift — then
+/// a subtraction of 0x80 from eax, so the byte reads back over <c>-128..127</c> and a
 /// rebuild that used an arithmetic shift would be wrong for every value above
 /// zero.
 /// </para>
 /// <para>
 /// <b><c>Load</c> zeroes an out-of-range offset rather than clamping it.</b>
-/// <c>0x0042126A-0x00421280</c> is <c>cmp eax, -0x40 / jl</c> then
-/// <c>cmp eax, 0x40 / jle</c> with the failure path <c>xor eax, eax</c>. So a
+/// <c>0x0042126A-0x00421280</c> is a compare of eax with -0x40, branching when less then
+/// a compare of eax with 0x40, branching when less or equal with the failure path (a zeroing of eax). So a
 /// career whose stored offset is <c>±65</c> or worse comes back as <b>0</b>, not
 /// as <c>±64</c>. Both words get the same treatment and both are repacked
 /// unconditionally, so loading and re-saving an in-range career is a fixed
@@ -100,13 +100,13 @@ public sealed class RetailCareerKillCounters
     /// <summary><c>TK_TOTAL</c> — <c>Player.h:34</c>; the array <c>Load</c> clamps within.</summary>
     public const int KilledTypeCount = 5;
 
-    /// <summary>The readout mask — <c>and eax, 0xFFFFFF</c> at <c>0x0041C16B</c>.</summary>
+    /// <summary>The readout mask — a mask of eax with 0xFFFFFF at <c>0x0041C16B</c>.</summary>
     public const int KillCountMask = 0x00FFFFFF;
 
-    /// <summary>The excess-128 bias — <c>sub eax, 0x80</c> / <c>add eax, -0x80</c>.</summary>
+    /// <summary>The excess-128 bias — a subtraction of 0x80 from eax, then addition of -0x80 to eax.</summary>
     public const int ScreenPositionBias = 0x80;
 
-    /// <summary>The magnitude <c>Load</c> accepts — <c>cmp eax, 0x40</c> at <c>0x0042126F</c>.</summary>
+    /// <summary>The magnitude <c>Load</c> accepts — a compare of eax with 0x40 at <c>0x0042126F</c>.</summary>
     public const int ScreenPositionLimit = 0x40;
 
     private readonly int[] _words = new int[KilledTypeCount];

@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D88C title-logo body dest X/Y
 /// and leftover Z at <c>0x004642CE</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -15,18 +15,17 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>RetailMainMenuTitleLogoShadow already owns the pack at
 /// <c>0x0046424F</c> and says the body pack at 0x004642E3 / 0x004642F0
 /// stays TitleLogoTint. Official bytes independently re-read this
-/// cycle: <c>mov eax, [0x0089D88C]</c> at <c>0x004642CE</c>
-/// (<c>a1 8c d8 89 00</c>), not 0x004642CB (that byte is the previous
-/// call's last 00). <c>push 0x3F7FBE77</c> at <c>0x004642FE</c>;
-/// <c>push 0x43020000</c> at <c>0x00464303</c>;
-/// <c>push 0x43A00000</c> at <c>0x00464308</c>. Load identity is
+/// cycle: a load of the value at 0x0089D88C into eax at <c>0x004642CE</c>, not 0x004642CB (that byte is the previous
+/// call's last 00). A push of constant 0x3F7FBE77 at <c>0x004642FE</c>;
+/// a push of constant 0x43020000 at <c>0x00464303</c>;
+/// a push of constant 0x43A00000 at <c>0x00464308</c>. Load identity is
 /// <c>FrontEnd\v3\FE_BEA_Title2.tga</c> at <c>0x0062A3A0</c>;
-/// <c>mov [ebp+0x12C], eax</c> at <c>0x00468E60</c> stores the previous
-/// load of that string. Identity scale <c>push 0x3F800000</c> at
+/// a store of eax to frame local +0x12C at <c>0x00468E60</c> stores the previous
+/// load of that string. Identity scale (a push of constant 0x3F800000) at
 /// <c>0x004642DD</c> / <c>0x004642EC</c> / <c>0x004642F7</c>. Nearby
-/// <c>push 0x3F866666</c> at <c>0x00464269</c> is already
+/// push of constant 0x3F866666 at <c>0x00464269</c> is already
 /// ShadowScaleBoost 1.05. Calls <c>CDXSurf__RenderSurface</c>
-/// (<c>0x005563D0</c>) at <c>0x0046430D</c>; <c>add esp, 0x2C</c>
+/// (<c>0x005563D0</c>) at <c>0x0046430D</c>; a stack cleanup of 0x2C bytes
 /// is eleven dwords. The leftover 0.999 is Z, not scale and not a
 /// 29% title-logo. Dest Y is 130. Dest X is 320. Mode 4 is the
 /// centre-anchor. Body tint siblings 0x004642E4 / 0x004642F1 stay

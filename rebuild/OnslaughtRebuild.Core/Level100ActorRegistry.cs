@@ -1531,7 +1531,7 @@ public sealed class Level100ActorRegistry
     /// <summary>
     /// Isolated <see cref="Level100ActorSnapshot.IsObjective"/> names
     /// the rebuild bool. This is the
-    /// <c>or/and [esi+0x2c], 0x20</c> word actor-script
+    /// or/and update of field +0x2c of esi with 0x20 word actor-script
     /// SetObjective / UnsetObjective write. Noticeboard stays
     /// unclaimed.
     /// </summary>
@@ -1958,7 +1958,7 @@ public sealed class Level100ActorRegistry
     /// <remarks>
     /// <para>
     /// Read from the pristine specimen
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+    /// (a private pristine copy), sha256
     /// <c>74154BFAE14DDC8ECB87A0766F5BC381C7B7F1AB334ED7A753040EDA1E1E7750</c>.
     /// <c>CThing::Init</c> (<c>0x004F34A0</c>) copies the authored position
     /// into <c>this+0x1c..+0x28</c> and then does exactly two things to the
@@ -1966,15 +1966,15 @@ public sealed class Level100ActorRegistry
     /// </para>
     /// <list type="number">
     ///   <item>it samples the one global height field
-    ///   (<c>MOV ECX, 0x006FADC8</c> / <c>CALL 0x0047EB80</c>), compares the
+    ///   (a load of constant 0x006FADC8 into ecx, then direct call to 0x0047EB80), compares the
     ///   sample against the authored Z-down position
-    ///   (<c>FCOM [ESI+0x24]</c>) and writes the sample in when the authored
-    ///   value is below the ground (<c>FSTP [ESP+0x14]</c> at
-    ///   <c>0x004F3529</c>, then <c>CALL [EAX+0x50]</c>) — guarded by
+    ///   (a float compare against field +0x24 of esi) and writes the sample in when the authored
+    ///   value is below the ground (a float store to stack local +0x14 at
+    ///   <c>0x004F3529</c>, then an indirect call through vtable slot 20) — guarded by
     ///   <c>vtable[+0xB0]() != 0</c>;</item>
-    ///   <item>it loads the water level (<c>FLD [0x006FBDFC]</c> at
-    ///   <c>0x004F3549</c>), compares (<c>FCOM [ESI+0x24]</c>) and writes it in
-    ///   the same way (<c>FSTP [ESI+0x24]</c>) — guarded by
+    ///   <item>it loads the water level (a float load of the value at 0x006FBDFC at
+    ///   <c>0x004F3549</c>), compares (a float compare against field +0x24 of esi) and writes it in
+    ///   the same way (a float store to field +0x24 of esi) — guarded by
     ///   <c>vtable[+0xC4]() == 0</c>.</item>
     /// </list>
     /// <para>

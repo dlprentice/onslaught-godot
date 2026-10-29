@@ -7,7 +7,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D89C selector-bar texture, dest X
 /// and Z leftover at <c>0x00462FED</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -15,15 +15,15 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>RetailMainMenuSelectorBarColor already owns the pack at
 /// <c>0x00462FB9</c> and says DrawMainMenuSelectorBar is the consumer.
 /// Official bytes independently re-read this cycle:
-/// <c>mov eax, [0x0089D89C]</c> at <c>0x00462FED</c> (<c>a1 9c d8 89 00</c>),
-/// then <c>push eax</c>; <c>push 0x3EA8F5C3</c> at <c>0x00462FF3</c>;
-/// <c>push ecx</c>; <c>push 0x435B0000</c> at <c>0x00462FF9</c>.
+/// a load of the value at 0x0089D89C into eax at <c>0x00462FED</c>,
+/// then a push of eax; a push of constant 0x3EA8F5C3 at <c>0x00462FF3</c>;
+/// a push of ecx; a push of constant 0x435B0000 at <c>0x00462FF9</c>.
 /// Load identity is <c>FrontEnd\v3\FE_BEA_title_text_box.tga</c> at
-/// <c>0x0062A300</c>; <c>mov [ebp+0x13C], eax</c> at <c>0x00468EC3</c>
+/// <c>0x0062A300</c>; a store of eax to frame local +0x13C at <c>0x00468EC3</c>
 /// stores the previous load of that string. Identity scale
-/// <c>push 0x3F800000</c> at <c>0x00462FC6</c>. Calls
+/// (a push of constant 0x3F800000) at <c>0x00462FC6</c>. Calls
 /// <c>CDXSurf__RenderSurface</c> (<c>0x005563D0</c>) at
-/// <c>0x00462FFE</c>; <c>add esp, 0x2C</c> is eleven dwords. The
+/// <c>0x00462FFE</c>; a stack cleanup of 0x2C bytes is eleven dwords. The
 /// leftover 0.33 is Z, not scale and not a 29% title-logo. Dest X is
 /// 219. Mode 4 is the centre-anchor. Colour sibling 0x00462FB9 is
 /// already RetailMainMenuSelectorBarColor. DrawMainMenuSelectorBar

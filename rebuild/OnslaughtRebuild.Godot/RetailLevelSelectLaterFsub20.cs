@@ -4,15 +4,14 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the later second
-/// 20.0 addend — <c>fld [esp+0x20]</c> /
-/// <c>fsub [0x005D857C]</c> (20.0) / first store
-/// <c>fstp [esp]</c> — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// 20.0 addend — a float load of stack local +0x20, then float subtract of the value at 0x005D857C (20.0) / first store
+/// (a float store to the top of the stack) — recovered from official 74154bfa
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c> (PE32 magic <c>0x010B</c>). Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -21,7 +20,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailLevelSelectLaterFadd20"/>. Later first 20.0
 /// addend at <c>0x00460FF0</c> is already
 /// <see cref="RetailLevelSelectLater20"/>. Later
-/// <c>[esp+0x94]</c> / fcomp 1.0 at <c>0x00460FD8</c> is already
+/// <c>[esp+0x94]</c> / a float compare against 1.0, popping the result at <c>0x00460FD8</c> is already
 /// <see cref="RetailLevelSelectLaterEsp94One"/>. Later 60.0 / 0.5 /
 /// 320.0 scale at <c>0x00460F73</c> is already
 /// <see cref="RetailLevelSelectLater60"/>. Later 610.0 / 0.0 pair at
@@ -53,15 +52,13 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Subtrahend.</b> Official 74154bfa independently
 /// re-read: <c>0x00461005</c> is already the later-fadd-20
-/// first store <c>fstp [esp]</c> (<c>d9 1c 24</c>).
-/// <c>0x00461008</c> is <c>fld [esp+0x20]</c>
-/// (<c>d9 44 24 20</c>). <c>0x0046100C</c> is
-/// <c>fsub [0x005D857C]</c> (<c>d8 25 7c 85 5d 00</c>).
-/// <c>0x005D857C</c> is <c>00 00 a0 41</c> (20.0). First
-/// store is <c>0x00461013</c> <c>fstp [esp]</c>
-/// (<c>d9 1c 24</c>) after <c>push ecx</c> at
+/// first store (a float store to the top of the stack).
+/// <c>0x00461008</c> is a float load of stack local +0x20. <c>0x0046100C</c> is
+/// a float subtract of the value at 0x005D857C.
+/// <c>0x005D857C</c> is 20.0. First
+/// store is <c>0x00461013</c>: a float store to the top of the stack after a push of ecx at
 /// <c>0x00461012</c>. That is a store of the offset local,
-/// not dest. The later second <c>fsub [0x005D857C]</c> at
+/// not dest. The later second float subtract of the value at 0x005D857C at
 /// <c>0x0046101A</c> is later. DrawLevelSelect already owns
 /// the measured node centres. Do not invent dest from 20.0.
 /// Do not invent dest from 1.0. Do not invent a fade.</para>
@@ -78,7 +75,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// the 10.0 fsub, the later 148.0 triple, the later
 /// <c>[esp+0x94]</c> shift, the later 1.0 fcom, the later 610.0
 /// / 0.0 pair, the later 60.0 scale, the later
-/// <c>[esp+0x94]</c> / fcomp 1.0 compare, the later first 20.0
+/// <c>[esp+0x94]</c> / a float compare against 1.0, popping the result compare, the later first 20.0
 /// addend, the later second 20.0 addend, and the 0x00463669
 /// compare stay untouched.</para>
 /// </summary>
@@ -123,13 +120,15 @@ public static class RetailLevelSelectLaterFsub20
     /// <summary>Already <see cref="RetailLevelSelectLaterFadd20.FirstStoreSite"/>.</summary>
     public const uint LaterFadd20StoreSite = 0x00461005u;
 
-    /// <summary><c>fld [esp+0x20]</c> at <c>0x00461008</c>. Later leftover after the second 20.0 addend. Not dest.</summary>
+    /// <summary>A float load of stack local +0x20 at <c>0x00461008</c>.
+    /// Later leftover after the second 20.0 addend. Not dest.</summary>
     public const uint FldSite = 0x00461008u;
 
     /// <summary>Stack local loaded before the subtract. Not dest.</summary>
     public const int SourceLocal = 0x20;
 
-    /// <summary><c>fsub [0x005D857C]</c> at <c>0x0046100C</c>. Later leftover after the second 20.0 addend. Not dest.</summary>
+    /// <summary>A float subtract of the value at 0x005D857C at <c>0x0046100C</c>.
+    /// Later leftover after the second 20.0 addend. Not dest.</summary>
     public const uint FsubSite = 0x0046100Cu;
 
     /// <summary>20.0 source. Subtrahend, not dest. Same dword as <see cref="RetailLevelSelectLaterFadd20.AddendConst"/>.</summary>
@@ -138,10 +137,10 @@ public static class RetailLevelSelectLaterFsub20
     /// <summary>IEEE bits at <see cref="SubtrahendConst"/>. 20.0. Not dest.</summary>
     public const uint SubtrahendBits = 0x41A00000u;
 
-    /// <summary><c>fstp [esp]</c> at <c>0x00461013</c>. First store after <c>push ecx</c>. Not dest.</summary>
+    /// <summary>A float store to the top of the stack at <c>0x00461013</c>. First store after a push of ecx. Not dest.</summary>
     public const uint FirstStoreSite = 0x00461013u;
 
-    /// <summary>Later second <c>fsub [0x005D857C]</c> at <c>0x0046101A</c>. Not this leftover.</summary>
+    /// <summary>Later second float subtract of the value at 0x005D857C at <c>0x0046101A</c>. Not this leftover.</summary>
     public const uint LaterFsub20Site = 0x0046101Au;
 
     /// <summary>Latch SET at <c>0x0042D5CF</c> is already owned.</summary>
@@ -388,7 +387,7 @@ public static class RetailLevelSelectLaterFsub20
     public static float Subtrahend => BitConverter.UInt32BitsToSingle(SubtrahendBits);
 
     /// <summary>
-    /// <c>[esp+0x20] - 20.0</c> before <c>fstp [esp]</c>.
+    /// <c>[esp+0x20] - 20.0</c> before a float store to the top of the stack.
     /// That is not dest from 20.0 or 1.0.
     /// </summary>
     public static float Offset(float local) => local - Subtrahend;

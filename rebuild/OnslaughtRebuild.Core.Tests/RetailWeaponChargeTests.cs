@@ -24,7 +24,7 @@ public sealed class RetailWeaponChargeTests
     }
 
     // Five levels at a hundred each, absent marked with -1. The loop bounds
-    // are `cmp eax, 0x1F4` against `add eax, 0x64` and `cmp eax, 5`.
+    // are a compare of eax with 0x1F4 against (an addition of 0x64 to eax) and a compare of eax with 5.
     [Fact]
     public void TableShape_MatchesTheLoopBounds()
     {
@@ -51,7 +51,7 @@ public sealed class RetailWeaponChargeTests
         int expected, int l0, int l1, int l2, int l3, int l4) =>
         Assert.Equal(expected, RetailWeaponCharge.MaxCharge(Weapon(0.0f, l0, l1, l2, l3, l4)));
 
-    // `test esi, esi / je` at 0x004123DC returns 0.0f for an empty table AND
+    // A zero test of esi, branching when equal at 0x004123DC returns 0.0f for an empty table AND
     // for a table whose only present level is index 0, because index 0 scales
     // to zero. A rebuild that divided anyway would produce an infinity for the
     // second case.
@@ -108,7 +108,7 @@ public sealed class RetailWeaponChargeTests
             expected,
             RetailWeaponCharge.FullyCharged(Weapon(charge, -1, 7, -1, 9, -1)));
 
-    // test ah, 0x41 with jne to the bail-out label: an unordered compare sets
+    // A bit test of ah against 0x41 with jne to the bail-out label: an unordered compare sets
     // both bits, so a NaN charge reads as fully charged. Written the natural
     // way - `charge >= max` - C# would say false.
     [Fact]
@@ -127,7 +127,7 @@ public sealed class RetailWeaponChargeTests
 
     // 0x005068F0 adds record+8 into weapon+0x60 only when a level in 1..4 is
     // present and the live charge is strictly below 400.0 at 0x005DB358
-    // (test ah,1 / je). It does not consult MaxCharge; ChargeWeapon is the
+    // (a bit test of ah against 1 / je). It does not consult MaxCharge; ChargeWeapon is the
     // caller that stops at FullyCharged.
     [Fact]
     public void Charge_AddsTheRecordRateWhileBelowFourHundred()
@@ -185,7 +185,7 @@ public sealed class RetailWeaponChargeTests
         Assert.Equal(0x00000000u, BitConverter.SingleToUInt32Bits(weapon.Charge));
     }
 
-    // `mov dword ptr [weapon + 0x60], 0` is an integer store of the all-zero
+    // A store of constant 0 to field +0x60 of weapon is an integer store of the all-zero
     // word, so the charge lands on +0.0f. A rebuild that wrote -0.0f, or that
     // subtracted to zero, would leave a different bit pattern for the divide to
     // read.
@@ -202,7 +202,7 @@ public sealed class RetailWeaponChargeTests
             BitConverter.SingleToUInt32Bits(RetailWeaponCharge.GetCharge(weapon)));
     }
 
-    // 0x0050A080: null +0xA0 returns true; otherwise now > +0x64 (test ah, 0x41).
+    // 0x0050A080: null +0xA0 returns true; otherwise now > +0x64 (a bit test of ah against 0x41).
     // Equality is not ready. A rebuild that used `>=` would let Charge increment
     // on the same tick Fire is first allowed again.
     [Theory]

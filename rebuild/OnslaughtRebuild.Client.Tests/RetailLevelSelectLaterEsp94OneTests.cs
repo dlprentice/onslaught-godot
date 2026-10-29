@@ -7,35 +7,28 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> later leftover after the
-/// later 60.0 / 0.5 / 320.0 scale — <c>0x00460FD8</c>
-/// <c>fld [esp+0x94]</c> / <c>0x00460FDF</c>
-/// <c>fcomp [0x005D8568]</c> (1.0) / <c>0x00460FE5</c>
-/// <c>fnstsw ax</c> / <c>test ah, 0x40</c> / <c>jz</c> /
-/// first equal-1 consumer <c>0x00460FEC</c>
-/// <c>fld [esp+0x18]</c> — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// later 60.0 / 0.5 / 320.0 scale — <c>0x00460FD8</c>: a float load of stack local +0x94;
+/// <c>0x00460FDF</c>: a float compare against the value at 0x005D8568, popping the result (1.0)
+/// / <c>0x00460FE5</c>: an FPU status-word read, then bit test of ah against 0x40 / <c>jz</c> /
+/// first equal-1 consumer <c>0x00460FEC</c>: a float load of stack local +0x18 — recovered from official 74154bfa
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
 /// <c>0x00460F85</c> is already the later-60 first store
-/// <c>fstp [esp+0x18]</c> (<c>d9 5c 24 18</c>).
-/// <c>0x00460FD2</c> is <c>jz 0x00461069</c>
-/// (<c>0f 84 91 00 00 00</c>). <c>0x00460FD8</c>
-/// <c>fld [esp+0x94]</c> (<c>d9 84 24 94 00 00 00</c>),
-/// not <c>0x00460FD6</c>. <c>0x00460FDF</c>
-/// <c>fcomp [0x005D8568]</c> (<c>d8 1d 68 85 5d 00</c>),
-/// <c>0x005D8568</c> is <c>00 00 80 3f</c> (1.0, bits
-/// <c>0x3F800000</c>), <c>0x00460FE5</c> <c>fnstsw ax</c>
-/// / <c>test ah, 0x40</c> / <c>jz 0x00461069</c>
-/// (<c>df e0 f6 c4 40 74 7d</c>). First consumer of the
-/// equal-1 fall-through is <c>0x00460FEC</c>
-/// <c>fld [esp+0x18]</c> (<c>d9 44 24 18</c>). That is
-/// not dest. The later <c>fadd [0x005D857C]</c> (20.0) at
+/// (a float store to stack local +0x18).
+/// <c>0x00460FD2</c> is a conditional branch to 0x00461069 (taken when zero). <c>0x00460FD8</c>: a float load of stack local +0x94,
+/// not <c>0x00460FD6</c>. <c>0x00460FDF</c>: a float compare against the value at 0x005D8568, popping the result,
+/// <c>0x005D8568</c> is 1.0 (bits
+/// <c>0x3F800000</c>), <c>0x00460FE5</c>: an FPU status-word read, then bit test of ah against
+/// 0x40, then conditional branch to 0x00461069 (taken when zero). First consumer of the
+/// equal-1 fall-through is <c>0x00460FEC</c>: a float load of stack local +0x18. That is
+/// not dest. The later float add of the value at 0x005D857C (20.0) at
 /// <c>0x00460FF0</c> is later. The later 60.0 / 0.5 /
 /// 320.0 scale at <c>0x00460F73</c> is already owned. The
 /// later 610.0 / 0.0 pair at <c>0x00460F30</c> is already

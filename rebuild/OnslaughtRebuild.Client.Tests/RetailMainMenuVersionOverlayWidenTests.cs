@@ -8,13 +8,13 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the CFEPMain::Render version overlay Text__AsciiToWideScratch leftover
 /// after the pre-draw enable-byte and before dest/Z/font/draw, recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>RetailMainMenuVersionOverlayEnable already owns
-/// <c>mov byte [0x00679B40], 0</c> at <c>0x00464180</c>.
+/// (a store of constant 0 to the byte value at 0x00679B40) at <c>0x00464180</c>.
 /// RetailMainMenuVersionOverlay already owns the sprintf at
 /// <c>0x0046416E</c> and the settled pack at <c>0x004641B1</c> /
 /// <c>0x004641B4</c>. RetailMainMenuVersionOverlayZ already owns
@@ -24,9 +24,9 @@ namespace OnslaughtRebuild.Client.Tests;
 /// owns the post-draw restore. Official bytes independently re-read
 /// this cycle: after the enable-byte store,
 /// <c>0x00464187</c> / <c>0x00464189</c> / <c>0x0046418B</c> push
-/// 0 / 0 / <c>0x447A0000</c>, then <c>push edx</c> at
-/// <c>0x00464190</c> and <c>call 0x004F7BF0</c> at
-/// <c>0x00464191</c>. The body is cdecl one-arg: <c>add esp, 4</c>
+/// 0 / 0 / <c>0x447A0000</c>, then a push of edx at
+/// <c>0x00464190</c> and a direct call to 0x004F7BF0 at
+/// <c>0x00464191</c>. The body is cdecl one-arg: a stack cleanup of 4 bytes
 /// at <c>0x004641A0</c>. EAX is pushed at <c>0x004641A8</c> as the
 /// wide scratch pointer. The three earlier pushes stay on the stack;
 /// this leftover does not invent dest, wrap, fade, or sheen from

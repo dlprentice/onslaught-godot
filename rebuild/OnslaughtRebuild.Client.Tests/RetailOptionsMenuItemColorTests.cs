@@ -3,9 +3,9 @@
 namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
-/// Pins <c>CMenuItem__Render</c> <c>0x004A33FC</c> <c>and esi, ebp</c>,
+/// Pins <c>CMenuItem__Render</c> <c>0x004A33FC</c>: a mask of esi with ebp,
 /// recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///

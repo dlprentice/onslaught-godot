@@ -6,12 +6,12 @@ namespace OnslaughtRebuild.GodotClient;
 /// The CFEPIntro splash dest — one <c>CDXSurf__RenderSurface</c> call on
 /// <c>0x0089d880</c> / <c>FrontEnd\v2\fe_splash1.tga</c> — recovered from
 /// the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
 /// <para><b>Body.</b> <c>CFEPIntro::Render</c> <c>0x0051B866</c>–<c>0x0051B8F4</c>
-/// plus the <c>ADD ESP, 0x2C</c> at <c>0x0051B902</c>. Not in the pinned GPL
+/// plus the stack cleanup of 0x2C bytes at <c>0x0051B902</c>. Not in the pinned GPL
 /// drop (<c>FEPIntro.cpp</c> is absent). This is not attract
 /// <c>vectorlosttoyssplash.tga</c> and not TWIMTBP.</para>
 ///
@@ -19,11 +19,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// argument <c>min(this+0x18, 1.0)</c>, then
 /// <c>((cos(t*π)+1)*0.375)+0.46875</c>. The dest consumes that stored scale.</para>
 ///
-/// <para><b>Dest.</b> After <c>fstp [esp+0x20]</c> at <c>0x0051B8A9</c> the
+/// <para><b>Dest.</b> After a float store to stack local +0x20 at <c>0x0051B8A9</c> the
 /// body reloads the scale twice. Y is
-/// <c>fmul [0x005E49EC]</c> / <c>fsubr [0x005DBE00]</c> / <c>fsub [0x005E49E8]</c>
+/// a float multiply by the value at 0x005E49EC, then reversed float subtract
+/// of the value at 0x005DBE00, then float subtract of the value at 0x005E49E8
 /// = <c>(18 − scale×−222) − (−117.9375)</c>. X is
-/// <c>fmul [0x005E49E4]</c> / <c>fsubr [0x005E49E0]</c> / <c>fsub [0x005E49DC]</c>
+/// a float multiply by the value at 0x005E49E4, then reversed float subtract
+/// of the value at 0x005E49E0, then float subtract of the value at 0x005E49DC
 /// = <c>(558 − scale×238) − 126.4375</c>. Settled scale 0.46875 lands at
 /// (320, 240). A scale-free centre is not the body.</para>
 ///
@@ -47,7 +49,7 @@ public static class RetailClickToStartSplash
     /// <summary>Fourth-from-last push at <c>0x0051B88D</c>.</summary>
     public const int Mode = 4;
 
-    /// <summary>Colour immediate at <c>0x0051B8C8</c> (<c>push -1</c>).</summary>
+    /// <summary>Colour immediate at <c>0x0051B8C8</c> (a push of constant -1).</summary>
     public const uint Color = 0xFFFFFFFFu;
 
     /// <summary>Z immediate at <c>0x0051B8CB</c>.</summary>

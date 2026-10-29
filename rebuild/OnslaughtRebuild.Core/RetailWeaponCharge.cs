@@ -29,21 +29,21 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <b>The count of five and the step of 100 are read off the loop bounds, not
 /// assumed.</b> Every scan is the same shape: a pointer walking by 4 and a
-/// counter walking by <c>0x64</c> against <c>cmp eax, 0x1F4 / jl</c>
+/// counter walking by <c>0x64</c> against (a compare of eax with 0x1F4, branching when less)
 /// (<c>0x004123D5</c>, <c>0x00413DAD</c>), or a plain index against
-/// <c>cmp eax, 5 / jl</c> (<c>0x00413D36</c>, <c>0x00413DC4</c>).
+/// (a compare of eax with 5, branching when less) (<c>0x00413D36</c>, <c>0x00413DC4</c>).
 /// <c>0x1F4 / 0x64</c> is five iterations, which is the same five.
 /// </para>
 /// </remarks>
 public sealed class RetailWeaponChargeTable
 {
-    /// <summary>Five levels — <c>cmp eax, 0x1F4</c> against a step of <c>0x64</c>.</summary>
+    /// <summary>Five levels — a compare of eax with 0x1F4 against a step of <c>0x64</c>.</summary>
     public const int LevelCount = 5;
 
-    /// <summary>The absent-level marker — <c>cmp dword ptr [ecx], -1</c>.</summary>
+    /// <summary>The absent-level marker — a compare of value pointed to by ecx with -1.</summary>
     public const int AbsentLevel = -1;
 
-    /// <summary>The charge value one level is worth — the <c>add eax, 0x64</c> step.</summary>
+    /// <summary>The charge value one level is worth — the addition of 0x64 to eax step.</summary>
     public const int ValuePerLevel = 100;
 
     /// <summary>The table at <c>weapon-&gt;record + 0x0C</c>, five dwords.</summary>
@@ -100,7 +100,7 @@ public sealed class RetailWeaponChargeTable
 /// <c>-1</c>, so the answer is the <b>last</b> present index, not the first and
 /// not a count. The maximum starts at zero and index 0 also contributes zero, so
 /// a weapon whose table is <c>{n, -1, -1, -1, -1}</c> is indistinguishable from
-/// one whose table is empty: <c>test esi, esi / je</c> at <c>0x004123DC</c>
+/// one whose table is empty: a zero test of esi, branching when equal at <c>0x004123DC</c>
 /// returns <c>0.0f</c> for both. That is a real property of the shipped code and
 /// a rebuild that returned <c>charge / 0</c>, or that treated index 0 as worth
 /// 100, would part company on exactly those weapons.
@@ -115,7 +115,7 @@ public sealed class RetailWeaponChargeTable
 /// </para>
 /// <para>
 /// <b><c>CanCharge</c> ignores the first level.</b> <c>0x00413D28</c> is
-/// <c>lea ebp, [ebx + 0x10]</c> — <c>record + 0x10</c>, i.e. index 1 — and the
+/// an address computation (ebx+0x10) into ebp — <c>record + 0x10</c>, i.e. index 1 — and the
 /// counter starts at <c>1</c>. So a weapon with only level 0 present cannot
 /// charge, which is the same population that <c>GetCharge</c> reports as zero.
 /// </para>
@@ -127,13 +127,14 @@ public sealed class RetailWeaponChargeTable
 /// proved a present level in 1..4 over the same unchanged table. So that arm is
 /// <b>dead</b> in the shipped code, exactly as the stranded <c>mStoreHeat</c>
 /// load in <see cref="RetailWeaponStoreReadouts"/> is, and what remains is
-/// <c>fild max / fcomp mCharge / test ah, 0x41 / jne</c>: not fully charged iff
+/// an integer-to-float load of max, then float compare against mCharge, popping the result,
+/// then bit test of ah against 0x41, branching when not equal: not fully charged iff
 /// the maximum is <b>ordered and strictly greater</b> than the charge. The dead
 /// arm is still modelled by <see cref="FullyCharged"/>, because a caller other
 /// than <c>ChargeWeapon</c> could reach it.
 /// </para>
 /// <para>
-/// <b>An unordered charge reads as fully charged.</b> <c>test ah, 0x41</c> is
+/// <b>An unordered charge reads as fully charged.</b> a bit test of ah against 0x41 is
 /// C0 or C3 and an unordered compare sets both, so a NaN <c>mCharge</c> takes
 /// the bail-out arm. The maximum is an integer widened by <c>fild</c> and can
 /// never be unordered, so that is the only way in.
@@ -143,8 +144,8 @@ public sealed class RetailWeaponChargeTable
 /// <c>0x005068F0</c> re-runs the CanCharge scan from <c>record + 0x10</c> and
 /// returns if nothing in 1..4 is present. Otherwise it
 /// <c>fcomp</c>s <c>mCharge</c> against <c>0x005DB358</c> =
-/// <c>00 00 c8 43</c> = <c>400.0f</c> with <c>test ah, 1 / je</c>, then
-/// <c>fld [record+8] / fadd [weapon+0x60] / fstp [weapon+0x60]</c>. So a
+/// 0x43C80000 = <c>400.0f</c> with a bit test of ah against 1, branching when equal, then
+/// a float load of field +8 of record, then float add of field +0x60 of weapon, then float store to field +0x60 of weapon. So a
 /// charge of 100 still increments, and a charge of 400 does not. The
 /// Pulse Cannon Pod fills at 100 only because <c>ChargeWeapon</c> at
 /// <c>0x00413CF0</c> stops calling this helper once
@@ -240,13 +241,13 @@ public static class RetailWeaponCharge
             return true;
         }
 
-        // test ah, 0x41 with jne: an unordered charge bails out too.
+        // A bit test of ah against 0x41 with jne: an unordered charge bails out too.
         return !((double)MaxCharge(weapon) > (double)weapon.Charge);
     }
 
     /// <summary>
     /// <c>CWeapon::LoseCharge</c> as inlined at <c>0x0041203B</c> and
-    /// <c>0x00411F96</c>: <c>mov dword ptr [weapon + 0x60], 0</c>, an integer
+    /// <c>0x00411F96</c>: a store of constant 0 to field +0x60 of weapon, an integer
     /// store of the all-zero word, i.e. <c>+0.0f</c> and not <c>-0.0f</c>.
     /// </summary>
     public static void LoseCharge(RetailWeaponChargeTable weapon)
@@ -260,7 +261,7 @@ public static class RetailWeaponCharge
     }
 
     /// <summary>
-    /// The increment-body cap — <c>0x005DB358</c> = <c>00 00 c8 43</c> =
+    /// The increment-body cap — <c>0x005DB358</c> = 0x43C80000 =
     /// <c>400.0f</c>. This is not <see cref="MaxCharge"/>; Pulse Cannon Pod
     /// fills at 100 because <c>ChargeWeapon</c> stops calling this helper.
     /// </summary>
@@ -270,8 +271,8 @@ public static class RetailWeaponCharge
     /// <c>CWeapon__AdvanceChargeProgressIfAnySlotAssigned</c> at
     /// <c>0x005068F0</c>. The CanCharge scan starts at <c>record + 0x10</c>;
     /// when a later level is present and the live charge is strictly below
-    /// <see cref="IncrementCap"/> (<c>test ah, 1 / je</c>), it does
-    /// <c>fld [record+8] / fadd [weapon+0x60] / fstp [weapon+0x60]</c>.
+    /// <see cref="IncrementCap"/> (a bit test of ah against 1, branching when equal), it does
+    /// (a float load of field +8 of record, then float add of field +0x60 of weapon, then float store to field +0x60 of weapon).
     /// </summary>
     public static void Charge(RetailWeaponChargeTable weapon)
     {
@@ -285,7 +286,7 @@ public static class RetailWeaponCharge
             return;
         }
 
-        // test ah, 1 / je: skip when C0 is clear, i.e. charge >= 400 ordered.
+        // A bit test of ah against 1 / je: skip when C0 is clear, i.e. charge >= 400 ordered.
         // An unordered charge sets C0 and still adds.
         if (weapon.Charge >= IncrementCap)
         {
@@ -304,9 +305,10 @@ public static class RetailWeaponCharge
     /// <c>weapon-&gt;ReadyToCharge()</c>.
     /// </summary>
     /// <remarks>
-    /// <c>mov eax,[ecx+0xA0] / test eax,eax / jz ret1</c> then
-    /// <c>fld [0x00672FD0] / fcomp [ecx+0x64] / fnstsw ax / test ah,0x41 / jz
-    /// ret1 / xor eax,eax</c>. With a non-null mode, engine time must be
+    /// A load of field +0xA0 of ecx into eax, then zero test of eax, branching when zero then
+    /// a float load of the value at 0x00672FD0, then float compare against field +0x64 of
+    /// ecx, popping the result, then FPU status-word read, then bit test of ah against 0x41,
+    /// branching when zero, then zeroing of eax. With a non-null mode, engine time must be
     /// ordered-greater than +0x64. Equality and unordered comparisons refuse
     /// both Charge and Fire; Fire uses the same test at <c>0x005060E5</c>.
     /// </remarks>
@@ -361,7 +363,7 @@ public static class RetailWeaponCharge
 
     /// <summary>
     /// The ordered strict comparison shared by Fire and ReadyToCharge after
-    /// a current mode is resolved. <c>test ah,0x41 / jz</c> accepts only
+    /// a current mode is resolved. A bit test of ah against 0x41, branching when zero accepts only
     /// C0|C3 clear; NaN, equality and earlier time all refuse.
     /// </summary>
     public static bool ReadyTimeElapsed(float now, float readyAt) => now > readyAt;

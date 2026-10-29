@@ -8,8 +8,8 @@ namespace OnslaughtRebuild.Core.Tests;
 /// <summary>
 /// <c>IScript::FollowWaypoint</c> at <c>0x00537d70</c> on
 /// specimen <c>74154bfa…</c>. Official <c>0x00537e20</c> is
-/// <c>89 46 18</c> = <c>mov [esi+0x18], eax</c> after
-/// <c>mov eax, 1</c> at <c>0x00537df7</c>. Isolated
+/// a store of eax to field +0x18 of esi after
+/// a load of constant 1 into eax at <c>0x00537df7</c>. Isolated
 /// <see cref="Level100ActorScriptCommandKind.FollowWaypoint"/>
 /// names the rebuild command / path, not this store.
 /// FollowWaypointWait / CVM / <c>+0x1c</c> stay unclaimed.
@@ -19,7 +19,7 @@ namespace OnslaughtRebuild.Core.Tests;
 public sealed class RetailIScriptFollowWaypointTests
 {
     /// <summary>
-    /// <c>mov [esi+0x18], 1</c> writes literal 1. Isolated
+    /// A store of constant 1 to field +0x18 of esi writes literal 1. Isolated
     /// FollowWaypoint emit-command still passes if this
     /// store is skipped. Mutation: <c>return current + 1</c>.
     /// </summary>

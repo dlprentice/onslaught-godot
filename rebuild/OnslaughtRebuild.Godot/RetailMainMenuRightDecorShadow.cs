@@ -5,33 +5,33 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render 0x0089D8A0 *63 alpha shadow — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Texture.</b> Load at <c>0x00463D06</c> is
-/// <c>mov eax, [0x0089D8A0]</c>. That is the already-owned right
+/// a load of the value at 0x0089D8A0 into eax. That is the already-owned right
 /// primary decor (symbol-bracket-01), not 0x0089D8A4 and not the
 /// left pair. Do not redo
 /// <see cref="RetailMainMenuRightTwinShadow"/> or
 /// <see cref="RetailMainMenuRightTwinOverlay"/>.</para>
 ///
-/// <para><b>Site.</b> <c>0x00463D1F</c> is <c>mov ecx, esi</c>.
-/// <c>0x00463D21</c> is <c>shl ecx, 6</c>.
-/// <c>0x00463D24</c> is <c>sub ecx, esi</c>.
-/// <c>0x00463D26</c> is <c>shl ecx, 16</c>.
-/// <c>0x00463D29</c> is <c>and ecx, 0xFF000000</c>.
+/// <para><b>Site.</b> <c>0x00463D1F</c> is a copy of esi into ecx.
+/// <c>0x00463D21</c> is a left shift of ecx by 6.
+/// <c>0x00463D24</c> is a subtraction of esi from ecx.
+/// <c>0x00463D26</c> is a left shift of ecx by 16.
+/// <c>0x00463D29</c> is a mask of ecx with 0xFF000000.
 /// ESI is the earlier signed 0..255 fade clamp at
 /// <c>0x00463CC7</c>. Settled fade is 255.</para>
 ///
 /// <para><b>Call.</b> Colour then 0x0089D8A0 then
-/// <c>push 0x3EB33333</c> at <c>0x00463D31</c>. That leftover 0.35
-/// is Z, not scale. <c>mov ecx, 0x0089D758</c> then
-/// <c>call 0x00468750</c> (fcos of <c>mCounter</c>)
-/// <c>fadd [0x005DB5C8]=365.0</c>, then <c>call 0x00468730</c>
-/// (fsin) <c>fadd [0x005DB5C4]=462.0</c>, then
+/// a push of constant 0x3EB33333 at <c>0x00463D31</c>. That leftover 0.35
+/// is Z, not scale. A load of constant 0x0089D758 into ecx then
+/// a direct call to 0x00468750 (fcos of <c>mCounter</c>)
+/// (a float add of the value at 0x005DB5C8 (value 365.0)), then a direct call to 0x00468730
+/// (fsin) (a float add of the value at 0x005DB5C4 (value 462.0)), then
 /// <c>CDXSurf__RenderSurface</c> at <c>0x005563D0</c>. Dest
 /// addends are the already-measured right-arc ellipse centre
 /// (457+5, 355+10), not the left dest. The ellipse itself is
@@ -66,52 +66,52 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuRightDecorShadow
 {
-    /// <summary><c>mov ecx, esi</c> at <c>0x00463D1F</c>.</summary>
+    /// <summary>A copy of esi into ecx at <c>0x00463D1F</c>.</summary>
     public const uint Site = 0x00463D1Fu;
 
-    /// <summary><c>shl ecx, 6</c> at <c>0x00463D21</c>.</summary>
+    /// <summary>A left shift of ecx by 6 at <c>0x00463D21</c>.</summary>
     public const uint ShiftSite = 0x00463D21u;
 
-    /// <summary><c>shl ecx, 6</c>.</summary>
+    /// <summary>A left shift of ecx by 6.</summary>
     public const int ShiftLeft = 6;
 
-    /// <summary><c>sub ecx, esi</c> at <c>0x00463D24</c>.</summary>
+    /// <summary>A subtraction of esi from ecx at <c>0x00463D24</c>.</summary>
     public const uint SubSite = 0x00463D24u;
 
-    /// <summary><c>shl ecx, 16</c> at <c>0x00463D26</c>.</summary>
+    /// <summary>A left shift of ecx by 16 at <c>0x00463D26</c>.</summary>
     public const uint Shift16Site = 0x00463D26u;
 
-    /// <summary><c>and ecx, 0xFF000000</c> at <c>0x00463D29</c>.</summary>
+    /// <summary>A mask of ecx with 0xFF000000 at <c>0x00463D29</c>.</summary>
     public const uint AndSite = 0x00463D29u;
 
     /// <summary>The AND immediate. Black RGB, alpha only.</summary>
     public const uint AlphaMask = 0xFF000000u;
 
-    /// <summary><c>mov eax, [0x0089D8A0]</c> at <c>0x00463D06</c>.</summary>
+    /// <summary>A load of the value at 0x0089D8A0 into eax at <c>0x00463D06</c>.</summary>
     public const uint TextureLoadSite = 0x00463D06u;
 
     /// <summary>Right primary decor texture global. Not 0x0089D8A4.</summary>
     public const uint TextureGlobal = 0x0089D8A0u;
 
-    /// <summary><c>push 0x3EB33333</c> at <c>0x00463D31</c>.</summary>
+    /// <summary>A push of constant 0x3EB33333 at <c>0x00463D31</c>.</summary>
     public const uint ZPushSite = 0x00463D31u;
 
     /// <summary>Z immediate. Not scale.</summary>
     public const uint ZBits = 0x3EB33333u;
 
-    /// <summary><c>mov ecx, 0x0089D758</c> at <c>0x00463D36</c>.</summary>
+    /// <summary>A load of constant 0x0089D758 into ecx at <c>0x00463D36</c>.</summary>
     public const uint SurfThisLoadSite = 0x00463D36u;
 
     /// <summary>CDXSurf this-pointer global. The offset helpers ignore ecx.</summary>
     public const uint SurfThis = 0x0089D758u;
 
-    /// <summary><c>call 0x00468750</c> at <c>0x00463D3B</c>.</summary>
+    /// <summary>A direct call to 0x00468750 at <c>0x00463D3B</c>.</summary>
     public const uint YHelperSite = 0x00463D3Bu;
 
     /// <summary>Leaf fcos of <c>mCounter</c>. Already owned by the ellipse.</summary>
     public const uint YHelper = 0x00468750u;
 
-    /// <summary><c>fadd [0x005DB5C8]</c> at <c>0x00463D40</c>.</summary>
+    /// <summary>A float add of the value at 0x005DB5C8 at <c>0x00463D40</c>.</summary>
     public const uint DestYAddSite = 0x00463D40u;
 
     /// <summary>Dest-Y addend pool.</summary>
@@ -120,13 +120,13 @@ public static class RetailMainMenuRightDecorShadow
     /// <summary>Mode-4 dest Y addend. Right-arc ellipse centre 355+10.</summary>
     public const float DestYAdd = 365f;
 
-    /// <summary><c>call 0x00468730</c> at <c>0x00463D4F</c>.</summary>
+    /// <summary>A direct call to 0x00468730 at <c>0x00463D4F</c>.</summary>
     public const uint XHelperSite = 0x00463D4Fu;
 
     /// <summary>Leaf fsin of <c>mCounter</c>. Already owned by the ellipse.</summary>
     public const uint XHelper = 0x00468730u;
 
-    /// <summary><c>fadd [0x005DB5C4]</c> at <c>0x00463D54</c>.</summary>
+    /// <summary>A float add of the value at 0x005DB5C4 at <c>0x00463D54</c>.</summary>
     public const uint DestXAddSite = 0x00463D54u;
 
     /// <summary>Dest-X addend pool.</summary>
@@ -138,13 +138,13 @@ public static class RetailMainMenuRightDecorShadow
     /// <summary>Fourth-from-last push at <c>0x00463D13</c>.</summary>
     public const int Mode = 4;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x00463D5E</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x00463D5E</c>.</summary>
     public const uint CallSite = 0x00463D5Eu;
 
     /// <summary><c>CDXSurf__RenderSurface</c>.</summary>
     public const uint RenderSurface = 0x005563D0u;
 
-    /// <summary>Leftover body sibling <c>mov eax, esi</c>. Not this pack.</summary>
+    /// <summary>Leftover body sibling copy of esi into eax. Not this pack.</summary>
     public const uint BodySiblingSite = 0x00463D63u;
 
     /// <summary>Body dest-Y immediate push. 355.0, not this shadow.</summary>

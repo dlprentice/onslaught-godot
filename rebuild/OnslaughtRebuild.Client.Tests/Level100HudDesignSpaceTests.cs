@@ -10,7 +10,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the in-level HUD to the 640x480 released stage.
 ///
 /// Every expected number below was measured off the retail capture
-/// local-lab/retail-reference-pristine/level-100-entry/09-level-100-entry-640x480.png,
+/// a private retail reference capture,
 /// not read out of the source under test:
 ///
 ///   lower-left scanner ring   circle fit centre (66.01, 417.25) r 46.56, rms 0.20 over 55 chord points

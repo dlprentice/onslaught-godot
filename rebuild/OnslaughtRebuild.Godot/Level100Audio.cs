@@ -99,7 +99,7 @@ public sealed partial class Level100Audio : Node3D
     //       mSoundVolume=0.8f;
     //       mMusicVolume=0.9f;
     //   and the pristine specimen's own initialiser bytes
-    //   (local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256
+    //   (a private pristine copy, sha256
     //   74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750),
     //   in CCareer::StaticInitDefaults 0x0041B6A0:
     //       VA 0x0041B70D stores 0.8f at 0x00662AAC (sound), and

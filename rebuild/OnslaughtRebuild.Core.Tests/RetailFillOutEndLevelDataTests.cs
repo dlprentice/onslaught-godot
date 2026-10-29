@@ -37,7 +37,7 @@ public sealed class RetailFillOutEndLevelDataTests
     /// <summary>
     /// Last LoadWorld on Level 100 is outer RLWD. <c>CGame+0x108/+0x10c</c>
     /// are RLWD <c>+0x147ba/+0x147be</c> = 300.0 / 500.0, so
-    /// <c>test ah,0x41 / jne 0x0046d79b</c> does not skip. A zero score
+    /// a bit test of ah against 0x41, branching to 0x0046d79b when not equal does not skip. A zero score
     /// against last-wins D=70 stores 0 at <c>0x0046d772</c> and jumps
     /// past the 0.001 replacement. Mutation: inventing a skip leaves the
     /// pre-arm 1.0f. First-play elapsed and score stay unclaimed — this
@@ -126,7 +126,7 @@ public sealed class RetailFillOutEndLevelDataTests
 
     /// <summary>
     /// Last-wins D is 70 at <c>this+0xfc</c>. Independently re-read
-    /// specimen: <c>0x0046d724</c> <c>jl 0x0046d772</c> stores 0 only
+    /// specimen: <c>0x0046d724</c>: a conditional branch to 0x0046d772 (taken when less) stores 0 only
     /// when the fistp'd score is strictly below D. Equality falls
     /// through the interpolate-to-0 path and the already-cited
     /// <c>0x3a83126f</c> (0.001) replacement. First-play elapsed and
@@ -169,11 +169,10 @@ public sealed class RetailFillOutEndLevelDataTests
     /// <summary>
     /// Last-wins S is 210 at <c>this+0xf8</c>. Independently re-read
     /// specimen <c>74154bfa…</c> and inflated <c>100_res_PC.aya</c>
-    /// <c>115ede05…2df4</c>: <c>0x0050d2f7</c>
-    /// <c>mov [0x008a9b90], edx</c> from RLWD payload <c>+0x147ae</c>
+    /// <c>115ede05…2df4</c>: <c>0x0050d2f7</c>: a store of edx to the value at 0x008a9b90 from RLWD payload <c>+0x147ae</c>
     /// = 210. <c>0x0046d6e5</c> loads <c>[ebp+0xf8]</c>,
-    /// <c>0x0046d6f9</c> <c>cmp eax,ecx</c>, <c>0x0046d707</c>
-    /// <c>jl 0x0046d718</c> so equality stores <c>0x3f800000</c> at
+    /// <c>0x0046d6f9</c>: a compare of eax with ecx, <c>0x0046d707</c>: a conditional
+    /// branch to 0x0046d718 (taken when less) so equality stores <c>0x3f800000</c> at
     /// <c>0x0046d709</c>. Not leftover BSWD 1000. First-play elapsed
     /// and score stay unclaimed — this does not rewrite
     /// <see cref="RetailFillOutEndLevelData.ForLevel100Won"/>.
@@ -206,8 +205,7 @@ public sealed class RetailFillOutEndLevelDataTests
     /// <summary>
     /// Last-wins D is 70 at <c>this+0xfc</c>. Independently re-read
     /// specimen <c>74154bfa…</c> and inflated <c>100_res_PC.aya</c>
-    /// <c>115ede05…2df4</c>: <c>0x0050d307</c>
-    /// <c>mov [0x008a9b94], edx</c> from RLWD payload <c>+0x147b2</c>
+    /// <c>115ede05…2df4</c>: <c>0x0050d307</c>: a store of edx to the value at 0x008a9b94 from RLWD payload <c>+0x147b2</c>
     /// = 70. A fistp'd 70 against leftover BSWD 200 is strictly below
     /// D and stores 0 at <c>0x0046d772</c>. First-play elapsed and
     /// score stay unclaimed — this does not rewrite
@@ -285,8 +283,8 @@ public sealed class RetailFillOutEndLevelDataTests
     }
 
     /// <summary>
-    /// Independently re-read specimen: <c>0x0046d4d1</c>
-    /// <c>test byte [eax+0x2c],4</c> / <c>jne 0x0046d4df</c> stores 0.
+    /// Independently re-read specimen: <c>0x0046d4d1</c>: a bit test of byte field +0x2c of
+    /// eax against 4, then conditional branch to 0x0046d4df (taken when not equal) stores 0.
     /// A live pointer with TF_DYING set is therefore 0, same as a null
     /// reader. First-play still stores 1 at 0..34 — player iceberg-kill
     /// values stay unclaimed. Mutation: store 1 on TF_DYING. Do not
@@ -339,10 +337,10 @@ public sealed class RetailFillOutEndLevelDataTests
 
     /// <summary>
     /// Independently re-read specimen <c>74154bfa…</c>:
-    /// <c>0x0046d5f9</c> <c>mov eax,[ebp+0x2a4]</c> /
-    /// <c>0x0046d5ff</c> <c>test eax,eax</c> / <c>je 0x0046d61d</c>
+    /// <c>0x0046d5f9</c>: a load of frame local +0x2a4 into eax; <c>0x0046d5ff</c>:
+    /// a zero test of eax, then conditional branch to 0x0046d61d (taken when equal)
     /// stores five zeros at <c>0x00672e30</c>. Live player copies
-    /// five dwords from <c>player+8</c> (<c>cmp eax,0x14</c>).
+    /// five dwords from <c>player+8</c> (a compare of eax with 0x14).
     /// Mutation: copy leftover words when the player pointer is
     /// null. First-play still has a live player 0. Do not invent
     /// first-play totals or secondaries.
@@ -399,12 +397,11 @@ public sealed class RetailFillOutEndLevelDataTests
 
     /// <summary>
     /// Independently re-read specimen <c>74154bfa…</c>:
-    /// <c>0x0046d5af</c> <c>mov ecx,[0x00672fd0]</c> /
-    /// <c>0x0046d5bf</c> <c>mov eax,[ebp+0xf4]</c> /
-    /// <c>0x0046d5c5</c> <c>mov [0x00672e28], ecx</c> /
-    /// <c>0x0046d5cb</c> <c>mov [0x00672e24], eax</c>. Those are the
+    /// <c>0x0046d5af</c>: a load of the value at 0x00672fd0 into ecx; <c>0x0046d5bf</c>: a load
+    /// of frame local +0xf4 into eax; <c>0x0046d5c5</c>: a store of ecx to the value at
+    /// 0x00672e28; <c>0x0046d5cb</c>: a store of eax to the value at 0x00672e24. Those are the
     /// only FillOut stores of <c>mTimeTaken</c> / <c>mScore</c>. The
-    /// score-time arm's <c>0x0046d6ff</c> <c>mov [ebp+0xf4], eax</c>
+    /// score-time arm's <c>0x0046d6ff</c>: a store of eax to frame local +0xf4
     /// rewrites <c>CGame.mScore</c> only. First-play elapsed and score
     /// stay unclaimed — this does not rewrite
     /// <see cref="RetailFillOutEndLevelData.ForLevel100Won"/>.

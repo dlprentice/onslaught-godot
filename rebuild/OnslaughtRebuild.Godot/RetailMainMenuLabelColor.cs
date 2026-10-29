@@ -5,24 +5,24 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render main-menu label colour — recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
 /// <para><b>Bases.</b> <c>0x0046300B</c> is
-/// <c>mov ebp, 0xFF4F4F4F</c>. <c>0x00463010</c> is
-/// <c>call [edx+0x24] / test eax, eax / jnz</c>; the zero arm at
-/// <c>0x00463017</c> is <c>mov ebp, 0x7F1F1F1F</c>.
-/// <c>0x0046301C</c> is <c>cmp ebx, [edi+8] / jnz</c>; the hit arm
-/// at <c>0x00463021</c> is <c>mov ebp, 0xFFFF6F3F</c> and wins.
+/// a load of constant 0xFF4F4F4F into ebp. <c>0x00463010</c> is
+/// an indirect call through vtable slot 9, then zero test of eax, branching when not zero; the zero arm at
+/// <c>0x00463017</c> is a load of constant 0x7F1F1F1F into ebp.
+/// <c>0x0046301C</c> is a compare of ebx with field +8 of edi, branching when not zero; the hit arm
+/// at <c>0x00463021</c> is a load of constant 0xFFFF6F3F into ebp and wins.
 /// That call is not named here. Not <c>SetLanguage</c>.</para>
 ///
 /// <para><b>Fade.</b> ESI is the same 0x00462ECA 0..255 fade byte.
-/// <c>0x00463032</c> / <c>0x00463049</c> are <c>imul ecx/eax, esi</c>
-/// then <c>xor / and 0x00FFFFFF / xor</c>. The draw unpack at
+/// <c>0x00463032</c> / <c>0x00463049</c> are multiplies of ecx and eax by esi
+/// then an xor, a mask with 0x00FFFFFF and an xor. The draw unpack at
 /// <c>0x00463055</c> is the chevron-style
-/// <c>shr 8 / *255 / xor / and / xor</c>. Settled ESI 255 submits
+/// a logical right shift by 8, a multiply by 255, an xor, a mask and an xor. Settled ESI 255 submits
 /// <c>0xFD4F4F4F</c> / <c>0x7D1F1F1F</c> / <c>0xFDFF6F3F</c> —
 /// frame 3000 draws 12–25. DrawMainMenu is the consumer. HandleKey,
 /// DrawLoading, DrawQuitConfirm, HandlePointerConfirm,
@@ -32,13 +32,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuLabelColor
 {
-    /// <summary><c>mov ebp, 0xFF4F4F4F</c> at <c>0x0046300B</c>.</summary>
+    /// <summary>A load of constant 0xFF4F4F4F into ebp at <c>0x0046300B</c>.</summary>
     public const uint IdleSite = 0x0046300Bu;
 
-    /// <summary><c>mov ebp, 0x7F1F1F1F</c> at <c>0x00463017</c>.</summary>
+    /// <summary>A load of constant 0x7F1F1F1F into ebp at <c>0x00463017</c>.</summary>
     public const uint DisabledSite = 0x00463017u;
 
-    /// <summary><c>mov ebp, 0xFFFF6F3F</c> at <c>0x00463021</c>.</summary>
+    /// <summary>A load of constant 0xFFFF6F3F into ebp at <c>0x00463021</c>.</summary>
     public const uint SelectedSite = 0x00463021u;
 
     /// <summary>The idle immediate.</summary>
@@ -62,7 +62,7 @@ public static class RetailMainMenuLabelColor
     /// <summary>Settled <c>fistp(fade*255)</c> after the 0x00462ECA clamp.</summary>
     public const int ImageSettledFadeByte = 255;
 
-    /// <summary><c>and eax, 0x00FFFFFF</c> at <c>0x0046304E</c>.</summary>
+    /// <summary>A mask of eax with 0x00FFFFFF at <c>0x0046304E</c>.</summary>
     public const uint RgbMask = 0x00FFFFFFu;
 
     /// <summary>Hover writes <c>-1</c>. It does not call <c>SetLanguage</c>.</summary>
@@ -85,7 +85,7 @@ public static class RetailMainMenuLabelColor
     }
 
     /// <summary>
-    /// <c>0x00462ECA</c> signed clamp, then <c>cmp esi, 0xFF</c>.
+    /// <c>0x00462ECA</c> signed clamp, then a compare of esi with 0xFF.
     /// </summary>
     public static int ClampFadeByte(int fadeByte)
     {

@@ -4,14 +4,15 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// CFEPMain::Render pointer hit-test — recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this cycle
 /// (2,506,752 bytes).
 ///
 /// <para><b>Gate.</b> Two sites, <c>0x004630AC</c> (menu rows) and
 /// <c>0x004631EF</c> (language row):
-/// <c>fld [esp+0xA4]; fcomp [0x005D8BB0]; fnstsw ax; test ah, 0x41 / jne skip</c>.
+/// a float load of stack local +0xA4, then float compare against the value at 0x005D8BB0, popping the
+/// result, then FPU status-word read, then bit test of ah against 0x41, branching when not equal.
 /// <c>0x005D8BB0</c> is <c>0x3F666666</c> (0.9). C3|C0 means
 /// transition &lt;= 0.9 skips. Hit-test therefore runs only when
 /// transition &gt; 0.9 — the last tenth of the 50-frame
@@ -33,7 +34,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// extent is <c>0x005D857C</c> = 20.</para>
 ///
 /// <para><b>Not the twin fade.</b> <c>0x00463E8D</c> uses
-/// <c>test ah, 1 / je 0x00463FC7</c> (transition &lt; 0.9) and then
+/// a bit test of ah against 1, branching to 0x00463FC7 when equal (transition &lt; 0.9) and then
 /// scales <c>0x0089D8A4</c>. That predicate is exposed so it cannot
 /// be mistaken for this gate. No fade is implemented.</para>
 ///
@@ -44,7 +45,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuHitTest
 {
-    /// <summary><c>fcomp [0x005D8BB0]</c> at <c>0x004630AC</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D8BB0, popping the result at <c>0x004630AC</c>.</summary>
     public const uint ThresholdGlobal = 0x005D8BB0u;
 
     /// <summary>Image bits at <c>0x005D8BB0</c>.</summary>
@@ -53,19 +54,19 @@ public static class RetailMainMenuHitTest
     /// <summary>The <see cref="ThresholdBits"/> dword, not a second 0.9 literal.</summary>
     public static float Threshold => BitConverter.UInt32BitsToSingle(ThresholdBits);
 
-    /// <summary><c>push 0x42EE0000</c> at <c>0x00463263</c>.</summary>
+    /// <summary>A push of constant 0x42EE0000 at <c>0x00463263</c>.</summary>
     public const float LanguageHoverLeft = 119f;
 
-    /// <summary><c>push 0x439F8000</c> at <c>0x0046325A</c>.</summary>
+    /// <summary>A push of constant 0x439F8000 at <c>0x0046325A</c>.</summary>
     public const float LanguageHoverRight = 319f;
 
-    /// <summary><c>mov [esp+0x10], 0x43860000</c> at <c>0x00462E96</c>.</summary>
+    /// <summary>A store of constant 0x43860000 to stack local +0x10 at <c>0x00462E96</c>.</summary>
     public const float LanguageHoverCenterY = 268f;
 
     /// <summary><c>0x005D857C</c>, added and subtracted from Y.</summary>
     public const float LanguageHoverHalfExtent = 20f;
 
-    /// <summary><c>mov [edi+8], -1</c> at <c>0x00463274</c>.</summary>
+    /// <summary>A store of constant -1 to field +8 of edi at <c>0x00463274</c>.</summary>
     public const int LanguageSelectedIndex = -1;
 
     /// <summary><c>[0x0083D990]</c>. Uninitialised <c>.data</c>.</summary>
@@ -74,7 +75,7 @@ public static class RetailMainMenuHitTest
     /// <summary>Image-initial dword. Cold Render keeps 268.</summary>
     public const uint ImageInitialLanguageCenterFlag = 0u;
 
-    /// <summary><c>mov [esp+0x10], 0x43980000</c> at <c>0x00462EF5</c>.</summary>
+    /// <summary>A store of constant 0x43980000 to stack local +0x10 at <c>0x00462EF5</c>.</summary>
     public const float AlternateLanguageHoverCenterY = 304f;
 
     /// <summary>
@@ -88,7 +89,7 @@ public static class RetailMainMenuHitTest
     public const bool IsSetLanguage = false;
 
     /// <summary>
-    /// <c>test ah, 0x41 / jne skip</c> after <c>fcomp [0.9]</c>.
+    /// A bit test of ah against 0x41, branching when not equal after a float compare against the constant 0.9, popping the result.
     /// </summary>
     public static bool AcceptsHitTest(float transition) => transition > Threshold;
 
@@ -101,7 +102,7 @@ public static class RetailMainMenuHitTest
         pageIsTransition && !isPointerMotion;
 
     /// <summary>
-    /// The third <c>0x005D8BB0</c> site: <c>test ah, 1 / je</c>.
+    /// The third <c>0x005D8BB0</c> site: a bit test of ah against 1, branching when equal.
     /// Fall-through when transition &lt; 0.9. Not implemented as a fade.
     /// </summary>
     public static bool AcceptsTwinFade(float transition) => transition < Threshold;

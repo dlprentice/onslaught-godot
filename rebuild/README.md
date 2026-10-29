@@ -258,7 +258,7 @@ released high-quality 70-unit boundary".* `70.0` *is the released High-detail
 arm, but it was not the released out-of-box/current default; this workstation's
 saved* `defaultoptions.bea` *selected it.
 The image's own static initialiser is* `30.0f` *at file* `0x2321A0` *of the
-pristine specimen* `local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`*,
+pristine specimen* (a private pristine copy)*,
 SHA-256* `74154bfa…`*, read again during this pass; the released out-of-box
 Geometry detail arm is Medium. Offset table and the proof that*
 `defaultoptions.bea` *is run state:* [`PROVENANCE.md`](PROVENANCE.md)*.*) The
@@ -771,9 +771,9 @@ second sensitivity.
 > floor; it reached the reconstruction from the copied `defaultoptions.bea` those
 > runs were configured through, which is persisted run state rather than an
 > authored value. Read this pass from the pristine specimen
-> `local-lab/safe-copy-bea-pristine/BEA.exe.original.backup`, SHA-256
+> (a private pristine copy), SHA-256
 > `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`: file
-> `0x2254F4` (VA `0x006254F4`) = `00 00 e0 40` = `7.0f`, `0x1D8CC0`
+> `0x2254F4` (VA `0x006254F4`) = `0x40E00000` = `7.0f`, `0x1D8CC0`
 > (VA `0x005D8CC0`) = `3.0f`, `0x1D97C8` (VA `0x005D97C8`) = `0.004333333f`.
 > The pointer scalar moved from `13/2000` to `91/3000` in `fed5829b` — aiming
 > had been 4.67× too slow at equal hand motion. See

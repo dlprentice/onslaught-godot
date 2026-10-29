@@ -51,10 +51,10 @@ public readonly record struct RetailAugmentResult(
 /// <b>Source and retail agree throughout, and the image pins three numbers the
 /// header only names.</b> <c>MAX_AUG_VALUE</c> is
 /// <c>BattleEngine.cpp:53</c> and the shipped store is
-/// <c>mov dword ptr [esi + 0x2F8], 0x41200000</c> at <c>0x0040DF0C</c> —
+/// a store of constant 0x41200000 to field +0x2F8 of esi at <c>0x0040DF0C</c> —
 /// <c>10.0f</c>. <c>MAX_ZOOM_OUT</c> is <c>BattleEngine.cpp:51</c> and the
 /// inlined <c>AutoZoomOut</c> is
-/// <c>mov dword ptr [esi + 0x2CC], 0x3F800000</c> at <c>0x0040DEE7</c> —
+/// a store of constant 0x3F800000 to field +0x2CC of esi at <c>0x0040DEE7</c> —
 /// <c>1.0f</c>. The sample name is the literal <c>"hud_weapon_augmented"</c> at
 /// <c>0x00623540</c>, matching <c>BattleEngine.cpp:3323</c> character for
 /// character.
@@ -74,7 +74,7 @@ public readonly record struct RetailAugmentResult(
 /// <c>LoseWeaponCharge()</c> and compares it against the entry value, and
 /// retail does exactly that at <c>0x0040DED2-0x0040DEE5</c>. But
 /// <c>LoseWeaponCharge</c> resolves to a single
-/// <c>mov dword ptr [weapon + 0x60], 0</c> (see
+/// store of constant 0 to field +0x60 of weapon (see
 /// <see cref="RetailWeaponCharge.LoseCharge"/>) and the current weapon does not
 /// change, so the zoom mode at <c>record + 0x34</c> is provably the same word
 /// on both reads and the store to <c>mDesiredZoom</c> is unreachable. The same
@@ -85,15 +85,15 @@ public readonly record struct RetailAugmentResult(
 /// </para>
 /// <para>
 /// <b>The state ladder is a two-way compare, not a switch.</b>
-/// <c>0x0040DEA3</c> is <c>cmp eax, 2</c> and <c>0x0040DEC2</c> is
-/// <c>cmp eax, 3</c>, against the <c>mState</c> word at <c>+0x260</c>; anything
+/// <c>0x0040DEA3</c> is a compare of eax with 2 and <c>0x0040DEC2</c> is
+/// a compare of eax with 3, against the <c>mState</c> word at <c>+0x260</c>; anything
 /// else forwards to neither part. With the ordinals
 /// <see cref="RetailBattleEngineState"/> measures, that is
 /// <c>BattleEngine.cpp:2022-2025</c> exactly.
 /// </para>
 /// <para>
 /// <b>Not established here.</b> Whether the primary weapon <i>is</i> the current
-/// weapon is a pointer identity in retail (<c>cmp edi, eax</c> at
+/// weapon is a pointer identity in retail (a compare of edi with eax at
 /// <c>0x0040DE89</c>) and arrives here as a boolean. The gate reads the primary
 /// weapon's store unconditionally through <c>[mWalkerPart + 0x18]</c>, so a
 /// battle engine with no primary weapon faults before the gate — outside this
@@ -142,7 +142,7 @@ public static class RetailWeaponAugment
             return true;
         }
 
-        // test ah, 0x41 with jne to the exit: an unordered value closes the gate.
+        // A bit test of ah against 0x41 with jne to the exit: an unordered value closes the gate.
         return stores.StoreValue[primaryAmmoStore] > 0.0f;
     }
 
@@ -198,7 +198,7 @@ public static class RetailWeaponAugment
 /// <para>
 /// <b>Source and retail agree, including the unconditional stamp.</b> The
 /// warning fires when the elapsed time is strictly more than five seconds
-/// (<c>test ah, 0x41</c> with <c>jne</c> to the skip label at
+/// (a bit test of ah against 0x41 with <c>jne</c> to the skip label at
 /// <c>0x0040DD00</c>, so C0 or C3 — and an unordered elapsed time — suppresses
 /// it, exactly as <c>&gt; 5.0f</c> would). <c>mLastTimeInHostileEnviroment</c>
 /// at <c>+0x510</c> is then rewritten on <b>both</b> paths, at

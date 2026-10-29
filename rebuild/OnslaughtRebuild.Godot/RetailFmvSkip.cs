@@ -4,24 +4,24 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// What aborts a full-screen FMV — recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this cycle
 /// (2,506,752 bytes).
 ///
 /// <para><b>Receiver.</b> <c>CFMV::ReceiveButtonAction</c>
-/// <c>0x004656E0</c>–<c>0x00465708</c> (<c>RET 0x0C</c>):</para>
+/// <c>0x004656E0</c>–<c>0x00465708</c> (a return that pops 12 bytes of arguments):</para>
 /// <list type="number">
-/// <item><c>cmp eax, 7</c> / <c>je write</c> —
+/// <item>A compare of eax with 7, then conditional branch to write (taken when equal) —
 /// <c>BUTTON_SKIP_CUTSCENE</c> (<c>Controller.h:98</c>).</item>
-/// <item><c>cmp eax, 0x42</c> / <c>jne ret</c>, then
-/// <c>test [ecx+0x0C]</c> / <c>jz ret</c> —
+/// <item>A compare of eax with 0x42, then conditional branch to ret (taken when not equal), then
+/// a bit test of field +0x0C of ecx, then conditional branch to ret (taken when zero) —
 /// <c>BUTTON_BREAK_ATTRACT_MODE</c> 66 only when the attract/loading
 /// gate is nonzero.</item>
 /// <item>Every other button returns without a write.</item>
 /// </list>
-/// The shared write is <c>mov [ecx+8], 1</c> and
-/// <c>mov [0x006630CC], 0</c>.
+/// The shared write is a store of constant 1 to field +8 of ecx and
+/// a store of constant 0 to the value at 0x006630CC.
 ///
 /// <para><b>Default keys.</b>
 /// <c>OptionsEntries__InitDefaultSingleBindingsTable</c> <c>0x00514210</c>
@@ -44,10 +44,10 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailFmvSkip
 {
-    /// <summary><c>BUTTON_SKIP_CUTSCENE</c>. <c>cmp eax,7</c> at <c>0x004656E4</c>.</summary>
+    /// <summary><c>BUTTON_SKIP_CUTSCENE</c>. A compare of eax with 7 at <c>0x004656E4</c>.</summary>
     public const int SkipCutsceneButton = 7;
 
-    /// <summary><c>BUTTON_BREAK_ATTRACT_MODE</c>. <c>cmp eax,0x42</c> at <c>0x004656E9</c>.</summary>
+    /// <summary><c>BUTTON_BREAK_ATTRACT_MODE</c>. A compare of eax with 0x42 at <c>0x004656E9</c>.</summary>
     public const int BreakAttractButton = 66;
 
     /// <summary>

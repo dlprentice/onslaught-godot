@@ -19,7 +19,7 @@ that points at the live install.
 
 Scope
 -----
-Tracked files only, sourced from ``git ls-files``. ``local-lab/`` is untracked
+Tracked files only, sourced from ``git ls-files``. The ignored lab folder is untracked
 by design and is therefore structurally out of scope; working notes there stay
 loose on purpose and are additionally excluded by path so the rule is legible
 rather than accidental.
@@ -514,7 +514,7 @@ def tracked_markdown(root: Path) -> list[str] | None:
     document that has been written but not yet ``git add``-ed would be invisible
     to the gate at exactly the moment a review is most useful. Adding
     ``--others --exclude-standard`` gates it the moment it exists, and still
-    excludes ``local-lab/`` structurally -- that tree is gitignored, so
+    excludes the ignored lab folder structurally -- that tree is gitignored, so
     ``--exclude-standard`` drops it without the checker needing to know why.
     """
     rels: set[str] = set()

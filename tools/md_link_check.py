@@ -250,7 +250,7 @@ def main() -> int:
         lines.append(f"- Broken links: `{len(broken)}`")
         # State the bound. A report that prints "0 broken" without naming the set
         # it scanned reads as a repo-wide result; it is not one. Gitignored trees
-        # (notably local-lab/, ~470 markdown files) are structurally invisible
+        # (notably the ignored lab folder, ~470 markdown files) are structurally invisible
         # here, so this report must never be cited as evidence that their links
         # resolve. Added 2026-07-28.
         if args.scope == "public-core":

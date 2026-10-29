@@ -6,39 +6,38 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CMenuItemDropdown::Render</c> expanded list hover leftover
-/// after <c>0x004A3FA6</c> <c>call 0x004693D0</c> /
-/// <c>0x004A3FAE</c> <c>test al, al</c> /
-/// <c>0x004A3FB2</c> <c>mov [esi+0x20], edi</c> — recovered from official
+/// after <c>0x004A3FA6</c>: a direct call to 0x004693D0; <c>0x004A3FAE</c>: a zero test of
+/// al; <c>0x004A3FB2</c>: a store of edi to field +0x20 of esi — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A3F55</c> <c>fld [esp+0x1C]</c> collapsed dest leftover,
-/// <c>0x004A3F59</c> <c>fadd [0x005D8BA0]</c> pad leftover,
-/// <c>0x004A3F5F</c> <c>fstp [esp+0x34]</c> dest X leftover,
-/// <c>0x004A3F65</c> <c>mov ebp, [esp+0x10]</c> dest Y leftover,
-/// <c>0x004A3F78</c> <c>fild [esp+0x20]</c> leftover label SIZE.cx,
-/// <c>0x004A3F7C</c> <c>mov ecx, [esp+0x34]</c> left,
-/// <c>0x004A3F80</c> <c>fadd [esp+0x1C]</c>,
-/// <c>0x004A3F84</c> <c>fadd [0x005D8BA0]</c>,
-/// <c>0x004A3F8A</c> <c>fstp [esp+0x30]</c> right,
-/// <c>0x004A3F8E</c> <c>fld [esp+0x38]</c> pitch leftover,
-/// <c>0x004A3F92</c> <c>fadd [esp+0x10]</c>,
-/// <c>0x004A3F9A</c> <c>fstp [esp+0x14]</c> bottom,
-/// <c>0x004A3FA2</c> <c>push edx</c>,
-/// <c>0x004A3FA3</c> <c>push eax</c>,
-/// <c>0x004A3FA4</c> <c>push ebp</c>,
-/// <c>0x004A3FA5</c> <c>push ecx</c>,
-/// <c>0x004A3FA6</c> <c>call 0x004693D0</c>,
-/// <c>0x004A3FAB</c> <c>add esp, 0x10</c>,
-/// <c>0x004A3FAE</c> <c>test al, al</c>,
-/// <c>0x004A3FB0</c> <c>je 0x004A3FB5</c>,
-/// <c>0x004A3FB2</c> <c>mov [esi+0x20], edi</c>.
+/// <c>0x004A3F55</c>: a float load of stack local +0x1C collapsed dest leftover,
+/// <c>0x004A3F59</c>: a float add of the value at 0x005D8BA0 pad leftover,
+/// <c>0x004A3F5F</c>: a float store to stack local +0x34 dest X leftover,
+/// <c>0x004A3F65</c>: a load of stack local +0x10 into ebp dest Y leftover,
+/// <c>0x004A3F78</c>: an integer-to-float load of stack local +0x20 leftover label SIZE.cx,
+/// <c>0x004A3F7C</c>: a load of stack local +0x34 into ecx left,
+/// <c>0x004A3F80</c>: a float add of stack local +0x1C,
+/// <c>0x004A3F84</c>: a float add of the value at 0x005D8BA0,
+/// <c>0x004A3F8A</c>: a float store to stack local +0x30 right,
+/// <c>0x004A3F8E</c>: a float load of stack local +0x38 pitch leftover,
+/// <c>0x004A3F92</c>: a float add of stack local +0x10,
+/// <c>0x004A3F9A</c>: a float store to stack local +0x14 bottom,
+/// <c>0x004A3FA2</c>: a push of edx,
+/// <c>0x004A3FA3</c>: a push of eax,
+/// <c>0x004A3FA4</c>: a push of ebp,
+/// <c>0x004A3FA5</c>: a push of ecx,
+/// <c>0x004A3FA6</c>: a direct call to 0x004693D0,
+/// <c>0x004A3FAB</c>: a stack cleanup of 0x10 bytes,
+/// <c>0x004A3FAE</c>: a zero test of al,
+/// <c>0x004A3FB0</c>: a conditional branch to 0x004A3FB5 (taken when equal),
+/// <c>0x004A3FB2</c>: a store of edi to field +0x20 of esi.
 /// Hover writes currentIndex. Dest Y does not. Colour leftover already
 /// consults currentIndex. Dest is not 15.5, 322.5, 148.0, or the 2.0
 /// constant. HandleOptionsPointerMotion consumes the leftover. Click

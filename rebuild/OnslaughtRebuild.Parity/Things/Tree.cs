@@ -80,7 +80,7 @@ public sealed class Tree(ThingContext context) : Thing(context, Oid.Tree)
         }
 
         FVector dir = Pos - other.Pos;
-        // 004f6ae9..004f6b13: sqrt((Y² + Z²) + X²), retained on the x87 stack. TEST AH,41
+        // 004f6ae9..004f6b13: sqrt((Y² + Z²) + X²), retained on the x87 stack. A bit test of ah against 41
         // admits less/equal and unordered; using !(magnitude <= radius) would reject the latter.
         if (other.IsA(ThingType.Explosion) && HitMagnitude(dir) > ((Explosion)other).CurrentRadius)
         {

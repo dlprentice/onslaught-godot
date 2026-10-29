@@ -5,15 +5,15 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay — recovered from the pristine
 /// specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
 /// <para><b>Format.</b> <c>0x0046416E</c> is
-/// <c>push 0x00629454</c>. That string is <c>"V%1d.%02d"</c>.
-/// <c>0x00464163</c> is <c>mov eax, [0x00629410]</c> (major).
-/// <c>0x0046415D</c> is <c>mov edx, [0x00679980]</c> (minor).
+/// a push of constant 0x00629454. That string is <c>"V%1d.%02d"</c>.
+/// <c>0x00464163</c> is a load of the value at 0x00629410 into eax (major).
+/// <c>0x0046415D</c> is a load of the value at 0x00679980 into edx (minor).
 /// The major dword is image-initial 1. The minor VA is past the
 /// 2,506,752-byte image, so image-initial is 0. Cold sprintf is
 /// therefore <c>V1.00</c>.</para>
@@ -25,9 +25,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// the resource agree, so DrawMainMenu can format the image
 /// initials.</para>
 ///
-/// <para><b>Colour.</b> After <c>fistp [esp+0x28]</c>,
-/// <c>0x004641B1</c> is <c>shl eax, 24</c> and <c>0x004641B4</c>
-/// is <c>or eax, 0x00102025</c>. Settled fade 255 submits
+/// <para><b>Colour.</b> After a float-to-integer store to stack local +0x28,
+/// <c>0x004641B1</c> is a left shift of eax by 24 and <c>0x004641B4</c>
+/// is an or of 0x00102025 into eax. Settled fade 255 submits
 /// <c>0xFF102025</c>, which is capture VersionTint / frame 3000
 /// draw 33. DrawMainMenu keeps VersionTint and does not call
 /// <see cref="SubmittedColor"/>. HandleKey, DrawLoading,
@@ -40,7 +40,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuVersionOverlay
 {
-    /// <summary><c>push 0x00629454</c> at <c>0x0046416E</c>.</summary>
+    /// <summary>A push of constant 0x00629454 at <c>0x0046416E</c>.</summary>
     public const uint FormatSite = 0x0046416Eu;
 
     /// <summary>The pushed format pointer.</summary>
@@ -49,13 +49,13 @@ public static class RetailMainMenuVersionOverlay
     /// <summary>Image bytes at <see cref="FormatGlobal"/>.</summary>
     public const string FormatString = "V%1d.%02d";
 
-    /// <summary><c>mov eax, [0x00629410]</c> at <c>0x00464163</c>.</summary>
+    /// <summary>A load of the value at 0x00629410 into eax at <c>0x00464163</c>.</summary>
     public const uint MajorGlobal = 0x00629410u;
 
     /// <summary>Image dword at <see cref="MajorGlobal"/>.</summary>
     public const int ImageInitialMajor = 1;
 
-    /// <summary><c>mov edx, [0x00679980]</c> at <c>0x0046415D</c>.</summary>
+    /// <summary>A load of the value at 0x00679980 into edx at <c>0x0046415D</c>.</summary>
     public const uint MinorGlobal = 0x00679980u;
 
     /// <summary>
@@ -64,13 +64,13 @@ public static class RetailMainMenuVersionOverlay
     /// </summary>
     public const int ImageInitialMinor = 0;
 
-    /// <summary><c>shl eax, 24</c> at <c>0x004641B1</c>.</summary>
+    /// <summary>A left shift of eax by 24 at <c>0x004641B1</c>.</summary>
     public const uint ShiftSite = 0x004641B1u;
 
-    /// <summary><c>shl eax, 24</c>.</summary>
+    /// <summary>A left shift of eax by 24.</summary>
     public const int ShiftLeft = 24;
 
-    /// <summary><c>or eax, 0x00102025</c> at <c>0x004641B4</c>.</summary>
+    /// <summary>An or of 0x00102025 into eax at <c>0x004641B4</c>.</summary>
     public const uint OrSite = 0x004641B4u;
 
     /// <summary>The OR immediate.</summary>
@@ -127,7 +127,7 @@ public static class RetailMainMenuVersionOverlay
     }
 
     /// <summary>
-    /// <c>shl 24</c> then <c>or 0x00102025</c>.
+    /// A left shift by 24 then an or with 0x00102025.
     /// </summary>
     public static uint SubmittedColor(int fadeByte)
     {

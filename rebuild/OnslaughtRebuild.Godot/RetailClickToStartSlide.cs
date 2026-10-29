@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// The CFEPIntro LostToys slide — two <c>CDXSurf__RenderSurface</c> calls on
 /// <c>0x0089d7bc</c> — recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
@@ -15,18 +15,19 @@ namespace OnslaughtRebuild.GodotClient;
 /// and not TWIMTBP.</para>
 ///
 /// <para><b>Fade.</b> After the two byte writes at <c>0x0051BAC2</c>, Render
-/// loads <c>this+0x18</c>, <c>fsub [4.0f]</c> at <c>0x005D85BC</c>, then
-/// clamps that difference: <c>fcom [0.0f]</c> at <c>0x005D856C</c> /
-/// <c>test ah,1 / je keep</c> replaces a negative with 0;
-/// <c>fcom [1.0f]</c> at <c>0x005D8568</c> / <c>test ah,0x41 / jne keep</c>
+/// loads <c>this+0x18</c>, a float subtract of the constant 4.0f at <c>0x005D85BC</c>, then
+/// clamps that difference: a float compare against the constant 0.0f at <c>0x005D856C</c> /
+/// a bit test of ah against 1, branching when equal replaces a negative with 0;
+/// a float compare against the constant 1.0f at <c>0x005D8568</c> / a bit test of ah against 0x41, branching when not equal
 /// replaces a value strictly greater than 1 with 1. There is no skip: both
 /// surface calls still issue when the timer is at or below 4 (the pair sits
 /// 400 px off the left edge).</para>
 ///
-/// <para><b>Offset.</b> <c>fsubr [1.0f]</c> / <c>fld st / fmul st(1)</c> then
-/// <c>fmul [400.0f]</c> at <c>0x005DB358</c>. That is
+/// <para><b>Offset.</b> a reversed float subtract of the constant 1.0f, then copy
+/// of an FPU stack entry to the top, then float multiply using the FPU stack then
+/// a float multiply by the constant 400.0f at <c>0x005DB358</c>. That is
 /// <c>(1-fade)² * 400</c>. The leftover <c>(1-fade)</c> is
-/// <c>fstp st(0)</c>-discarded. A linear <c>(1-fade)*400</c> is not the
+/// an FPU stack pop-discarded. A linear <c>(1-fade)*400</c> is not the
 /// body.</para>
 ///
 /// <para><b>Passes.</b> Mode-0 pair, sx=sy=1. Shadow at settled (124, −6)
@@ -35,7 +36,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// (120, −10) (<c>0x005DB4D0</c> / push <c>0xC1200000</c>) with colour
 /// <c>0xFFFFFFFF</c> and z bits <c>0x3DCCCCCD</c>. Each X is
 /// <c>settled − offset</c> (<c>fsub</c> of the stored 400-scaled square).
-/// The first call's extra <c>push ebp</c> is not claimed as a scale.</para>
+/// The first call's extra (a push of ebp) is not claimed as a scale.</para>
 ///
 /// <para>No Godot types. The 2-D consumer ignores z; the bits stay on the
 /// pass records so a later depth owner does not have to re-read the body.
@@ -53,7 +54,7 @@ public static class RetailClickToStartSlide
     /// <summary>Shadow colour immediate at <c>0x0051BB31</c>.</summary>
     public const uint ShadowColor = 0x3F000000u;
 
-    /// <summary>Body colour immediate at <c>0x0051BB81</c> (<c>push -1</c>).</summary>
+    /// <summary>Body colour immediate at <c>0x0051BB81</c> (a push of constant -1).</summary>
     public const uint BodyColor = 0xFFFFFFFFu;
 
     /// <summary>Shadow z immediate at <c>0x0051BB3B</c>.</summary>

@@ -8,14 +8,14 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the CFEPMain::Render unselected language-chevron colour at
 /// <c>0x0046336B</c> / <c>0x004634F4</c>, recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
 /// <para>First ESI pack is the title-body idiom
-/// (<c>shl 8 / sub / shl 16 / not / and 0x00FFFFFF / xor</c>).
+/// (a left shift by 8, then subtraction, then left shift by 16, then bitwise not, then mask with 0x00FFFFFF, then xor).
 /// Settled fade-byte 255 yields <c>0xFEFFFFFF</c>, then the
-/// unselected <c>shr 8 / shl 6 / xor</c> arm and the draw unpack
+/// unselected (a logical right shift by 8, then left shift by 6, then xor) arm and the draw unpack
 /// submit <c>0x3EFFFFFF</c>. Neither dword is capture
 /// <c>ChromeTint</c> <c>0x3E7F7F7F</c>. Session cannot hold
 /// <c>this+0x08=-1</c>, so this is not a wire and not

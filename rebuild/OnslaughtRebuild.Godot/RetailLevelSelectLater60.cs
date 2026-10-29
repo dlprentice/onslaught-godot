@@ -4,16 +4,16 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// <c>CFEPLevelSelect::Render</c> leftover after the later 610.0 /
-/// 0.0 pair — <c>fild [esp+0x3C]</c> /
-/// <c>fmul [0x005DB538]</c> (60.0) / <c>fmul [0x005D85EC]</c>
-/// (0.5) / <c>fadd [0x005DB3E8]</c> (320.0) /
-/// <c>fstp [esp+0x18]</c> — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// 0.0 pair — an integer-to-float load of stack local +0x3C, then float multiply
+/// by the value at 0x005DB538 (60.0) / a float multiply by the value at 0x005D85EC
+/// (0.5) / a float add of the value at 0x005DB3E8 (320.0) /
+/// a float store to stack local +0x18 — recovered from official 74154bfa
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
@@ -46,22 +46,18 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Scale.</b> Official 74154bfa independently re-read:
 /// <c>0x00460F5E</c> is already the later-610 first store
-/// <c>mov [esp+0x28], 0</c> (<c>c7 44 24 28 00 00 00 00</c>).
-/// <c>0x00460F6F</c> is <c>fild [esp+0x3C]</c>
-/// (<c>db 44 24 3c</c>) of the <c>lea ecx, [eax-1]</c> local.
-/// <c>0x00460F73</c> is <c>fmul [0x005DB538]</c>
-/// (<c>d8 0d 38 b5 5d 00</c>). <c>0x005DB538</c> is
-/// <c>00 00 70 42</c> (60.0). <c>0x00460F79</c> is
-/// <c>fmul [0x005D85EC]</c> (<c>d8 0d ec 85 5d 00</c>).
-/// <c>0x005D85EC</c> is <c>00 00 00 3f</c> (0.5).
-/// <c>0x00460F7F</c> is <c>fadd [0x005DB3E8]</c>
-/// (<c>d8 05 e8 b3 5d 00</c>). <c>0x005DB3E8</c> is
-/// <c>00 00 a0 43</c> (320.0). First store is
-/// <c>0x00460F85</c> <c>fstp [esp+0x18]</c>
-/// (<c>d9 5c 24 18</c>). That is a store of the scaled local,
-/// not dest. The later <c>fld [esp+0x94]</c> /
-/// <c>fcomp 1.0</c> at <c>0x00460FD8</c> is later. The later
-/// <c>fld [esp+0x18]</c> at <c>0x00460FEC</c> is later.
+/// (a store of constant 0 to stack local +0x28).
+/// <c>0x00460F6F</c> is an integer-to-float load of stack local +0x3C of the address computation (eax-1) into ecx local.
+/// <c>0x00460F73</c> is a float multiply by the value at 0x005DB538. <c>0x005DB538</c> is
+/// 60.0. <c>0x00460F79</c> is
+/// a float multiply by the value at 0x005D85EC.
+/// <c>0x005D85EC</c> is 0.5.
+/// <c>0x00460F7F</c> is a float add of the value at 0x005DB3E8. <c>0x005DB3E8</c> is
+/// 320.0. First store is
+/// <c>0x00460F85</c>: a float store to stack local +0x18. That is a store of the scaled local,
+/// not dest. The later sequence (float load of stack local +0x94, then float compare
+/// against 1.0, popping the result) at <c>0x00460FD8</c> is later. The later
+/// float load of stack local +0x18 at <c>0x00460FEC</c> is later.
 /// DrawLevelSelect already owns the measured node centres. Do
 /// not invent dest from 60.0. Do not invent dest from 0.5. Do
 /// not invent dest from 320.0. Do not invent a fade.</para>
@@ -108,13 +104,13 @@ public static class RetailLevelSelectLater60
     /// <summary>Already <see cref="RetailLevelSelectLater610.FirstStoreSite"/>.</summary>
     public const uint Later610StoreSite = 0x00460F5Eu;
 
-    /// <summary><c>fild [esp+0x3C]</c> at <c>0x00460F6F</c>. Input is <c>eax - 1</c>. Not dest.</summary>
+    /// <summary>An integer-to-float load of stack local +0x3C at <c>0x00460F6F</c>. Input is <c>eax - 1</c>. Not dest.</summary>
     public const uint FildSite = 0x00460F6Fu;
 
     /// <summary>Stack local that feeds the fild. Not dest.</summary>
     public const int FildLocal = 0x3C;
 
-    /// <summary><c>fmul [0x005DB538]</c> at <c>0x00460F73</c>.</summary>
+    /// <summary>A float multiply by the value at 0x005DB538 at <c>0x00460F73</c>.</summary>
     public const uint Fmul60Site = 0x00460F73u;
 
     /// <summary>60.0 source. Factor, not dest.</summary>
@@ -123,7 +119,7 @@ public static class RetailLevelSelectLater60
     /// <summary>IEEE bits at <see cref="FactorConst"/>. 60.0. Not dest.</summary>
     public const uint FactorBits = 0x42700000u;
 
-    /// <summary><c>fmul [0x005D85EC]</c> at <c>0x00460F79</c>.</summary>
+    /// <summary>A float multiply by the value at 0x005D85EC at <c>0x00460F79</c>.</summary>
     public const uint FmulHalfSite = 0x00460F79u;
 
     /// <summary>0.5 source. Factor, not dest.</summary>
@@ -132,7 +128,7 @@ public static class RetailLevelSelectLater60
     /// <summary>IEEE bits at <see cref="HalfConst"/>. 0.5. Not dest.</summary>
     public const uint HalfBits = 0x3F000000u;
 
-    /// <summary><c>fadd [0x005DB3E8]</c> at <c>0x00460F7F</c>.</summary>
+    /// <summary>A float add of the value at 0x005DB3E8 at <c>0x00460F7F</c>.</summary>
     public const uint FaddSite = 0x00460F7Fu;
 
     /// <summary>320.0 source. Addend, not dest.</summary>
@@ -141,16 +137,17 @@ public static class RetailLevelSelectLater60
     /// <summary>IEEE bits at <see cref="AddendConst"/>. 320.0. Not dest.</summary>
     public const uint AddendBits = 0x43A00000u;
 
-    /// <summary><c>fstp [esp+0x18]</c> at <c>0x00460F85</c>. First store. Not dest.</summary>
+    /// <summary>A float store to stack local +0x18 at <c>0x00460F85</c>. First store. Not dest.</summary>
     public const uint FstpSite = 0x00460F85u;
 
     /// <summary>Stack local that receives the scaled value. Not dest.</summary>
     public const int StoreLocal = 0x18;
 
-    /// <summary>Later <c>fld [esp+0x94]</c> / <c>fcomp 1.0</c> at <c>0x00460FD8</c>. Not this leftover.</summary>
+    /// <summary>Later sequence (float load of stack local +0x94, then float compare
+    /// against 1.0, popping the result) at <c>0x00460FD8</c>. Not this leftover.</summary>
     public const uint LaterEsp94OneSite = 0x00460FD8u;
 
-    /// <summary>Later <c>fld [esp+0x18]</c> at <c>0x00460FEC</c>. Not this leftover.</summary>
+    /// <summary>Later float load of stack local +0x18 at <c>0x00460FEC</c>. Not this leftover.</summary>
     public const uint LaterEsp18Site = 0x00460FECu;
 
     /// <summary>Latch SET at <c>0x0042D5CF</c> is already owned.</summary>
@@ -377,7 +374,7 @@ public static class RetailLevelSelectLater60
 
     /// <summary>
     /// <c>((eax - 1) * 60.0 * 0.5) + 320.0</c> before
-    /// <c>fstp [esp+0x18]</c>. That is not dest from 60.0,
+    /// a float store to stack local +0x18. That is not dest from 60.0,
     /// 0.5, or 320.0.
     /// </summary>
     public static float Scaled(int eax) => ((eax - 1) * Factor * Half) + Addend;

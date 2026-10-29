@@ -31,7 +31,7 @@ namespace OnslaughtRebuild.Core;
 /// <b>The barrel counter really is a float, in both the source and the
 /// image.</b> <c>BattleEngineJetPart.h:105</c> declares
 /// <c>float mDoingBarrelCount</c>, and <c>0x00412971</c> is
-/// <c>fld dword ptr [esi + 0x48]</c>. A rebuild that types it as the integer
+/// a float load of field +0x48 of esi. A rebuild that types it as the integer
 /// its name suggests would still pass the ordinary cases and would only part
 /// company on a fractional value, so it is pinned here as a float.
 /// </para>
@@ -48,10 +48,10 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <b>Source and retail DIVERGE on unordered inputs at two of the three gates,
 /// and retail wins.</b> The ground gate at <c>0x00412946</c> and the energy gate
-/// at <c>0x00412965</c> are <c>test ah, 1</c> — C0 alone — and an unordered
+/// at <c>0x00412965</c> are a bit test of ah against 1 — C0 alone — and an unordered
 /// compare sets C0, so a NaN speed or a NaN energy returns <c>FALSE</c> where
 /// the C text (<c>&lt;</c> against a NaN) would fall through to <c>TRUE</c>.
-/// The barrel gate at <c>0x0041297C</c> is <c>test ah, 0x41</c> with
+/// The barrel gate at <c>0x0041297C</c> is a bit test of ah against 0x41 with
 /// <c>jne</c> — C0 or C3, either of which an unordered compare sets — so a NaN
 /// barrel counter returns <c>TRUE</c>, and there C and retail agree because
 /// <c>NaN &gt; 0</c> is also false. The three are written below as the
@@ -65,8 +65,8 @@ namespace OnslaughtRebuild.Core;
 /// entirely on the x87 stack with no intermediate store — the same shape
 /// <see cref="RetailJetFriction.VelocityMagnitude"/> documents, and reproduced
 /// the same way, in <c>double</c> and in the same association. Retail returns
-/// the literal words 1 and 0 in <c>eax</c> (<c>mov eax, 1</c> at
-/// <c>0x00412988</c>, <c>xor eax, eax</c> at three sites), so unlike the
+/// the literal words 1 and 0 in <c>eax</c> (a load of constant 1 into eax at
+/// <c>0x00412988</c>, a zeroing of eax at three sites), so unlike the
 /// readouts in <see cref="RetailWeaponStoreReadouts"/> this one really is a
 /// normalised boolean and is modelled as one.
 /// </para>
@@ -109,20 +109,20 @@ public static class RetailJetAutoLevel
         {
             double magnitudeSq = VelocityMagnitudeSquared(velocityX, velocityY, velocityZ);
 
-            // test ah, 1 - C0 alone, so an unordered magnitude lands here.
+            // A bit test of ah against 1 - C0 alone, so an unordered magnitude lands here.
             if (!(magnitudeSq >= (double)MinManoeuvreVelocitySq))
             {
                 return false;
             }
         }
 
-        // test ah, 1 again: an unordered energy is "less than zero".
+        // A bit test of ah against 1 again: an unordered energy is "less than zero".
         if (!(energy >= 0.0f))
         {
             return false;
         }
 
-        // test ah, 0x41 with jne: C0 or C3 returns true, so only an ordered
+        // A bit test of ah against 0x41 with jne: C0 or C3 returns true, so only an ordered
         // strictly-positive counter blocks the auto-level.
         return !(doingBarrelCount > 0.0f);
     }

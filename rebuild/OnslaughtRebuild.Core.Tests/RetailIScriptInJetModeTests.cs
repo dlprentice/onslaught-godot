@@ -7,8 +7,7 @@ namespace OnslaughtRebuild.Core.Tests;
 
 /// <summary>
 /// <c>IScript::InJetMode</c> at <c>0x005380f0</c> on specimen
-/// <c>74154bfa…</c>. Official file <c>0x001380f0</c> is
-/// <c>8b 49 10 56 33 f6 f6 41 34 08 … be 01 00 00 00</c>.
+/// <c>74154bfa…</c>. Official file <c>0x001380f0</c> holds the 90-byte body.
 /// Callee <c>0x00408120</c> is true only for walker state 2
 /// whose last ground contact is inside <c>0x005D85EC</c> =
 /// 0.5f. The wrapper negates that, so a recently-grounded
@@ -20,7 +19,7 @@ namespace OnslaughtRebuild.Core.Tests;
 /// bool and still passes if the native keeps that bool.
 /// TargetZone2/3/4 <c>hit()</c> SET_CONTEXT the hitter then
 /// call this native. Mutation: skip
-/// <c>test [ecx+0x34], 8</c> so a non-BE jet is TRUE, or
+/// (a bit test of field +0x34 of ecx against 8) so a non-BE jet is TRUE, or
 /// keep <c>mode == Jet</c> so an airborne walker is FALSE.
 /// Lock-set / Move / Morph / UpdateCamera stay unclaimed.
 /// Live <c>GAME.mSlots</c> stay unclaimed. No new secondaries.
@@ -28,7 +27,7 @@ namespace OnslaughtRebuild.Core.Tests;
 public sealed class RetailIScriptInJetModeTests
 {
     /// <summary>
-    /// <c>test byte [ecx+0x34], 8</c> then negate
+    /// A bit test of byte field +0x34 of ecx against 8 then negate
     /// <c>0x00408120</c>. Isolated
     /// <see cref="Level100MissionTiming.JetModeState"/> still
     /// returns InJetMode for a non-BE jet. Mutation: omit the

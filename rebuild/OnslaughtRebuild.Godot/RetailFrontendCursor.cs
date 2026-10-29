@@ -8,10 +8,10 @@ namespace OnslaughtRebuild.GodotClient;
 /// When retail's last frontend draw is the 32x32 <c>mouse.tga</c> sprite.
 ///
 /// <para><b>MEASURED</b> by the 2026-07-27 d3d9 sweep
-/// (<c>local-lab/D3D9-FULL-SWEEP-2026-07-27.md</c>, inventories under
+/// (the private lab note D3D9-FULL-SWEEP-2026-07-27.md, inventories under
 /// <c><maintainer evidence>\bea-frontend-pages\SWEEP-2026-07-27\inventories\</c>) and the
 /// 2026-07-28 FMV presentation log
-/// (<c>local-lab/FMV-PRESENTATION-2026-07-28.md</c>). No Godot types.
+/// (the private lab note FMV-PRESENTATION-2026-07-28.md). No Godot types.
 /// HandleKey, DrawLoading, DrawQuitConfirm, and HandlePointerConfirm stay
 /// untouched. No fade is invented.</para>
 ///

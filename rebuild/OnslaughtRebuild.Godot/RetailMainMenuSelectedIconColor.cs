@@ -5,25 +5,26 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render selected-row icon body colour — recovered from
 /// the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Fade source.</b> <c>0x0046405C</c> is
-/// <c>fistp [esp+0x18]</c> of the icon-fade byte.
+/// a float-to-integer store to stack local +0x18 of the icon-fade byte.
 /// <c>0x00464064</c> is the signed 0..255 clamp
-/// (<c>test esi / jge / xor esi / cmp 255 / mov esi, 255</c>).
+/// (a bit test of esi, branching when greater or equal, then xor with
+/// esi, then compare with 255, then load of constant 255 into esi).
 /// Settled icon-fade is 255. This is not a Process increment.</para>
 ///
-/// <para><b>Site.</b> <c>0x004640DC</c> is <c>mov edx, esi</c>.
-/// <c>0x004640E5</c> is <c>shl edx, 8</c>.
-/// <c>0x004640EA</c> is <c>sub edx, esi</c>.
-/// <c>0x004640F3</c> is <c>shl edx, 16</c>.
-/// <c>0x004640FD</c> is <c>or edx, 0x00FFFFFF</c>.
+/// <para><b>Site.</b> <c>0x004640DC</c> is a copy of esi into edx.
+/// <c>0x004640E5</c> is a left shift of edx by 8.
+/// <c>0x004640EA</c> is a subtraction of esi from edx.
+/// <c>0x004640F3</c> is a left shift of edx by 16.
+/// <c>0x004640FD</c> is an or of 0x00FFFFFF into edx.
 /// <c>0x004640DE</c> is the
-/// <c>mov eax, [edi*4+0x0089D7A8]</c> texture load, not the pack.
+/// load of indexed table entry at +0x0089D7A8 into eax texture load, not the pack.
 /// Body scale pushes at <c>0x004640F8</c> stay 1.0.</para>
 ///
 /// <para><b>Pack.</b> <c>((esi &lt;&lt; 8) - esi) &lt;&lt; 16 |
@@ -46,22 +47,22 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuSelectedIconColor
 {
-    /// <summary><c>mov edx, esi</c> at <c>0x004640DC</c>.</summary>
+    /// <summary>A copy of esi into edx at <c>0x004640DC</c>.</summary>
     public const uint Site = 0x004640DCu;
 
-    /// <summary><c>shl edx, 8</c> at <c>0x004640E5</c>.</summary>
+    /// <summary>A left shift of edx by 8 at <c>0x004640E5</c>.</summary>
     public const uint ShiftSite = 0x004640E5u;
 
-    /// <summary><c>shl edx, 8</c>.</summary>
+    /// <summary>A left shift of edx by 8.</summary>
     public const int ShiftLeft = 8;
 
-    /// <summary><c>sub edx, esi</c> at <c>0x004640EA</c>.</summary>
+    /// <summary>A subtraction of esi from edx at <c>0x004640EA</c>.</summary>
     public const uint SubSite = 0x004640EAu;
 
-    /// <summary><c>shl edx, 16</c> at <c>0x004640F3</c>.</summary>
+    /// <summary>A left shift of edx by 16 at <c>0x004640F3</c>.</summary>
     public const uint Shift16Site = 0x004640F3u;
 
-    /// <summary><c>or edx, 0x00FFFFFF</c> at <c>0x004640FD</c>.</summary>
+    /// <summary>An or of 0x00FFFFFF into edx at <c>0x004640FD</c>.</summary>
     public const uint OrSite = 0x004640FDu;
 
     /// <summary>The OR immediate. White RGB, alpha from the pack.</summary>

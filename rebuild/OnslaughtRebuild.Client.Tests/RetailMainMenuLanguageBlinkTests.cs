@@ -8,13 +8,13 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the CFEPMain::Render language-chevron blink at
 /// <c>0x00463334</c> / <c>0x004634C0</c>, recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
 /// <para><c>fistp(mCounter)</c> then MSVC signed remainder 64
-/// (<c>and edx, 0x8000003F</c> / <c>or 0xFFFFFFC0</c>).
-/// <c>cmp edx, 0x32</c> draws. Else <c>[edi+0x1C]/[edi+0x20]</c>
+/// (a mask of edx with 0x8000003F, then or with 0xFFFFFFC0).
+/// A compare of edx with 0x32 draws. Else <c>[edi+0x1C]/[edi+0x20]</c>
 /// must be &gt; <c>[0x005D856C]</c> = 0. Cold BSS counter is 0,
 /// so settled frames draw. This is not a Process increment, not
 /// SetLanguage, and not the 2x <c>0x007F7F7F</c> no-op copies.</para>

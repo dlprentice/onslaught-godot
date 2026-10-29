@@ -87,7 +87,7 @@ public readonly record struct Level100MusicRecipe(
 
 // Mix provenance, verified 2026-07-26 against the shipped retail table and the
 // GPL-released Onslaught engine sources (see
-// local-lab/LEVEL100-AUDIO-PARITY-2026-07-26.md):
+// the private lab note LEVEL100-AUDIO-PARITY-2026-07-26.md):
 //
 // * RetailSoundRecord is the record index in data/sounds/sounds.sfx (a plaintext
 //   "# SFX <n>" list, version 103, 170 records). RetailEffectName is that
@@ -138,9 +138,8 @@ public static class Level100AudioCatalog
     public const float RetailDefaultEffectVolume = 0.70f;
 
     // The weapon-launch call site does NOT pass DEFAULT_SOUND_VOLUME. Read from
-    // the pristine specimen (local-lab/safe-copy-bea-pristine/
-    // BEA.exe.original.backup, sha256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab
-    // 334ed7a753040eda1e1e7750 - NOT the installed executable, which is
+    // the pristine specimen (BEA.exe.original.backup in a private pristine copy, sha256
+    // 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750 - NOT the installed executable, which is
     // patched): ProjectileBurst__SpawnFromCurrentPreset (0x005069f0) pushes the
     // literal 0x3f000000 = 0.5f into PlayEffect's `volume` slot in BOTH of its
     // branches, at 0x00506a6b and 0x00506a8a.
@@ -149,10 +148,10 @@ public static class Level100AudioCatalog
     //   (0x00506a70); the second pushes ST_FOLLOWDONTDIE (0x00506a88), the volume 0.5f (0x00506a8a) and the unit
     //   (0x00506a8f).
     //
-    // EDI is zeroed at the function head (0x00506a12 `33 ff`) and is
+    // EDI is zeroed at the function head (0x00506a12) and is
     // callee-saved across the intervening call, so the first branch really does
     // pass 0 and NULL. Which branch runs is selected by
-    // `TEST byte [thing+0x34],8` at 0x00506a50: set for the player's own Battle
+    // a bit test of byte field +0x34 of thing against 8 at 0x00506a50: set for the player's own Battle
     // Engine, clear for an AI unit.
     public const float RetailWeaponLaunchVolume = 0.50f;
 
@@ -223,7 +222,7 @@ public static class Level100AudioCatalog
 
     // MUS_FRONTEND resolves to track index 8, verified 2026-07-27 in all three
     // steps against pristine BEA.exe (sha256 74154bfa..., file
-    // local-lab/safe-copy-bea-pristine/BEA.exe.original.backup):
+    // a private pristine copy):
     //
     // 1. INDEX 8. CMusic::PlaySelection (0x004bb8c0) case 0 computes
     //    `(-(uint)(0x0083d448 != 0) & 0xfffffff9) + 8`, i.e. Music.cpp:466-472's

@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "rebuild/OnslaughtRebuild.Godot/Assets/Level100/StaticWorld"
 MANIFEST = ASSETS / "level100-static-world.json"
 
-# local-lab/TERRAIN-LIGHT-STATE-RUNTIME-2026-07-26.md section 3: light 0's
+# the private lab note TERRAIN-LIGHT-STATE-RUNTIME-2026-07-26.md section 3: light 0's
 # direction-of-travel, read out of the running safe copy at 0x009c65c0+0x14.
 LIGHT0_DIRECTION = (-0.03407396, -0.90863329, +0.41620260)
 LIGHT1_DIRECTION = (+0.03407396, +0.90863329, -0.41620260)

@@ -7,12 +7,12 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPIntro splash dest and <c>CDXSurf__RenderSurface</c> argument
 /// pack recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle).
 ///
 /// <para><b>Body.</b> <c>CFEPIntro::Render</c> <c>0x0051B866</c>–<c>0x0051B8F4</c>
-/// then <c>ADD ESP, 0x2C</c> at <c>0x0051B902</c>. File offset = VA −
+/// then a stack cleanup of 0x2C bytes at <c>0x0051B902</c>. File offset = VA −
 /// <c>0x400000</c>. One <c>CDXSurf__RenderSurface</c> (<c>0x005563D0</c>) call
 /// on <c>0x0089d880</c> (<c>FrontEnd\v2\fe_splash1.tga</c>). Not attract
 /// <c>vectorlosttoyssplash</c>. Not TWIMTBP.</para>
@@ -27,8 +27,10 @@ public sealed class RetailClickToStartSplashTests
     [Fact]
     public void DestUsesTheSpecimenAffineNotAFixedCentre()
     {
-        // Y: fmul [0x005E49EC]=-222; fsubr [0x005DBE00]=18; fsub [0x005E49E8]=-117.9375.
-        // X: fmul [0x005E49E4]=238;  fsubr [0x005E49E0]=558; fsub [0x005E49DC]=126.4375.
+        // Y: a float multiply by the value at 0x005E49EC=-222; a reversed float subtract of
+        // the value at 0x005DBE00=18; a float subtract of the value at 0x005E49E8=-117.9375.
+        // X: a float multiply by the value at 0x005E49E4=238; a reversed float subtract of
+        // the value at 0x005E49E0=558; a float subtract of the value at 0x005E49DC=126.4375.
         Assert.Equal(558f, RetailClickToStartSplash.BaseX);
         Assert.Equal(238f, RetailClickToStartSplash.CoeffX);
         Assert.Equal(126.4375f, RetailClickToStartSplash.OffsetX);
@@ -52,8 +54,8 @@ public sealed class RetailClickToStartSplashTests
     [Fact]
     public void ArgumentPackIsModeFourWithMatchingScalesAndTheSpecimenZ()
     {
-        // Pushes at 0x0051B884..0x0051B8CB then fstp Y / fstp X / call 0x005563D0.
-        // ADD ESP, 0x2C at 0x0051B902 is eleven cdecl dwords.
+        // Pushes at 0x0051B884..0x0051B8CB then fstp Y / fstp X / a direct call to 0x005563D0.
+        // A stack cleanup of 0x2C bytes at 0x0051B902 is eleven cdecl dwords.
         Assert.Equal(0x0089D880u, RetailClickToStartSplash.TextureGlobal);
         Assert.Equal(4, RetailClickToStartSplash.Mode);
         Assert.Equal(0xFFFFFFFFu, RetailClickToStartSplash.Color);

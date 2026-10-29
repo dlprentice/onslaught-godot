@@ -62,7 +62,7 @@ public abstract class GroundUnit(ThingContext context) : Unit(context)
     /// CGroundUnit::Move (0047c970, read from the Steam BEA.exe = the pristine specimen 74154bfa): the guide's requested
     /// velocity (mUnknown14C * 0.4) as acceleration with the ground friction when on the ground, in water or not obeying
     /// gravity (and turning), else the air friction; gravity; SINT(multiplier) steps of v = accel + v, v = friction * v;
-    /// the speed along the ground held to Unknown111() * 0.05 (the source's / 20.0f compiles as fmul 0.05f), measured
+    /// the speed along the ground held to Unknown111 * 0.05 (the source's / 20.0f compiles as a float multiply by 0.05f), measured
     /// fsqrt(vY*vY + vX*vX), scaled by top / speed; then CUnit::Move; then the bob (fsin at full precision, * 0.05f).
     /// A parachute unit's thrusters (paratroopers) are not ported.
     /// </summary>

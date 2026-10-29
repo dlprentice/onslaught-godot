@@ -36,7 +36,7 @@ namespace OnslaughtRebuild.Core;
 /// <c>if (f == 1.f)</c> is false for a NaN, so the source would fall to the
 /// <c>f &lt;= 0.f</c> test and then to the floor. The compiled test at
 /// <c>0x00421474</c> is <c>fcomp</c> / <c>fnstsw</c> /
-/// <c>test ah, 0x40</c> — it inspects <b>C3 only</b>. An unordered compare
+/// a bit test of ah against 0x40 — it inspects <b>C3 only</b>. An unordered compare
 /// sets C3, C2 and C0 together, so <c>ah</c> is <c>0x45</c>, the mask hits, and
 /// a NaN ranking returns <c>'S'</c>: the top grade. MSVC's equality idiom
 /// simply is not NaN-correct, and this type reproduces what shipped. No NaN
@@ -46,7 +46,7 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>The result is eight bits wide, and the widening to WCHAR is not
-/// modelled.</b> Retail computes <c>mov al, 0x44</c> / <c>sub al, cl</c> — an
+/// modelled.</b> Retail computes (a load of constant 0x44 into al, then subtraction of cl from al) — an
 /// 8-bit subtract — where <c>cl</c> is the <b>low byte</b> of the 64-bit
 /// <c>fistp</c> store at <c>0x004214B2</c>, and only then hands the one-char
 /// string to <c>ToWCHAR</c> at <c>0x004F7BF0</c> and returns its first code
@@ -59,13 +59,14 @@ namespace OnslaughtRebuild.Core;
 /// </remarks>
 public static class RetailCareerGrade
 {
-    /// <summary>The perfect-ranking grade — <c>mov al, 0x53</c> at <c>0x00421484</c>.</summary>
+    /// <summary>The perfect-ranking grade — a load of constant 0x53 into al at <c>0x00421484</c>.</summary>
     public const byte PerfectGrade = (byte)'S';
 
-    /// <summary>The zero-or-worse grade — <c>mov al, 0x45</c> at <c>0x00421499</c>.</summary>
+    /// <summary>The zero-or-worse grade — a load of constant 0x45 into al at <c>0x00421499</c>.</summary>
     public const byte FailedGrade = (byte)'E';
 
-    /// <summary>The ladder base the floored quarter is subtracted from — <c>mov al, 0x44</c> at <c>0x004214BA</c>.</summary>
+    /// <summary>The ladder base the floored quarter is subtracted from —
+    /// a load of constant 0x44 into al at <c>0x004214BA</c>.</summary>
     public const byte LadderBase = (byte)'D';
 
     /// <summary>The ranking that scores <see cref="PerfectGrade"/> — <c>0x005D8568</c>.</summary>
@@ -81,13 +82,13 @@ public static class RetailCareerGrade
     /// </summary>
     public static byte GradeByteFromRanking(float ranking)
     {
-        // fcomp / test ah, 0x40 - C3 alone, so NaN lands here too.
+        // fcomp / a bit test of ah against 0x40 - C3 alone, so NaN lands here too.
         if (ranking == PerfectRanking || float.IsNaN(ranking))
         {
             return PerfectGrade;
         }
 
-        // fcomp / test ah, 0x41 - C3 or C0, i.e. equal-or-below.
+        // fcomp / a bit test of ah against 0x41 - C3 or C0, i.e. equal-or-below.
         if (ranking <= 0.0f)
         {
             return FailedGrade;
@@ -134,14 +135,14 @@ public static class RetailCareerGrade
 /// and <c>Career.h:156-159, 197</c>. Retail identity: <c>0x004214E0</c>
 /// (<c>SetSlot</c>), with the array itself at <c>CCareer + 0x2408</c> —
 /// confirmed three ways: the four <c>[esi + edx*4 + 0x2408]</c> accesses inside
-/// <c>SetSlot</c>, the constructor's <c>lea edi, [edx + 0x2408]</c> /
-/// <c>mov ecx, 0x20</c> / <c>rep stosd</c> at <c>0x0041B896</c>, and the
+/// <c>SetSlot</c>, the constructor's (an address computation (edx+0x2408) into edi, then load
+/// of constant 0x20 into ecx, then repeated fill of dwords) at <c>0x0041B896</c>, and the
 /// 32-iteration copy loop at <c>0x0041BD27</c>.
 /// </para>
 /// <para>
 /// <b>Source and retail agree, including on a shipped range bug.</b> The guard
 /// at <c>Career.cpp:1381</c> is <c>num &gt;= MAX_CAREER_SLOTS*8</c>, and
-/// <c>0x004214EB</c> is <c>cmp eax, 0x100</c> — 256. But
+/// <c>0x004214EB</c> is a compare of eax with 0x100 — 256. But
 /// <c>MAX_CAREER_SLOTS</c> is the length of an <c>int</c> array
 /// (<c>Career.h:17, 197</c>), so the store actually holds
 /// <c>32 * 32 = 1024</c> bits. The guard counts as though the array were bytes.
@@ -152,7 +153,7 @@ public static class RetailCareerGrade
 /// </para>
 /// <para>
 /// <b>Only a literal 1 sets a slot.</b> <c>0x00421505</c> is
-/// <c>cmp dword ptr [esp + 0xC], 1</c> / <c>jne</c>, matching
+/// a compare of stack local +0xC with 1 / <c>jne</c>, matching
 /// <c>if (val == TRUE)</c> at <c>Career.cpp:1396</c> — so a <c>BOOL</c> of 2,
 /// or of <c>-1</c>, <b>clears</b> the slot. This is the same shape as
 /// <see cref="RetailCareerNode.SetBaseThingExistTo"/>.
@@ -169,13 +170,13 @@ public static class RetailCareerGrade
 /// </remarks>
 public sealed class RetailCareerSlots
 {
-    /// <summary><c>MAX_CAREER_SLOTS</c> — <c>Career.h:17</c>; the <c>rep stosd</c> count at <c>0x0041B8A2</c>.</summary>
+    /// <summary><c>MAX_CAREER_SLOTS</c> — <c>Career.h:17</c>; the repeated fill of dwords count at <c>0x0041B8A2</c>.</summary>
     public const int SlotWords = 32;
 
     /// <summary>The number of bits the array actually holds.</summary>
     public const int StoredSlotCount = SlotWords * 32;
 
-    /// <summary>The number of bits the guard admits — <c>cmp eax, 0x100</c> at <c>0x004214EB</c>.</summary>
+    /// <summary>The number of bits the guard admits — a compare of eax with 0x100 at <c>0x004214EB</c>.</summary>
     public const int AddressableSlotCount = SlotWords * 8;
 
     private readonly int[] _words = new int[SlotWords];
@@ -226,8 +227,8 @@ public sealed class RetailCareerSlots
 
     /// <summary>
     /// The 32-dword assignment <c>CCareer::Update</c> uses for
-    /// <c>mSlots = END_LEVEL_DATA.mSlots</c> — <c>0x0041BD37</c>
-    /// <c>mov edx, 0x20</c> then <c>mov [eax], edi</c>. Words are
+    /// <c>mSlots = END_LEVEL_DATA.mSlots</c> — <c>0x0041BD37</c>: a load of constant
+    /// 0x20 into edx then a store of edi to value pointed to by eax. Words are
     /// replaced, not OR-ed.
     /// </summary>
     public void CopyWords(IReadOnlyList<int> words)
@@ -275,10 +276,10 @@ public sealed class RetailCareerSlots
 /// </para>
 /// <para>
 /// <b>The kill accumulator is exempt on exactly one world.</b>
-/// <c>0x0041C188</c> is <c>cmp eax, 0x64</c> / <c>je</c> against
+/// <c>0x0041C188</c> is a compare of eax with 0x64 / <c>je</c> against
 /// <c>END_LEVEL_DATA.mWorldFinished</c> at <c>0x00672E18</c>: an equality test
 /// on 100, not a range, so only the training level scores nothing. The loop
-/// then runs <c>i &lt; 5</c> (<c>cmp esi, 5</c> at <c>0x0041C230</c>), which is
+/// then runs <c>i &lt; 5</c> (a compare of esi with 5 at <c>0x0041C230</c>), which is
 /// <c>TK_TOTAL</c> from <c>Player.h:27-34</c>, adding
 /// <c>END_LEVEL_DATA.mThingsKilled[i]</c> at <c>0x00672E30</c> into
 /// <c>mKilledThings[i]</c> at <c>CCareer + 0x23F4</c>. The addition is a plain
@@ -303,7 +304,7 @@ public sealed class RetailCareerCounters
     /// <summary><c>TK_TOTAL</c> — <c>Player.h:34</c>; the loop bound at <c>0x0041C230</c>.</summary>
     public const int KilledTypeCount = 5;
 
-    /// <summary>The world <c>UpdateThingsKilled</c> refuses to score — <c>cmp eax, 0x64</c> at <c>0x0041C188</c>.</summary>
+    /// <summary>The world <c>UpdateThingsKilled</c> refuses to score — a compare of eax with 0x64 at <c>0x0041C188</c>.</summary>
     public const int UnscoredWorldNumber = 100;
 
     private readonly int[] _killedThings = new int[KilledTypeCount];
@@ -385,14 +386,14 @@ public sealed class RetailCareerCounters
 /// 521-524; 621/622; 741/742 — the source list exactly.
 /// </para>
 /// <para>
-/// <b>The bound is unsigned.</b> <c>0x00421575</c> is <c>cmp eax, 8</c> /
+/// <b>The bound is unsigned.</b> <c>0x00421575</c> is a compare of eax with 8 /
 /// <c>ja</c>, so a negative episode takes the default arm and returns FALSE
 /// rather than indexing the table backwards. Episodes 0 and 1 return TRUE
 /// through a shared stub at <c>0x00421585</c> with no lookup at all.
 /// </para>
 /// <para>
 /// <b>Evaluation short-circuits, and that is observable.</b> Each arm returns
-/// as soon as one world reports complete (<c>je 0x004218BF</c>), so the later
+/// as soon as one world reports complete (a conditional branch to 0x004218BF (taken when equal)), so the later
 /// world numbers in a multi-world episode are never looked up. Combined with
 /// the null dereference described on
 /// <see cref="RetailCareerNodeTable.CompleteFlagOf"/>, a node table missing
@@ -407,7 +408,7 @@ public sealed class RetailCareerCounters
 /// </remarks>
 public static class RetailCareerEpisodes
 {
-    /// <summary>The highest episode the switch admits — <c>cmp eax, 8</c> at <c>0x00421575</c>.</summary>
+    /// <summary>The highest episode the switch admits — a compare of eax with 8 at <c>0x00421575</c>.</summary>
     public const int HighestEpisode = 8;
 
     /// <summary>The last episode that is unconditionally open — the shared TRUE stub at <c>0x00421585</c>.</summary>

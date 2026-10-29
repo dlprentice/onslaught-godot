@@ -122,7 +122,7 @@ public sealed class RetailBattleEngineGravityTests
             BitConverter.SingleToUInt32Bits(
                 RetailBattleEngineGravity.Gravity(isDying, RetailBattleEngineState.Jet, energy)));
 
-    // cmp eax, 3 / ja 0x00407518 is unsigned, so 4 and -1 both fall to the
+    // A compare of eax with 3, then conditional branch to 0x00407518 (taken when above) is unsigned, so 4 and -1 both fall to the
     // default 0.0f arm. A rebuild that switched on the enum and threw, or that
     // fell through to the walker value, is killed here.
     [Theory]
@@ -142,7 +142,7 @@ public sealed class RetailBattleEngineGravityTests
                 RetailBattleEngineGravity.Gravity(isDying: true, state, jetEnergy: 0.0f)));
     }
 
-    // The energy test at 0x004114E1 is `test ah, 0x40` - C3 alone - and a
+    // The energy test at 0x004114E1 is a bit test of ah against 0x40 - C3 alone - and a
     // negative zero compares equal to zero, so both zeroes take the dead-engine
     // arm. Anything else, of either sign, is under power.
     [Theory]

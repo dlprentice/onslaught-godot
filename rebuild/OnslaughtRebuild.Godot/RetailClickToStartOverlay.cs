@@ -6,18 +6,18 @@ namespace OnslaughtRebuild.GodotClient;
 /// The CFEPIntro::Render tail after the sixth title pass — one gated
 /// <c>CDXSurf__RenderSurface</c> and a font-1 <c>CDXFont__DrawText</c>
 /// walk — recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
-/// <para><b>Body.</b> <c>0x0051BD8C</c>–<c>0x0051BE66</c> (<c>RET 8</c>).
+/// <para><b>Body.</b> <c>0x0051BD8C</c>–<c>0x0051BE66</c> (a return that pops 8 bytes of arguments).
 /// Not in the pinned GPL drop (<c>FEPIntro.cpp</c> is absent). This is not
 /// a seventh title pass, not Infogrames <c>+0x124</c>, not attract
 /// <c>vectorlosttoyssplash</c>, and not TWIMTBP.</para>
 ///
-/// <para><b>Gate.</b> After the sixth-pass <c>ADD ESP, 0x2C</c> /
-/// <c>JMP 0x0051BD93</c>, Render loads <c>0x0089BB68</c> and
-/// <c>JE 0x0051BE5E</c> when the dword is 0. The three globals
+/// <para><b>Gate.</b> After the sixth-pass (a stack cleanup of 0x2C
+/// bytes, then jump to 0x0051BD93), Render loads <c>0x0089BB68</c> and
+/// a conditional branch to 0x0051BE5E (taken when equal) when the dword is 0. The three globals
 /// (<c>0x0089BB68</c>, <c>0x0089BB6C</c>, <c>0x00897B28</c>) sit in
 /// uninitialised <c>.data</c>, so the image-initial flag is 0. An operand
 /// scan of the specimen finds no store of those immediates. Process also
@@ -35,7 +35,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <c>0x00897B28</c>. Nonzero walks ASCII, skips one leading 0x0A per
 /// line, widens bytes to wchar, and calls <c>CPlatform__Font(0x0088A0A8,
 /// 1)</c> then <c>CDXFont__DrawText</c> (<c>0x00540640</c>) at X=64,
-/// Y=<c>64 − 0x0089BB6C</c>, stepping +16. Colour is <c>push -1</c>.</para>
+/// Y=<c>64 − 0x0089BB6C</c>, stepping +16. Colour is a push of constant -1.</para>
 ///
 /// <para>No Godot types. Image-initial 0 means
 /// <c>DrawClickToStart</c> must not invent this overlay on the cold path.
@@ -79,7 +79,7 @@ public static class RetailClickToStartOverlay
     /// <summary>Z immediate at <c>0x0051BDC1</c>.</summary>
     public const uint BackdropZBits = 0u;
 
-    /// <summary><c>push 1</c> before <c>CPlatform__Font</c> at <c>0x0051BE38</c>.</summary>
+    /// <summary>A push of constant 1 before <c>CPlatform__Font</c> at <c>0x0051BE38</c>.</summary>
     public const int FontSlot = 1;
 
     /// <summary>X immediate <c>0x42800000</c> at <c>0x0051BE33</c>.</summary>
@@ -91,7 +91,7 @@ public static class RetailClickToStartOverlay
     /// <summary><c>0x005D8BC0</c> = <c>16.0f</c>.</summary>
     public const float LineStep = 16f;
 
-    /// <summary>Colour immediate at <c>0x0051BE30</c> (<c>push -1</c>).</summary>
+    /// <summary>Colour immediate at <c>0x0051BE30</c> (a push of constant -1).</summary>
     public const uint TextColor = 0xFFFFFFFFu;
 
     /// <summary>

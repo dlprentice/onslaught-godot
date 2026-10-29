@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// The CFEPIntro title-logo slam — five <c>CDXSurf__RenderSurface</c> calls on
 /// <c>0x0089d88c</c>, then a sixth z=0.02 copy — recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -13,16 +13,17 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Body.</b> <c>CFEPIntro::Render</c> <c>0x0051BBA0</c>–<c>0x0051BD8C</c>.
 /// Not in the pinned GPL drop.</para>
 ///
-/// <para><b>Gate.</b> <c>GetTime()-[this+4]</c>, <c>fmul [1.2]</c> at
-/// <c>0x005DBCE4</c>, <c>fcom [2.0]</c> at <c>0x005D8BA0</c>,
-/// <c>test ah,0x41 / jnz skip</c>. The logo is drawn only when
+/// <para><b>Gate.</b> <c>GetTime-[this+4]</c>, a float multiply by the constant 1.2 at
+/// <c>0x005DBCE4</c>, a float compare against the constant 2.0 at <c>0x005D8BA0</c>,
+/// a bit test of ah against 0x41, branching when not zero. The logo is drawn only when
 /// page-elapsed × 1.2 is strictly greater than 2.</para>
 ///
 /// <para><b>Scale.</b> <c>v = 25 - 12*page</c> (the
-/// <c>fsubr [0.5]; fadd [2]; fmul [10]</c> form of <c>10*(2.5-1.2*page)</c>).
+/// sequence (reversed float subtract of the constant 0.5, then float add of the value
+/// at 2, then float multiply by the value at 10) form of <c>10*(2.5-1.2*page)</c>).
 /// While <c>v &gt;= 1</c> the remaining ST after the brightness
 /// <c>fistp</c> is <c>v</c>; once <c>v &lt; 1</c> (page &gt; 2) it is
-/// replaced with 1. Then <c>fmul [0.5]</c> at <c>0x0051BC29</c>. That is a
+/// replaced with 1. Then a float multiply by the constant 0.5 at <c>0x0051BC29</c>. That is a
 /// slam from 2.5 down to 0.5, then a freeze. It is not a sine pulse and it
 /// is not 0.35.</para>
 ///
@@ -35,9 +36,9 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Sixth pass.</b> After the body call, Render compares the
 /// <c>[esp+0x14]</c> slot (<c>-1</c> while <c>v &gt;= 1</c>, else
-/// <c>1-v</c>) with <c>3.0</c> at <c>0x005D8CC0</c> (<c>test ah,1 / je
-/// skip</c>) and <c>0.0</c> at <c>0x005D856C</c> (<c>test ah,0x41 / jne
-/// skip</c>). That is a second gate: <c>2 &lt; page &lt; 2.25</c>, not
+/// <c>1-v</c>) with <c>3.0</c> at <c>0x005D8CC0</c> (a bit test of ah against 1, branching
+/// when equal) and <c>0.0</c> at <c>0x005D856C</c> (a bit test of ah against 0x41,
+/// branching when not equal). That is a second gate: <c>2 &lt; page &lt; 2.25</c>, not
 /// <c>page*1.2 &gt; 2</c>. The extra call is mode 4 at (250, 290) z bits
 /// <c>0x3CA3D70A</c> (0.02), sx=sy=<c>1-v</c>, colour the body pack of
 /// <c>round(32/(1-v))</c> (<c>1/(4*(1-v))*128</c> at <c>0x0051BD3C</c>).
@@ -109,7 +110,7 @@ public static class RetailClickToStartTitle
     }
 
     /// <summary>
-    /// Sixth-pass sx=sy: remaining ST after <c>fmul [0.5]</c> at
+    /// Sixth-pass sx=sy: remaining ST after a float multiply by the constant 0.5 at
     /// <c>0x0051BD5A</c> is <c>1-v</c>.
     /// </summary>
     public static float SixthScale(double pageSeconds) => SixthFade(pageSeconds);
@@ -145,7 +146,8 @@ public static class RetailClickToStartTitle
     }
 
     /// <summary>
-    /// <c>fsubr [0.5]; fadd [2]; fmul [10]</c> = <c>25 - 12*page</c>.
+    /// A reversed float subtract of the constant 0.5, then float add of the
+    /// value at 2, then float multiply by the value at 10 = <c>25 - 12*page</c>.
     /// </summary>
     private static float Ramp(double pageSeconds) =>
         25f - (12f * (float)pageSeconds);
@@ -171,7 +173,7 @@ public static class RetailClickToStartTitle
     }
 
     /// <summary>
-    /// <c>shl 8 / sub / shl 16 / not / and 0x00FFFFFF / xor</c>.
+    /// A left shift by 8, then subtraction, then left shift by 16, then bitwise not, then mask with 0x00FFFFFF, then xor.
     /// </summary>
     private static uint PackBodyColor(int edi)
     {

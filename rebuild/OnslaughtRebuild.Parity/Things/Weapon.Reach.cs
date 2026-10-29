@@ -132,7 +132,7 @@ public sealed partial class Weapon
         return difference;
     }
 
-    // Native TEST AH masks differ from reconstructed C++ on unordered comparisons (00508fba/00508fcf,
+    // Native status-word masks differ from reconstructed C++ on unordered comparisons (00508fba/00508fcf,
     // 00508712/00508729/0050873a). Preserve those predicates, including the first upper bound's NaN behavior.
     internal static bool ReachPitchInBand(float pitch, float min, float max) => min >= pitch && !(max > pitch);
 

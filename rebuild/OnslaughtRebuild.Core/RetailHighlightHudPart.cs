@@ -4,7 +4,7 @@ namespace OnslaughtRebuild.Core;
 
 /// <summary>
 /// <c>IScript::HighlightHudPart</c> / <c>UnHighlightHudPart</c> —
-/// the <c>mov dword [eax*4+0x008aa51c], imm</c> stores.
+/// the store of an immediate to indexed table entry at +0x008aa51c stores.
 /// Isolated <see cref="Level100HudEmphasisChanged.Emphasized"/>
 /// stays the rebuild bool. Array extent, state-1/2 HUD
 /// meaning, and readers stay unclaimed.
@@ -12,13 +12,11 @@ namespace OnslaughtRebuild.Core;
 /// <remarks>
 /// <para>
 /// Retail identity: <c>IScript__HighlightHudPart</c> at
-/// <c>0x00535e60</c> through <c>ret 0xc</c> at <c>0x00535e76</c>
+/// <c>0x00535e60</c> through a return that pops 12 bytes of arguments at <c>0x00535e76</c>
 /// (25 bytes) on the official <c>74154bfa…</c> specimen. File
 /// offset = VA − 0x400000. Re-derived this session from
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>
-/// (2,506,752 bytes). Body is
-/// <c>8b 44 24 04 8b 08 8b 11 ff 52 30 c7 04 85 1c a5 8a 00 02 00 00 00 c2 0c 00</c>,
-/// SHA-256
+/// a private pristine copy
+/// (2,506,752 bytes). Body SHA-256
 /// <c>d2a93e3bebd2d503307b5f1e3433926730059a7c413993ea8efbbdc0e479fc39</c>
 /// (matches the 2026-08-13 boundary TSV). Twin
 /// <c>IScript__UnHighlightHudPart</c> at <c>0x00535e80</c>
@@ -31,8 +29,7 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <b>Highlight writes literal 2; UnHighlight writes literal 1.</b>
 /// <c>0x00535e6b</c> is
-/// <c>c7 04 85 1c a5 8a 00 02 00 00 00</c> =
-/// <c>mov dword ptr [eax*4+0x008aa51c], 2</c>.
+/// a store of constant 2 to indexed table entry at +0x008aa51c.
 /// <c>0x00535e8b</c> is the same form with immediate 1, not 0.
 /// Isolated <c>Emphasized</c> true/false names the rebuild
 /// bitmask; skip these stores still leaves that bool.

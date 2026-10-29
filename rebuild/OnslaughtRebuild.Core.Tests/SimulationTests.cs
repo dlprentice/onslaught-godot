@@ -2425,7 +2425,7 @@ public sealed class SimulationTests
         Assert.Equal(SimulationConstants.PulseCannonReloadTicks, fired.FireCooldownTicksRemaining);
         Assert.Equal(0x00000000u, simulation.Level100PulseCannonChargeBits);
 
-        // ReadyToCharge at 0x0050A080 is `now > weapon+0x64` (`test ah, 0x41`
+        // ReadyToCharge at 0x0050A080 is `now > weapon+0x64` (a bit test of ah against 0x41
         // / jz). Fire stamps +0x64 = now + CWeaponReloadTime 0.1 s, so the
         // equality word is still blocked, but the two-update clock word is
         // not always equal to the separately rounded ready time.

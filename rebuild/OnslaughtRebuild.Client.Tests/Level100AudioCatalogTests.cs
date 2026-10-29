@@ -868,7 +868,7 @@ public sealed class Level100AudioCatalogTests
 
     // ==================================================================
     // The three released audio laws recovered on 2026-07-27.
-    // See local-lab/AUDIO-PARITY-LAWS-2026-07-27.md.
+    // See the private lab note AUDIO-PARITY-LAWS-2026-07-27.md.
     // ==================================================================
 
     /// <summary>Retail's directly stored cold-start sound master volume.</summary>

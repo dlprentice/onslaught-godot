@@ -160,7 +160,7 @@ public sealed class Level100MissionTests
 
     /// <summary>
     /// <c>IScript::PrimaryObjectiveFailed</c> at <c>0x0053445e</c>
-    /// is <c>mov [eax+4], edi</c> — the second dword of the
+    /// is a store of edi to field +4 of eax — the second dword of the
     /// stride-8 <c>CMissionObjective</c> at <c>0x008a9adc</c>.
     /// Twin Complete at <c>0x005343fe</c>. Official
     /// <c>74154bfa…</c>; A15 names "primary objective text +
@@ -215,7 +215,7 @@ public sealed class Level100MissionTests
 
     /// <summary>
     /// <c>IScript::UnHighlightHudPart</c> at <c>0x00535e8b</c>
-    /// is <c>mov dword [eax*4+0x008aa51c], 1</c>. Twin Highlight
+    /// is a store of constant 1 to indexed table entry at +0x008aa51c. Twin Highlight
     /// at <c>0x00535e6b</c> stores 2. First-play <c>init()</c>
     /// Highlights then UnHighlights <c>HUD_COMPASS</c> (2) and
     /// <c>HUD_RADAR</c> (4) before Activate. Isolated last
@@ -267,7 +267,7 @@ public sealed class Level100MissionTests
 
     /// <summary>
     /// <c>IScript::PlayCharMessageWait</c> at <c>0x005376f9</c>
-    /// is <c>mov dword ptr [0x0089c800], 1</c>. Twin Pause at
+    /// is a store of constant 1 to the value at 0x0089c800. Twin Pause at
     /// <c>0x00537d55</c>. First-play <c>init()</c> issues six
     /// <c>PlayCharMessageWait</c> calls before the script
     /// idles (HUD_01 / HUD_02 / HUD_06 /

@@ -71,8 +71,8 @@ public static class RetailCameraLaws
 /// <para>
 /// <b>Source and retail DIVERGE in the arithmetic, and retail wins.</b>
 /// <c>Camera.cpp:650</c> is <c>mLastCalcZoom = (fov/90)/2.0f</c>. The shipped
-/// body divides by nothing: <c>fmul dword ptr [0x005D9338]</c> then
-/// <c>fmul dword ptr [0x005D85EC]</c>, i.e. <c>fov * (1/90 as float) * 0.5f</c>.
+/// body divides by nothing: a float multiply by the value at 0x005D9338 then
+/// a float multiply by the value at 0x005D85EC, i.e. <c>fov * (1/90 as float) * 0.5f</c>.
 /// The second factor is exact (a power of two) but the first is not, so
 /// multiplying by the rounded reciprocal is a different function from dividing
 /// by 90 for a large share of inputs. This type multiplies.

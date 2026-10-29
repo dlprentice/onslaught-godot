@@ -5,9 +5,9 @@ visible one in both images — instead of over a rectangular region box.
 
 Why this exists
 ---------------
-`local-lab/COCKPIT-DISPLACEMENT-EVIDENCE-2026-07-26.md` showed that a region
+the private lab note COCKPIT-DISPLACEMENT-EVIDENCE-2026-07-26.md showed that a region
 mean over the cockpit boxes averages two different objects together, and
-`local-lab/COCKPIT-NORMAL-SIGN-2026-07-26.md` showed that the `B/R = 0.631`
+the private lab note COCKPIT-NORMAL-SIGN-2026-07-26.md showed that the `B/R = 0.631`
 inference drawn from such a mean is outside the shipped lighting law's feasible
 range.  This probe removes the contamination geometrically rather than by a
 luminance heuristic.
@@ -50,7 +50,7 @@ MESH = ROOT / "rebuild/OnslaughtRebuild.Godot/Assets/Aquila/Source/m_cockpit2.ms
 W, H = 640, 480
 
 # Captured at the Level 100 cockpit draw under CDB on the verified safe copy;
-# see local-lab/COCKPIT-WORLD-MATRIX-RUNTIME-2026-07-26.md.
+# see the private lab note COCKPIT-WORLD-MATRIX-RUNTIME-2026-07-26.md.
 BATCH0 = ((0.88662648, 0.46089223, -0.03836670),
           (-0.46159714, 0.88701338, -0.01164191),
           (0.02866611, 0.02803198, 0.99919587))

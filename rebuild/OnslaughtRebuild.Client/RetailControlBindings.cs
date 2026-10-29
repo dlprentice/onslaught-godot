@@ -15,7 +15,7 @@ namespace OnslaughtRebuild.Client;
 ///
 /// <para><b>Column contents: pixels.</b></para>
 /// Every binding string below is read off
-/// <c>local-lab/retail-captures-options-pause-2026-07-27/fep-options-controller-640x480.png</c>.
+/// a private retail reference capture.
 /// They corroborate the shipped default table
 /// (<c>OptionsEntries__InitDefaultDualBindingsTable</c> <c>0x00453460</c>) on
 /// every key it names, and they corroborate <c>rebuild/PROVENANCE.md</c>'s

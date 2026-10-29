@@ -5,7 +5,7 @@
     python rebuild/tools/x87_oracle/x87_oracle.py build             compile harness.c and trunc.c (VC6 SP5, /O2 /QIfist)
     python rebuild/tools/x87_oracle/x87_oracle.py generate [--count N] [--ops a,b]   inputs + oracle outputs
 
-The pinned VC6 SP5 toolchain comes from the canonical checkout's local-lab/third-party/msvc6-sp5-toolchain; Wine runs
+The pinned VC6 SP5 toolchain comes from a private copy of the VC6 SP5 toolchain in the canonical checkout; Wine runs
 in this tool's own prefix (X87_ORACLE_WINEPREFIX, made once as a copy of the prefix X87_ORACLE_BASE_PREFIX names, which
 has the toolchain's Wine set-up) with no DISPLAY. Everything
 it writes (the harness executable, inputs, outputs, manifest.json) goes to X87_ORACLE_OUT, by default the canonical

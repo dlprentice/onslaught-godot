@@ -8,7 +8,7 @@ Read-only. Reproduces sections 3 and 6 of
 reads four HFLD fields and builds the entire lighting environment from them:
 
   * `CHFD+0x107C` -> cached light 0 diffuse, each byte x `1/256`
-    (`_DAT_005db060` = `0x3b800000`)
+    (`0x005db060` = `0x3b800000`)
   * `CHFD+0x1080` -> cached light 1 diffuse, same scale
   * `CHFD+0x108C` -> the `D3DRS_AMBIENT` register shadow `0x009c68a8`
   * `CHFD+0x10A4..0x10AC` -> the sun position; the routine negates each
@@ -57,7 +57,7 @@ LIGHT1_COLOUR = 0x1080
 AMBIENT_COLOUR = 0x108C
 SUN_POSITION = 0x10A4
 
-BYTE_SCALE = 1.0 / 256.0  # _DAT_005db060 = 0x3b800000, at 0x0044a431
+BYTE_SCALE = 1.0 / 256.0  # 0x005db060 = 0x3b800000, at 0x0044a431
 AMBIENT_SCALE = 1.0 / 255.0  # D3DRS_AMBIENT is a D3DCOLOR register
 
 

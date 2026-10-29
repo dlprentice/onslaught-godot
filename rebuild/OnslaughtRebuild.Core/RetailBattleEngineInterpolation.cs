@@ -8,7 +8,7 @@ namespace OnslaughtRebuild.Core;
 /// </summary>
 /// <remarks>
 /// Retail returns the structure through a hidden pointer argument and fills it
-/// with three raw dword copies of three <c>fstp dword</c> stores —
+/// with three raw dword copies of three (a float store to dword) stores —
 /// <c>0x0040D79F</c>, <c>0x0040D7A9</c>, <c>0x0040D7B2</c> — so all three
 /// components are single-precision and are rounded exactly once. The member
 /// order in the image is yaw, pitch, roll at <c>+0</c>, <c>+4</c>, <c>+8</c>.
@@ -63,7 +63,8 @@ public readonly record struct RetailEulerAngles(float Yaw, float Pitch, float Ro
 /// <para>
 /// <b>The correction is applied to the difference and not to the base.</b>
 /// <c>0x0040D6B5-0x0040D6BF</c> is
-/// <c>fxch / fsub st(1) / fmul fraction / fadd [mOldEulerAngles]</c> — the
+/// an FPU stack exchange, then float subtract using the FPU stack, then
+/// float multiply by fraction, then float add of mOldEulerAngles — the
 /// adjusted old angle is used for the subtraction and then <b>discarded</b>, and
 /// the value added back is the original word re-read from memory. So the answer
 /// stays near the old angle and is not shifted by a turn. A rebuild that
@@ -74,7 +75,7 @@ public readonly record struct RetailEulerAngles(float Yaw, float Pitch, float Ro
 /// <b>Everything between the load and the store stays wide.</b> The two
 /// thresholds and the wrap amount are floats widened by the x87, the subtract,
 /// the multiply and the add all happen at the ambient 53-bit precision control,
-/// and the single <c>fstp dword</c> is the only rounding. That matters: the
+/// and the single float store to dword is the only rounding. That matters: the
 /// adjusted old angle is <c>old ± 2π_f</c> computed in double, so it is
 /// <b>not</b> representable as a float in general, and a rebuild that narrowed
 /// it would shift the difference. <see cref="AdjustedOldAngle"/> returns a
@@ -87,19 +88,19 @@ public readonly record struct RetailEulerAngles(float Yaw, float Pitch, float Ro
 /// </para>
 /// <list type="bullet">
 /// <item>
-/// <c>0x0040D679</c> (<c>current &lt; -π/2</c>) is <c>test ah, 1</c> with
+/// <c>0x0040D679</c> (<c>current &lt; -π/2</c>) is a bit test of ah against 1 with
 /// <c>je</c> past the arm — C0 alone. An unordered compare sets C0, so a NaN
 /// current takes the <i>negative</i> arm where C's <c>&lt;</c> would fall to the
 /// positive one.
 /// </item>
 /// <item>
-/// <c>0x0040D6AA</c> (<c>old &lt; -π/2</c>) is <c>test ah, 1</c> with <c>je</c>
+/// <c>0x0040D6AA</c> (<c>old &lt; -π/2</c>) is a bit test of ah against 1 with <c>je</c>
 /// past the arm — C0 again, so a NaN old angle gets <c>+2π</c> added to it where
 /// C would leave it alone.
 /// </item>
 /// <item>
 /// <c>0x0040D686</c> and <c>0x0040D69D</c> (the two <c>&gt; +π/2</c> tests) are
-/// <c>test ah, 0x41</c> with <c>jne</c> — C0 or C3, so unordered fails them,
+/// a bit test of ah against 0x41 with <c>jne</c> — C0 or C3, so unordered fails them,
 /// which is what C's <c>&gt;</c> does. Those two agree.
 /// </item>
 /// </list>
@@ -155,11 +156,11 @@ public static class RetailBattleEngineInterpolation
     {
         double old = oldAngle;
 
-        // test ah, 1 with je past the arm: C0 alone, so an unordered current
+        // A bit test of ah against 1 with je past the arm: C0 alone, so an unordered current
         // angle lands on the negative side.
         if (!(currentAngle >= -WrapThreshold))
         {
-            // test ah, 0x41 with jne to the shared tail: strictly greater, and
+            // A bit test of ah against 0x41 with jne to the shared tail: strictly greater, and
             // an unordered old angle fails it.
             if (oldAngle > WrapThreshold)
             {
@@ -169,13 +170,13 @@ public static class RetailBattleEngineInterpolation
             return old;
         }
 
-        // test ah, 0x41 with jne to the tail: strictly greater, unordered fails.
+        // A bit test of ah against 0x41 with jne to the tail: strictly greater, unordered fails.
         if (!(currentAngle > WrapThreshold))
         {
             return old;
         }
 
-        // test ah, 1 with je past the arm: C0 alone, so an unordered old angle
+        // A bit test of ah against 1 with je past the arm: C0 alone, so an unordered old angle
         // gets the turn added.
         if (!(oldAngle >= -WrapThreshold))
         {
@@ -187,7 +188,7 @@ public static class RetailBattleEngineInterpolation
 
     /// <summary>
     /// <c>AngleDifference(current, old)</c> as inlined —
-    /// <c>fxch / fsub st(1)</c> at <c>0x0040D6B5</c>.
+    /// an FPU stack exchange, then float subtract using the FPU stack at <c>0x0040D6B5</c>.
     /// </summary>
     public static double AngleDifference(float currentAngle, float oldAngle) =>
         (double)currentAngle - AdjustedOldAngle(currentAngle, oldAngle);
@@ -195,7 +196,7 @@ public static class RetailBattleEngineInterpolation
     /// <summary>
     /// One component of <c>GetInterpolatedEulerOrientation</c> —
     /// <c>old + AngleDifference(current, old) * fraction</c>, all wide, rounded
-    /// once by the <c>fstp dword</c>.
+    /// once by the float store to dword.
     /// </summary>
     public static float InterpolateAngle(
         float currentAngle, float oldAngle, float frameRenderFraction) =>

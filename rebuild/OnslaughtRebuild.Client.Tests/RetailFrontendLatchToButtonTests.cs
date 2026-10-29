@@ -6,25 +6,24 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>PlatformInput__PollMouseState</c> latch-to-button SET of
-/// <c>0x0089BE28</c> after <c>0x0042D5CA</c> <c>test ah, 0x80</c> /
-/// <c>0x0042D5CD</c> <c>je +0x0e</c> /
-/// <c>0x0042D5CF</c> <c>mov [0x0089BE28], ecx</c> — recovered from
+/// <c>0x0089BE28</c> after <c>0x0042D5CA</c>: a bit test of ah against 0x80; <c>0x0042D5CD</c>: a conditional branch
+/// to +0x0e (taken when equal); <c>0x0042D5CF</c>: a store of ecx to the value at 0x0089BE28 — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para>Official bytes independently re-read this cycle:
 /// <c>0x0042D4D0</c> <c>PlatformInput__PollMouseState</c>,
-/// <c>0x0042D4D6</c> <c>xor ebx, ebx</c> (<c>33 db</c>),
-/// <c>0x0042D58F</c> <c>mov ecx, 1</c> (<c>b9 01 00 00 00</c>),
-/// <c>0x0042D5CA</c> <c>test ah, 0x80</c> (<c>f6 c4 80</c>),
-/// <c>0x0042D5CD</c> <c>je +0x0e</c> (target <c>0x0042D5DD</c>),
-/// <c>0x0042D5CF</c> unique <c>mov [0x0089BE28], ecx</c>
-/// (<c>89 0d 28 be 89 00</c>, one image hit). Cycle 85 retargets the
+/// <c>0x0042D4D6</c>: a zeroing of ebx,
+/// <c>0x0042D58F</c>: a load of constant 1 into ecx,
+/// <c>0x0042D5CA</c>: a bit test of ah against 0x80,
+/// <c>0x0042D5CD</c>: a conditional branch to +0x0e (taken when equal) (target <c>0x0042D5DD</c>),
+/// <c>0x0042D5CF</c>: the unique store of ecx to the value at 0x0089BE28
+/// (one image hit). Cycle 85 retargets the
 /// five published sites that sat mid-instruction (0x0042D590 / 0x0042D5C5 /
 /// 0x0042D5C8 / 0x0042D5D8 / 0x0042D5CA-as-SET). That is the
 /// right-mouse latch SET. Dest Y does not. Colour leftover already

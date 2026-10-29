@@ -26,8 +26,8 @@ public readonly record struct Level100MessageLine(string Text, int SourceLength)
 /// Pure, presentation-free layout and type-on model for the released in-level
 /// message panel. Every number here was measured off the 640x480 retail
 /// gameplay captures under
-/// local-lab/retail-reference-pristine/level100-gameplay/ - see
-/// local-lab/HUD-MESSAGE-PANEL-2026-07-26.md for the frame-by-frame working.
+/// a private retail reference capture - see
+/// the private lab note HUD-MESSAGE-PANEL-2026-07-26.md for the frame-by-frame working.
 ///
 /// What retail does, from the captures (not from any code path):
 ///
@@ -102,7 +102,7 @@ public static class Level100MessagePanel
     /// the shadow-versus-white quad the log does not distinguish. The
     /// rasterised comparison is the stronger test of the two and it is the one
     /// that decides. See
-    /// local-lab/agent-notes-2026-07-27/hud-corrections-applied.md.
+    /// the private lab note hud-corrections-applied.md.
     /// </para>
     /// </remarks>
     public const float TextPenLeft = 206f;

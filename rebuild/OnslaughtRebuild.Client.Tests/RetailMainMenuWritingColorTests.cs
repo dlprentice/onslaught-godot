@@ -7,11 +7,12 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render Forseti writing-chrome colour at
 /// <c>0x00462DE4</c>, recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
-/// <para><c>mov ecx, eax; shl 6; sub ecx, eax; shl 16; or 0x00FFFFFF</c>.
+/// <para>A copy of eax into ecx, then left shift by 6, then subtraction
+/// of eax from ecx, then left shift by 16, then or with 0x00FFFFFF.
 /// EAX is the 0x00462DD2 page-fade byte after
 /// <c>fistp(clamp((transition-0.75)*4)*255)</c>. Settled 255 submits
 /// <c>0x3EFFFFFF</c>, which is not capture ChromeTint

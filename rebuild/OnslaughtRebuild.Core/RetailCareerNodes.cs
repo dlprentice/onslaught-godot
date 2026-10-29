@@ -26,12 +26,12 @@ namespace OnslaughtRebuild.Core;
 /// <b>Source and retail agree</b>, and the compiled record confirms
 /// <c>Career.h</c>'s declaration order and size exactly. <c>Blank</c> writes
 /// <c>+0x10</c> and <c>+0x04</c> and <c>+0x38</c> as zero, <c>+0x08</c> and
-/// <c>+0x0C</c> as <c>-1</c>, then <c>rep stosd</c> with <c>ecx = 9</c> and
+/// <c>+0x0C</c> as <c>-1</c>, then a repeated fill of dwords with <c>ecx = 9</c> and
 /// <c>eax = 0xFFFFFFFF</c> from <c>+0x14</c>, then <c>0xBF800000</c> into
 /// <c>+0x3C</c>. Nine words is <c>BASE_THINGS_EXISTS_MEM_REQ</c>
 /// (<c>288 &gt;&gt; 5</c>, <c>Career.h:13-14</c>), which fixes the record at
 /// <c>0x40</c> bytes; <c>CCareer::GetNodeFromWorldNo</c> at <c>0x0041B8F0</c>
-/// independently walks the array with <c>add edx, 0x40</c>, so the stride is
+/// independently walks the array with an addition of 0x40 to edx, so the stride is
 /// measured, not assumed.
 /// </para>
 /// <para>
@@ -61,7 +61,7 @@ namespace OnslaughtRebuild.Core;
 /// <b>The mask law is shared with <see cref="RetailCareerSlots"/> and shipped
 /// with a redundant branch.</b> Both sites compile
 /// <c>int m = 1; if (b &gt; 0) m = m &lt;&lt; b;</c> into
-/// <c>and ecx, 0x1f</c> / <c>jle</c> / <c>shl edx, cl</c>. The <c>jle</c> reads
+/// a mask of ecx with 0x1f / <c>jle</c> / a left shift of edx by cl. The <c>jle</c> reads
 /// the flags the <c>and</c> left, and the <c>and</c> result can never be
 /// negative, so <c>jle</c> here is exactly <c>je</c>: skip the shift when the
 /// bit index is zero. <c>shl</c> by <c>cl = 0</c> would have produced the same
@@ -74,7 +74,8 @@ public sealed class RetailCareerNode
     /// <summary><c>BASE_THINGS_EXISTS_SIZE</c> — <c>Career.h:13</c>.</summary>
     public const int BaseThingsExistsSize = 288;
 
-    /// <summary><c>BASE_THINGS_EXISTS_MEM_REQ</c> — <c>Career.h:14</c>; the <c>rep stosd</c> count at <c>0x0041B754</c>.</summary>
+    /// <summary><c>BASE_THINGS_EXISTS_MEM_REQ</c> — <c>Career.h:14</c>;
+    /// the repeated fill of dwords count at <c>0x0041B754</c>.</summary>
     public const int BaseThingsExistsWords = BaseThingsExistsSize >> 5;
 
     /// <summary>Compiled record size — the <c>0x40</c> stride at <c>0x0041B90A</c>.</summary>
@@ -156,7 +157,7 @@ public sealed class RetailCareerNode
     /// </summary>
     /// <param name="value">
     /// The retail <c>BOOL</c>. <c>0x0041B788</c> is
-    /// <c>cmp dword ptr [esp + 0xC], 1</c>, so <b>only literal 1 sets the
+    /// a compare of stack local +0xC with 1, so <b>only literal 1 sets the
     /// bit</b>; every other value — including a "true" of 2 — takes the clear
     /// arm. That matters because <c>Career.cpp:526</c> forwards
     /// <c>END_LEVEL_DATA.mBaseThingsLeft[i]</c> straight in, and nothing on
@@ -217,7 +218,7 @@ public sealed class RetailCareerNode
 /// Owner in the pinned drop: <c>references/Onslaught/Career.cpp</c>,
 /// declaration at <c>Career.h:116</c> and <c>Career.h:193</c>. Retail identity:
 /// <c>0x0041B8F0</c>, a linear scan of <c>num_nodes</c> records comparing
-/// <c>mWorldNumber</c> — the instruction is <c>lea edx, [ecx + 0x14]</c>, which
+/// <c>mWorldNumber</c> — the instruction is an address computation (ecx+0x14) into edx, which
 /// is <c>this + 0x14</c> and therefore <c>node + 0x10</c>, since the array
 /// itself begins at <c>this + 4</c>; the inline scan in <c>GRADE</c> starts at
 /// the same absolute <c>0x00660634</c> — and returning
@@ -236,7 +237,7 @@ public sealed class RetailCareerNode
 /// <b>A miss returns NULL and the callers do not check.</b> <c>0x0041B924</c>
 /// logs and returns zero, and every reader in
 /// <c>CCareer::IsEpisodeAvailable</c> then executes
-/// <c>cmp dword ptr [eax + 4], …</c> against that zero — an access violation at
+/// a compare of the dword at offset 4 of that zero pointer — an access violation at
 /// linear address 4, not a false. The one caller that <i>does</i> check is
 /// <c>CCareer::DoesBaseThingExist</c> at <c>0x0041BB75</c>, which returns
 /// <b>TRUE</b> for an unknown world (<c>Career.cpp:319-320</c>). This type

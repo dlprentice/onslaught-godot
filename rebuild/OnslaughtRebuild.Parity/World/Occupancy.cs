@@ -161,7 +161,7 @@ public static class Occupancy
                     var pos = new FVector(x + 0.5f, y + 0.5f, 0);
                     pos.Z = Height(map, X87.Fist(pos.X), X87.Fist(pos.Y));
 
-                    // As compiled (/QIfist, 004bce80..004bd003): the cell centre's fadd 0.5 is consumed by a popping
+                    // As compiled (/QIfist, 004bce80..004bd003): the cell centre's (a float add of 0.5) is consumed by a popping
                     // fistp, then stored from the emptied register, so the line move's X and Y are the x87 indefinite
                     // NaN (ffc00000) and only the height is real. The mesh tests then never hit (StartLineSearch exits at
                     // its first check), so retail clears only a meshless unit's cells (B, 521-rr runs).

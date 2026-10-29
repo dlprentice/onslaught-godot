@@ -76,7 +76,7 @@ namespace OnslaughtRebuild.Client;
 /// previous code was retail's law evaluated at its mean, not a wrong-signed
 /// constant. What was missing is only the +-6 / +-3 px oscillation. This
 /// specifically refutes the reading in
-/// <c>local-lab/D3D9-FULL-SWEEP-2026-07-27.md</c> section 7 item 7, which
+/// the private lab note D3D9-FULL-SWEEP-2026-07-27.md section 7 item 7, which
 /// compared our constants against a single frame (A2 f3000) that happens to sit
 /// 1.5 frames from the exact minimum of <c>u</c>.</para>
 /// </summary>
@@ -86,7 +86,7 @@ public static class RetailFrontendDecorShadow
     /// Uniform scale of the shadow quad about the BODY centre. Exactly 1.050000
     /// on every sampled frame and every pair; the shadow never changes size.
     /// Corroborated by the shipped-byte constant already cited in the renderer
-    /// (<c>_DAT_005db4ac</c>).
+    /// (<c>0x005db4ac</c>).
     /// </summary>
     public const double ScaleAboutBodyCentre = 1.05;
 

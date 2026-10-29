@@ -84,7 +84,7 @@ public sealed class RetailBattleEngineAugmentTests
         Assert.False(result.Augmented);
     }
 
-    // cmp eax, 2 selects the walker part at +0x578 and cmp eax, 3 the jet part
+    // A compare of eax with 2 selects the walker part at +0x578 and a compare of eax with 3 the jet part
     // at +0x57C; the two morph states reach neither. A rebuild that switched on
     // "not jet means walker" - which is what CBattleEngine::GetCurrentWeapon
     // does two dozen lines away - would forward during a morph.
@@ -151,7 +151,7 @@ public sealed class RetailBattleEngineAugmentTests
     }
 
     // The warning fires on a strictly-greater elapsed time. Exactly five
-    // seconds is silence, because test ah, 0x41 catches C3.
+    // seconds is silence, because a bit test of ah against 0x41 catches C3.
     [Theory]
     [InlineData(0.0f, false)]
     [InlineData(4.9f, false)]

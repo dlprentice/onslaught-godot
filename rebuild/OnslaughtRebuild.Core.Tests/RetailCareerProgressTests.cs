@@ -54,7 +54,7 @@ public sealed class RetailCareerProgressTests
     }
 
     // THE divergence test. Career.cpp:1183 is `if (f == 1.f)`, which C says is
-    // false for a NaN. 0x00421474 compiles it to fcomp / test ah, 0x40 - C3
+    // false for a NaN. 0x00421474 compiles it to fcomp / a bit test of ah against 0x40 - C3
     // only - and an unordered compare sets C3, C2 and C0 together, so ah is
     // 0x45, the mask hits, and a NaN ranking is graded S. The second assertion
     // is the source text, and it disagrees.
@@ -69,7 +69,7 @@ public sealed class RetailCareerProgressTests
     }
 
     // Above 1.0 the ladder keeps counting down past 'A' into punctuation, and
-    // the subtraction is eight bits wide (mov al, 0x44 / sub al, cl at
+    // the subtraction is eight bits wide (a load of constant 0x44 into al, then subtraction of cl from al at
     // 0x004214BA), so it wraps rather than saturating. 17.25 drives the byte to
     // 0xFF - past ASCII, which is exactly why GradeByteFromRanking is the
     // pinned surface and the WCHAR widening is not claimed there.
@@ -81,7 +81,7 @@ public sealed class RetailCareerProgressTests
     public void GradeFromRanking_WrapsInEightBitsAboveTheLadder(float ranking, byte expected) =>
         Assert.Equal(expected, RetailCareerGrade.GradeByteFromRanking(ranking));
 
-    // The 256-slot guard (cmp eax, 0x100 at 0x004214EB) against a 32-word
+    // The 256-slot guard (a compare of eax with 0x100 at 0x004214EB) against a 32-word
     // store. Slot 255 is the last one the game can reach; slot 256 exists in
     // the save and is unreachable, so an editor that writes it changes nothing.
     // Words 8..31 must stay zero after every legal write.
@@ -113,7 +113,7 @@ public sealed class RetailCareerProgressTests
         Assert.Equal(0, slots.GetSlot(-1));
     }
 
-    // Exact bit placement, and the literal-1 rule again (cmp [esp+0xC], 1 at
+    // Exact bit placement, and the literal-1 rule again (a compare of stack local +0xC with 1 at
     // 0x00421505). Slot 32 must move word 1, not word 0 bit 0.
     [Theory]
     [InlineData(0, 0, 0x00000001u)]
@@ -155,7 +155,7 @@ public sealed class RetailCareerProgressTests
         Assert.Equal(0, counters.FirstGoodie);
     }
 
-    // 0x0041C188 is `cmp eax, 0x64` / je: an equality test, not a range. World
+    // 0x0041C188 is a compare of eax with 0x64 / je: an equality test, not a range. World
     // 100 scores nothing; worlds 99 and 101 score normally. A rebuild that
     // exempted "the tutorial episode" rather than that one world number would
     // lose kills on every neighbouring level.
@@ -174,7 +174,7 @@ public sealed class RetailCareerProgressTests
         Assert.Equal(worldFinished == 100 ? 0 : 13, counters.KilledThings[4]);
     }
 
-    // Five types (cmp esi, 5 at 0x0041C230), accumulated across levels with a
+    // Five types (a compare of esi with 5 at 0x0041C230), accumulated across levels with a
     // plain 32-bit add that wraps. The wrap is pinned because retail neither
     // saturates nor widens: the log line masks to 24 bits at 0x0041C211 but the
     // stored counter at 0x0041C1A9 does not.
@@ -218,7 +218,7 @@ public sealed class RetailCareerProgressTests
 
     // 0x00421585 is a shared stub reached by table entries 0 and 1: TRUE with
     // no node lookup at all, which an empty table proves. 0x00421575 is
-    // `cmp eax, 8` / ja - unsigned - so -1 lands on the default arm instead of
+    // a compare of eax with 8 / ja - unsigned - so -1 lands on the default arm instead of
     // indexing the jump table backwards.
     [Fact]
     public void Episodes_ZeroAndOneAreUnconditionalAndTheBoundIsUnsigned()
@@ -232,7 +232,7 @@ public sealed class RetailCareerProgressTests
         Assert.False(RetailCareerEpisodes.IsEpisodeAvailable(int.MinValue, empty));
     }
 
-    // mComplete is compared against literal 1 (`cmp edx, esi` with esi = 1 at
+    // mComplete is compared against literal 1 (a compare of edx with esi with esi = 1 at
     // 0x00421632, and sete against 1 at 0x004215DE), so a node flagged 2 does
     // not unlock. And any one qualifying world is enough.
     [Fact]

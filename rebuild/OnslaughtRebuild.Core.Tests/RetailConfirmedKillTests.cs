@@ -14,7 +14,7 @@ public sealed class RetailConfirmedKillTests
 {
     /// <summary>
     /// Independently re-read specimen <c>74154bfa…</c>:
-    /// <c>0x0040a564</c> <c>cmp [eax+0x138],1</c> / <c>jne</c> skips
+    /// <c>0x0040a564</c>: a compare of field +0x138 of eax with 1 / <c>jne</c> skips
     /// <c>0x004d30d0</c>. <c>tools/call_xref_scan.py</c> on
     /// <c>0x004d30d0</c> is one <c>E8</c> at <c>0x0040a578</c>.
     /// Mutation: increment even when <c>+0x138</c> is not 1. Do not
@@ -38,7 +38,7 @@ public sealed class RetailConfirmedKillTests
     }
 
     /// <summary>
-    /// Same body. <c>0x004d30d7</c> <c>test dh,4</c> is bit
+    /// Same body. <c>0x004d30d7</c>: a bit test of dh against 4 is bit
     /// <c>0x400</c> into <c>player+8</c>. The other four flags stay
     /// off. Mutation: increment slot 0 on any flag. First-play totals
     /// stay unclaimed. Do not invent secondaries.
@@ -61,8 +61,8 @@ public sealed class RetailConfirmedKillTests
     }
 
     /// <summary>
-    /// Same incrementer. Independently re-read <c>0x004d30df</c>
-    /// <c>test [eax+0x34],0x20000</c> into <c>player+0xc</c>. Mutation:
+    /// Same incrementer. Independently re-read <c>0x004d30df</c>: a bit test
+    /// of field +0x34 of eax against 0x20000 into <c>player+0xc</c>. Mutation:
     /// write that bit into slot 0. First-play totals stay unclaimed.
     /// Do not invent secondaries.
     /// </summary>
@@ -82,8 +82,7 @@ public sealed class RetailConfirmedKillTests
 
     /// <summary>
     /// Same incrementer. Independently re-read specimen
-    /// <c>74154bfa…</c>: <c>0x004d30eb</c>
-    /// <c>test [eax+0x34],0x40000</c> / <c>inc [ecx+0x10]</c>.
+    /// <c>74154bfa…</c>: <c>0x004d30eb</c>: a bit test of field +0x34 of eax against 0x40000, then increment of field +0x10 of ecx.
     /// Mutation: write that bit into slot 0. First-play totals stay
     /// unclaimed. Do not invent secondaries.
     /// </summary>
@@ -105,8 +104,8 @@ public sealed class RetailConfirmedKillTests
     }
 
     /// <summary>
-    /// Same incrementer. Independently re-read <c>0x004d30fa</c>
-    /// <c>test dh,0x40</c> = bit <c>0x4000</c> into <c>player+0x14</c>.
+    /// Same incrementer. Independently re-read <c>0x004d30fa</c>: a bit
+    /// test of dh against 0x40 = bit <c>0x4000</c> into <c>player+0x14</c>.
     /// Mutation: write that bit into slot 0. First-play totals stay
     /// unclaimed. Do not invent secondaries.
     /// </summary>
@@ -125,8 +124,8 @@ public sealed class RetailConfirmedKillTests
     }
 
     /// <summary>
-    /// Same incrementer. Independently re-read <c>0x004d3105</c>
-    /// <c>test dh,8</c> = bit <c>0x800</c> into <c>player+0x18</c>.
+    /// Same incrementer. Independently re-read <c>0x004d3105</c>: a bit
+    /// test of dh against 8 = bit <c>0x800</c> into <c>player+0x18</c>.
     /// Mutation: write that bit into slot 0. First-play totals stay
     /// unclaimed. Do not invent secondaries.
     /// </summary>
@@ -146,8 +145,8 @@ public sealed class RetailConfirmedKillTests
 
     /// <summary>
     /// Independently re-read specimen <c>74154bfa…</c>: after the
-    /// allegiance compare, <c>0x0040a56d</c> <c>mov ecx,[ecx+0x574]</c>
-    /// / <c>0x0040a573</c> <c>test ecx,ecx</c> / <c>je 0x0040a57d</c>
+    /// allegiance compare, <c>0x0040a56d</c>: a load of field +0x574 of ecx into ecx;
+    /// <c>0x0040a573</c>: a zero test of ecx, then conditional branch to 0x0040a57d (taken when equal)
     /// skips <c>0x004d30d0</c>. Bytes are a null pointer, not source
     /// <c>ToRead()</c> dying-flag. Mutation: increment anyway.
     /// First-play totals stay unclaimed. Do not invent secondaries.

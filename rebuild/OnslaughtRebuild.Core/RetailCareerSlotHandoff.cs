@@ -16,20 +16,18 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>Lost never copies.</b> <c>0x0041BD00</c> is
-/// <c>mov eax, [0x00672E1C]</c> — <c>END_LEVEL_DATA.mFinalState</c> —
-/// then <c>cmp eax, 5</c> / <c>jne 0x0041BDD9</c> at
+/// a load of the value at 0x00672E1C into eax — <c>END_LEVEL_DATA.mFinalState</c> —
+/// then a compare of eax with 5, then conditional branch to 0x0041BDD9 (taken when not equal) at
 /// <c>0x0041BD06</c> / <c>0x0041BD0C</c>. 5 is
 /// <c>GAME_STATE_LEVEL_WON</c>; Lost is 4. The 32-dword store sits
 /// after that gate, so a Lost update leaves career slots alone.
 /// </para>
 /// <para>
 /// <b>The store is assignment, not OR.</b> Re-derived this session:
-/// <c>0x0041BD27</c> <c>8d 86 08 24 00 00</c> =
-/// <c>lea eax, [esi+0x2408]</c> (career <c>mSlots</c>),
-/// <c>0x0041BD2D</c> <c>b9 44 2e 67 00</c> =
-/// <c>mov ecx, 0x00672E44</c> (<c>END_LEVEL_DATA.mSlots</c>),
-/// <c>0x0041BD37</c> <c>ba 20 00 00 00</c> = <c>mov edx, 32</c>,
-/// then <c>8b 3c 01 / 89 38 / 83 c0 04 / 4a / 75 f5</c>.
+/// <c>0x0041BD27</c> an address computation (esi+0x2408) into eax (career <c>mSlots</c>),
+/// <c>0x0041BD2D</c> a load of constant 0x00672E44 into ecx (<c>END_LEVEL_DATA.mSlots</c>),
+/// <c>0x0041BD37</c> a load of constant 32 into edx,
+/// then a loop that copies each word, advancing by 4 and counting edx down to zero.
 /// Each word is replaced. A leftover bit from an earlier session
 /// does not survive a win.
 /// </para>
@@ -65,7 +63,7 @@ public static class RetailCareerSlotHandoff
     public const int TutorialStatusBarsSlot = 66;
 
     /// <summary>
-    /// The loop counter at <c>0x0041BD37</c> — <c>mov edx, 0x20</c>.
+    /// The loop counter at <c>0x0041BD37</c> — a load of constant 0x20 into edx.
     /// </summary>
     public const int SlotWordCount = 32;
 

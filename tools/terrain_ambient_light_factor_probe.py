@@ -29,7 +29,7 @@ shipped texture stages:
 
 `CEngine::SetupLights` @ `0x0044a2d0` enables exactly lights 0 and 1
 (`0x009c68a0`/`0x009c68a1` := 1, `0x009c68a2..a7` := 0) and fills them from HFLD
-`CHFD+0x107C` and `CHFD+0x1080`, each byte scaled by `_DAT_005db060`
+`CHFD+0x107C` and `CHFD+0x1080`, each byte scaled by `0x005db060`
 = `0x3b800000` = 1/256.
 
 Usage:
@@ -56,7 +56,7 @@ LIGHT0_COLOUR_FIELD = 0x107C  # sun, becomes cached light 0
 LIGHT1_COLOUR_FIELD = 0x1080  # second light, becomes cached light 1
 AMBIENT_COLOUR_FIELD = 0x108C  # D3DRS_AMBIENT register - explicitly zeroed for terrain
 
-BYTE_SCALE = 1.0 / 256.0  # _DAT_005db060 = 0x3b800000
+BYTE_SCALE = 1.0 / 256.0  # 0x005db060 = 0x3b800000
 MATERIAL_AMBIENT = 0.8  # 0x3f4ccccd at 0x0083d28c + 0x10
 MODULATE2X = 2.0
 

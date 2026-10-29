@@ -944,9 +944,9 @@ public sealed class RetailCareerCampaignApplyUpdateTests
     }
 
     /// <summary>
-    /// Ranking 0.0f is already pinned as <c>'E'</c> (<c>fcomp 0</c> /
-    /// <c>test ah,0x41</c> at <c>0x0042148c</c>; store <c>0x00421499</c>
-    /// <c>mov al,0x45</c>). A zero-score FillOut still Wins, so
+    /// Ranking 0.0f is already pinned as <c>'E'</c> (a float compare against 0, popping
+    /// the result, then bit test of ah against 0x41 at <c>0x0042148c</c>; store
+    /// <c>0x00421499</c>: a load of constant 0x45 into al). A zero-score FillOut still Wins, so
     /// <c>COMPLETE_LEVEL(100)</c> writes 0 and 8, but <c>GRADE(100) &gt;= C</c>
     /// stays closed. Cite <c>0x00421499</c> / <c>0x0041de68</c>. Mutation:
     /// unlocking 78 on any complete writes 2 into 78. Iceberg store-0 and
@@ -1024,7 +1024,7 @@ public sealed class RetailCareerCampaignApplyUpdateTests
 
     /// <summary>
     /// Career <c>UpdateThingsKilled</c> still <c>je</c>s world 100
-    /// (<c>cmp eax,0x64</c> at <c>0x0041c188</c>). A non-zero FillOut
+    /// (a compare of eax with 0x64 at <c>0x0041c188</c>). A non-zero FillOut
     /// kill vector — ConfirmedKill increments stay unclaimed as values —
     /// must not accumulate. Mutation: dropping the equality skip writes
     /// the first dword. Iceberg store-0 and first-play elapsed stay

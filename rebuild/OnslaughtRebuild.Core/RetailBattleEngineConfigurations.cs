@@ -21,15 +21,15 @@ namespace OnslaughtRebuild.Core;
 /// <b><c>kMaxConfigurations</c> is measured, not taken from the header.</b>
 /// <c>UBattleEngineConfigurations::ShutDown</c> (<c>0x0040F140</c>) walks
 /// <c>esi</c> from <c>0x00660200</c> to <c>0x00660250</c> in steps of four
-/// (<c>cmp esi, 0x660250 / jl</c> at <c>0x0040F16A</c>), which is
+/// (a compare of esi with 0x660250, branching when less at <c>0x0040F16A</c>), which is
 /// <c>0x50 / 4 = 20</c> pointers — and the counter it clears first sits at
 /// exactly the address the loop stops at, so the two are adjacent and the bound
 /// is not a coincidence. That agrees with the header's <c>20</c>.
 /// </para>
 /// <para>
 /// <b>Source and retail agree on the clamp, the search and both fallbacks.</b>
-/// <c>0x0040F2F4-0x0040F300</c> is <c>test eax, eax / jl</c> then
-/// <c>cmp eax, [0x00660250] / jl</c> with a shared <c>xor eax, eax</c> —
+/// <c>0x0040F2F4-0x0040F300</c> is a zero test of eax, branching when less then
+/// a compare of eax with the value at 0x00660250, branching when less with a shared zeroing of eax —
 /// <c>(id &lt; 0) || (id &gt;= sConfigurations)</c> becomes <c>0</c>, exactly
 /// <c>BattleEngineConfigurations.cpp:84-85</c>. The search is a linear walk of
 /// the data set with an inline <c>strcmp</c>, and the miss path falls into a
@@ -56,7 +56,7 @@ namespace OnslaughtRebuild.Core;
 /// <c>sConfigurationName</c> with null pointers and only <c>Load</c> fills them
 /// in, so an id clamped to <c>0</c> against a <c>sConfigurations</c> of zero
 /// hands the search a null name. Retail then reaches
-/// <c>cmp al, byte ptr [esi]</c> at <c>0x0040F33D</c> with <c>esi</c> zero and
+/// (a compare of al with byte value pointed to by esi) at <c>0x0040F33D</c> with <c>esi</c> zero and
 /// faults — but <b>only if the data set is non-empty</b>, because the emptiness
 /// test at <c>0x0040F32D</c> comes first and jumps straight to the fallback
 /// without touching the name. So "no configuration names loaded" is survivable

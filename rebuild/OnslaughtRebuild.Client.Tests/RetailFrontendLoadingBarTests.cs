@@ -6,7 +6,7 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins DrawLoading to the measured full-width bar bbox from
-/// <c>local-lab/retail-reference-pristine/loading/07-loading-640x480.png</c>
+/// a private retail reference capture
 /// and forbids the rejected DrawBar-cap dest.
 ///
 /// <para>28e6ad93 replaced the measured x78..562 y423..447 overlay with two

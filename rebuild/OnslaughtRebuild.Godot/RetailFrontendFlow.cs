@@ -77,8 +77,8 @@ public sealed partial class RetailFrontendFlow : Control
     private static readonly Color ReleasedUnavailable = RetailColor(0x7d1f1f1f);
     private static readonly Color ReleasedSelected = RetailColor(0xfdff6f3f);
     private static readonly Color ReleasedBlue = RetailColor(0xff1f4f7f);
-    // 0xfeafcfff is an immediate in the image: `and edx,0xffafcfff` /
-    // `or edx,0xafcfff` at 0x004642e4 / 0x004642f1 inside CFEPMain__Render.
+    // 0xfeafcfff is an immediate in the image: a mask of edx with 0xffafcfff, then
+    // or of 0xafcfff into edx at 0x004642e4 / 0x004642f1 inside CFEPMain__Render.
     //
     // Whether it goes through RetailColor()'s MODULATE2X was tested on 2026-07-26
     // and plain MODULATE was REFUTED — full-frame material rose 18.54 -> 18.73 %
@@ -137,7 +137,7 @@ public sealed partial class RetailFrontendFlow : Control
     private static readonly Color ShadowTint = RetailColor(0x3e000000);
     private static readonly Color VersionTint = RetailColor(0xff102025);
     // Released overlay format is CFEPMain::Render 0x0046416E:
-    // push 0x00629454 "V%1d.%02d". Image-initial major 0x00629410 is 1;
+    // a push of constant 0x00629454 "V%1d.%02d". Image-initial major 0x00629410 is 1;
     // minor 0x00679980 is BSS 0. RetailMainMenuVersionOverlay owns the
     // sprintf. The prior value here was "V1.00 - PATCHED", transcribed
     // from a reference capture taken on a safe copy whose
@@ -247,8 +247,8 @@ public sealed partial class RetailFrontendFlow : Control
 
     // MISSION BRIEFING / SELECT CONFIGURATION. Every literal in this block is
     // measured from the two pristine 640x480 captures taken 2026-07-25:
-    //   local-lab/retail-reference-pristine/mission-briefing/05-mission-briefing-640x480.png
-    //   local-lab/retail-reference-pristine/select-configuration/06-select-configuration-640x480.png
+    //   a private retail reference capture
+    //   a private retail reference capture
     // See DrawMissionBriefing / DrawSelectConfiguration for the method per element.
     private const string MissionBriefingTitle = "MISSION BRIEFING";
     private const string SelectConfigurationTitle = "SELECT CONFIGURATION";
@@ -304,7 +304,7 @@ public sealed partial class RetailFrontendFlow : Control
     private const float DebriefingRingCenterY = 225f;
     private const float DebriefingRingScale = 1.6f;
     // Loading page. Bar extents and text origin measured from
-    // local-lab/retail-reference-pristine/loading/07-loading-640x480.png.
+    // a private retail reference capture.
     private const float LoadingTextLeft = 270f;
     private const float LoadingTextTop = 393.5f;
     private const float LoadingBarLeft = 78f;
@@ -433,7 +433,7 @@ public sealed partial class RetailFrontendFlow : Control
     // Additive gain of the FEBack128 underlay over the flat page fill, MEASURED
     // per channel by least squares against retail captured WITHOUT -skipfmv.
     //
-    // Reference: local-lab/retail-reference-pristine/nofmv-frontend-2026-07-26/run1,
+    // Reference: a private retail reference capture,
     // main-menu frames mm-t001020ms .. mm-t007027ms (13 settled frames), scored on
     // the 222,683 pixels the -skipfmv main-menu capture proves are pure underlay
     // (exactly (23,23,48) within 1 — a geometric mask, not a rectangle).
@@ -465,7 +465,7 @@ public sealed partial class RetailFrontendFlow : Control
     private const int FeBackPhaseFrames = 3;
     // ---- THE PAGE FILL IS A TWO-STEP COMPOSITE, NOT A COLOUR ----
     //
-    // MEASURED 2026-07-27 (local-lab/D3D9-FULL-SWEEP-2026-07-27.md section 5.3;
+    // MEASURED 2026-07-27 (the private lab note D3D9-FULL-SWEEP-2026-07-27.md section 5.3;
     // <maintainer evidence>\bea-frontend-pages\SWEEP-2026-07-27\page-index.csv and
     // inventories\main-menu-settled.csv frame 3000 draw 0):
     //
@@ -540,7 +540,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// frontend frames.
     ///
     /// RECOVERED FROM THE SHIPPED BYTES, not from the drop. Read out of
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>
+    /// a private pristine copy
     /// (sha256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750;
     /// the installed Steam BEA.exe is deliberately patched and is not a valid
     /// specimen). At VA 0x0051B660 / file 0x11B660, the click page's action
@@ -568,7 +568,7 @@ public sealed partial class RetailFrontendFlow : Control
     // FrontEnd.cpp:1299-1305 — the parameter is named for the destination but each
     // page receives its counterpart. CFEPMain__Render (0x00462D40) branches on
     // `dest == 0x0c` at five sites verified in the pristine specimen — 0x004636B2,
-    // 0x00463920, 0x00463B44, 0x00463DCC and 0x0046423D, all `83 fb 0c cmp ebx,0Ch`
+    // 0x00463920, 0x00463B44, 0x00463DCC and 0x0046423D, all comparing ebx with 0x0C
     // — and the page we arrive from is the click page, ordinal 12. This lane can
     // therefore only ever be on the 0x0c side, so the constant is folded into the
     // ported laws rather than carried as state. See MainMenuLeftDecor for how that
@@ -1022,7 +1022,8 @@ public sealed partial class RetailFrontendFlow : Control
         // FrontEnd.cpp:551-552 — while mActivePage == FEP_TRANSITION the
         // button action is never forwarded to a page. CFEPMain::Render
         // hover is not ButtonPressed: 0x004630AC / 0x004631EF run when
-        // transition > 0.9 (fcomp [0x005D8BB0]; test ah,0x41 / jne skip).
+        // transition > 0.9 (a float compare against the value at 0x005D8BB0,
+        // popping the result; a bit test of ah against 0x41 / jne skip).
         // Motion is therefore allowed through; HandlePointerMotion applies
         // the 0.9 gate. Confirm and HandleKey stay swallowed here.
         if (RetailMainMenuHitTest.SwallowsFrontendInput(
@@ -1186,7 +1187,7 @@ public sealed partial class RetailFrontendFlow : Control
         }
     }
 
-    /// <summary>The released clamp idiom, <c>_DAT_005d856c</c> / <c>_DAT_005d8568</c>.</summary>
+    /// <summary>The released clamp idiom, <c>0x005d856c</c> / <c>0x005d8568</c>.</summary>
     private static float Clamp01(float value) => value < 0f ? 0f : value > 1f ? 1f : value;
 
     /// <summary>
@@ -1210,7 +1211,7 @@ public sealed partial class RetailFrontendFlow : Control
 
     /// <summary>
     /// <c>MakeAlpha(t)</c> — also absent from the drop; the shipped inline form is
-    /// <c>ROUND(clamp(t) * 255.0)</c> clamped to 0..255 (<c>_DAT_005d8c70</c> =
+    /// <c>ROUND(clamp(t) * 255.0)</c> clamped to 0..255 (<c>0x005d8c70</c> =
     /// 255.0, verified in the pristine specimen), returned here as 0..1.
     /// </summary>
     private static float MakeAlpha(float value) =>
@@ -1380,7 +1381,7 @@ public sealed partial class RetailFrontendFlow : Control
         }
 
         var size = new Vector2(texture.GetWidth(), texture.GetHeight());
-        // Shadow first, at scale * 1.05 (_DAT_005db4ac) and the same rotation. Its
+        // Shadow first, at scale * 1.05 (0x005db4ac) and the same rotation. Its
         // packed colour is (alpha * 0x3f & 0xff00) << 0x10, i.e. ShadowTint scaled
         // by the decoration's own alpha.
         DrawCenteredRotated(
@@ -1403,14 +1404,14 @@ public sealed partial class RetailFrontendFlow : Control
 
         // CFEPMain__Render's page fade, computed once at 0x00462D5x as
         // local_68 = (transition - 0.75) * 4.0 and then clamped at every use:
-        // 0.75 @_DAT_005d8bc4, 4.0 @_DAT_005d85bc, both verified in the pristine
+        // 0.75 @0x005d8bc4, 4.0 @0x005d85bc, both verified in the pristine
         // specimen. It drives the right chrome strips, the language row, every
         // menu label and the version string.
         float fade = Clamp01((transition - 0.75f) * 4f);
 
         // The selection icon (and, on the literal reading of the same block, the
         // selected row's highlight box) fade on their own later window,
-        // clamp((transition - 0.8) * 5): 0.8 @_DAT_005d85f8, 5.0 @_DAT_005db4b8.
+        // clamp((transition - 0.8) * 5): 0.8 @0x005d85f8, 5.0 @0x005db4b8.
         //
         // INFERRED OPERAND, marked because it matters: the highlight box's driver
         // decompiles as an uninitialised stack float rather than as `transition`
@@ -1452,8 +1453,8 @@ public sealed partial class RetailFrontendFlow : Control
         // RetailMainMenuWritingColor: settled (255*63)<<16 | 0x00FFFFFF is
         // 0x3EFFFFFF, which is not capture ChromeTint 0x3E7F7F7F, so this
         // draw keeps ChromeTint and does not call SubmittedColor. Z/X at
-        // 0x00462DFF is RetailMainMenuWritingZ: three tiles push
-        // 0x3F666666 then dest 458. That leftover is Z, not scale, so the
+        // 0x00462DFF is RetailMainMenuWritingZ: three tiles (a push of constant
+        // 0x3F666666) then dest 458. That leftover is Z, not scale, so the
         // draw keeps scale 1.0 and TileX and does not treat the dword as
         // a 29% title-logo. Not a sheen. ChromeTint stays put.
         var chromeTint = new Color(ChromeTint.R, ChromeTint.G, ChromeTint.B, ChromeTint.A * fade);
@@ -1500,7 +1501,7 @@ public sealed partial class RetailFrontendFlow : Control
             // -1. Nonzero [0x0083D990] overwrites 304 / index 0.
             // Dest Y keeps rowY - 8. Do not invent dest Y.
             // RetailMainMenuLanguagePitch: language fall-through
-            // fld / fadd 36.0 at 0x00463647, then the shared
+            // fld / a float add of 36.0 at 0x00463647, then the shared
             // tail. Reached from 0x004634EE and after 0x0046363B.
             // Next slot is NonzeroSlotY. Dest Y keeps rowY - 8.
             // Do not invent dest from 36.0 or the nearby 284 push.
@@ -1531,8 +1532,8 @@ public sealed partial class RetailFrontendFlow : Control
             // chrome and not the selector bar. Leftover stack args
             // 10 / 9 / 8 stay unused. Font slot push 1. Scales stay
             // 1.0. Colour stays LabelColor. Dest stays MeasureText.
-            // Cite-fix: cmp ebx, 0x3E8 is 0x00465771; 0x00465777 is
-            // mov word [eax], 0. Do not invent dest, wrap, fade,
+            // Cite-fix: a compare of ebx with 0x3E8 is 0x00465771; 0x00465777 is
+            // a store of constant 0 to 16-bit word value pointed to by eax. Do not invent dest, wrap, fade,
             // sheen, or a 2px kerning hack.
             Color textColor = RetailColor(RetailMainMenuLabelColor.SubmittedColor(
                 selected,
@@ -1574,7 +1575,7 @@ public sealed partial class RetailFrontendFlow : Control
             leftArcShadow,
             MainMenuLeftDecor(transition));
         // Colour at 0x00463873 is RetailMainMenuLeftDecorShadow: 0x0089D894
-        // *63 alpha pack, dest fadd 224/349, z push 0x3EB33333 (0.35) not
+        // *63 alpha pack, dest adds 224/349, z pushes 0x3EB33333 (0.35) not
         // scale. Settled 255 submits 0x3E000000, which is this ShadowTint,
         // so the draw keeps ShadowTint and does not call SubmittedColor.
         // Dest is the left-arc pair (219+5, 344+5), not right 462/365.
@@ -1582,7 +1583,7 @@ public sealed partial class RetailFrontendFlow : Control
         // the already-shipped ellipse centre — do not redo
         // RetailFrontendDecorShadow. Colour at 0x004638B7 is
         // RetailMainMenuLeftDecorOverlay: 0x0089D894 not/and/xor pack,
-        // dest immediates 219/344, z push 0x3E99999A (0.3) not scale.
+        // dest immediates 219/344, z (a push of constant 0x3E99999A) (0.3) not scale.
         // Settled 255 submits 0xFEFFFFFF, which is not this BracketTint
         // 0xFE7F7F7F, so the draw keeps BracketTint and does not call
         // SubmittedColor. Dest is the left-arc body, not right. Not the
@@ -1596,7 +1597,7 @@ public sealed partial class RetailFrontendFlow : Control
             leftArcShadow,
             MainMenuLeftDecorTwin(transition));
         // Colour at 0x00463A8F is RetailMainMenuLeftTwinShadow: 0x0089D898
-        // *63 alpha pack, dest fadd 224/349, z push 0x3EB33333 (0.35) not
+        // *63 alpha pack, dest adds 224/349, z pushes 0x3EB33333 (0.35) not
         // scale. Settled 255 submits 0x3E000000, which is this ShadowTint,
         // so the draw keeps ShadowTint and does not call SubmittedColor.
         // Dest is the leftover left-twin pair (219+5, 344+5), not
@@ -1604,7 +1605,7 @@ public sealed partial class RetailFrontendFlow : Control
         // land on 0x00468730. The 224/349 addends are the already-shipped
         // ellipse centre — do not redo RetailFrontendDecorShadow. Colour
         // at 0x00463AD3 is RetailMainMenuLeftTwinOverlay: 0x0089D898
-        // not/and/xor pack, dest immediates 219/344, z push 0x3E99999A
+        // not/and/xor pack, dest immediates 219/344, z (a push of constant 0x3E99999A)
         // (0.3) not scale. Settled 255 submits 0xFEFFFFFF, which is not
         // this BracketTint 0xFE7F7F7F, so the draw keeps BracketTint and
         // does not call SubmittedColor. Dest is the leftover left-twin
@@ -1623,7 +1624,7 @@ public sealed partial class RetailFrontendFlow : Control
             rightArcShadow,
             MainMenuRightDecorTwin(transition));
         // Colour at 0x00463D1F is RetailMainMenuRightDecorShadow: 0x0089D8A0
-        // *63 alpha pack, dest fadd 462/365, z push 0x3EB33333 (0.35) not
+        // *63 alpha pack, dest adds 462/365, z pushes 0x3EB33333 (0.35) not
         // scale. Settled 255 submits 0x3E000000, which is this ShadowTint,
         // so the draw keeps ShadowTint and does not call SubmittedColor.
         // Dest is the right-arc pair, not left. Not the 0x00463E8D twin
@@ -1633,15 +1634,15 @@ public sealed partial class RetailFrontendFlow : Control
         // 29% title-logo scale. ChromeTint and BracketTint stay put. Do
         // not redo 0x00463F3F or 0x00463F83.
         // Colour at 0x00463D63 is RetailMainMenuRightDecorOverlay:
-        // 0x0089D8A0 not/and/xor pack, dest immediates 457/355, z push
-        // 0x3E99999A (0.3) not scale. Settled 255 submits 0xFEFFFFFF,
+        // 0x0089D8A0 not/and/xor pack, dest immediates 457/355, z (a push of
+        // constant 0x3E99999A) (0.3) not scale. Settled 255 submits 0xFEFFFFFF,
         // which is not this BracketTint 0xFE7F7F7F, so the draw keeps
         // BracketTint and does not call SubmittedColor. Dest is the
         // right-arc body, not left. Not the 0x00463E8D twin gate (that
         // is D8A4). Not a sheen. Not a 29% title-logo scale. ChromeTint
         // and ShadowTint stay put. Do not redo 0x00463D1F.
         // Colour at 0x00463F3F is RetailMainMenuRightTwinShadow: 0x0089D8A4
-        // *63 alpha pack, dest fadd 462/365, z push 0x3EB33333 (0.35) not
+        // *63 alpha pack, dest adds 462/365, z pushes 0x3EB33333 (0.35) not
         // scale. Settled 255 submits 0x3E000000, which is this ShadowTint,
         // so the draw keeps ShadowTint and does not call SubmittedColor.
         // Same 0x00463E8D gate as the body overlay; settled frames skip.
@@ -1650,7 +1651,7 @@ public sealed partial class RetailFrontendFlow : Control
         // 0x00464343 / TitleLogoReflectionLayer). Not a 29% title-logo
         // scale. ChromeTint and BracketTint stay put.
         // Colour at 0x00463F83 is RetailMainMenuRightTwinOverlay: 0x0089D8A4
-        // mode-4 at (457,355), z push 0x3E99999A (0.3) not scale. Settled 255
+        // mode-4 at (457,355), z pushes 0x3E99999A (0.3) not scale. Settled 255
         // submits 0xFEFFFFFF, which is not this BracketTint 0xFE7F7F7F, so
         // the draw keeps BracketTint and does not call SubmittedColor. Gate
         // 0x00463E8D skips the call once transition >= 0.9; settled frames
@@ -1694,19 +1695,19 @@ public sealed partial class RetailFrontendFlow : Control
             // body's own alpha. Dest leftover at 0x004641C9 is
             // RetailMainMenuVersionOverlayZ: PLATFORM__GetWindowHeight then
             // sub 0x10, dest X push 0. That leftover is not a dest immediate.
-            // 0x004641C4 push 0x3C23D70A is Z, not scale, so this draw keeps
+            // 0x004641C4: a push of constant 0x3C23D70A is Z, not scale, so this draw keeps
             // VersionTint, Format, DestX, DestY(DesignHeight), and scale 1.0.
             // Font leftover is RetailMainMenuVersionOverlayFont: push 1 selects
             // FONT_SMALL / Font13PS at this+0x20, not this+0x1C. No measure
             // call on the sprintf buffer. Pre-draw leftover is
-            // RetailMainMenuVersionOverlayEnable: after sprintf / add esp,10 /
-            // lea edx,[esp+0x3C], 0x00464180 stores [0x00679B40]=0. The
-            // 0x00465F00 reader is mov al,[0x00679B40]; ret. Widen leftover
+            // RetailMainMenuVersionOverlayEnable: after sprintf / a stack cleanup of 10 bytes,
+            // then address computation (esp+0x3C) into edx, 0x00464180 stores [0x00679B40]=0. The
+            // 0x00465F00 reader is a load of the value at 0x00679B40 into al; ret. Widen leftover
             // is RetailMainMenuVersionOverlayWiden: after the enable-byte
-            // store, push edx of that sprintf buffer and call
-            // Text__AsciiToWideScratch. add esp,4 shows cdecl one-arg.
+            // store, a push of edx of that sprintf buffer and a direct call to
+            // Text__AsciiToWideScratch. A stack cleanup of 4 bytes shows cdecl one-arg.
             // EAX is the wide scratch pointer. Tail leftover is
-            // RetailMainMenuVersionOverlayTail: after add esp,4 the
+            // RetailMainMenuVersionOverlayTail: after a stack cleanup of 4 bytes the
             // three leftover pushes remain as DrawTextDynamic's last
             // three stack slots. The leftover float is past the
             // below-zero / below-quarter / below-half arms, and the
@@ -1716,7 +1717,7 @@ public sealed partial class RetailFrontendFlow : Control
             // RetailMainMenuVersionOverlayFlags:
             // after DrawTextDynamic, 0x004641FC/203/20A store
             // [0x00679B40]=1, [0x009C68AC]=0, [0x009C690D]=1 between
-            // fcom [0.0] and fnstsw. That fcom is the already-owned
+            // a float compare against the constant 0.0 and fnstsw. That fcom is the already-owned
             // title-logo shadow clamp, not a version fade. The MeasureText
             // residual stays open; do not invent a fade or a kerning hack.
             DrawText(
@@ -1786,15 +1787,14 @@ public sealed partial class RetailFrontendFlow : Control
         // dest==0x0c at 0x0046423D forces ESI=255. Body scale stays 1.0;
         // this is not a 29% scale. Body pack stays TitleLogoTint.
         // 0x0089D88C leftover at 0x00464251 is
-        // RetailMainMenuTitleLogoShadowZ: same Title2, then push
-        // 0x3DCCCCCD. That leftover is Z, not scale. Dest is
+        // RetailMainMenuTitleLogoShadowZ: same Title2, then a push of constant 0x3DCCCCCD. That leftover is Z, not scale. Dest is
         // GetShadowOffsetY + [0x005D8C20] and GetShadowOffsetX +
         // [0x005DB4A8], not RenderSurface immediates, so this draw
         // keeps ShadowTint, ShadowScaleBoost, DestX, DestY, and
         // sharedShadow. Nearby 0x3F866666 is already
         // ShadowScaleBoost. Not a sheen.
         // 0x0089D88C at 0x004642CE is RetailMainMenuTitleLogoZ:
-        // FrontEnd\v3\FE_BEA_Title2.tga via ebp+0x12C, then push
+        // FrontEnd\v3\FE_BEA_Title2.tga via ebp+0x12C, then a push of constant
         // 0x3F7FBE77, dest Y 130, dest X 320. That leftover is Z, not
         // scale, so this draw keeps TitleLogoTint, scale 1.0, DestX,
         // and DestY and does not treat the dword as a 29% title-logo.
@@ -1842,8 +1842,8 @@ public sealed partial class RetailFrontendFlow : Control
     /// y = 288, h = 32 covers.</para>
     ///
     /// <para>0x0089D89C at 0x00462FED is RetailMainMenuSelectorBarZ:
-    /// FrontEnd\v3\FE_BEA_title_text_box.tga via ebp+0x13C, then push
-    /// 0x3EA8F5C3 and dest 219. That leftover is Z, not scale, so this
+    /// FrontEnd\v3\FE_BEA_title_text_box.tga via ebp+0x13C, then a push of
+    /// constant 0x3EA8F5C3 and dest 219. That leftover is Z, not scale, so this
     /// draw keeps _titleTextBox, the measured ink+31 width, and DestX
     /// and does not treat the dword as a 29% title-logo. Colour at
     /// 0x00462FB9 stays RetailMainMenuSelectorBarColor. Not a sheen.</para>
@@ -2009,7 +2009,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// <c>Rect2(166, 254, -22, 30)</c> intending x 144..166, and it rendered at
     /// x 166..188 — 22px right of where it was meant to be, which put the left
     /// chevron ON TOP of the flag. Measured on our own captured frame
-    /// (local-lab/godot-captures/gaterepair-head-mainmenu/mainmenu-t008000ms.png,
+    /// (a private capture folder,
     /// columns above threshold in the row band): retail shows three separated
     /// runs 144..165 / 178..260 / 273..294, ours showed two, 167..261 and
     /// 274..293, with nothing at all where retail's left chevron lives.</para>
@@ -2038,7 +2038,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// that frame has now been taken.
     ///
     /// MEASURED, from retail without `-skipfmv`
-    /// (local-lab/retail-reference-pristine/nofmv-frontend-2026-07-26/, two runs,
+    /// (a private retail reference capture, two runs,
     /// phase-anchored to the click that leaves click-to-start):
     ///
     ///   identity   the underlay IS FEBack128.vid. Scoring every decoded strip
@@ -2247,7 +2247,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// implicit save discovery.
     ///
     /// Geometry is MEASURED from the pristine 640x480 retail capture
-    /// local-lab/retail-reference-pristine/choose-game-name/choose-game-name-640x480.png
+    /// a private retail reference capture
     /// by scanning for the exact fill colours it contains:
     ///   page background      flat (23,23,48)                — same fill proven for the main menu
     ///   header text box      interior (12,12,24), x191..584, y69..89
@@ -2417,7 +2417,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// does not ship its implementation (there is no FEPLevelSelect.cpp), so the
     /// page body carries NO source geometry at all. Everything below is measured
     /// from the pristine 640x480 capture
-    /// local-lab/retail-reference-pristine/select-level/04-select-level-640x480.png
+    /// a private retail reference capture
     /// by scanning for pixels that differ from the page background.
     ///
     ///   page background      flat (23,23,48)  — same fill proven for the main menu
@@ -2469,11 +2469,12 @@ public sealed partial class RetailFrontendFlow : Control
 
         DrawLevelSweepArcs();
         // RetailLevelSelectFsub148: CFEPLevelSelect::Render leftover
-        // after the sliding-borders call is fld [0x005DB53C] (148.0)
-        // fsub [esi+0x3460] fstp [esp+0x14]. Official 74154bfa
+        // after the sliding-borders call is a float load of the value at 0x005DB53C (148.0),
+        // a float subtract of field +0x3460 of esi and a float store to stack local +0x14. Official 74154bfa
         // independently re-read this cycle. The local is a window,
-        // not dest. 0x00460BE4 fcomp 610.0 / 0x00460BF9 fcomp 0.0.
-        // Init fstp [esi+0x3460] at 0x00460464 follows fild of the
+        // not dest. 0x00460BE4: a float compare against 610.0, popping the
+        // result; 0x00460BF9: a float compare against 0.0, popping the result.
+        // Init (a float store to field +0x3460 of esi) at 0x00460464 follows fild of the
         // zeroed [esi+0x3468]. Settled pad is 148.0 - 0. Dest stays
         // the measured node centres. Do not invent dest from 148.0.
         if (RetailLevelSelectFsub148.Applies(
@@ -2481,22 +2482,22 @@ public sealed partial class RetailFrontendFlow : Control
                     RetailLevelSelectFsub148.SettledField)))
         {
             // RetailLevelSelectFsub10: later leftover is
-            // fld [esp+0x14] / fsub [0x005D85CC] (10.0) /
-            // fstp [esp] before call 0x005563D0. Official
+            // a float load of stack local +0x14, then float subtract of the value at 0x005D85CC (10.0) /
+            // a float store to the top of the stack before a direct call to 0x005563D0. Official
             // 74154bfa independently re-read this cycle:
-            // 0x00460C94 is d825cc855d00 fsub, not fld.
+            // 0x00460C94 is a float subtract, not a float load.
             // Settled 148.0-10.0 is 138.0. That is not dest.
             // The 322.0 push at 0x00460CE1 is later. Do not
             // invent dest from 10.0.
             _ = RetailLevelSelectFsub10.Delta(
                 RetailLevelSelectFsub148.SettledPad);
             // RetailLevelSelectLater148: later leftover after the
-            // 10.0 fsub is the second identical fld 148.0 /
-            // fsub [esi+0x3460] / fstp [esp+0x14] triple at
+            // 10.0 fsub is the second identical (a float load of 148.0, then float subtract
+            // of field +0x3460 of esi, then float store to stack local +0x14) triple at
             // 0x00460E24. Official 74154bfa independently
             // re-read this cycle. First consumers are
-            // 0x00460E9D fcomp 0x00629390 and 0x00460EB0
-            // fcomp 0x00629394. The local is a later window,
+            // 0x00460E9D: a float compare against 0x00629390, popping the result and 0x00460EB0: a
+            // float compare against 0x00629394, popping the result. The local is a later window,
             // not dest. Do not invent dest from those
             // compares. Dest stays the measured node centres.
             if (RetailLevelSelectLater148.Applies(
@@ -2506,21 +2507,21 @@ public sealed partial class RetailFrontendFlow : Control
                 DrawLevelNodeGraph();
                 // RetailLevelSelectLaterEsp94: later leftover
                 // after the later 148.0 triple is
-                // fld [esp+0x94] / fsub [0x005D8BC4] (0.75) /
-                // fmul [0x005D85BC] (4.0) / fcom [0x005D856C]
+                // a float load of stack local +0x94, then float subtract of the value at 0x005D8BC4 (0.75) /
+                // a float multiply by the value at 0x005D85BC (4.0) / a float compare against the value at 0x005D856C
                 // (0.0). Official 74154bfa independently
                 // re-read this cycle. Different stack local,
                 // not dest. First store consumer is
-                // 0x00460E4D fst [esp+0x40]. Do not invent
+                // 0x00460E4D: a float store to stack local +0x40 (without popping). Do not invent
                 // dest from 0.75 or 4.0.
                 _ = RetailLevelSelectLaterEsp94.Subtrahend;
                 _ = RetailLevelSelectLaterEsp94.Factor;
                 // RetailLevelSelectLaterOne: later leftover
                 // after the later [esp+0x94] shift is
-                // fcom [0x005D8568] (1.0) / fmul [0x005D8C70]
+                // a float compare against the value at 0x005D8568 (1.0) / a float multiply by the value at 0x005D8C70
                 // (255.0). Official 74154bfa independently
                 // re-read this cycle. First store consumer is
-                // 0x00460E7F fistp [esp+0x4C]. That is a
+                // 0x00460E7F: a float-to-integer store to stack local +0x4C. That is a
                 // clamp-and-scale of the shifted local, not
                 // dest. The later 610.0/0.0 pair at
                 // 0x00460F30 is RetailLevelSelectLater610.
@@ -2530,16 +2531,15 @@ public sealed partial class RetailFrontendFlow : Control
                 _ = RetailLevelSelectLaterOne.Scale;
                 // RetailLevelSelectLater610: later leftover
                 // after the later 1.0 fcom is
-                // fld [esp+0x14] / fcomp [0x005DB5B0]
-                // (610.0) / fld [esp+0x14] /
-                // fcomp [0x005D856C] (0.0). Official
+                // a float load of stack local +0x14, then float compare against the value at 0x005DB5B0, popping the result
+                // (610.0) / a float load of stack local +0x14, then float compare
+                // against the value at 0x005D856C, popping the result (0.0). Official
                 // 74154bfa independently re-read this
-                // cycle. First consumer is 0x00460F5A
-                // mov eax, [esi+ebx*4+0x4]. First store
-                // is 0x00460F5E mov [esp+0x28], 0. That
+                // cycle. First consumer is 0x00460F5A: a load of indexed table entry at +0x4 of esi into eax. First store
+                // is 0x00460F5E: a store of constant 0 to stack local +0x28. That
                 // is a later window on the same
                 // [esp+0x14] local, not dest. The later
-                // fmul 60.0 at 0x00460F73 is
+                // float multiply by 60.0 at 0x00460F73 is
                 // RetailLevelSelectLater60. Do not invent
                 // dest from 610.0 or 0.0.
                 _ = RetailLevelSelectLater610.Applies(
@@ -2549,14 +2549,13 @@ public sealed partial class RetailFrontendFlow : Control
                 _ = RetailLevelSelectLater610.WindowLow;
                 // RetailLevelSelectLater60: later leftover
                 // after the later 610.0/0.0 pair is
-                // fild [esp+0x3C] / fmul [0x005DB538]
-                // (60.0) / fmul [0x005D85EC] (0.5) /
-                // fadd [0x005DB3E8] (320.0) / fstp
-                // [esp+0x18]. Official 74154bfa
+                // an integer-to-float load of stack local +0x3C, then float multiply by the value at 0x005DB538
+                // (60.0) / a float multiply by the value at 0x005D85EC (0.5) /
+                // a float add of the value at 0x005DB3E8 (320.0) / a float store to stack local +0x18. Official 74154bfa
                 // independently re-read this cycle. First
-                // store is 0x00460F85 fstp [esp+0x18].
+                // store is 0x00460F85: a float store to stack local +0x18.
                 // That is a scaled local, not dest. The
-                // later fld [esp+0x94] / fcomp 1.0 at
+                // later sequence (float load of stack local +0x94, then float compare against 1.0, popping the result) at
                 // 0x00460FD8 is
                 // RetailLevelSelectLaterEsp94One. Do not
                 // invent dest from 60.0, 0.5, or 320.0.
@@ -2565,24 +2564,23 @@ public sealed partial class RetailFrontendFlow : Control
                 _ = RetailLevelSelectLater60.Addend;
                 // RetailLevelSelectLaterEsp94One: later leftover
                 // after the later 60.0/0.5/320.0 scale is
-                // fld [esp+0x94] / fcomp [0x005D8568]
+                // a float load of stack local +0x94, then float compare against the value at 0x005D8568, popping the result
                 // (1.0). Official 74154bfa independently
                 // re-read this cycle. First consumer of
-                // the equal-1 fall-through is 0x00460FEC
-                // fld [esp+0x18]. That is a compare of
+                // the equal-1 fall-through is 0x00460FEC: a float load of stack local +0x18. That is a compare of
                 // the [esp+0x94] local, not dest. The
-                // later fadd 20.0 at 0x00460FF0 is later.
+                // later float add of 20.0 at 0x00460FF0 is later.
                 // Do not invent dest from 1.0 or 20.0.
                 _ = RetailLevelSelectLaterEsp94One.Applies(
                     RetailLevelSelectLaterEsp94One.CompareOne);
                 _ = RetailLevelSelectLaterEsp94One.CompareOne;
                 // RetailLevelSelectLater20: later leftover after
-                // the later [esp+0x94]/fcomp 1.0 compare is
-                // fld [esp+0x18] / fadd [0x005D857C] (20.0) /
-                // fstp [esp]. Official 74154bfa independently
-                // re-read this cycle. First store is 0x00460FF7
-                // fstp [esp]. That is an addend on the later-60
-                // local, not dest. The later second fadd 20.0 at
+                // the later [esp+0x94]/a float compare against 1.0, popping the result compare is
+                // a float load of stack local +0x18, then float add of the value at 0x005D857C (20.0) /
+                // a float store to the top of the stack. Official 74154bfa independently
+                // re-read this cycle. First store is 0x00460FF7: a float store
+                // to the top of the stack. That is an addend on the later-60
+                // local, not dest. The later second float add of 20.0 at
                 // 0x00460FFE is later. Do not invent dest from
                 // 20.0 or 1.0.
                 _ = RetailLevelSelectLater20.Offset(
@@ -2590,12 +2588,11 @@ public sealed partial class RetailFrontendFlow : Control
                 _ = RetailLevelSelectLater20.Addend;
                 // RetailLevelSelectLaterFadd20: later leftover
                 // after the later first 20.0 addend is
-                // fld [esp+0x18] / fadd [0x005D857C] (20.0) /
-                // fstp [esp]. Official 74154bfa independently
-                // re-read this cycle. First store is 0x00461005
-                // fstp [esp]. That is a second addend on a later
-                // [esp+0x18] local, not dest. The later fsub
-                // 20.0 at 0x0046100C is later. Do not invent
+                // a float load of stack local +0x18, then float add of the value at 0x005D857C (20.0) /
+                // a float store to the top of the stack. Official 74154bfa independently
+                // re-read this cycle. First store is 0x00461005: a float store
+                // to the top of the stack. That is a second addend on a later
+                // [esp+0x18] local, not dest. The later float subtract of 20.0 at 0x0046100C is later. Do not invent
                 // dest from 20.0 or 1.0.
                 _ = RetailLevelSelectLaterFadd20.Offset(
                     RetailLevelSelectLater20.Offset(
@@ -2603,12 +2600,12 @@ public sealed partial class RetailFrontendFlow : Control
                 _ = RetailLevelSelectLaterFadd20.Addend;
                 // RetailLevelSelectLaterFsub20: later leftover
                 // after the later second 20.0 addend is
-                // fld [esp+0x20] / fsub [0x005D857C] (20.0) /
-                // fstp [esp]. Official 74154bfa independently
-                // re-read this cycle. First store is 0x00461013
-                // fstp [esp]. That is a subtrahend on a later
+                // a float load of stack local +0x20, then float subtract of the value at 0x005D857C (20.0) /
+                // a float store to the top of the stack. Official 74154bfa independently
+                // re-read this cycle. First store is 0x00461013: a float store
+                // to the top of the stack. That is a subtrahend on a later
                 // [esp+0x20] local, not dest. The later second
-                // fsub 20.0 at 0x0046101A is later. Do not
+                // float subtract of 20.0 at 0x0046101A is later. Do not
                 // invent dest from 20.0 or 1.0.
                 _ = RetailLevelSelectLaterFsub20.Offset(
                     RetailLevelSelectLater60.Scaled(1));
@@ -2627,7 +2624,7 @@ public sealed partial class RetailFrontendFlow : Control
         }
 
         // RetailLevelSelectSlidingBorders: CFEPLevelSelect::Render first
-        // leftover is the unique call 0x00460B61 to
+        // leftover is the unique direct call to 0x00460B61 to
         // CFrontEnd__DrawSlidingTextBordersAndMask. FrontEnd.cpp:891-892 —
         // FET3_SELECT_BRACKET1 at SELECT_BRACKET_X/Y (328,343) with
         // SELECT_BRACKET_SCALE 1.25, plus its +5/+10 shadow at scale*1.05 in
@@ -3076,7 +3073,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// the include in Frontend.h:14 and the CFEPBriefing member at
     /// Frontend.h:231), and there is no FEP_ page constant for it in any shipped
     /// header, so this page carries NO source geometry at all. Everything is
-    /// measured from local-lab/retail-reference-pristine/mission-briefing/
+    /// measured from a private retail reference capture
     /// 05-mission-briefing-640x480.png.
     ///
     ///   header box       0x7f black over the scene, x191..584 y69..89 — the
@@ -3205,7 +3202,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// <summary>
     /// Retail SELECT CONFIGURATION — the page between briefing and loading that
     /// this reconstruction did not model at all until this change. Reference:
-    /// local-lab/retail-reference-pristine/select-configuration/
+    /// a private retail reference capture
     /// 06-select-configuration-640x480.png.
     ///
     ///   title            font22 scale 1, ink x249..526 y73..87; its advance
@@ -3295,7 +3292,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// <summary>
     /// Retail LOADING.
     ///
-    /// Measured from local-lab/retail-reference-pristine/loading/
+    /// Measured from a private retail reference capture
     /// 07-loading-640x480.png. The background is LoadingScreen.tga stretched to
     /// the full 640x480 stage: comparing the decoded texture resampled to
     /// 640x480 against the retail frame gives a mean absolute delta of 5.5 per
@@ -3325,7 +3322,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// CVBufTexture__DrawSpriteEx and one CDXSurf__RenderSurface. Do not
     /// invent a DrawBar tile dest here. Draw the recovered sprite (texture,
     /// dest, tint, blend) only when that RenderLoadingScreen call is cited.
-    /// Falsifier: local-lab/retail-reference-pristine/loading/07-loading-640x480.png.
+    /// Falsifier: a private retail reference capture.
     /// </summary>
     private void DrawLoading()
     {
@@ -4117,7 +4114,7 @@ public sealed partial class RetailFrontendFlow : Control
             {
                 // THE SHADOW SITS ON THE ANCHOR AND THE BODY IS DRAWN AT (-1,-1).
                 // MEASURED from retail's own draw calls, 2026-07-27 d3d9 sweep
-                // (local-lab/D3D9-FULL-SWEEP-2026-07-27.md; per-draw CSVs under
+                // (the private lab note D3D9-FULL-SWEEP-2026-07-27.md; per-draw CSVs under
                 // <maintainer evidence>\bea-frontend-pages\SWEEP-2026-07-27\inventories\). Every
                 // shadowed text run in the frontend is a shadow DrawPrimitive
                 // followed immediately by a body DrawPrimitive whose rectangle is
@@ -4377,7 +4374,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// instrument.
     ///
     /// <para><b>What the bytes say.</b></para>
-    /// Specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+    /// Specimen a private pristine copy,
     /// sha256 <c>74154bfa…</c> (the PATCHED sibling <c>BEA.exe</c> was not read).
     /// <c>CFEPMain__Render</c> is <c>[0x00462d40, 0x0046449e)</c>; every address
     /// below is inside it. Its tail, in order:
@@ -4387,7 +4384,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// 0x004642b5  SetRenderState(0x17 D3DRS_ZFUNC, 8 D3DCMP_ALWAYS)   [0x00513bc0]
     /// 0x004642ce  logo body:   0x0089d88c at (320, 130), z 0.99899 (0x3f7fbe77),
     ///             scale 1, tint 0xfeafcfff  (and 0xafcfff is literally
-    ///             `and edx,0xffafcfff` / `or edx,0xafcfff` at 0x004642e4/f1)
+    ///             (a mask of edx with 0xffafcfff, then or of 0xafcfff into edx) at 0x004642e4/f1)
     /// 0x0046431a  SetRenderState(0x17 D3DRS_ZFUNC, 4 D3DCMP_LESSEQUAL)
     /// 0x0046435d  CFrontEnd__EnableAdditiveAlpha (0x004681c0) — and this is the
     ///             whole of it: SetRenderState(0x13 SRCBLEND, 2 D3DBLEND_ONE) and
@@ -4437,7 +4434,7 @@ public sealed partial class RetailFrontendFlow : Control
     /// A static disassembly cannot say how fast <c>mCounter</c> advances, and
     /// nothing pins its phase at main-menu entry. Both were measured from retail
     /// pixels, on the 12 settled <c>run1</c> frames of
-    /// <c>local-lab/retail-reference-pristine/nofmv-frontend-2026-07-26</c>, by
+    /// a private retail reference capture, by
     /// regressing frame-to-frame differences onto the decoded reflection texel
     /// under the recovered model (differences, so the static page cancels and no
     /// baseline is assumed):

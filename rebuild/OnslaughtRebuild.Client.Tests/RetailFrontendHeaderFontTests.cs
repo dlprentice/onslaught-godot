@@ -14,7 +14,7 @@ namespace OnslaughtRebuild.Client.Tests;
 ///
 /// <para><b>How the retail numbers below were obtained.</b> Atlas-free, from the
 /// pristine 640x480 captures under
-/// <c>local-lab/retail-reference-pristine/</c> alone. Cut the header title band
+/// a private retail reference capture alone. Cut the header title band
 /// (x 200..580, y 70..92 — inside the header box, clear of the arc brackets and
 /// the end-cap chrome), threshold luminance &gt; 120 for ink, then segment the
 /// ink into per-glyph column runs. No rescaling and no font atlas are involved,
@@ -43,7 +43,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// advances would pass), nothing about colour, nothing about the header box
 /// fill, and nothing about any pixel outside the title band. It also does not
 /// cover the pages' backgrounds, which are measured separately — see
-/// <c>local-lab/STARTUP-NOFMV-BASELINE-2026-07-26.md</c> §5.1.</para>
+/// the private lab note STARTUP-NOFMV-BASELINE-2026-07-26.md §5.1.</para>
 ///
 /// <para><b>Known residual, deliberately not closed here.</b> The reconstruction
 /// reproduces every run width exactly but sits <b>one pixel right</b> of retail
@@ -207,7 +207,7 @@ public sealed class RetailFrontendHeaderFontTests
     /// Picks the startup capture to score. <c>ONSLAUGHT_STARTUP_CAPTURE_DIR</c>
     /// always wins — naming a directory is the operator taking responsibility
     /// for what is in it. Otherwise the newest directory under
-    /// <c>local-lab/godot-captures/</c> that holds a startup plan's shots and is
+    /// a private capture folder that holds a startup plan's shots and is
     /// at least as new as <c>RetailFrontendFlow.cs</c> is used; a capture that
     /// predates the current frontend source describes a build that no longer
     /// exists, so it is ignored rather than judged.

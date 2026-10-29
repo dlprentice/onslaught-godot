@@ -36,7 +36,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Which clip, from bytes.</b></para>
 /// The campaign FMV table lives at VA <c>0x0063FD70</c>, file offset
 /// <c>0x23FD70</c>, in the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+/// (a private pristine copy), sha256
 /// <c>74154BFAE14DDC8ECB87A0766F5BC381C7B7F1AB334ED7A753040EDA1E1E7750</c>. Its
 /// records are <c>[i32 level][i32 intro][i32 outroA][i32 outroB]</c> and row 0
 /// reads <c>100, 1, 2, -1</c>. <c>CGame::RunIntroFMV</c> formats that id with
@@ -55,7 +55,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// has at the teardown seam is "the player left the level", which is true of a
 /// loss and of a quit as much as of a win. Playing the victory cutscene on that
 /// signal would be a fabrication, so nothing is played and no dead state is
-/// added. See <c>local-lab/FMV-IMPLEMENTED-2026-07-28.md</c>.
+/// added. See the private lab note FMV-IMPLEMENTED-2026-07-28.md.
 /// </summary>
 public sealed partial class RetailFrontendFlow
 {

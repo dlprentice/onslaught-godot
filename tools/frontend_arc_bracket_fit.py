@@ -93,7 +93,7 @@ class PageSpec:
 
 
 # Exclusions are drawn from the proven page inventories in
-# local-lab/STARTUP-FLOW-FINDINGS-2026-07-25.md and the region JSON under
+# the private lab note STARTUP-FLOW-FINDINGS-2026-07-25.md and the region JSON under
 # rebuild/tools/. They remove page furniture that is bright and neutral enough to
 # be confused with arc metal, never the arc itself.
 COMMON_EXCLUDE = (

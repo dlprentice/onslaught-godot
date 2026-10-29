@@ -240,7 +240,7 @@ public sealed class Level100Mission
     public Level100MissionOutcome Outcome => _outcome;
 
     /// <summary>
-    /// <c>CGame+0xf4</c> — the <c>add [0x008a9b8c], eax</c>
+    /// <c>CGame+0xf4</c> — the addition of eax to the value at 0x008a9b8c
     /// destination. Isolated <see cref="Level100MissionSnapshot.ScoreDelta"/>
     /// names the rebuild accumulator, not this store.
     /// </summary>
@@ -248,7 +248,7 @@ public sealed class Level100Mission
 
     /// <summary>
     /// <c>CBattleEngine+0x58c</c> — the
-    /// <c>mov dword ptr [ecx+0x58c], 1</c> destination.
+    /// store of constant 1 to field +0x58c of ecx destination.
     /// Isolated <see cref="Level100MissionSnapshot.FlightModeEnabled"/>
     /// names the rebuild bool, not this store.
     /// </summary>
@@ -256,7 +256,7 @@ public sealed class Level100Mission
 
     /// <summary>
     /// <c>0x0089c800</c> — the
-    /// <c>mov dword ptr [0x0089c800], 1</c> destination
+    /// store of constant 1 to the value at 0x0089c800 destination
     /// on Pause / PlayCharMessageWait. Isolated
     /// <see cref="Level100MissionTiming.PauseTicks"/> /
     /// <see cref="Level100MissionTiming.MessagePlaybackTicks"/>
@@ -276,7 +276,7 @@ public sealed class Level100Mission
 
     /// <summary>
     /// <c>CWeapon+0x9c</c> — the
-    /// <c>mov dword ptr [edi+0x9c], 1</c> destination.
+    /// store of constant 1 to field +0x9c of edi destination.
     /// Isolated <see cref="Level100WeaponAvailabilityChanged.Enabled"/>
     /// names the rebuild bool, not this store. A weapon this
     /// mission never Enabled reads 0 here; that is not a
@@ -1078,7 +1078,7 @@ public sealed class Level100Mission
     /// <summary>
     /// Isolated <see cref="Level100ActorSnapshot.IsObjective"/>
     /// and the navigation name stay the rebuild facts. These
-    /// stores are the official <c>or 0x20</c> / <c>and ~0x20</c>
+    /// stores are the official (an or with 0x20) / <c>and ~0x20</c>
     /// at <c>CThing+0x2c</c>. Noticeboard stays unclaimed.
     /// </summary>
     private void StoreObjectiveFlag(Level100ActorId actorId, bool mark)
@@ -1092,7 +1092,7 @@ public sealed class Level100Mission
     /// <summary>
     /// Isolated <see cref="Level100MissionTiming.PauseTicks"/>
     /// and message duration stay the rebuild sleeps. This
-    /// store is official <c>mov [0x0089c800], 1</c>. CVM
+    /// store is official (a store of constant 1 to the value at 0x0089c800). CVM
     /// snapshot / 0.05f / FollowWaypointWait stay unclaimed.
     /// </summary>
     private void StoreWaitStop()

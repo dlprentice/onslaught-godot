@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Authored inputs executed through unchanged retail CExplosion::Hit0044bf10.
-// Pristine SHA-25674154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
+// Pristine SHA-256 74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750.
 // Target radius and Damage sink are isolated service boundaries; no gameplay/trajectory claim.
 using OnslaughtRebuild.Parity.Containers;
 using OnslaughtRebuild.Parity.Events;

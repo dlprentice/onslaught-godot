@@ -92,7 +92,7 @@ public sealed class RetailJetThrustTests
         Assert.Equal(0.125f, state.ThrusterValue);
     }
 
-    // test ah, 0x41 with je to the early exit: the exit needs an ordered strictly
+    // A bit test of ah against 0x41 with je to the early exit: the exit needs an ordered strictly
     // positive count, so zero and unordered both fall through into the body. C's
     // `> 0` agrees on both.
     [Theory]
@@ -143,7 +143,7 @@ public sealed class RetailJetThrustTests
         Assert.Equal(0.5f, state.LastMoveYVal);
     }
 
-    // test ah, 0x40 is C3 ALONE and an unordered compare sets C3, so retail reads
+    // A bit test of ah against 0x40 is C3 ALONE and an unordered compare sets C3, so retail reads
     // a NaN energy as zero energy. The C text `if (float)` is `!= 0.0`, which is
     // TRUE for a NaN, so a source-faithful rebuild would run the throttle here
     // and leave ThrusterValue unordered.
@@ -184,7 +184,7 @@ public sealed class RetailJetThrustTests
         Assert.Equal(-99.0f, state.LastStartHardForwardTime);
     }
 
-    // test ah, 1 on the `vy < -0.9f` test is C0 alone, so an unordered vy stamps
+    // A bit test of ah against 1 on the `vy < -0.9f` test is C0 alone, so an unordered vy stamps
     // the time where the C text would not. This is the second divergence.
     [Fact]
     public void Thrust_StampsTheHardForwardTimeForAnUnorderedInput()

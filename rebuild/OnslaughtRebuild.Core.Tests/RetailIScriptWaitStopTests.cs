@@ -9,8 +9,7 @@ namespace OnslaughtRebuild.Core.Tests;
 /// <c>IScript::PlayCharMessageWait</c> at <c>0x005375f0</c>
 /// on specimen <c>74154bfa…</c>. Official
 /// <c>0x00537d55</c> / <c>0x005376f9</c> are
-/// <c>c7 05 00 c8 89 00 01 00 00 00</c> =
-/// <c>mov dword ptr [0x0089c800], 1</c>. Isolated
+/// a store of constant 1 to the value at 0x0089c800. Isolated
 /// <see cref="Level100MissionTiming.PauseTicks"/> /
 /// <see cref="Level100MissionTiming.MessagePlaybackTicks"/>
 /// name the rebuild sleep, not this store. CVM snapshot /
@@ -21,7 +20,7 @@ namespace OnslaughtRebuild.Core.Tests;
 public sealed class RetailIScriptWaitStopTests
 {
     /// <summary>
-    /// <c>mov [0x0089c800], 1</c> writes literal 1.
+    /// A store of constant 1 to the value at 0x0089c800 writes literal 1.
     /// Isolated wait duration still passes if this store
     /// is skipped. Mutation: <c>return current + 1</c>.
     /// </summary>

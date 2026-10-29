@@ -38,7 +38,7 @@ public enum RetailStartupCue
     /// <c>CGame::RestartLoopRunLevel</c> at <c>game.cpp:1336-1345</c>, i.e.
     /// AFTER the level has loaded and BEFORE the first gameplay frame. The clip
     /// id comes from the campaign FMV table, read from the pristine specimen
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>
+    /// a private pristine copy
     /// (sha256 <c>74154bfa…</c>) at file offset <c>0x23FD70</c>
     /// (VA <c>0x0063FD70</c>), records of
     /// <c>[i32 level][i32 intro][i32 outroA][i32 outroB]</c>. Row 0 reads
@@ -55,11 +55,11 @@ public enum RetailStartupCue
 /// <para><b>Provenance.</b> Passive D3D9 proxy capture
 /// <c><maintainer evidence>\bea-d3d9-capture\d3d9-20260728-111552.log</c>, 900 presented frames /
 /// 896 draws, <c>refusals total=0 warnings=0</c>, specimen verified unchanged
-/// after the run. Target <c>local-lab/safe-copy-bea-pristine/BEA.exe</c>
+/// after the run. Target a private patched copy
 /// (pristine plus the four-byte force-windowed patch at <c>0x12A644</c>), run
 /// with NO arguments — the first proxy capture ever taken without
 /// <c>-skipfmv</c>. Written up in
-/// <c>local-lab/FMV-PRESENTATION-2026-07-28.md</c>.</para>
+/// the private lab note FMV-PRESENTATION-2026-07-28.md.</para>
 ///
 /// <para><b>The whole FMV is one draw per frame:</b>
 /// <c>DrawPrimitiveUP</c>, <c>TRIFAN</c>, 2 primitives, 4 vertices,
@@ -236,7 +236,7 @@ public readonly record struct RetailStartupClip(
 /// <c>cutscenes/01.vid</c> carries FIVE <c>binkaudio_rdft</c> 44.1 kHz stereo
 /// tracks, one per shipped language, and <b>English is track 0</b>. That is read
 /// out of the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> (sha256
+/// a private pristine copy (sha256
 /// <c>74154bfa…</c>), file offset = VA − <c>0x400000</c>: the five arms of
 /// <c>CText::Init</c>'s jump table at <c>0x004f2498</c> load, by case,
 /// <c>0x00632D74</c> "english", <c>0x00632D7C</c> "french", <c>0x00632D94</c>
@@ -306,9 +306,9 @@ public readonly record struct RetailStartupFrame(
 /// little-endian dword <c>0x0083d404</c> finds three hits, all reads, which was
 /// read as "no writer exists, therefore the screen is dead code". It is not a
 /// plain BSS dword. <c>0x004efae0</c> runs
-/// <c>push 0; push 0x632b28 ("TWIMTBP"); mov ecx,0x83d3f8; call 0x528aa0</c>,
+/// a call to 0x528aa0 on the object at 0x83d3f8 with the string "TWIMTBP" (at 0x632b28) and a zero argument,
 /// constructing a console variable named <c>TWIMTBP</c> at <c>0x83d3f8</c>, and
-/// <c>CVar::Init</c> stores its value with <c>mov [eax+0xc], ecx</c> —
+/// <c>CVar::Init</c> stores its value with a store of ecx to field +0xc of eax —
 /// and <c>0x83d3f8 + 0xc</c> IS <c>0x83d404</c>. The store is object-relative,
 /// so an absolute-address scan cannot see it. The shipped <c>cardid.txt</c>
 /// then carries <c>Tweak:TWIMTBP 1</c> under exactly one device:
@@ -317,7 +317,7 @@ public readonly record struct RetailStartupFrame(
 /// So the screen is reachable BY DESIGN, on one 2003 adapter. It is omitted
 /// because no modern adapter matches that tweak entry and it demonstrably did
 /// not play on the measured hardware — not because it is unreachable. See
-/// <c>local-lab/SPLASH-AND-INTRO-FMV-2026-07-26.md</c>.
+/// the private lab note SPLASH-AND-INTRO-FMV-2026-07-26.md.
 ///
 /// <para><b>The two constants that are NOT derived from a shipped byte.</b></para>
 /// <see cref="InterClipBlackSeconds"/> and the splash fade/hold are measured

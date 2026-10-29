@@ -91,7 +91,7 @@ public sealed class RetailBattleEngineInterpolationTests
             RetailBattleEngineInterpolation.AdjustedOldAngle(-justOver, 3.0f));
     }
 
-    // test ah, 1 on the `current < -threshold` test is C0 alone, so an unordered
+    // A bit test of ah against 1 on the `current < -threshold` test is C0 alone, so an unordered
     // current takes the NEGATIVE arm. A source-faithful model would fall to the
     // positive arm and answer 3.0 here.
     [Fact]
@@ -105,7 +105,7 @@ public sealed class RetailBattleEngineInterpolationTests
         Assert.Equal(1.0, RetailBattleEngineInterpolation.AdjustedOldAngle(float.NaN, 1.0f));
     }
 
-    // test ah, 1 on the `old < -threshold` test is C0 alone as well, so an
+    // A bit test of ah against 1 on the `old < -threshold` test is C0 alone as well, so an
     // unordered OLD angle gets a full turn added on the positive arm. The result
     // is still unordered, which is exactly why this has to be asserted on the
     // intermediate.

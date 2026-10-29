@@ -7,20 +7,20 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D8A4 not/and/xor overlay at
 /// <c>0x00463F83</c>, recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 /// Independently re-read official 74154bfa this cycle (image base 0x400000).
 ///
 /// <para>The keep-going leftover labeled <c>0x00463F83</c> as a
-/// 0.3-scale sheen. Official bytes: <c>mov eax, esi</c> at
-/// <c>0x00463F83</c>, <c>shl 8 / sub esi / push ebp / shl 16 /
-/// mov edx, eax / not edx / and 0x00FFFFFF / xor eax</c>, then
+/// 0.3-scale sheen. Official bytes: a copy of esi into eax at
+/// <c>0x00463F83</c>, a left shift by 8, then subtraction of esi, then push of ebp, then left shift by 16,
+/// then copy of eax into edx, then bitwise not of edx, then mask with 0x00FFFFFF, then xor with eax, then
 /// <c>CDXSurf__RenderSurface</c> (<c>0x005563D0</c>) as
 /// <c>(457, 355, z bits 0x3E99999A, 0x0089D8A4, colour, sx=sy
 /// from [esp+0x40], mode 4, 0, 1.0, ebp)</c>. The 0.3 push is Z,
-/// not scale and not a 29% title-logo. Gate is <c>0x00463E8D</c>
-/// <c>test ah, 1 / je 0x00463FC7</c> — transition &lt; 0.9 only.
+/// not scale and not a 29% title-logo. Gate is <c>0x00463E8D</c>: a bit test of
+/// ah against 1, branching to 0x00463FC7 when equal — transition &lt; 0.9 only.
 /// Settled 255 submits <c>0xFEFFFFFF</c>, which is not capture
 /// BracketTint. DrawMainMenu keeps BracketTint. Not a sheen
 /// (that is already 0x00464343). Not SetLanguage. Not a Process

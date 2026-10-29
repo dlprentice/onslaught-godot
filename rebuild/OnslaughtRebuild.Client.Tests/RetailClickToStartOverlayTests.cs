@@ -7,14 +7,14 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPIntro::Render tail after the sixth title pass, recovered
 /// from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
-/// <para><b>Body.</b> <c>0x0051BD8C</c>–<c>0x0051BE66</c> (<c>RET 8</c>).
-/// After <c>ADD ESP, 0x2C</c> / <c>JMP</c> past the sixth-pass <c>FSTP</c>,
+/// <para><b>Body.</b> <c>0x0051BD8C</c>–<c>0x0051BE66</c> (a return that pops 8 bytes of arguments).
+/// After a stack cleanup of 0x2C bytes / <c>JMP</c> past the sixth-pass <c>FSTP</c>,
 /// Render loads <c>0x0089BB68</c> at <c>0x0051BD93</c> and
-/// <c>JE 0x0051BE5E</c> to the epilogue when the dword is 0. The 10th
+/// a conditional branch to 0x0051BE5E (taken when equal) to the epilogue when the dword is 0. The 10th
 /// <c>CDXSurf__RenderSurface</c> (<c>0x005563D0</c>) and the font-1
 /// <c>CDXFont__DrawText</c> walk are inside that gate. They are not a
 /// seventh title pass and they are not Infogrames <c>+0x124</c>.</para>
@@ -30,7 +30,8 @@ public sealed class RetailClickToStartOverlayTests
     [Fact]
     public void ImageInitialFlagSkipsTheEntireTail()
     {
-        // 0x0051BD93 mov eax,[0x0089BB68]; test eax,eax / je 0x0051BE5E.
+        // 0x0051BD93: a load of the value at 0x0089BB68 into eax; a zero test
+        // of eax, then conditional branch to 0x0051BE5E (taken when equal).
         // pe_read_va: VA is in the uninitialised part of .data.
         Assert.Equal(0x0089BB68u, RetailClickToStartOverlay.FlagGlobal);
         Assert.Equal(0u, RetailClickToStartOverlay.ImageInitialFlag);
@@ -42,7 +43,7 @@ public sealed class RetailClickToStartOverlayTests
     [Fact]
     public void BackdropIsModeZeroBlackSplashAtOriginScaleTen()
     {
-        // Pushes at 0x0051BDA6–0x0051BDC5 then call 0x005563D0.
+        // Pushes at 0x0051BDA6–0x0051BDC5 then a direct call to 0x005563D0.
         // Texture is 0x0089D880 (same as the pulse splash), not title-logo.
         // 0x41200000 = 10.0; colour 0xFF000000; mode 0; x=y=z=0.
         Assert.Equal(RetailClickToStartSplash.TextureGlobal, RetailClickToStartOverlay.BackdropTextureGlobal);
@@ -59,10 +60,10 @@ public sealed class RetailClickToStartOverlayTests
     [Fact]
     public void TextWalkUsesFontSlotOneAtSixtyFourAndSixteenPixelLines()
     {
-        // 0x0051BDD8 first-byte test; 0x0051BE33 push 0x42800000 (64);
+        // 0x0051BDD8 first-byte test; 0x0051BE33: a push of constant 0x42800000 (64);
         // 0x0051BE38 push 1 then CPlatform__Font 0x00515A70;
-        // 0x0051BE46 CDXFont__DrawText 0x00540640; 0x0051BE4F fadd [0x005D8BC0]=16.
-        // Y0 is fld [0x005DBB64]=64 then fsub [0x0089BB6C].
+        // 0x0051BE46 CDXFont__DrawText 0x00540640; 0x0051BE4F: a float add of the value at 0x005D8BC0=16.
+        // Y0 is a float load of the value at 0x005DBB64=64 then a float subtract of the value at 0x0089BB6C.
         Assert.Equal(0x00897B28u, RetailClickToStartOverlay.TextGlobal);
         Assert.Equal(0x0089BB6Cu, RetailClickToStartOverlay.ScrollGlobal);
         Assert.Equal(1, RetailClickToStartOverlay.FontSlot);

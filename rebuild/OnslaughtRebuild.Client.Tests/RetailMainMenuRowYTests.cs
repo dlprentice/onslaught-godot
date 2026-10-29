@@ -10,22 +10,22 @@ namespace OnslaughtRebuild.Client.Tests;
 /// index -1, or 304.0 and index 0 when
 /// <c>[0x0083D990]</c> is nonzero — recovered from
 /// official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00462E96</c> <c>mov [esp+0x10], 0x43860000</c>
-/// (268.0), <c>0x00462EE7</c> <c>mov eax, [0x0083D990]</c>,
-/// <c>0x00462EEC</c> <c>or ebp, -1</c>,
-/// <c>0x00462EEF</c> <c>test eax, eax</c>,
-/// <c>0x00462EF1</c> <c>je 0x00462EFD</c>,
-/// <c>0x00462EF3</c> <c>xor ebp, ebp</c>,
-/// <c>0x00462EF5</c> <c>mov [esp+0x10], 0x43980000</c>
+/// <c>0x00462E96</c>: a store of constant 0x43860000 to stack local +0x10
+/// (268.0), <c>0x00462EE7</c>: a load of the value at 0x0083D990 into eax,
+/// <c>0x00462EEC</c>: an or of -1 into ebp,
+/// <c>0x00462EEF</c>: a zero test of eax,
+/// <c>0x00462EF1</c>: a conditional branch to 0x00462EFD (taken when equal),
+/// <c>0x00462EF3</c>: a zeroing of ebp,
+/// <c>0x00462EF5</c>: a store of constant 0x43980000 to stack local +0x10
 /// (304.0). <c>pe_read_va</c> of <c>0x0083D990</c> is
 /// uninitialised <c>.data</c>. <c>0x005DB5D8</c> is
-/// <c>00 00 10 42</c> (36.0); labels <c>jmp 0x0046364D</c>
+/// 36.0; labels (a jump to 0x0046364D)
 /// skip that add. Dest Y stays the dest leftover. DrawMainMenu
 /// keeps dest Y as rowY-8. Do not invent dest Y=268 or
 /// dest Y=304. Do not invent dest, wrap, fade, sheen, or a

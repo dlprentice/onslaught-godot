@@ -25,7 +25,7 @@ namespace OnslaughtRebuild.Core;
 /// <see cref="RetailJetFriction"/> names — and it is stored to a float slot
 /// once and reused by both arms. <c>MAP.Collide</c> is <c>0x0047EB80</c> on the
 /// map object at <c>0x006FADC8</c>. Every comparison is
-/// <c>test ah, 0x41</c> with <c>jne</c> to the failure label, so each is a plain
+/// a bit test of ah against 0x41 with <c>jne</c> to the failure label, so each is a plain
 /// ordered strictly-greater and an unordered sample fails it, exactly as C
 /// <c>&gt;</c> does. There is no divergence to record in this body.
 /// </para>
@@ -56,7 +56,7 @@ namespace OnslaughtRebuild.Core;
 /// <c>MAP.Collide</c> returns in <c>st(0)</c> at the ambient 53-bit precision.
 /// The first sample at <c>0x00413AAE</c> is subtracted and compared without
 /// ever being stored. The <i>second</i> call on the same position, at
-/// <c>0x00413AFC</c>, is immediately <c>fstp dword ptr [esp + 8]</c> — rounded
+/// <c>0x00413AFC</c>, is immediately (a float store to stack local +8) — rounded
 /// to float — and only then compared against the extended sample ahead. So the
 /// inner test at <c>0x00413B13</c> is
 /// <c>extended(ahead) &gt; float(here)</c>, and a rebuild that keeps both wide,
@@ -67,7 +67,7 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>The look-ahead position is float-rounded componentwise.</b>
-/// <c>0x00413AF0-0x00413AF8</c> stores the three sums with <c>fstp dword</c>
+/// <c>0x00413AF0-0x00413AF8</c> stores the three sums with a float store to dword
 /// before <c>Collide</c> ever sees them. Each sum is one x87 add of two floats
 /// under 53-bit precision, which is exact, so the store is a single rounding and
 /// <see cref="AdvancePosition"/> matches plain float addition — recorded rather
@@ -90,7 +90,7 @@ public static class RetailWalkerWaterEntry
 
     /// <summary>
     /// One component of <c>GetPos() + GetVelocity()</c> as retail stores it —
-    /// <c>fadd</c> at the ambient precision then <c>fstp dword</c>
+    /// <c>fadd</c> at the ambient precision then a float store to dword
     /// (<c>0x00413AD4-0x00413AF8</c>).
     /// </summary>
     public static float AdvancePosition(float position, float velocity) =>
@@ -119,7 +119,7 @@ public static class RetailWalkerWaterEntry
 
         if (groundHere - (double)waterLevel > (double)ShoreDepth)
         {
-            // fstp dword ptr [esp + 8] at 0x00413B01: the height HERE is
+            // A float store to stack local +8 at 0x00413B01: the height HERE is
             // narrowed to float before the comparison, the height AHEAD is not.
             return groundAhead > (double)(float)groundHere;
         }

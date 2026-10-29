@@ -5,27 +5,28 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render selected-row icon shadow colour — recovered from
 /// the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Fade source.</b> <c>0x0046405F</c> is
-/// <c>fistp qword [esp+0x18]</c> of the icon-fade byte.
+/// a float-to-integer store to 64-bit stack local +0x18 of the icon-fade byte.
 /// <c>0x00464067</c> is the signed 0..255 clamp
-/// (<c>test esi / jge / xor esi / cmp 255 / jle / mov esi, 255</c>).
+/// (a bit test of esi, branching when greater or equal, then xor with esi, then compare
+/// with 255, branching when less or equal, then load of constant 255 into esi).
 /// The keep-going leftover labeled <c>0x00464075</c> as the pack
-/// start; that byte is <c>7E 05</c>, the clamp <c>jle</c>.
+/// start; that byte is the clamp <c>jle</c>.
 /// Settled icon-fade is 255. This is not a Process increment.</para>
 ///
-/// <para><b>Site.</b> <c>0x0046407C</c> is <c>mov ecx, esi</c>.
-/// <c>0x00464085</c> is <c>shl ecx, 6</c>.
-/// <c>0x0046408A</c> is <c>sub ecx, esi</c>.
-/// <c>0x00464093</c> is <c>shl ecx, 16</c>.
-/// <c>0x0046409D</c> is <c>and ecx, 0xFF000000</c>.
+/// <para><b>Site.</b> <c>0x0046407C</c> is a copy of esi into ecx.
+/// <c>0x00464085</c> is a left shift of ecx by 6.
+/// <c>0x0046408A</c> is a subtraction of esi from ecx.
+/// <c>0x00464093</c> is a left shift of ecx by 16.
+/// <c>0x0046409D</c> is a mask of ecx with 0xFF000000.
 /// <c>0x0046407E</c> is the
-/// <c>mov eax, [edi*4+0x0089D7A8]</c> texture load, not the pack.
+/// load of indexed table entry at +0x0089D7A8 into eax texture load, not the pack.
 /// Shadow scale pushes at <c>0x00464098</c> stay the already-drawn
 /// 1.05 <c>ShadowScaleBoost</c>.</para>
 ///
@@ -47,33 +48,33 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuSelectedIconShadow
 {
-    /// <summary><c>mov ecx, esi</c> at <c>0x0046407C</c>.</summary>
+    /// <summary>A copy of esi into ecx at <c>0x0046407C</c>.</summary>
     public const uint Site = 0x0046407Cu;
 
-    /// <summary><c>shl ecx, 6</c> at <c>0x00464085</c>.</summary>
+    /// <summary>A left shift of ecx by 6 at <c>0x00464085</c>.</summary>
     public const uint ShiftSite = 0x00464085u;
 
-    /// <summary><c>shl ecx, 6</c>.</summary>
+    /// <summary>A left shift of ecx by 6.</summary>
     public const int ShiftLeft = 6;
 
-    /// <summary><c>sub ecx, esi</c> at <c>0x0046408A</c>.</summary>
+    /// <summary>A subtraction of esi from ecx at <c>0x0046408A</c>.</summary>
     public const uint SubSite = 0x0046408Au;
 
-    /// <summary><c>shl ecx, 16</c> at <c>0x00464093</c>.</summary>
+    /// <summary>A left shift of ecx by 16 at <c>0x00464093</c>.</summary>
     public const uint Shift16Site = 0x00464093u;
 
-    /// <summary><c>and ecx, 0xFF000000</c> at <c>0x0046409D</c>.</summary>
+    /// <summary>A mask of ecx with 0xFF000000 at <c>0x0046409D</c>.</summary>
     public const uint AndSite = 0x0046409Du;
 
     /// <summary>The AND immediate. Black RGB, alpha only.</summary>
     public const uint AlphaMask = 0xFF000000u;
 
-    /// <summary><c>fistp qword [esp+0x18]</c> at <c>0x0046405F</c>.</summary>
+    /// <summary>A float-to-integer store to 64-bit stack local +0x18 at <c>0x0046405F</c>.</summary>
     public const uint FistpSite = 0x0046405Fu;
 
     /// <summary>
-    /// The leftover-suggested VA. Specimen byte is <c>7E 05</c>
-    /// (<c>jle</c> after <c>cmp esi, 255</c>), not the pack.
+    /// The leftover-suggested VA. The specimen has
+    /// the clamp <c>jle</c> there (after a compare of esi with 255), not the pack.
     /// </summary>
     public const uint ClampJleSite = 0x00464075u;
 

@@ -9,24 +9,24 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <c>0x00462F3D</c> — SIZE cx/cy, dest X <c>219.0 − cx×0.5</c>,
 /// dest Y row-Y minus integer-half cy — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x00462F25</c> <c>lea ecx,[esp+0x18]</c>,
-/// <c>0x00462F29</c> <c>mov [esp+0x28],eax</c>,
-/// <c>push ecx / push eax / push 1</c>,
-/// <c>call 0x00515A70</c> at <c>0x00462F36</c>,
-/// <c>call 0x00540680</c> at <c>0x00462F3D</c>
-/// (<c>RET 8</c>). SIZE store is
-/// <c>mov [edi],edx</c> at <c>0x00540807</c> then
-/// <c>mov [edi+4],eax</c> at <c>0x00540815</c>. Dest X is
-/// <c>fild [esp+0x18]</c> / <c>fmul [0x005D85EC]</c> (0.5) /
-/// <c>fsubr [0x005DB5E0]</c> (219.0) into ebx. Dest Y is
-/// <c>mov eax,[esp+0x1C]</c> / <c>cdq</c> / <c>sub eax,edx</c> /
-/// <c>sar eax,1</c> then <c>fsubr [esp+0x10]</c> into
+/// <c>0x00462F25</c>: an address computation (esp+0x18) into ecx,
+/// <c>0x00462F29</c>: a store of eax to stack local +0x28,
+/// a push of ecx, then push of eax, then push of constant 1,
+/// a direct call to 0x00515A70 at <c>0x00462F36</c>,
+/// a direct call to 0x00540680 at <c>0x00462F3D</c>
+/// (a return that pops 8 bytes of arguments). SIZE store is
+/// a store of edx to value pointed to by edi at <c>0x00540807</c> then
+/// a store of eax to field +4 of edi at <c>0x00540815</c>. Dest X is
+/// an integer-to-float load of stack local +0x18, then float multiply by the value at 0x005D85EC (0.5) /
+/// a reversed float subtract of the value at 0x005DB5E0 (219.0) into ebx. Dest Y is
+/// a load of stack local +0x1C into eax / <c>cdq</c> / a subtraction of edx from eax, then
+/// arithmetic right shift of eax by 1 then a reversed float subtract of stack local +0x10 into
 /// <c>[esp+0x24]</c>. Dest is ebx/ecx, not immediates.
 /// The 2px MeasureText residual stays open. DrawMainMenu
 /// keeps LabelColor, MeasureText width, and scale 1.0. Do

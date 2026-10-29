@@ -5,24 +5,24 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render title-logo shadow colour — recovered from
 /// the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
 /// <para><b>Fade source.</b> <c>0x0046423D</c> is
-/// <c>cmp ebx, 0x0C</c>. <c>0x00464240</c> is
-/// <c>fistp [esp+0x18]</c> of the page-fade byte.
-/// <c>0x0046424A</c> is <c>mov esi, 255</c> on the dest == 0x0c
+/// a compare of ebx with 0x0C. <c>0x00464240</c> is
+/// a float-to-integer store to stack local +0x18 of the page-fade byte.
+/// <c>0x0046424A</c> is a load of constant 255 into esi on the dest == 0x0c
 /// arm (click-to-start arrival). This lane only ever takes that
 /// arm, so the shadow fade is 255. This is not a 29% scale.</para>
 ///
-/// <para><b>Site.</b> <c>0x0046424F</c> is <c>mov ecx, esi</c>.
-/// <c>0x00464256</c> is <c>shl ecx, 6</c>.
-/// <c>0x0046425B</c> is <c>sub ecx, esi</c>.
-/// <c>0x00464264</c> is <c>shl ecx, 16</c>.
-/// <c>0x0046426E</c> is <c>and ecx, 0xFF000000</c>.
-/// <c>0x00464251</c> is the <c>mov eax, [0x0089d88c]</c> texture
+/// <para><b>Site.</b> <c>0x0046424F</c> is a copy of esi into ecx.
+/// <c>0x00464256</c> is a left shift of ecx by 6.
+/// <c>0x0046425B</c> is a subtraction of esi from ecx.
+/// <c>0x00464264</c> is a left shift of ecx by 16.
+/// <c>0x0046426E</c> is a mask of ecx with 0xFF000000.
+/// <c>0x00464251</c> is the load of the value at 0x0089d88c into eax texture
 /// load, not the pack.</para>
 ///
 /// <para><b>Pack.</b> <c>((esi &lt;&lt; 6) - esi) &lt;&lt; 16 &amp;
@@ -42,28 +42,28 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuTitleLogoShadow
 {
-    /// <summary><c>mov ecx, esi</c> at <c>0x0046424F</c>.</summary>
+    /// <summary>A copy of esi into ecx at <c>0x0046424F</c>.</summary>
     public const uint Site = 0x0046424Fu;
 
-    /// <summary><c>shl ecx, 6</c> at <c>0x00464256</c>.</summary>
+    /// <summary>A left shift of ecx by 6 at <c>0x00464256</c>.</summary>
     public const uint ShiftSite = 0x00464256u;
 
-    /// <summary><c>shl ecx, 6</c>.</summary>
+    /// <summary>A left shift of ecx by 6.</summary>
     public const int ShiftLeft = 6;
 
-    /// <summary><c>and ecx, 0xFF000000</c> at <c>0x0046426E</c>.</summary>
+    /// <summary>A mask of ecx with 0xFF000000 at <c>0x0046426E</c>.</summary>
     public const uint AndSite = 0x0046426Eu;
 
     /// <summary>The AND immediate. Black RGB, alpha only.</summary>
     public const uint AlphaMask = 0xFF000000u;
 
-    /// <summary><c>cmp ebx, 0x0C</c> at <c>0x0046423D</c>.</summary>
+    /// <summary>A compare of ebx with 0x0C at <c>0x0046423D</c>.</summary>
     public const uint DestCompareSite = 0x0046423Du;
 
     /// <summary>Click-to-start page ordinal.</summary>
     public const int ClickPageDest = 0x0C;
 
-    /// <summary><c>mov esi, 255</c> at <c>0x0046424A</c>.</summary>
+    /// <summary>A load of constant 255 into esi at <c>0x0046424A</c>.</summary>
     public const int DestForceImmediate = 255;
 
     /// <summary>Settled page-fade <c>fistp</c>, and the dest==0x0c force.</summary>

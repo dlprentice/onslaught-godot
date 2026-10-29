@@ -13,8 +13,8 @@ namespace OnslaughtRebuild.Core;
 /// are only a claim until something in the image indexes on them. Two shipped
 /// tables do: the <c>CBattleEngine::Gravity</c> switch at <c>0x00407520</c> and
 /// <c>0x00407530</c>, and the state compares inside
-/// <c>CBattleEngine::AugmentWeapon</c> (<c>cmp eax, 2</c> at <c>0x0040DEA3</c>
-/// selecting the walker part at <c>+0x578</c>, <c>cmp eax, 3</c> at
+/// <c>CBattleEngine::AugmentWeapon</c> (a compare of eax with 2 at <c>0x0040DEA3</c>
+/// selecting the walker part at <c>+0x578</c>, a compare of eax with 3 at
 /// <c>0x0040DEC2</c> selecting the jet part at <c>+0x57C</c>). Both agree with
 /// declaration order, so the header ordering is confirmed, not assumed.
 /// </para>
@@ -33,10 +33,10 @@ public enum RetailBattleEngineState
     /// <summary><c>BATTLE_ENGINE_STATE_MORPHING_INTO_JET</c> — jump-table slot 1.</summary>
     MorphingIntoJet = 1,
 
-    /// <summary><c>BATTLE_ENGINE_STATE_WALKER</c> — slot 2, and the <c>cmp eax, 2</c> at <c>0x0040DEA3</c>.</summary>
+    /// <summary><c>BATTLE_ENGINE_STATE_WALKER</c> — slot 2, and the compare of eax with 2 at <c>0x0040DEA3</c>.</summary>
     Walker = 2,
 
-    /// <summary><c>BATTLE_ENGINE_STATE_JET</c> — slot 3, and the <c>cmp eax, 3</c> at <c>0x0040DEC2</c>.</summary>
+    /// <summary><c>BATTLE_ENGINE_STATE_JET</c> — slot 3, and the compare of eax with 3 at <c>0x0040DEC2</c>.</summary>
     Jet = 3,
 }
 
@@ -63,7 +63,7 @@ public enum RetailBattleEngineState
 /// </list>
 /// <para>
 /// <b>Source and retail agree, but only once the enum ordinals are measured.</b>
-/// The dispatch is <c>test byte ptr [ecx + 0x2C], 4</c> (the dying flag) then
+/// The dispatch is a bit test of byte field +0x2C of ecx against 4 (the dying flag) then
 /// two four-entry jump tables selected by <c>mState</c> at <c>+0x260</c>. The
 /// tables read, verbatim from the image:
 /// </para>
@@ -74,7 +74,7 @@ public enum RetailBattleEngineState
 /// <para>
 /// With <see cref="RetailBattleEngineState.MorphingIntoWalker"/> at ordinal 0
 /// that is exactly the source: only the morph-into-walker arm is scaled, and
-/// only while alive. <c>cmp eax, 3 / ja</c> guards both tables, so any state
+/// only while alive. A compare of eax with 3, branching when above guards both tables, so any state
 /// above 3 falls to <c>0x00407518</c> and returns <c>0.0f</c>, which is the
 /// source's trailing <c>return 0.0f</c>. Nothing reaches it from a well-formed
 /// state; it is modelled because it is in the shipped code.
@@ -90,7 +90,7 @@ public enum RetailBattleEngineState
 /// <b>Source and retail DIVERGE in the jet arm on an unordered energy, and
 /// retail wins.</b> <c>BattleEngineJetPart.cpp:509</c> is
 /// <c>if (mMainPart-&gt;mEnergy==0)</c>. The shipped test at <c>0x004114E1</c>
-/// is <c>test ah, 0x40</c> — C3 alone — and an unordered compare sets C3, so a
+/// is a bit test of ah against 0x40 — C3 alone — and an unordered compare sets C3, so a
 /// NaN energy returns <c>0.005f</c> where C would return <c>0.0f</c>. Written
 /// the natural C# way (<c>energy == 0.0f</c>) the NaN would fall the other way,
 /// which is why <see cref="JetGravity"/> is written as a negated inequality.
@@ -128,7 +128,7 @@ public static class RetailBattleEngineGravity
     /// </summary>
     public static float JetGravity(float energy)
     {
-        // test ah, 0x40 reads C3, which fcomp sets for "equal" AND for
+        // A bit test of ah against 0x40 reads C3, which fcomp sets for "equal" AND for
         // "unordered". C# has no single operator with that truth table, so the
         // unordered case is spelled out; writing this as `energy == 0.0f` alone
         // would model a different function on a NaN.
@@ -139,14 +139,15 @@ public static class RetailBattleEngineGravity
     /// <c>CBattleEngine::Gravity</c> — <c>BattleEngine.cpp:1064-1088</c>,
     /// <c>0x004074D0</c>.
     /// </summary>
-    /// <param name="isDying"><c>test byte ptr [ecx + 0x2C], 4</c>.</param>
+    /// <param name="isDying">a bit test of byte field +0x2C of ecx against 4.</param>
     /// <param name="state">The raw <c>mState</c> word at <c>+0x260</c>, not the
     /// enum, because the <c>ja</c> default arm at <c>0x00407518</c> is only
     /// reachable with a value outside the enum.</param>
     /// <param name="jetEnergy">Forwarded to <see cref="JetGravity"/> on the jet arm.</param>
     public static float Gravity(bool isDying, int state, float jetEnergy)
     {
-        // cmp eax, 3 / ja 0x00407518 - unsigned, so a negative state is above 3.
+        // A compare of eax with 3, then conditional branch to 0x00407518
+        // (taken when above) - unsigned, so a negative state is above 3.
         if ((uint)state > (uint)RetailBattleEngineState.Jet)
         {
             return NoGravity;

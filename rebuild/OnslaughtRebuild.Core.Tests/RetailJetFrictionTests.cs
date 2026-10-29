@@ -68,7 +68,7 @@ public sealed class RetailJetFrictionTests
                     StationaryComponent,
                     StationaryComponent)));
 
-    // The slow-flight gate at 0x00411B39 is 1.5f and it is `test ah, 1` -
+    // The slow-flight gate at 0x00411B39 is 1.5f and it is a bit test of ah against 1 -
     // C0-only - so the interpolated arm needs a magnitude strictly below 1.5.
     // Exactly 1.5 takes the fast arm and gets the flat 0.99f, which at altitude
     // 2 is visibly different from the 0.98f the interpolation would give.
@@ -220,7 +220,7 @@ public sealed class RetailJetFrictionTests
                     StationaryComponent,
                     StationaryComponent)));
 
-    // Every compare in this body is `fcomp / fnstsw / test ah, 1`, which reads
+    // Every compare in this body is a float compare, a status-word read and a C0 test, which reads
     // C0 alone, and an unordered compare sets C0. So a NaN water level is
     // chosen over a finite ground level, and the NaN altitude that follows
     // takes the near-surface arm. Written the natural C# way - `waterLevel <

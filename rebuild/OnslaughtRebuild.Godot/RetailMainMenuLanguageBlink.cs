@@ -5,18 +5,18 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render language-chevron blink — recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
 /// <para><b>Sites.</b> Left <c>0x00463334</c>, right <c>0x004634C0</c>.
-/// Both <c>fld [0x008A9570]; fistp; and edx, 0x8000003F</c>, then the
-/// MSVC negative fixup <c>dec / or 0xFFFFFFC0 / inc</c>, then
-/// <c>cmp edx, 0x32 / jl draw</c>. Hidden band falls through to
-/// <c>fld [edi+0x1C]</c> (right: <c>+0x20</c>)
-/// <c>fcomp [0x005D856C]</c>. That dword is 0. <c>test ah, 0x41 / jne
-/// skip</c> means timer ≤ 0 hides. This type takes the float and
+/// Both sequence (float load of the value at 0x008A9570, then float-to-integer store, then mask of edx with 0x8000003F), then the
+/// MSVC negative fixup (a decrement, then or with 0xFFFFFFC0, then increment), then
+/// a compare of edx with 0x32, branching when less. Hidden band falls through to
+/// a float load of field +0x1C of edi (right: <c>+0x20</c>)
+/// (a float compare against the value at 0x005D856C, popping the result). That dword is 0. A bit test
+/// of ah against 0x41, branching when not equal means timer ≤ 0 hides. This type takes the float and
 /// does not invent a Process increment.</para>
 ///
 /// <para><b>Cold.</b> <c>0x008A9570</c> is uninitialised BSS. Remainder
@@ -30,7 +30,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuLanguageBlink
 {
-    /// <summary><c>fld [0x008A9570]</c> at <c>0x00463334</c>.</summary>
+    /// <summary>A float load of the value at 0x008A9570 at <c>0x00463334</c>.</summary>
     public const uint CounterGlobal = 0x008A9570u;
 
     /// <summary>
@@ -49,19 +49,19 @@ public static class RetailMainMenuLanguageBlink
     /// <summary>Right chevron <c>fld</c> at <c>0x004634C0</c>.</summary>
     public const uint RightSite = 0x004634C0u;
 
-    /// <summary><c>and edx, 0x8000003F</c> at <c>0x00463345</c>.</summary>
+    /// <summary>A mask of edx with 0x8000003F at <c>0x00463345</c>.</summary>
     public const uint SignedMask = 0x8000003Fu;
 
-    /// <summary><c>or edx, 0xFFFFFFC0</c> at <c>0x0046334E</c>.</summary>
+    /// <summary>An or of 0xFFFFFFC0 into edx at <c>0x0046334E</c>.</summary>
     public const uint NegativeFixup = 0xFFFFFFC0u;
 
     /// <summary>The 64-tick period implied by the 6-bit remainder.</summary>
     public const int Period = 64;
 
-    /// <summary><c>cmp edx, 0x32</c> at <c>0x00463352</c>.</summary>
+    /// <summary>A compare of edx with 0x32 at <c>0x00463352</c>.</summary>
     public const int VisibleBelow = 0x32;
 
-    /// <summary><c>fcomp [0x005D856C]</c> at <c>0x0046335A</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D856C, popping the result at <c>0x0046335A</c>.</summary>
     public const uint TimerThresholdGlobal = 0x005D856Cu;
 
     /// <summary>Image bits at <c>0x005D856C</c>.</summary>
@@ -110,7 +110,7 @@ public static class RetailMainMenuLanguageBlink
     }
 
     /// <summary>
-    /// <c>cmp edx, 0x32 / jl draw</c>, else timer &gt; 0.
+    /// A compare of edx with 0x32, branching when less, else timer &gt; 0.
     /// </summary>
     public static bool ShouldDraw(float counter, float timer)
     {

@@ -1071,7 +1071,7 @@ public static class Level100ContactMechanics
             3 => RetailFloat24.Sqrt(RetailFloat24.Add(RetailFloat24.Multiply(y, y), RetailFloat24.Multiply(x, x))),
             5 => RetailFloat24.Sqrt(RetailFloat24.Add(RetailFloat24.Multiply(z, z), RetailFloat24.Multiply(x, x))),
             6 => RetailFloat24.Sqrt(RetailFloat24.Add(RetailFloat24.Multiply(z, z), RetailFloat24.Multiply(y, y))),
-            // Shipped 0x004798a4 is DC C0 (FADD ST0,ST0), not a square.
+            // Shipped 0x004798a4 is a float add of the stack top to itself (a doubling), not a square.
             7 => RetailFloat24.Sqrt(RetailFloat24.Add(
                 RetailFloat24.Add(RetailFloat24.Multiply(y, y), RetailFloat24.Multiply(x, x)),
                 RetailFloat24.Add(z, z))),

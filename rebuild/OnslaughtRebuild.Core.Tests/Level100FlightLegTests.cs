@@ -83,7 +83,7 @@ public sealed class Level100FlightLegTests
     [InlineData(VehicleMode.Walker, VehicleTransition.None, 9, false)]
     // walker, airborne for 0.5 s or more: retail calls this in jet mode.
     // 0.5 s is TEN ticks at 20 Hz where it was fifteen at 30 Hz; the
-    // threshold is the shipped _DAT_005d85ec = 0.5f either way.
+    // threshold is the shipped 0x005d85ec = 0.5f either way.
     [InlineData(VehicleMode.Walker, VehicleTransition.None, 10, true)]
     [InlineData(VehicleMode.Walker, VehicleTransition.None, 400, true)]
     // mid-morph is not the walker state, whichever way it is going

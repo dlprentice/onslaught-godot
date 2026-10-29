@@ -390,7 +390,7 @@ public sealed class BattleEngineWalkerPart
 
     /// <summary>
     /// FMatrix(yaw, 0, 0) * (0, val, 0) as Forward compiles it (the out-of-line constructor 004062d0, then each row's Y
-    /// times val, 00412efb..00412f1e), quartered for slow movement (fmul 0.25f), added to the velocity.
+    /// times val, 00412efb..00412f1e), quartered for slow movement (a float multiply by 0.25f), added to the velocity.
     /// </summary>
     private void AddAlongHeading(float val)
     {

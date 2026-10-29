@@ -13,29 +13,29 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>The swap distance is retail's AUTHORED default, <b>30.0</b>, corrected
 /// from 70.0 on 2026-07-27 under GOAL.md's defaults rule (task #137). All bytes
 /// below are read from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+/// (a private pristine copy), sha256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c> —
 /// never the installed <c>BEA.exe</c>, which is deliberately patched.
 ///
 /// The field is the <b>Geometry detail</b> options row. Its setter at
 /// <c>0x004DD6B0</c> dispatches to exactly three arms, each a
-/// <c>mov dword [0x006321A0], imm32</c> (<c>C7 05 A0 21 63 00</c>):
+/// store of an immediate to the value at 0x006321A0:
 /// <c>0x004DD737</c> = 10.0 Low, <c>0x004DD6FF</c> = 30.0 Medium,
 /// <c>0x004DD6CA</c> = 70.0 High. The image's own static initialisers select one
 /// arm uniquely: <c>.data 0x006321A0</c> (file <c>0x231CA0</c>) is
-/// <c>00 00 F0 41</c> = 30.0, LOD bias <c>0x00631E88</c> (file <c>0x231988</c>)
+/// 30.0, LOD bias <c>0x00631E88</c> (file <c>0x231988</c>)
 /// is 1.0 and quality scale <c>0x00630E0C</c> (file <c>0x230F0C</c>) is 1.0 —
 /// arm 1, Medium. Low would be 10.0/3.0/0.1 and High 70.0/0.3/2.0.
 ///
 /// <b>70.0 was this machine's graphics setting, not an authored constant.</b>
-/// <c>defaultoptions.bea</c> file offset 0x26CA holds <c>00 00 8C 42</c> = 70.0f
+/// <c>defaultoptions.bea</c> file offset 0x26CA holds 70.0f
 /// with 0.3/2.0 beside it — but <c>proof_defaultoptions.bea</c>, in the same
-/// install, holds <c>00 00 F0 41</c> = 30.0f with 1.0/1.0 at the identical
+/// install, holds 30.0f with 1.0/1.0 at the identical
 /// offsets. That file is RUN STATE, not shipped defaults: no <c>.bea</c> appears
 /// in any of <c>INSTALL.LOG</c>'s 5,773 installed-file lines, and the game
 /// rewrites it. OptionsTail +0x0C is bound to <c>0x006321A0</c> by the
-/// serializer itself (<c>0x00420E0F</c> <c>A3 A0 21 63 00</c> on load,
-/// <c>0x00420BA0</c> <c>8B 0D A0 21 63 00</c> on save), which is exactly why a
+/// serializer itself (<c>0x00420E0F</c> on load,
+/// <c>0x00420BA0</c> on save), which is exactly why a
 /// value taken from that file is a user setting and not a default.
 ///
 /// What these tests also prove: every pine representation the reconstruction
@@ -60,7 +60,7 @@ public sealed class Level100PineRepresentationTests
         "Level100StaticWorldAsset.cs");
 
     /// <summary>
-    /// 30.0f is exactly <c>00 00 F0 41</c> little-endian, the four bytes the
+    /// 30.0f is exactly 0x41F00000 little-endian, the four bytes the
     /// shipped image statically initialises at <c>.data 0x006321A0</c>, file
     /// offset <c>0x231CA0</c>, in the pristine specimen. See the class remarks.
     /// </summary>
@@ -179,19 +179,19 @@ public sealed class Level100PineRepresentationTests
     /// <para>The authored pine record is (X, Y, variant) — twelve bytes, no Z —
     /// so the released code owns the whole vertical datum, and
     /// <c>CTree::Init</c> at <c>0x004F6080</c> supplies it in five instructions:
-    /// <c>0x004F61B9 MOV EBX,[ESP+0x58C]</c> (the single stack argument, the
-    /// <c>CTreeInitThing*</c>), <c>0x004F61C4 LEA EDX,[EBX+4]</c>
-    /// (&amp;<c>mPos</c>), <c>0x004F61C7 MOV ECX,0x006FADC8</c> (the MAP
-    /// singleton), <c>0x004F61DD CALL 0x0047EB80</c> (the height query — the
+    /// <c>0x004F61B9</c>: a load of stack local +0x58C into ebx (the single stack argument, the
+    /// <c>CTreeInitThing*</c>), <c>0x004F61C4</c>: an address computation (EBX+4) into edx
+    /// (&amp;<c>mPos</c>), <c>0x004F61C7</c>: a load of constant 0x006FADC8 into ecx (the MAP
+    /// singleton), <c>0x004F61DD</c>: a direct call to 0x0047EB80 (the height query — the
     /// same receiver and callee <c>CThing::Init</c> uses at <c>0x004F34F6</c>
-    /// and <c>0x004F34FB</c>) and <c>0x004F61F4 FSTP DWORD PTR [EBX+0xC]</c>,
+    /// and <c>0x004F34FB</c>) and <c>0x004F61F4</c>: a float store to field +0xC of ebx,
     /// which writes the returned height straight into <c>mPos.Z</c>.
     /// <c>[EBX+0xC]</c> is Z because <c>CThing::Init</c> copies
     /// <c>[EBX+4]</c>..<c>[EBX+0x10]</c> into <c>this+0x1c</c>..<c>this+0x28</c>
     /// with Z at <c>+0x24</c>. <b>No FADD, FSUB or FMUL sits between the CALL
     /// and the FSTP, and no mesh extent is read anywhere in the body</b>, which
-    /// ends <c>RET 4</c> at <c>0x004F63AE</c> after
-    /// <c>0x004F6363 CALL 0x004F34A0</c> — <c>CThing::Init</c>, whose own two
+    /// ends a return that pops 4 bytes of arguments at <c>0x004F63AE</c> after
+    /// <c>0x004F6363</c>: a direct call to 0x004F34A0 — <c>CThing::Init</c>, whose own two
     /// clamps are equally bare.</para>
     ///
     /// <para>Both draw paths inherit that pivot unchanged, and the mesh path
@@ -200,7 +200,7 @@ public sealed class Level100PineRepresentationTests
     /// <c>CRTTree::VFuncSlot02_BuildRenderOutputs</c> (<c>0x004DD960</c>) takes
     /// the rotation from <c>CTree::GetMatrix</c> (<c>0x004F6560</c>, secondary
     /// vtable <c>0x005DD960</c> slot <c>+0x04</c>), whose tail
-    /// <c>SHL ESI,4 / ADD ESI,0x008406B8 / REP MOVSD</c>
+    /// (a left shift of esi by 4, then addition of 0x008406B8 to esi, then repeated copy of dwords)
     /// (<c>0x004F65F6</c>..<c>0x004F65FF</c>) copies twelve dwords out of the
     /// Z-rotation table <c>CTree::Init</c> builds at <c>0x008406B8</c>, and
     /// takes the position separately from <c>CTree::GetPos</c>
@@ -209,7 +209,7 @@ public sealed class Level100PineRepresentationTests
     /// <c>CDXEngine::RenderImposterBillboardSet</c> (<c>0x00543300</c>) forms
     /// <c>thingPos + M*centerOffset</c> — <c>FADD</c> at <c>0x005434AB</c>,
     /// <c>0x005434C8</c>, <c>0x005434D8</c> against the vector from
-    /// <c>CALL 0x00401EC0</c> — where <c>centerOffset</c> is <c>mesh+0x150</c>,
+    /// a direct call to 0x00401EC0 — where <c>centerOffset</c> is <c>mesh+0x150</c>,
     /// the bounding box CENTRE, already carried inside the imposter geometry,
     /// not its minimum.</para>
     ///
@@ -224,20 +224,20 @@ public sealed class Level100PineRepresentationTests
     /// ground-follow routine at <c>0x004017C0</c>, and <c>CTree</c> does not
     /// override it — <c>CTree</c> (<c>0x005DD9D8+0xC0</c>) and <c>CThing</c>
     /// (<c>0x005DF5C8+0xC0</c>) both hold <c>0x004BFC60</c>, which is
-    /// <c>FLD DWORD PTR [0x005D856C] / RET</c> with <c>[0x005D856C]</c> =
+    /// a float load of the value at 0x005D856C, then return with <c>[0x005D856C]</c> =
     /// <c>0.0f</c>. The engine has the exact mechanism a base-clearance term
     /// would need; trees return zero from it, and <c>CThing::Init</c> never
     /// calls it.</para>
     ///
     /// <para><c>CTree</c> also inherits both seating gates unchanged —
-    /// <c>ClipToGround</c> (<c>+0xB0</c>) is <c>0x004014A0</c>
-    /// <c>MOV EAX,1 / RET</c> and <c>CanGoUnderWater</c> (<c>+0xC4</c>) is
-    /// <c>0x00405930</c> <c>XOR EAX,EAX / RET</c> — so the water clamp does run
+    /// <c>ClipToGround</c> (<c>+0xB0</c>) is <c>0x004014A0</c>: a load of constant
+    /// 1 into eax, then return and <c>CanGoUnderWater</c> (<c>+0xC4</c>) is
+    /// <c>0x00405930</c>: a zeroing of eax, then return — so the water clamp does run
     /// for pines and <c>BuildPinePlacements</c>' <c>Math.Max</c> against the
     /// water level is byte-confirmed, not merely measured inert.</para>
     ///
     /// <para>All addresses read from the pristine specimen
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+    /// (a private pristine copy), sha256
     /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
     /// — never the installed <c>BEA.exe</c>, which is deliberately patched.</para>
     ///
@@ -396,11 +396,11 @@ public sealed class Level100PineRepresentationTests
     /// The authored statics are not pines and are seated by a different
     /// released owner. `CThing__Init` @ 0x004F34A0 stores the authored position
     /// at `this+0x1c..+0x28` (Z-down at `+0x24`) and then clamps it twice:
-    /// `MOV ECX,0x006FADC8` / `CALL 0x0047EB80` (0x004F34F6, 0x004F34FB) samples
-    /// the height field, `FCOM [ESI+0x24]` (0x004F3500) compares, and
-    /// `FSTP [ESP+0x14]` (0x004F3529) writes the sampled height into the copy
-    /// handed to `CALL [EAX+0x50]`; then `FLD [0x006FBDFC]` (0x004F3549),
-    /// `FCOM [ESI+0x24]` and `FSTP [ESI+0x24]` (0x004F3559) do the same with the
+    /// a load of constant 0x006FADC8 into ecx, then direct call to 0x0047EB80 (0x004F34F6, 0x004F34FB) samples
+    /// the height field, a float compare against field +0x24 of esi (0x004F3500) compares, and
+    /// a float store to stack local +0x14 (0x004F3529) writes the sampled height into the copy
+    /// handed to an indirect call through vtable slot 20; then a float load of the value at 0x006FBDFC (0x004F3549),
+    /// a float compare against field +0x24 of esi and a float store to field +0x24 of esi (0x004F3559) do the same with the
     /// water level. Both stores are bare: the mesh bounding box is never read,
     /// so the pivot — not the lowest vertex — lands on the support. These tests
     /// pin that, because a `-min(vertexZ)` lift had been added on top of it and

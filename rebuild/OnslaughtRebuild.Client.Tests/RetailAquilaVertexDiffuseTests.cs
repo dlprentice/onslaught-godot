@@ -196,7 +196,7 @@ public sealed class RetailAquilaVertexDiffuseTests
     ///
     /// That residual is now CLOSED, and the answer is that the 366 samples are
     /// not cockpit pixels in either image — see
-    /// <c>local-lab/COCKPIT-SIDEBIT-RESIDUAL-2026-07-26.md</c> and
+    /// the private cockpit side-bit residual note (2026-07-26) and
     /// <see cref="TheTwoMirroredBatchSamplesAreRecordedAsOverlayContaminationNotShading"/>.
     /// So the not-fitted property this test pins is not merely prudent, it is
     /// correct: there is nothing to fit.
@@ -260,7 +260,7 @@ public sealed class RetailAquilaVertexDiffuseTests
         Assert.Contains("1.000/1.002/1.001", loader, StringComparison.Ordinal);
         Assert.Contains("0.998/0.993/0.981", loader, StringComparison.Ordinal);
         Assert.Contains(
-            "local-lab/COCKPIT-SIDEBIT-RESIDUAL-2026-07-26.md",
+            "the private cockpit side-bit residual note (2026-07-26)",
             loader,
             StringComparison.Ordinal);
 
@@ -749,7 +749,7 @@ public sealed class RetailAquilaVertexDiffuseTests
     /// pure yaw. These tests pin the arithmetic that carries that matrix into
     /// the renderer, so the shipped constant cannot drift away from the read
     /// that produced it. Evidence:
-    /// <c>local-lab/COMPOSITION-RESIDUAL-2026-07-26.md</c>.
+    /// the private lab note COMPOSITION-RESIDUAL-2026-07-26.md.
     /// </summary>
     private static readonly double[,] RuntimeCockpitShakeMatrix =
     {

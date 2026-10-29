@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> expanded list dest Y leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -22,23 +22,23 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemDest"/>. Icon dest at
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is the
-/// expanded-arm dest Y after <c>fild [esp+0x60]</c>. Do not redo
+/// expanded-arm dest Y after an integer-to-float load of stack local +0x60. Do not redo
 /// those. Do not invent dest Y as 5, 15.5, 268, 284, or 304. Do not
 /// invent dest X as 322.5 or dest from 148.0. Do not invent dest as
 /// the 2.0 constant.</para>
 ///
 /// <para><b>Dest Y.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3DB5</c> is <c>push ebp</c>. After that push, label
+/// <c>0x004A3DB5</c> is a push of ebp. After that push, label
 /// SIZE.cy leftovers sit at <c>[esp+0x24]</c>.
-/// <c>0x004A3E45</c> is <c>fstp [esp+0x10]</c> panel dest Y.
-/// <c>0x004A3F00</c> is <c>mov ebp, [esp+0x24]</c>, which aliases
+/// <c>0x004A3E45</c> is a float store to stack local +0x10 panel dest Y.
+/// <c>0x004A3F00</c> is a load of stack local +0x24 into ebp, which aliases
 /// that dest Y after the DrawSpriteEx pack start.
-/// <c>0x004A3F3C</c> is <c>fild [esp+0x60]</c>, which aliases
+/// <c>0x004A3F3C</c> is an integer-to-float load of stack local +0x60, which aliases
 /// SIZE.cy after the 0x3C pack. <c>0x004A3F47</c> is
-/// <c>fmul [esp+0x18]</c> scale leftover (identity 1.0 unless the
+/// a float multiply by stack local +0x18 scale leftover (identity 1.0 unless the
 /// panel height leftover shrank it). <c>0x004A3F8E</c> is
-/// <c>fld [esp+0x38]</c>. <c>0x004A3F92</c> is
-/// <c>fadd [esp+0x10]</c>. <c>0x004A3FD1</c> is <c>push ebp</c>.
+/// a float load of stack local +0x38. <c>0x004A3F92</c> is
+/// a float add of stack local +0x10. <c>0x004A3FD1</c> is a push of ebp.
 /// Dest Y is the panel dest leftover plus index times (SIZE.cy times
 /// scale). Dest Y does not consult currentIndex at
 /// <c>[esi+0x20]</c>. That slot is colour leftover, not dest.
@@ -57,43 +57,43 @@ public static class RetailOptionsDropdownListDestY
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>fild [esp+0x60]</c>. SIZE.cy leftover, not dest.</summary>
+    /// <summary>An integer-to-float load of stack local +0x60. SIZE.cy leftover, not dest.</summary>
     public const uint CyFildSite = 0x004A3F3Cu;
 
-    /// <summary><c>add esp, 0x3C</c> after DrawSpriteEx.</summary>
+    /// <summary>A stack cleanup of 0x3C bytes after DrawSpriteEx.</summary>
     public const uint DrawSpritePopSite = 0x004A3F40u;
 
     /// <summary>Bytes popped after DrawSpriteEx. Aliases the fild slot to <c>[esp+0x24]</c>.</summary>
     public const uint DrawSpritePop = 0x3Cu;
 
-    /// <summary><c>fmul [esp+0x18]</c>. Scale leftover, not dest Y.</summary>
+    /// <summary>A float multiply by stack local +0x18. Scale leftover, not dest Y.</summary>
     public const uint ScaleMulSite = 0x004A3F47u;
 
-    /// <summary><c>fstp [esp+0x38]</c>. SIZE.cy times scale.</summary>
+    /// <summary>A float store to stack local +0x38. SIZE.cy times scale.</summary>
     public const uint PitchStoreSite = 0x004A3F4Bu;
 
-    /// <summary><c>mov ebp, [esp+0x10]</c>. Later-entry dest Y leftover.</summary>
+    /// <summary>A load of stack local +0x10 into ebp. Later-entry dest Y leftover.</summary>
     public const uint LoopDestYLoadSite = 0x004A3F65u;
 
-    /// <summary><c>fld [esp+0x38]</c>. Pitch leftover, not dest X.</summary>
+    /// <summary>A float load of stack local +0x38. Pitch leftover, not dest X.</summary>
     public const uint PitchLoadSite = 0x004A3F8Eu;
 
-    /// <summary><c>fadd [esp+0x10]</c>. Current dest Y plus pitch.</summary>
+    /// <summary>A float add of stack local +0x10. Current dest Y plus pitch.</summary>
     public const uint DestYAddSite = 0x004A3F92u;
 
-    /// <summary><c>fstp [esp+0x14]</c>. Next dest Y leftover.</summary>
+    /// <summary>A float store to stack local +0x14. Next dest Y leftover.</summary>
     public const uint DestYStoreSite = 0x004A3F9Au;
 
-    /// <summary><c>push ebp</c>. Dest Y into DrawText.</summary>
+    /// <summary>A push of ebp. Dest Y into DrawText.</summary>
     public const uint DestYPushSite = 0x004A3FD1u;
 
-    /// <summary><c>call 0x004659A0</c> after the dest leftover.</summary>
+    /// <summary>A direct call to 0x004659A0 after the dest leftover.</summary>
     public const uint DrawTextCallSite = 0x004A3FE1u;
 
     /// <summary>Expanded list draw. Not DrawTextDynamic.</summary>
     public const uint DrawText = 0x004659A0u;
 
-    /// <summary><c>mov [esp+0x10], ecx</c>. Advance dest Y leftover.</summary>
+    /// <summary>A store of ecx to stack local +0x10. Advance dest Y leftover.</summary>
     public const uint AdvanceStoreSite = 0x004A404Du;
 
     /// <summary>IEEE bits of the identity scale leftover. 1.0.</summary>

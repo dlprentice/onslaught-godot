@@ -5,12 +5,12 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> post-loop cancel leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Expanded list click at <c>0x004A4010</c> is
@@ -32,27 +32,27 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemDest"/>. Icon dest at
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is the
-/// post-loop <c>call 0x0044DEA0</c> / <c>[0x0089BE28]</c> /
-/// <c>mov [esi+0x20], edx</c> / <c>mov byte [esi+0x24], 0</c>. Do not
+/// post-loop (a direct call to 0x0044DEA0) / <c>[0x0089BE28]</c> /
+/// a store of edx to field +0x20 of esi, then store of constant 0 to byte field +0x24 of esi. Do not
 /// redo those. Do not invent dest Y as 5, 15.5, 268, 284, or 304. Do
 /// not invent dest X as 322.5 or dest from 148.0. Do not invent dest
 /// as the 2.0 constant.</para>
 ///
 /// <para><b>Cancel.</b> Official 74154bfa independently re-read:
-/// <c>0x004A4059</c> is <c>mov ecx, 0x675688</c>.
-/// <c>0x004A405E</c> is <c>call 0x0044DEA0</c>.
-/// <c>0x004A4063</c> is <c>test eax, eax</c>.
-/// <c>0x004A4065</c> is <c>pop ebp</c>.
-/// <c>0x004A4066</c> is <c>jne 0x004A40CF</c>.
-/// <c>0x004A4068</c> is <c>mov eax, [0x0089BE28]</c>.
-/// <c>0x004A406D</c> is <c>test eax, eax</c>.
-/// <c>0x004A406F</c> is <c>je 0x004A40CF</c>.
-/// <c>0x004A4071</c> is <c>mov edx, [esi+0x1c]</c>.
-/// <c>0x004A4074</c> is <c>mov byte [esi+0x24], 0</c>.
-/// <c>0x004A4078</c> is <c>mov [esi+0x20], edx</c>.
-/// <c>0x004A407B</c> is <c>push 2</c>.
-/// <c>0x004A407D</c> is <c>mov [0x0089BE28], 0</c>.
-/// <c>0x004A4087</c> is <c>call 0x00468770</c>.
+/// <c>0x004A4059</c> is a load of constant 0x675688 into ecx.
+/// <c>0x004A405E</c> is a direct call to 0x0044DEA0.
+/// <c>0x004A4063</c> is a zero test of eax.
+/// <c>0x004A4065</c> is a pop into ebp.
+/// <c>0x004A4066</c> is a conditional branch to 0x004A40CF (taken when not equal).
+/// <c>0x004A4068</c> is a load of the value at 0x0089BE28 into eax.
+/// <c>0x004A406D</c> is a zero test of eax.
+/// <c>0x004A406F</c> is a conditional branch to 0x004A40CF (taken when equal).
+/// <c>0x004A4071</c> is a load of field +0x1c of esi into edx.
+/// <c>0x004A4074</c> is a store of constant 0 to byte field +0x24 of esi.
+/// <c>0x004A4078</c> is a store of edx to field +0x20 of esi.
+/// <c>0x004A407B</c> is a push of constant 2.
+/// <c>0x004A407D</c> is a store of constant 0 to the value at 0x0089BE28.
+/// <c>0x004A4087</c> is a direct call to 0x00468770.
 /// <c>0x0044DEA0</c> returns 1 only when <c>[ecx+0x1F8C]</c> and
 /// <c>[ecx+0x1F98]</c> are both nonzero. Cancel writes currentIndex
 /// from committedIndex and the expand byte when the helper returns 0
@@ -61,7 +61,7 @@ namespace OnslaughtRebuild.Client;
 /// <c>0x004A3FA6</c>. Click leftover already owns <c>0x004A4010</c>.
 /// Nearby 15.5, 322.5, and 148.0 are measurements, not dest. Dest is
 /// not the 2.0 constant. Click-hit sound at <c>0x004A403C</c>
-/// <c>call 0x00468770(1)</c> is a later leftover.</para>
+/// a direct call to 0x00468770 with argument 1 is a later leftover.</para>
 ///
 /// <para><b>Not a fade.</b> Not a sheen, dest immediates, or a
 /// 2px kerning hack. Not <c>SetLanguage</c>. HandleKey,
@@ -78,13 +78,13 @@ public static class RetailOptionsDropdownListCancel
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>mov ecx, 0x675688</c>. Frontend this leftover, not dest.</summary>
+    /// <summary>A load of constant 0x675688 into ecx. Frontend this leftover, not dest.</summary>
     public const uint FrontEndLoadSite = 0x004A4059u;
 
     /// <summary>Frontend this used by <see cref="Helper"/>.</summary>
     public const uint FrontEndThis = 0x00675688u;
 
-    /// <summary><c>call 0x0044DEA0</c>. Cancel helper leftover.</summary>
+    /// <summary>A direct call to 0x0044DEA0. Cancel helper leftover.</summary>
     public const uint HelperCallSite = 0x004A405Eu;
 
     /// <summary>
@@ -99,58 +99,60 @@ public static class RetailOptionsDropdownListCancel
     /// <summary><c>[this+0x1F98]</c>. Helper leftover, not dest.</summary>
     public const uint HelperFieldB = 0x1F98u;
 
-    /// <summary><c>test eax, eax</c>. Cancel skips when the helper returns nonzero.</summary>
+    /// <summary>A zero test of eax. Cancel skips when the helper returns nonzero.</summary>
     public const uint HelperTestSite = 0x004A4063u;
 
-    /// <summary><c>pop ebp</c> after the helper test. Not dest.</summary>
+    /// <summary>A pop into ebp after the helper test. Not dest.</summary>
     public const uint EbpPopSite = 0x004A4065u;
 
-    /// <summary><c>jne 0x004A40CF</c>. Helper nonzero keeps currentIndex and the expand byte.</summary>
+    /// <summary>A conditional branch to 0x004A40CF (taken when not equal).
+    /// Helper nonzero keeps currentIndex and the expand byte.</summary>
     public const uint HelperSkipSite = 0x004A4066u;
 
     /// <summary>Fall-through target after a helper or latch skip.</summary>
     public const uint SkipTarget = 0x004A40CFu;
 
-    /// <summary><c>mov eax, [0x0089BE28]</c>. Latch leftover, not dest.</summary>
+    /// <summary>A load of the value at 0x0089BE28 into eax. Latch leftover, not dest.</summary>
     public const uint LatchLoadSite = 0x004A4068u;
 
     /// <summary>Latch at <c>0x0089BE28</c>. Already one of the three FMV mouse latches.</summary>
     public const uint Latch = 0x0089BE28u;
 
-    /// <summary><c>test eax, eax</c>. Cancel writes only when the latch is set.</summary>
+    /// <summary>A zero test of eax. Cancel writes only when the latch is set.</summary>
     public const uint LatchTestSite = 0x004A406Du;
 
-    /// <summary><c>je 0x004A40CF</c>. Clear latch keeps currentIndex and the expand byte.</summary>
+    /// <summary>A conditional branch to 0x004A40CF (taken when equal).
+    /// Clear latch keeps currentIndex and the expand byte.</summary>
     public const uint LatchSkipSite = 0x004A406Fu;
 
-    /// <summary><c>mov edx, [esi+0x1c]</c>. committedIndex leftover, not dest.</summary>
+    /// <summary>A load of field +0x1c of esi into edx. committedIndex leftover, not dest.</summary>
     public const uint CommittedLoadSite = 0x004A4071u;
 
     /// <summary>committedIndex at <c>[this+0x1c]</c>. Already click leftover.</summary>
     public const uint CommittedOffset = 0x1Cu;
 
-    /// <summary><c>mov byte [esi+0x24], 0</c>. Cancel writes the expand byte.</summary>
+    /// <summary>A store of constant 0 to byte field +0x24 of esi. Cancel writes the expand byte.</summary>
     public const uint ExpandStoreSite = 0x004A4074u;
 
     /// <summary>Expanded flag at <c>[this+0x24]</c>. Already dest leftover.</summary>
     public const uint ExpandByteOffset = 0x24u;
 
-    /// <summary><c>mov [esi+0x20], edx</c>. Cancel writes currentIndex from committedIndex.</summary>
+    /// <summary>A store of edx to field +0x20 of esi. Cancel writes currentIndex from committedIndex.</summary>
     public const uint CurrentIndexStoreSite = 0x004A4078u;
 
     /// <summary>currentIndex at <c>[this+0x20]</c>. Cancel leftover, not dest.</summary>
     public const uint CurrentIndexOffset = 0x20u;
 
-    /// <summary><c>push 2</c>. Back sound leftover. Not dest.</summary>
+    /// <summary>A push of constant 2. Back sound leftover. Not dest.</summary>
     public const uint SoundPushSite = 0x004A407Bu;
 
     /// <summary><c>CFrontEnd__PlaySound(2)</c>. Front End Back. Not dest.</summary>
     public const uint SoundId = 2u;
 
-    /// <summary><c>mov [0x0089BE28], 0</c>. Cancel clears the latch.</summary>
+    /// <summary>A store of constant 0 to the value at 0x0089BE28. Cancel clears the latch.</summary>
     public const uint LatchClearSite = 0x004A407Du;
 
-    /// <summary><c>call 0x00468770</c>. Back sound leftover. Not dest.</summary>
+    /// <summary>A direct call to 0x00468770. Back sound leftover. Not dest.</summary>
     public const uint SoundCallSite = 0x004A4087u;
 
     /// <summary>PlaySound leftover. Click-hit sound at <c>0x004A403C</c> is later.</summary>

@@ -694,7 +694,7 @@ public sealed partial class Level100ActorMechanics
         }
 
         // On arrival the next node is the waypoint's own target
-        // (UpdateWaypointFollowing 0x00538470, `mov ecx,[eax+0x3c]` at
+        // (UpdateWaypointFollowing 0x00538470, a load of field +0x3c of eax into ecx at
         // 0x005384dc). A chain that loops never ends; one that targets itself
         // logs an error and ends the walk.
         if (point.TargetNodeIndex is { } next && next != point.NodeIndex)

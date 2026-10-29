@@ -31,7 +31,7 @@ public sealed class RetailBattleEngineCloakTests
         Assert.Equal(0.0f, engine.DesiredStealth);
     }
 
-    // cmp edx, eax against a zeroed register: non-zero, not == TRUE. A rebuild
+    // A compare of edx with eax against a zeroed register: non-zero, not == TRUE. A rebuild
     // that insisted on a literal 1 would try to cloak here instead.
     [Theory]
     [InlineData(2)]
@@ -85,7 +85,7 @@ public sealed class RetailBattleEngineCloakTests
         Assert.Equal(0.0f, engine.DesiredStealth);
     }
 
-    // test ah, 1 - C0 alone - and C's `>=` is false for a NaN too, so here the
+    // A bit test of ah against 1 - C0 alone - and C's `>=` is false for a NaN too, so here the
     // MSVC idiom and the source text AGREE. The row is pinned so a rebuild
     // cannot "fix" it into cloaking.
     [Fact]
@@ -103,7 +103,7 @@ public sealed class RetailBattleEngineCloakTests
         Assert.Equal(0, engine.Cloaked);
     }
 
-    // test ah, 0x41 - C0 or C3 - so zero, negative zero, negative and unordered
+    // A bit test of ah against 0x41 - C0 or C3 - so zero, negative zero, negative and unordered
     // all block the cloak. C's `> 0` agrees on every one of them.
     [Theory]
     [InlineData(0x00000000u)]

@@ -74,7 +74,7 @@ internal sealed class Level100SunAsset
     /// per-frame lookup at <c>references/Onslaught/PCEngine.cpp:753</c>. The
     /// string is present in the released binary at file offset <c>0x2505C8</c>
     /// of the pristine specimen
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>
+    /// a private pristine copy
     /// (sha256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>),
     /// so the shipped build resolves the same name.
     /// </summary>

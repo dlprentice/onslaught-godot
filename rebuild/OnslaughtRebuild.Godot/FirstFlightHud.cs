@@ -11,7 +11,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
     // RetailFrontendFlow already declares (RetailFrontendFlow.cs:18-19).
     //
     // Measured, not assumed. Against the retail 640x480 capture
-    // local-lab/retail-reference-pristine/level-100-entry/09-level-100-entry-640x480.png:
+    // a private retail reference capture:
     //   * font-13ps cell 'T' occupies 9x10 ink pixels on screen and 9x10 ink
     //     pixels in the 16px atlas cell -> glyphs are blitted 1:1, no scaling.
     //   * radar-outline's ring (texture centre 49,49) fits the frame's lower-left
@@ -33,7 +33,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
 
     // Lower-right battleline instrument. Every constant here is a decoded byte
     // from a device-level read of the safe copy, or a closed form over decoded
-    // bytes; see local-lab/PORTRAIT-BATTLELINE-FIELD-2026-07-26.md and the
+    // bytes; see the private lab note PORTRAIT-BATTLELINE-FIELD-2026-07-26.md and the
     // block comment on RetailHudBaseLayer.DrawBattleLine.
     //
     // CircleDarkener quad diffuse is 0x7fffffff.
@@ -62,7 +62,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
     // the centre of the measured band (effective alpha 0.424-0.455). The single
     // 66/255 constant above is inside the first band and 40 % below the second,
     // so the three pinned gap frames (t011756, t019074, t031058) were drawn too
-    // faint. local-lab/agent-notes-2026-07-27/inlevel-hud-coordinates.md section 6.
+    // faint. the private lab note inlevel-hud-coordinates.md section 6.
     internal const float MessageNoiseAlphaWithoutPortrait = 112f / 255f;
     internal const int MessageNoisePhaseCount = 16;
 
@@ -252,7 +252,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
     // second" but cannot distinguish this 50 ms cadence from any other
     // sub-second one. Settling the owner's "faces move too fast" report needs a
     // retail capture at >= 10 Hz over one message; do not tune it against 27
-    // samples. local-lab/PORTRAIT-COMPASS-FIT-2026-07-26.md section 6.
+    // samples. the private lab note PORTRAIT-COMPASS-FIT-2026-07-26.md section 6.
     private static int PortraitPoseIndex(
         Level100MessageScheduleEntry entry,
         int missionTick)
@@ -448,7 +448,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
     /// IDirect3DDevice::SetSamplerState inside 0x00487d10 CHud__RenderBattleline
     /// show sampler 0 switched from CLAMP (3) to WRAP (1) immediately before the
     /// portrait/noise draws and back afterwards
-    /// (local-lab/PORTRAIT-BATTLELINE-FIELD-2026-07-26.md section 2).
+    /// (the private lab note PORTRAIT-BATTLELINE-FIELD-2026-07-26.md section 2).
     ///
     /// This client has no depth stamp, so the disc clip is baked as alpha from
     /// the same CircleMask the portrait already uses, and the wrap is baked as a
@@ -853,21 +853,21 @@ public sealed partial class FirstFlightHud : CanvasLayer
         ///
         /// Retail's compass rings are each a SINGLE D3D triangle strip, read
         /// from the pristine specimen
-        /// local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256
+        /// (a private pristine copy), sha256
         /// 74154BFA...E7750:
         ///
         ///   CDXCompass__Init 0x0053be40 creates ring 1's vertex buffer at
-        ///   0x0053c099 with push 0x102 / push 0x14 / push 0x66 - FVF
+        ///   0x0053c099 with a push of constant 0x102, then push of constant 0x14, then push of constant 0x66 - FVF
         ///   D3DFVF_XYZ|D3DFVF_TEX1, stride 20, 102 vertices - and ring 2's at
-        ///   0x0053c133 with push 0x52, 82 vertices. 102 = 2*(50+1) and
+        ///   0x0053c133 with a pushed 0x52, 82 vertices. 102 = 2*(50+1) and
         ///   82 = 2*(40+1): segmentCount pairs plus one closing pair.
         ///   CDXCompass__BuildRingGeometry 0x0053c1d0 writes those pairs and
         ///   closes the strip by copying vertex pair 0, setting u = 1.0 at
         ///   0x0053c2c9.
         ///   CDXCompass__RenderWorldSpaceOverlay 0x0053cd30 then issues exactly
         ///   two DrawPrimitive calls through device vtable byte 0x144:
-        ///   0x0053cf95 push 0x50 / push 0 / push 5 and 0x0053d10a
-        ///   push 0x64 / push 0 / push 5 - D3DPT_TRIANGLESTRIP, StartVertex 0,
+        ///   0x0053cf95: a push of constant 0x50 / push 0 / push 5 and 0x0053d10a: a push
+        ///   of constant 0x64 / push 0 / push 5 - D3DPT_TRIANGLESTRIP, StartVertex 0,
         ///   PrimitiveCount 80 then 100.
         ///
         /// A strip has no interior boundary for a rasteriser to feather, so
@@ -879,7 +879,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
         /// one seam retail's duplicated vertex pair also has.
         ///
         /// The segment counts themselves are unchanged and are not a guess:
-        /// CDXCompass__Init passes push 0x32 (50) at 0x0053c0e7 and push 0x28
+        /// CDXCompass__Init pushes 0x32 (50) at 0x0053c0e7 and 0x28
         /// (40) at 0x0053c17e, and the device draw-call log independently
         /// recorded 100/102 and 80/82 TRISTRIP.
         /// </summary>
@@ -1006,7 +1006,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
 
     // COLOUR: task #106's first defect, and it is no longer a fit. The ring's
     // texel was READ OUT OF THE RUNNING GAME on 2026-07-28 and recovered on
-    // 2026-07-29; see local-lab/HUD-LANE-RECOVERED-2026-07-29.md sections 1-2.
+    // 2026-07-29; see the private lab note HUD-LANE-RECOVERED-2026-07-29.md sections 1-2.
     //
     // Retail's base ring is compass ring 1: 50 segments, radius percent 31,
     // textured by CDXCompass__BuildByteSpriteOverlayTexture (0x0053c2e0) into a
@@ -1021,7 +1021,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
     // !tt 90. The pristine specimen agrees independently: the whole ring-1
     // palette is written as four immediates at 0x0053c312..0x0053c327 -
     // 0x0000, 0x2222, 0x2444, 0x2666 - and every one of them has R == G == B.
-    // (Specimen local-lab/safe-copy-bea-pristine/BEA.exe.original.backup,
+    // (Specimen a private pristine copy,
     // sha256 74154BFAE14DDC8ECB87A0766F5BC381C7B7F1AB334ED7A753040EDA1E1E7750.)
     //
     //   0x2444 -> A = 2/15 = 0.133333   R = G = B = 4/15 = 0.266667 = 68/255
@@ -1350,7 +1350,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
         /// (<c>RenderState_Set(0x13, 5)</c>, <c>(0x14, 6)</c> at
         /// <c>0x004869f6</c>) and draws <c>this+0x128</c> - WeaponFill - with the
         /// packed colour <b><c>0x3f000000</c></b>, a hard immediate
-        /// (<c>push 0x3f000000</c> at <c>0x00486a5d</c>). Colour zero, alpha
+        /// (a push of constant 0x3f000000 at <c>0x00486a5d</c>). Colour zero, alpha
         /// 0x3f: the fill is a pure 24.7 % darkener, which is why it is here and
         /// not on the additive layer. See
         /// <see cref="LowerRightArcShellRect"/> for the placement and the mirror.
@@ -1512,7 +1512,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
 
         // The lower-right instrument, MEASURED end to end 2026-07-26. Two
         // independent sources agree and are recorded in
-        // local-lab/PORTRAIT-BATTLELINE-FIELD-2026-07-26.md:
+        // the private lab note PORTRAIT-BATTLELINE-FIELD-2026-07-26.md:
         //
         // (a) FRAMEBUFFER. On a pose-invariant clean mask - texels where all four
         //     shipped Tatiana poses are fully covered and agree to <= 4 levels,
@@ -1877,11 +1877,9 @@ public sealed partial class FirstFlightHud : CanvasLayer
     /// <para>
     /// PLACEMENT, read out of <c>CHud__RenderObjectiveSlotFillPanel</c>
     /// (<c>0x00486940</c>) in the pristine image rather than fitted. Its
-    /// single-player energy-weapon branch computes
-    /// <c>x = ((width - _DAT_005dbe98) + _DAT_005dbe7c) - _DAT_005dbe34) - _DAT_0067a628</c>
-    /// and <c>y = (height - _DAT_005dbe80) - _DAT_0067a62c</c>, with
-    /// <c>_DAT_005dbe98 = 122.0</c>, <c>_DAT_005dbe7c = 9.0</c>,
-    /// <c>_DAT_005dbe34 = 28.0</c> and <c>_DAT_005dbe80 = 13.0</c>. The two
+    /// single-player energy-weapon branch takes x as the width less 122.0, plus 9.0, less 28.0 and less a viewport
+    /// term, and y as the height less 13.0 and less a viewport term (the constants are the globals at
+    /// <c>0x005dbe98</c>, <c>0x005dbe7c</c>, <c>0x005dbe34</c> and <c>0x005dbe80</c>). The two
     /// <c>0x0067a6xx</c> viewport terms are zero in single player - that is the
     /// same pair already tied to zero by the ForsetiIcon/darkener fit in
     /// <see cref="BattleLineInstrumentRect"/>. So x = width - 141 = 499 and the
@@ -1955,8 +1953,8 @@ public sealed partial class FirstFlightHud : CanvasLayer
     private static Rect2 BattleLinePortraitRect() =>
         new(DesignWidth - 137f, DesignHeight - 128f, 128f, 128f);
 
-    // 104 and 32 are _DAT_005dbeb0 and _DAT_005db2b8 from the ForsetiIcon call
-    // in 0x00487d10, against the same hudX/fVar1 pair the two rects above are
+    // 104 and 32 are 0x005dbeb0 and 0x005db2b8 from the ForsetiIcon call
+    // in 0x00487d10, against the same hudX and page-origin pair the two rects above are
     // expressed in. See RetailHudGlowLayer.DrawForsetiIcon.
     private static Rect2 ForsetiIconRect() =>
         new(DesignWidth - 104f, (DesignHeight - 128f) - 32f, 64f, 64f);
@@ -2125,15 +2123,14 @@ public sealed partial class FirstFlightHud : CanvasLayer
         /// <para>
         /// GEOMETRY, from the shipped call in <c>CHud__RenderBattleline</c>
         /// (<c>0x00487d10</c>):
-        /// <c>DrawSpriteEx((hudX - _DAT_005dbeb0) - shift, fVar1 - _DAT_005db2b8,
-        /// 0.001, [this+0x1d4], 2, 0, 1.0, 0.0, …, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0)</c>
-        /// - mode 2, unit scale, full UV. The three constants read out of the
-        /// pristine image are <c>_DAT_005dbeb0 = 104.0</c>,
-        /// <c>_DAT_005db2b8 = 32.0</c> and, on the darkener's own call,
-        /// <c>_DAT_005dbeb8 = 121.0</c> against this client's already-fitted
+        /// a sprite drawn at x = hudX less the constant at <c>0x005dbeb0</c> less a shift, and y = the page origin less
+        /// the constant at <c>0x005db2b8</c> - mode 2, unit scale, full UV. The three constants read out of the
+        /// pristine image are <c>0x005dbeb0 = 104.0</c>,
+        /// <c>0x005db2b8 = 32.0</c> and, on the darkener's own call,
+        /// <c>0x005dbeb8 = 121.0</c> against this client's already-fitted
         /// <see cref="BattleLineInstrumentRect"/> x of
         /// <c>DesignWidth - 121</c>, which is what ties retail's
-        /// <c>hudX</c> to <c>DesignWidth</c> and <c>fVar1</c> to
+        /// <c>hudX</c> to <c>DesignWidth</c> and the page origin to
         /// <c>DesignHeight - 128</c> (the portrait page origin, likewise
         /// already fitted). The icon page is 64x64, so it lands at
         /// (536, 320)..(600, 384) on the 640x480 frame: horizontally centred on
@@ -2230,14 +2227,14 @@ public sealed partial class FirstFlightHud : CanvasLayer
             // MODULATE2X block on RetailHudGlowLayer).
             //
             // The right shell was previously 0xffaf8f6f, from the hard immediate
-            // `push 0xffaf8f6f` at 0x00486c7b, and the left was 0xff7f7f7f from
+            // (a push of constant 0xffaf8f6f) at 0x00486c7b, and the left was 0xff7f7f7f from
             // the corresponding left-panel immediate. Retail HALVES those
             // immediates into the MODULATE2X diffuse, and 0xAF >> 1 = 0x57 loses
             // the low bit, so what is actually issued is #AE8E6E on both sides.
             // The 1-LSB difference is why the right shell measured "correct"; the
             // left one did not, and the "1.49 energy surplus" investigation that
             // chased the asymmetry was chasing a phantom.
-            // local-lab/agent-notes-2026-07-27/inlevel-hud-coordinates.md section 5.
+            // the private lab note inlevel-hud-coordinates.md section 5.
             //
             // Confirmed against retail t029072 on the shell's own 1,054 ink
             // texels rather than on a box mean: the signed error went from
@@ -2279,7 +2276,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
             Level100HudSnapshot hud)
         {
             // Radii MEASURED off the 27 retail frames in
-            // local-lab/retail-reference-pristine/level100-gameplay/hud-timeline-run1/,
+            // a private retail reference capture,
             // as a per-radius median of the annulus at 1 px steps about
             // (320, 240), taken separately in gauge-free bearings (155-215 deg
             // and 350-50 deg) and in the two gauge bearings:
@@ -2460,7 +2457,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
         // And the health needle is TWICE as bright as the other three, which
         // this file drew identically. #3E3E3E and #1E1E1E are the effective
         // additive colours; the pre-halved MODULATE2X diffuses are 0x1F and 0x0F.
-        // local-lab/agent-notes-2026-07-27/inlevel-hud-coordinates.md section 5.
+        // the private lab note inlevel-hud-coordinates.md section 5.
         private const float CompassGaugeHealthAnchorDegrees = 149.063f;
         private const float CompassGaugeEnergyAnchorDegrees = 225f;
 
@@ -2960,7 +2957,7 @@ public sealed partial class FirstFlightHud : CanvasLayer
         // panel does NOT use it: retail wraps messages by character column, not
         // by pixel width (Level100MessagePanel.WrapColumns). Whether the help
         // prompts wrap the same way is unmeasured - no capture in
-        // local-lab/retail-reference-pristine/ shows a help prompt long enough
+        // a private retail reference capture shows a help prompt long enough
         // to break - so this path is left exactly as it was.
         private string[] WrapIntoLines(string text, float maximumWidth)
         {

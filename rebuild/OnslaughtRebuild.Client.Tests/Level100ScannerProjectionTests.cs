@@ -27,7 +27,7 @@ public sealed class Level100ScannerProjectionTests
         // .rdata of the verified safe copy, image base 0x00400000,
         // .rdata VA 0x005d8000 -> file offset 0x1d8000.
         Assert.Equal(40f, Level100ScannerProjection.ScaleNumerator);      // 0x005d8610
-        Assert.Equal(96f, Level100ScannerProjection.ScaleDenominator);    // PUSH 0x42c00000 @ 0x00487bab
+        Assert.Equal(96f, Level100ScannerProjection.ScaleDenominator);    // A push of constant 0x42c00000 @ 0x00487bab
         Assert.Equal(46f, Level100ScannerProjection.ClampRadiusPixels);   // 0x005dbe6c
         Assert.Equal(8_464f, Level100ScannerProjection.CullRadiusSquaredPixels); // 0x005dbe70
         Assert.Equal(255f, Level100ScannerProjection.AlphaQuantiser);     // 0x005d8c70
@@ -176,7 +176,7 @@ public sealed class Level100ScannerProjectionTests
     /// rest of this file more than internal consistency.
     ///
     /// <para>Retail frame
-    /// <c>local-lab/retail-reference-pristine/level100-gameplay/hud-timeline-run1/level100-t025065ms.png</c>
+    /// a private retail reference capture
     /// carries eight-connected components of the decoded friendly tint
     /// <c>0x5050AF</c> = (80, 80, 174) inside the scanner. Their centroids are
     /// the right-hand column below and were measured off that PNG, not
@@ -276,8 +276,8 @@ public sealed class Level100ScannerProjectionTests
     /// The objective pass differs from the three allegiance passes in exactly
     /// two ways, and both are absences in the instruction stream rather than
     /// extra constants: between the rotation at <c>0x004853c1</c> and the draw
-    /// at <c>0x00485462</c> there is no <c>fcom [0x005dbe70]</c> (no cull) and
-    /// no <c>fmul [0x005d8c70]</c> (no fade). The clamp is byte-identical.
+    /// at <c>0x00485462</c> there is no float compare against the value at 0x005dbe70 (no cull) and
+    /// no float multiply by the value at 0x005d8c70 (no fade). The clamp is byte-identical.
     /// </summary>
     [Fact]
     public void AnObjectiveIsNeverCulledAndNeverFades()
@@ -324,7 +324,7 @@ public sealed class Level100ScannerProjectionTests
     }
 
     /// <summary>
-    /// <c>PUSH 0xFFFFFF00</c> at <c>0x00485424</c>. Confirmed at the pixel
+    /// A push of constant 0xFFFFFF00 at <c>0x00485424</c>. Confirmed at the pixel
     /// level, not merely decoded: retail
     /// <c>hud-timeline-run1/level100-t041063ms.png</c> carries 13 pixels of
     /// <c>(254, 254, 0)</c> inside the scanner disc, in the same 5x5 diamond

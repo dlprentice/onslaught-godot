@@ -18,12 +18,11 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>The scan counts every non-zero status.</b>
-/// <c>0x00472670</c> is <c>xor eax, eax</c> /
-/// <c>add ecx, 0x4C</c> / <c>mov edx, 0xA</c> /
-/// <c>cmp dword ptr [ecx], 0</c> / <c>je</c> / <c>inc eax</c> /
-/// <c>add ecx, 8</c> / <c>dec edx</c> / <c>jnz</c> / <c>ret</c>.
+/// <c>0x00472670</c> is a zeroing of eax, then addition of 0x4C to ecx, then load of constant
+/// 0xA into edx, then compare of value pointed to by ecx with 0 / <c>je</c> / an increment
+/// of eax, then addition of 8 to ecx, then decrement of edx / <c>jnz</c> / <c>ret</c>.
 /// <c>0x00472690</c> is the same loop after
-/// <c>add ecx, 0x9C</c>. <c>MOS_NOT_DEFINED</c> is the zero
+/// an addition of 0x9C to ecx. <c>MOS_NOT_DEFINED</c> is the zero
 /// sentinel (W004 A11). <c>MOS_FAILED</c> (2) still increments.
 /// A rebuild that counted only <c>MOS_COMPLETE</c> would drop a
 /// failed row.
@@ -54,16 +53,16 @@ namespace OnslaughtRebuild.Core;
 /// </remarks>
 public static class RetailGameObjectiveCount
 {
-    /// <summary><c>MOS_NOT_DEFINED</c> — the <c>cmp [ecx], 0</c> sentinel.</summary>
+    /// <summary><c>MOS_NOT_DEFINED</c> — the compare of value pointed to by ecx with 0 sentinel.</summary>
     public const int StatusNotDefined = 0;
 
-    /// <summary><c>MOS_COMPLETE</c> — <c>cmp ecx, 1</c> at <c>0x004496F6</c>.</summary>
+    /// <summary><c>MOS_COMPLETE</c> — a compare of ecx with 1 at <c>0x004496F6</c>.</summary>
     public const int StatusComplete = RetailEndLevelObjectives.StatusComplete;
 
-    /// <summary><c>MOS_FAILED</c> — <c>cmp ecx, 2</c> at <c>0x004496FB</c>.</summary>
+    /// <summary><c>MOS_FAILED</c> — a compare of ecx with 2 at <c>0x004496FB</c>.</summary>
     public const int StatusFailed = RetailEndLevelObjectives.StatusFailed;
 
-    /// <summary>The <c>mov edx, 0xA</c> loop counter at <c>0x00472675</c>.</summary>
+    /// <summary>The load of constant 0xA into edx loop counter at <c>0x00472675</c>.</summary>
     public const int ObjectiveSlotCount = RetailEndLevelObjectives.PrimaryObjectiveCount;
 
     /// <summary>Shipped Level 100 primary count — four defined rows.</summary>
@@ -156,7 +155,7 @@ public static class RetailGameObjectiveCount
     /// <summary>
     /// Ten <c>CMissionObjective+4</c> text words from a live Level 100
     /// snapshot. <c>IScript::PrimaryObjectiveFailed</c> at
-    /// <c>0x0053445e</c> is <c>mov [eax+4], edi</c>. Init writes
+    /// <c>0x0053445e</c> is a store of edi to field +4 of eax. Init writes
     /// four authored text ids; the other six slots stay 0. Isolated
     /// status mapping does not name this dword. Mutation: leave
     /// every word at 0.

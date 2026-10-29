@@ -6,28 +6,28 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CMenuItemDropdown::Render</c> collapsed value dest
-/// leftover at <c>0x004A40B4</c> — <c>mov edx, [esp+0x28]</c> after
-/// vtable +0x44 <c>RET 4</c>, which aliases the earlier
-/// <c>fstp [esp+0x18]</c> incoming dest X plus the 2.0 pad —
+/// leftover at <c>0x004A40B4</c> — a load of stack local +0x28 into edx after
+/// vtable +0x44 (a return that pops 4 bytes of arguments), which aliases the earlier
+/// (a float store to stack local +0x18) incoming dest X plus the 2.0 pad —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A3D38</c> <c>fadd [0x005D8BA0]</c>,
-/// <c>0x004A3D3E</c> <c>fstp [esp+0x18]</c>,
-/// <c>0x005D8BA0</c> is <c>00 00 00 40</c> (2.0),
-/// <c>0x004A3D78</c> <c>mov ebx, [esp+0x10C]</c> incoming dest Y,
-/// <c>0x004A3DA8</c> <c>mov al, [esi+0x24]</c>,
-/// <c>0x004A3DAD</c> <c>je 0x004A409B</c>,
+/// <c>0x004A3D38</c>: a float add of the value at 0x005D8BA0,
+/// <c>0x004A3D3E</c>: a float store to stack local +0x18,
+/// <c>0x005D8BA0</c> is 2.0,
+/// <c>0x004A3D78</c>: a load of stack local +0x10C into ebx incoming dest Y,
+/// <c>0x004A3DA8</c>: a load of field +0x24 of esi into al,
+/// <c>0x004A3DAD</c>: a conditional branch to 0x004A409B (taken when equal),
 /// <c>0x004A40A0</c> / <c>0x004A40A5</c> push identity 1.0,
-/// <c>0x004A40B1</c> <c>call [eax+0x44]</c>,
-/// every independently read +0x44 ends <c>RET 4</c>
+/// <c>0x004A40B1</c>: an indirect call through vtable slot 17,
+/// every independently read +0x44 ends a return that pops 4 bytes of arguments
 /// (<c>0x004D01B2</c>, <c>0x004CF102</c>, <c>0x004A4232</c>),
-/// <c>0x004A40B4</c> <c>mov edx, [esp+0x28]</c>,
-/// <c>0x004A40CA</c> <c>call 0x004659A0</c>.
+/// <c>0x004A40B4</c>: a load of stack local +0x28 into edx,
+/// <c>0x004A40CA</c>: a direct call to 0x004659A0.
 /// Dest X is incoming dest X plus the pad leftover. Dest is not
 /// the 2.0 constant. Nearby 5.0 is leftover min dest X for the
 /// label, not this dest. Dest Y keeps the row top. Scale stays

@@ -144,7 +144,7 @@ internal sealed class RetailAquilaWalkerAsset
         // those 366 samples are not cockpit pixels in either image, so no
         // per-part treatment is warranted and none is made here.
         //
-        // Measured, in local-lab/COCKPIT-SIDEBIT-RESIDUAL-2026-07-26.md:
+        // Measured, in the private cockpit side-bit residual note (2026-07-26):
         //   * Build side. Halving this material's stage-zero gain moved every
         //     positive-determinant batch's own footprint by a factor of
         //     1.79-2.24 (hood 1.91, Rsidebit02 2.04, Lsidebit01 2.24,

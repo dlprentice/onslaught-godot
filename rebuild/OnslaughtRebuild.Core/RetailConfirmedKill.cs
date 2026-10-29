@@ -11,10 +11,10 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// Independently re-read official specimen
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
-/// Caller <c>0x0040a560</c>: <c>cmp [thing+0x138],1</c> at
-/// <c>0x0040a564</c> / <c>jne 0x0040a57d</c>, then
-/// <c>0x0040a56d</c> <c>mov ecx,[ecx+0x574]</c> /
-/// <c>0x0040a573</c> <c>test ecx,ecx</c> / <c>je 0x0040a57d</c>,
+/// Caller <c>0x0040a560</c>: a compare of field +0x138 of thing with 1 at
+/// <c>0x0040a564</c> / a conditional branch to 0x0040a57d (taken when not equal), then
+/// <c>0x0040a56d</c>: a load of field +0x574 of ecx into ecx; <c>0x0040a573</c>:
+/// a zero test of ecx, then conditional branch to 0x0040a57d (taken when equal),
 /// then <c>E8</c> at <c>0x0040a578</c>. That is a null pointer,
 /// not source <c>ToRead()</c> dying-flag.
 /// <c>tools/call_xref_scan.py</c> on

@@ -58,7 +58,7 @@ internal sealed class Level100PlayerLocks
         internal bool DirectLock { get; init; }
     }
 
-    // CLockInfo::Fired's window, file 0x001d85ec = 00 00 00 3f.
+    // CLockInfo::Fired's window, file 0x001d85ec = 0x3F000000.
     internal const float FiredWindowSeconds = 0.5f;
 
     private readonly List<LockInfo> _locks = [];
@@ -199,7 +199,8 @@ internal sealed class Level100PlayerLocks
             _locks.RemoveAt(index);
             if (!FiredAt(target))
             {
-                // fld mTime / fst [esi+4] / fadd 0.5f / fstp [esi+8].
+                // A float load of mTime, then float store to field +4 of esi (without
+                // popping), then float add of 0.5f, then float store to field +8 of esi.
                 item.Start = now;
                 item.Finish = (float)((double)now + FiredWindowSeconds);
                 _firedLocks.Insert(0, item);

@@ -309,7 +309,8 @@ public sealed partial class MeshPolyBucket
         ls.X /= CellSizeXY;
         le.X /= CellSizeXY;
 
-        // fcom 0; fnstsw; test ah, 1 (004d51a6..): C0 is set for less AND for unordered, so a NaN segment (the occupancy
+        // A float compare against 0; fnstsw; a bit test of ah against 1 (004d51a6..):
+        // C0 is set for less AND for unordered, so a NaN segment (the occupancy
         // build's line move, see Occupancy.BuildStatic) is rejected here as retail rejects it.
         if (!(ls.X >= 0.0f) && !(le.X >= 0.0f))
         {

@@ -17,13 +17,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// header-bar constants, already consumed by <see cref="DrawHeaderBarTitle"/>)
 /// and everything behind the rows (see <see cref="RetailOptionsMenu"/>).</item>
 /// <item><b>BYTES (pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+/// (a private pristine copy), sha256
 /// <c>74154bfa…</c>):</b> the row inventory, the exact English labels, the row
 /// height 20, the range origin 300, the mouse-sensitivity law, the value-row
 /// seed bias 0.48, and the three apply timings. All of it is written up in
-/// <c>local-lab/OPTIONS-PAGE-RECOVERY-2026-07-27.md</c>.</item>
+/// the private lab note OPTIONS-PAGE-RECOVERY-2026-07-27.md.</item>
 /// <item><b>PIXELS
-/// (<c>local-lab/retail-captures-options-pause-2026-07-27/</c>):</b> every
+/// (a private retail reference capture):</b> every
 /// geometry constant in this file, every colour, the bindings-grid font
 /// identity, and the fact that "Screen shape:" is absent from the shipped Video
 /// page.</item>
@@ -274,7 +274,7 @@ public sealed partial class RetailFrontendFlow
         // it to CMenuItem__Render, which ANDs ESI with that incoming at
         // 0x004A33FC after selected 0xFFFFCC00 / disabled 0x50505050.
         // CMenuItemDropdown::Render 0x004A3C69 uses the same cosine as
-        // EDI itself — it does not call CMenuItem__Render.
+        // EDI itself — it does not a direct call to CMenuItem__Render.
         // CMenuItem__Render dest leftover is RetailOptionsMenuItemDest:
         // incoming dest X minus integer-half SIZE.cx. Dest Y keeps the
         // row top. Nearby 5.0 is leftover min dest X, not dest Y.
@@ -294,10 +294,10 @@ public sealed partial class RetailFrontendFlow
         // RetailOptionsDropdownListColor: 0xFF404040, or -1 when the
         // loop index equals currentIndex. That is colour, not dest.
         // CMenuItemDropdown expanded list hover leftover is
-        // RetailOptionsDropdownListHover: call 0x004693D0 then write
+        // RetailOptionsDropdownListHover: a direct call to 0x004693D0 then write
         // currentIndex. That is hover, not dest and not colour.
         // CMenuItemDropdown expanded list click leftover is
-        // RetailOptionsDropdownListClick: call 0x00469400 then write
+        // RetailOptionsDropdownListClick: a direct call to 0x00469400 then write
         // currentIndex and the expand byte. That is click, not dest,
         // not colour, and not hover.
         // CMenuItemDropdown expanded panel dest leftover is
@@ -414,8 +414,8 @@ public sealed partial class RetailFrontendFlow
         //
         // CScaleMenuItem's vtable slot +0x34 (0x004A4480) loads exactly two named
         // textures and keeps them at +0x1C and +0x20:
-        //   push 0x006290F4 -> [this+0x1C] = "FrontEnd\v2\FE_Arrow.tga"
-        //   push 0x00629F68 -> [this+0x20] = "FrontEnd\v2\FE_Blank.tga"  (bar segment)
+        //   a push of constant 0x006290F4 -> [this+0x1C] = "FrontEnd\v2\FE_Arrow.tga"
+        //   a push of constant 0x00629F68 -> [this+0x20] = "FrontEnd\v2\FE_Blank.tga" (bar segment)
         // and the loader's path template at 0x00652710 is
         // "data\resources\dxtntextures\%s(%d)%s.aya", which with '\'->'%' and mip 0
         // is the exact shipped filename this lane already hashes.
@@ -424,7 +424,7 @@ public sealed partial class RetailFrontendFlow
         // literal -1: once with rotation 0x40490FDB = pi and once with 0.
         // 0.3 x 64 = a 19.2px quad, whose ink sub-rect (16,12)-(46,52) scales to
         // exactly the 9 x 12 px of measured retail ink.
-        // Specimen local-lab/safe-copy-bea-pristine/BEA.exe.original.backup,
+        // Specimen a private pristine copy,
         // sha256 74154bfa...
         //
         // Two consequences beyond the texture swap, both from those bytes:
@@ -472,7 +472,7 @@ public sealed partial class RetailFrontendFlow
 
         // Retail anchors the panel dest leftover on incoming dest Y minus
         // integer-half of (count-1)*cy. Dest X is the collapsed dest leftover.
-        // Width is max cx plus the add ebp,3 leftover. Dest is not the pad.
+        // Width is max cx plus the addition of 3 to ebp leftover. Dest is not the pad.
         float height = row.States.Count * DropdownEntryPitch;
         DrawRect(
             new Rect2(
@@ -712,7 +712,7 @@ public sealed partial class RetailFrontendFlow
     private bool HandleOptionsPointerMotion(Vector2 design)
     {
         // CMenuItemDropdown expanded list hover leftover is
-        // RetailOptionsDropdownListHover: call 0x004693D0 then write
+        // RetailOptionsDropdownListHover: a direct call to 0x004693D0 then write
         // currentIndex. That is hover, not dest and not colour. Click
         // at 0x004A4010 is a later leftover.
         if (_options.IsExpanded)
@@ -772,12 +772,12 @@ public sealed partial class RetailFrontendFlow
         if (_options.IsExpanded)
         {
             // CMenuItemDropdown expanded list click leftover is
-            // RetailOptionsDropdownListClick: call 0x00469400 then write
+            // RetailOptionsDropdownListClick: a direct call to 0x00469400 then write
             // currentIndex and the expand byte. That is click, not dest
             // and not colour. Hover leftover already owns 0x004A3FA6.
             // CMenuItemDropdown click-hit sound leftover is
             // RetailOptionsDropdownListClickSound: push 1 then
-            // call 0x00468770. That is not dest, not colour, not
+            // a direct call to 0x00468770. That is not dest, not colour, not
             // hover, not click, and not cancel.
             RetailOptionsRow expanded = _options.SelectedRow;
             float rowTop = _options.RowTop(_options.SelectedIndex);
@@ -855,13 +855,13 @@ public sealed partial class RetailFrontendFlow
     private bool HandleOptionsPointerCancel(bool rightDown)
     {
         // CMenuItemDropdown post-loop cancel leftover is
-        // RetailOptionsDropdownListCancel: call 0x0044DEA0 then, when
+        // RetailOptionsDropdownListCancel: a direct call to 0x0044DEA0 then, when
         // 0x0089BE28 is set, write currentIndex from committedIndex and
         // the expand byte. That is cancel, not dest, not colour, not
         // hover, and not click. Click leftover already owns 0x004A4010.
         // Hover leftover already owns 0x004A3FA6. Latch-to-button SET
-        // leftover is RetailFrontendLatchToButton: test ah, 0x80 then
-        // mov [0x0089BE28], 1. That is the SET cancel leftover reads.
+        // leftover is RetailFrontendLatchToButton: a bit test of ah against 0x80 then
+        // a store of constant 1 to the value at 0x0089BE28. That is the SET cancel leftover reads.
         // FMV skip already owns the OR at 0x0053F2EB.
         if (!RetailFrontendScenePath.AcceptsOptionsPointerCancel(rightDown))
         {

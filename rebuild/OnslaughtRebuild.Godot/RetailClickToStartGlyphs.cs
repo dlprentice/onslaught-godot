@@ -6,7 +6,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// The CFEPIntro "Click to start" glyph submits — one
 /// <c>Localization__GetStringById</c> lookup and five
 /// <c>CDXFont__DrawTextScaled</c> calls — recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
@@ -15,20 +15,20 @@ namespace OnslaughtRebuild.GodotClient;
 /// <c>CText__GetStringById</c>, not attract <c>vectorlosttoyssplash</c>, and
 /// not TWIMTBP.</para>
 ///
-/// <para><b>Lookup.</b> <c>push 0x77</c> at <c>0x0051B92F</c> then
+/// <para><b>Lookup.</b> a push of constant 0x77 at <c>0x0051B92F</c> then
 /// <c>Localization__GetStringById</c> at <c>0x00524830</c>. Font this is
 /// <c>CPlatform__Font(0x0088A0A8, 0)</c> at <c>0x00515A70</c>. Width is the
 /// first dword of <c>CDXFont__GetTextExtent</c> at <c>0x00540680</c>
-/// (<c>fild [esp+8]</c>).</para>
+/// (an integer-to-float load of stack local +8).</para>
 ///
 /// <para><b>Passes.</b> Mode is five <c>DrawTextScaled</c> calls at
 /// <c>0x00540010</c>. <c>sx=sy</c> immediates <c>0x3F800000</c> (1.0). z bits
 /// <c>0x3DCCCCCD</c> (0.1). Y immediates 401 / 401 / 399 / 399 / 400
 /// (<c>0x43C88000</c> / <c>0x43C78000</c> / <c>0x43C80000</c>). Outline colour
-/// <c>0xFF000000</c>; body <c>push -1</c> = <c>0xFFFFFFFF</c>.</para>
+/// <c>0xFF000000</c>; body (a push of constant -1) = <c>0xFFFFFFFF</c>.</para>
 ///
-/// <para><b>X.</b> <c>fmul [0.5f]</c> at <c>0x005D85EC</c>,
-/// <c>fsubr [320.0f]</c> at <c>0x005DB3E8</c>, then <c>fsub</c> / <c>fadd</c>
+/// <para><b>X.</b> a float multiply by the constant 0.5f at <c>0x005D85EC</c>,
+/// a reversed float subtract of the constant 320.0f at <c>0x005DB3E8</c>, then <c>fsub</c> / <c>fadd</c>
 /// <c>[1.0f]</c> at <c>0x005D8568</c> on the four outline corners. That is
 /// <c>320 − width×0.5 + dx</c>. A capture-derived <c>textScale = 2</c> is
 /// not the body.</para>
@@ -40,7 +40,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailClickToStartGlyphs
 {
-    /// <summary><c>push 0x77</c> at <c>0x0051B92F</c>.</summary>
+    /// <summary>A push of constant 0x77 at <c>0x0051B92F</c>.</summary>
     public const int LocalizationId = 0x77;
 
     /// <summary>Second argument of <c>CPlatform__Font</c> at <c>0x0051B941</c>.</summary>
@@ -64,7 +64,7 @@ public static class RetailClickToStartGlyphs
     /// <summary>Outline colour immediate at <c>0x0051B95D</c>.</summary>
     public const uint OutlineColor = 0xFF000000u;
 
-    /// <summary>Body colour immediate at <c>0x0051BA89</c> (<c>push -1</c>).</summary>
+    /// <summary>Body colour immediate at <c>0x0051BA89</c> (a push of constant -1).</summary>
     public const uint BodyColor = 0xFFFFFFFFu;
 
     /// <summary>One <c>CDXFont__DrawTextScaled</c> call.</summary>

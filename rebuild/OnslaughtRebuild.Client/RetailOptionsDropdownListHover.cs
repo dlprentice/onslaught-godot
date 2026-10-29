@@ -5,12 +5,12 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> expanded list hover leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Expanded list colour at <c>0x004A3F6C</c> is
@@ -28,31 +28,31 @@ namespace OnslaughtRebuild.Client;
 /// <see cref="RetailOptionsMenuItemDest"/>. Icon dest at
 /// <c>0x004A3301</c> is already
 /// <see cref="RetailOptionsMenuItemIconDest"/>. This leftover is the
-/// expanded-arm <c>call 0x004693D0</c> / <c>mov [esi+0x20], edi</c>.
+/// expanded-arm (a direct call to 0x004693D0, then store of edi to field +0x20 of esi).
 /// Do not redo those. Do not invent dest Y as 5, 15.5, 268, 284, or
 /// 304. Do not invent dest X as 322.5 or dest from 148.0. Do not
 /// invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>Hover.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3F55</c> is <c>fld [esp+0x1C]</c> collapsed dest leftover.
-/// <c>0x004A3F59</c> is <c>fadd [0x005D8BA0]</c> pad leftover.
-/// <c>0x004A3F5F</c> is <c>fstp [esp+0x34]</c>. <c>0x004A3F65</c> is
-/// <c>mov ebp, [esp+0x10]</c> dest Y leftover. <c>0x004A3F78</c> is
-/// <c>fild [esp+0x20]</c> leftover label SIZE.cx. <c>0x004A3F7C</c>
-/// is <c>mov ecx, [esp+0x34]</c>. <c>0x004A3F80</c> is
-/// <c>fadd [esp+0x1C]</c>. <c>0x004A3F84</c> is
-/// <c>fadd [0x005D8BA0]</c>. <c>0x004A3F8A</c> is
-/// <c>fstp [esp+0x30]</c>. <c>0x004A3F8E</c> is
-/// <c>fld [esp+0x38]</c> pitch leftover. <c>0x004A3F92</c> is
-/// <c>fadd [esp+0x10]</c>. <c>0x004A3F9A</c> is
-/// <c>fstp [esp+0x14]</c>. <c>0x004A3FA2</c> is <c>push edx</c>.
-/// <c>0x004A3FA3</c> is <c>push eax</c>. <c>0x004A3FA4</c> is
-/// <c>push ebp</c>. <c>0x004A3FA5</c> is <c>push ecx</c>.
-/// <c>0x004A3FA6</c> is <c>call 0x004693D0</c>. <c>0x004A3FAB</c>
-/// is <c>add esp, 0x10</c>. <c>0x004A3FAE</c> is
-/// <c>test al, al</c>. <c>0x004A3FB0</c> is
-/// <c>je 0x004A3FB5</c>. <c>0x004A3FB2</c> is
-/// <c>mov [esi+0x20], edi</c>. Hover writes currentIndex. Dest Y
+/// <c>0x004A3F55</c> is a float load of stack local +0x1C collapsed dest leftover.
+/// <c>0x004A3F59</c> is a float add of the value at 0x005D8BA0 pad leftover.
+/// <c>0x004A3F5F</c> is a float store to stack local +0x34. <c>0x004A3F65</c> is
+/// a load of stack local +0x10 into ebp dest Y leftover. <c>0x004A3F78</c> is
+/// an integer-to-float load of stack local +0x20 leftover label SIZE.cx. <c>0x004A3F7C</c>
+/// is a load of stack local +0x34 into ecx. <c>0x004A3F80</c> is
+/// a float add of stack local +0x1C. <c>0x004A3F84</c> is
+/// a float add of the value at 0x005D8BA0. <c>0x004A3F8A</c> is
+/// a float store to stack local +0x30. <c>0x004A3F8E</c> is
+/// a float load of stack local +0x38 pitch leftover. <c>0x004A3F92</c> is
+/// a float add of stack local +0x10. <c>0x004A3F9A</c> is
+/// a float store to stack local +0x14. <c>0x004A3FA2</c> is a push of edx.
+/// <c>0x004A3FA3</c> is a push of eax. <c>0x004A3FA4</c> is
+/// a push of ebp. <c>0x004A3FA5</c> is a push of ecx.
+/// <c>0x004A3FA6</c> is a direct call to 0x004693D0. <c>0x004A3FAB</c>
+/// is a stack cleanup of 0x10 bytes. <c>0x004A3FAE</c> is
+/// a zero test of al. <c>0x004A3FB0</c> is
+/// a conditional branch to 0x004A3FB5 (taken when equal). <c>0x004A3FB2</c> is
+/// a store of edi to field +0x20 of esi. Hover writes currentIndex. Dest Y
 /// does not. Colour leftover already consults currentIndex. Nearby
 /// 15.5, 322.5, and 148.0 are measurements, not dest. Click at
 /// <c>0x004A4010</c> is a later leftover.</para>
@@ -71,10 +71,10 @@ public static class RetailOptionsDropdownListHover
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>fld [esp+0x1C]</c>. Collapsed dest leftover, not dest itself.</summary>
+    /// <summary>A float load of stack local +0x1C. Collapsed dest leftover, not dest itself.</summary>
     public const uint CollapsedLeftoverLoadSite = 0x004A3F55u;
 
-    /// <summary><c>fadd [0x005D8BA0]</c>. Pad leftover, not dest.</summary>
+    /// <summary>A float add of the value at 0x005D8BA0. Pad leftover, not dest.</summary>
     public const uint PadAddSite = 0x004A3F59u;
 
     /// <summary>2.0 source. Pad leftover, not dest X itself.</summary>
@@ -83,55 +83,55 @@ public static class RetailOptionsDropdownListHover
     /// <summary>IEEE bits at <see cref="PadGlobal"/>. 2.0.</summary>
     public const uint PadBits = 0x40000000u;
 
-    /// <summary><c>fstp [esp+0x34]</c>. Left leftover. Already dest X.</summary>
+    /// <summary>A float store to stack local +0x34. Left leftover. Already dest X.</summary>
     public const uint LeftStoreSite = 0x004A3F5Fu;
 
-    /// <summary><c>mov ebp, [esp+0x10]</c>. Top leftover. Already dest Y.</summary>
+    /// <summary>A load of stack local +0x10 into ebp. Top leftover. Already dest Y.</summary>
     public const uint TopLoadSite = 0x004A3F65u;
 
-    /// <summary><c>fild [esp+0x20]</c>. Leftover label SIZE.cx, not dest.</summary>
+    /// <summary>An integer-to-float load of stack local +0x20. Leftover label SIZE.cx, not dest.</summary>
     public const uint LabelCxFildSite = 0x004A3F78u;
 
-    /// <summary><c>mov ecx, [esp+0x34]</c>. Left into the hit helper.</summary>
+    /// <summary>A load of stack local +0x34 into ecx. Left into the hit helper.</summary>
     public const uint LeftLoadSite = 0x004A3F7Cu;
 
-    /// <summary><c>fstp [esp+0x30]</c>. Right leftover, not dest X.</summary>
+    /// <summary>A float store to stack local +0x30. Right leftover, not dest X.</summary>
     public const uint RightStoreSite = 0x004A3F8Au;
 
-    /// <summary><c>fstp [esp+0x14]</c>. Bottom leftover, not dest Y.</summary>
+    /// <summary>A float store to stack local +0x14. Bottom leftover, not dest Y.</summary>
     public const uint BottomStoreSite = 0x004A3F9Au;
 
-    /// <summary><c>push edx</c>. Bottom into the hit helper.</summary>
+    /// <summary>A push of edx. Bottom into the hit helper.</summary>
     public const uint BottomPushSite = 0x004A3FA2u;
 
-    /// <summary><c>push eax</c>. Right into the hit helper.</summary>
+    /// <summary>A push of eax. Right into the hit helper.</summary>
     public const uint RightPushSite = 0x004A3FA3u;
 
-    /// <summary><c>push ebp</c>. Top into the hit helper.</summary>
+    /// <summary>A push of ebp. Top into the hit helper.</summary>
     public const uint TopPushSite = 0x004A3FA4u;
 
-    /// <summary><c>push ecx</c>. Left into the hit helper.</summary>
+    /// <summary>A push of ecx. Left into the hit helper.</summary>
     public const uint LeftPushSite = 0x004A3FA5u;
 
-    /// <summary><c>call 0x004693D0</c>. Hover hit leftover.</summary>
+    /// <summary>A direct call to 0x004693D0. Hover hit leftover.</summary>
     public const uint HoverHitSite = 0x004A3FA6u;
 
     /// <summary>Hover helper. Already named on the colour leftover.</summary>
     public const uint HoverHit = 0x004693D0u;
 
-    /// <summary><c>add esp, 0x10</c> after the cdecl hit helper.</summary>
+    /// <summary>A stack cleanup of 0x10 bytes after the cdecl hit helper.</summary>
     public const uint HoverHitPop = 0x10u;
 
-    /// <summary><c>test al, al</c>. Hover writes only when the helper returns true.</summary>
+    /// <summary>A zero test of al. Hover writes only when the helper returns true.</summary>
     public const uint HitTestSite = 0x004A3FAEu;
 
-    /// <summary><c>je 0x004A3FB5</c>. Miss keeps currentIndex.</summary>
+    /// <summary>A conditional branch to 0x004A3FB5 (taken when equal). Miss keeps currentIndex.</summary>
     public const uint MissJumpSite = 0x004A3FB0u;
 
     /// <summary>Fall-through target after a miss.</summary>
     public const uint MissJumpTarget = 0x004A3FB5u;
 
-    /// <summary><c>mov [esi+0x20], edi</c>. Hover writes currentIndex.</summary>
+    /// <summary>A store of edi to field +0x20 of esi. Hover writes currentIndex.</summary>
     public const uint CurrentIndexStoreSite = 0x004A3FB2u;
 
     /// <summary>currentIndex at <c>[this+0x20]</c>. Hover leftover, not dest.</summary>

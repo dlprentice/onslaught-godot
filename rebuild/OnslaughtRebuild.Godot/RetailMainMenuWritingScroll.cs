@@ -5,14 +5,15 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render prologue Y for the three <c>0x0089D7F0</c> Forseti
 /// writing tiles — recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this cycle
 /// (2,506,752 bytes).
 ///
 /// <para><b>Prologue.</b> <c>0x00462D46</c> is
-/// <c>fld [0x008A9570]; fmul [0x005D8CB4]; fld qword [0x005DB5F0];
-/// call 0x0055E3EA; fsubr [0x005DB5E8]; fstp [esp+0x10]</c>.
+/// a float load of the value at 0x008A9570, then float multiply by the value at 0x005D8CB4,
+/// then double load of the 64-bit value at 0x005DB5F0, then direct call to 0x0055E3EA, then
+/// reversed float subtract of the value at 0x005DB5E8, then float store to stack local +0x10.
 /// The dword at <c>0x005D8CB4</c> is <c>0x3E99999A</c> (0.3). The qword
 /// at <c>0x005DB5F0</c> is 350.0. The dword at <c>0x005DB5E8</c> is 175.0.
 /// <c>0x0055E3EA</c> is the same CRT fmod thunk the Options Apply pulse
@@ -23,7 +24,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <c>0x0089D7F0</c> consume that local before
 /// <c>0x00462E96</c> overwrites the slot with <c>0x43860000</c> (268)
 /// for the language row. Tile 0 pushes the local as Y. Tile 1
-/// <c>fadd [0x005DB5E4]</c> (350). Tile 2 <c>fadd [0x005DB3B0]</c>
+/// (a float add of the value at 0x005DB5E4) (350). Tile 2 (a float add of the value at 0x005DB3B0)
 /// (700). X is the <c>0x43E50000</c> (458) immediate on each call.
 /// This helper owns the Y scroll, not the 458 X and not the 0.9 Z.</para>
 ///
@@ -44,7 +45,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuWritingScroll
 {
-    /// <summary><c>fld [0x008A9570]</c> at <c>0x00462D46</c>.</summary>
+    /// <summary>A float load of the value at 0x008A9570 at <c>0x00462D46</c>.</summary>
     public const uint CounterGlobal = 0x008A9570u;
 
     /// <summary>
@@ -57,7 +58,7 @@ public static class RetailMainMenuWritingScroll
     public static float ImageInitialCounter =>
         BitConverter.UInt32BitsToSingle(ImageInitialCounterBits);
 
-    /// <summary><c>fmul [0x005D8CB4]</c> at <c>0x00462D4E</c>.</summary>
+    /// <summary>A float multiply by the value at 0x005D8CB4 at <c>0x00462D4E</c>.</summary>
     public const uint RateGlobal = 0x005D8CB4u;
 
     /// <summary>Image bits at <c>0x005D8CB4</c>.</summary>
@@ -66,7 +67,7 @@ public static class RetailMainMenuWritingScroll
     /// <summary>The <see cref="RateBits"/> dword, not a second 0.3 literal.</summary>
     public static float Rate => BitConverter.UInt32BitsToSingle(RateBits);
 
-    /// <summary><c>fld qword [0x005DB5F0]</c> at <c>0x00462D54</c>.</summary>
+    /// <summary>A double load of the 64-bit value at 0x005DB5F0 at <c>0x00462D54</c>.</summary>
     public const uint PeriodGlobal = 0x005DB5F0u;
 
     /// <summary>Image bits at <c>0x005DB5F0</c>.</summary>
@@ -75,7 +76,7 @@ public static class RetailMainMenuWritingScroll
     /// <summary>The <see cref="PeriodBits"/> qword, not a second 350 literal.</summary>
     public static double Period => BitConverter.Int64BitsToDouble(unchecked((long)PeriodBits));
 
-    /// <summary><c>fsubr [0x005DB5E8]</c> at <c>0x00462D71</c>.</summary>
+    /// <summary>A reversed float subtract of the value at 0x005DB5E8 at <c>0x00462D71</c>.</summary>
     public const uint OriginYGlobal = 0x005DB5E8u;
 
     /// <summary>Image bits at <c>0x005DB5E8</c>.</summary>
@@ -84,7 +85,7 @@ public static class RetailMainMenuWritingScroll
     /// <summary>The <see cref="OriginYBits"/> dword.</summary>
     public static float OriginY => BitConverter.UInt32BitsToSingle(OriginYBits);
 
-    /// <summary>Tile 1 <c>fadd [0x005DB5E4]</c> at <c>0x00462E1C</c>.</summary>
+    /// <summary>Tile 1 (a float add of the value at 0x005DB5E4) at <c>0x00462E1C</c>.</summary>
     public const uint Tile1AddGlobal = 0x005DB5E4u;
 
     /// <summary>Image bits at <c>0x005DB5E4</c>.</summary>
@@ -93,7 +94,7 @@ public static class RetailMainMenuWritingScroll
     /// <summary>The <see cref="Tile1AddBits"/> dword.</summary>
     public static float Tile1Add => BitConverter.UInt32BitsToSingle(Tile1AddBits);
 
-    /// <summary>Tile 2 <c>fadd [0x005DB3B0]</c> at <c>0x00462E59</c>.</summary>
+    /// <summary>Tile 2 (a float add of the value at 0x005DB3B0) at <c>0x00462E59</c>.</summary>
     public const uint Tile2AddGlobal = 0x005DB3B0u;
 
     /// <summary>Image bits at <c>0x005DB3B0</c>.</summary>
@@ -105,10 +106,10 @@ public static class RetailMainMenuWritingScroll
     /// <summary>Three unrolled <c>0x0089D7F0</c> submits.</summary>
     public const int TileCount = 3;
 
-    /// <summary><c>push 0x43E50000</c> on each of the three calls.</summary>
+    /// <summary>A push of constant 0x43E50000 on each of the three calls.</summary>
     public const float TileX = 458f;
 
-    /// <summary><c>call 0x0055E3EA</c> at <c>0x00462D6C</c>.</summary>
+    /// <summary>A direct call to 0x0055E3EA at <c>0x00462D6C</c>.</summary>
     public const uint FmodSite = 0x0055E3EAu;
 
     /// <summary>

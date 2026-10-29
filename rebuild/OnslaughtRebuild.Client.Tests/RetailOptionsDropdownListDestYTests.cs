@@ -6,34 +6,33 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CMenuItemDropdown::Render</c> expanded list dest Y leftover
-/// after <c>0x004A3F3C</c> <c>fild [esp+0x60]</c> /
-/// <c>0x004A3F47</c> <c>fmul [esp+0x18]</c> /
-/// <c>0x004A3F8E</c> <c>fld [esp+0x38]</c> — recovered from official
+/// after <c>0x004A3F3C</c>: an integer-to-float load of stack local +0x60; <c>0x004A3F47</c>: a float multiply
+/// by stack local +0x18; <c>0x004A3F8E</c>: a float load of stack local +0x38 — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A3DB5</c> <c>push ebp</c>,
-/// <c>0x004A3E02</c> <c>imul [esp+0x24]</c> label SIZE.cy leftover,
-/// <c>0x004A3E3D</c> <c>mov [esp+0x18], 0x3F800000</c> scale leftover,
-/// <c>0x004A3E45</c> <c>fstp [esp+0x10]</c> panel dest Y leftover,
-/// <c>0x004A3F00</c> <c>mov ebp, [esp+0x24]</c> aliases that dest Y
+/// <c>0x004A3DB5</c>: a push of ebp,
+/// <c>0x004A3E02</c>: a signed multiply by stack local +0x24 label SIZE.cy leftover,
+/// <c>0x004A3E3D</c>: a store of constant 0x3F800000 to stack local +0x18 scale leftover,
+/// <c>0x004A3E45</c>: a float store to stack local +0x10 panel dest Y leftover,
+/// <c>0x004A3F00</c>: a load of stack local +0x24 into ebp aliases that dest Y
 /// after the DrawSpriteEx pack start,
-/// <c>0x004A3F3C</c> <c>fild [esp+0x60]</c> aliases SIZE.cy after
+/// <c>0x004A3F3C</c>: an integer-to-float load of stack local +0x60 aliases SIZE.cy after
 /// the 0x3C pack,
-/// <c>0x004A3F40</c> <c>add esp, 0x3C</c>,
-/// <c>0x004A3F47</c> <c>fmul [esp+0x18]</c> scale leftover,
-/// <c>0x004A3F4B</c> <c>fstp [esp+0x38]</c>,
-/// <c>0x004A3F65</c> <c>mov ebp, [esp+0x10]</c>,
-/// <c>0x004A3F8E</c> <c>fld [esp+0x38]</c>,
-/// <c>0x004A3F92</c> <c>fadd [esp+0x10]</c>,
-/// <c>0x004A3F9A</c> <c>fstp [esp+0x14]</c>,
-/// <c>0x004A3FD1</c> <c>push ebp</c> dest Y into DrawText,
-/// <c>0x004A3FE1</c> <c>call 0x004659A0</c>,
-/// <c>0x004A404D</c> <c>mov [esp+0x10], ecx</c>.
+/// <c>0x004A3F40</c>: a stack cleanup of 0x3C bytes,
+/// <c>0x004A3F47</c>: a float multiply by stack local +0x18 scale leftover,
+/// <c>0x004A3F4B</c>: a float store to stack local +0x38,
+/// <c>0x004A3F65</c>: a load of stack local +0x10 into ebp,
+/// <c>0x004A3F8E</c>: a float load of stack local +0x38,
+/// <c>0x004A3F92</c>: a float add of stack local +0x10,
+/// <c>0x004A3F9A</c>: a float store to stack local +0x14,
+/// <c>0x004A3FD1</c>: a push of ebp dest Y into DrawText,
+/// <c>0x004A3FE1</c>: a direct call to 0x004659A0,
+/// <c>0x004A404D</c>: a store of ecx to stack local +0x10.
 /// Dest Y is the panel dest leftover plus index times (SIZE.cy times
 /// scale). Dest Y does not consult currentIndex. Dest is not 15.5,
 /// 322.5, 148.0, or the 2.0 constant. DrawOptionDropdown consumes

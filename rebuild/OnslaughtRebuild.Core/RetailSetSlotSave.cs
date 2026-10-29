@@ -11,7 +11,7 @@ namespace OnslaughtRebuild.Core;
 /// <remarks>
 /// <para>
 /// Retail identity: <c>IScript__SetSlotSave</c> at <c>0x00533900</c>
-/// (<c>RET 0xc</c>, 30 instructions). After <c>CGame::SetSlot</c>
+/// (a return that pops 12 bytes of arguments, 30 instructions). After <c>CGame::SetSlot</c>
 /// at <c>0x0046d3a0</c> it calls <c>CCareer::SetSlot</c> at
 /// <c>0x004214e0</c>. Function note
 /// <c>reverse-engineering/binary-analysis/functions/Script.cpp/CGame__SetSlot.md</c>
@@ -30,8 +30,8 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <para>
 /// <b>Do not invent live <c>GAME.mSlots</c>.</b> <c>CGame::SetSlot</c>
-/// (sets the bit only when the value is 1 and clears it otherwise: <c>cmp
-/// [esp+0xc],1; jne</c> at <c>0x0046d3c5</c>, as <c>CCareer::SetSlot</c> at
+/// (sets the bit only when the value is 1 and clears it otherwise: a compare of stack local
+/// +0xc with 1, branching when not equal at <c>0x0046d3c5</c>, as <c>CCareer::SetSlot</c> at
 /// <c>0x00421505</c>) and FillOut's copy of those 32 words stay on
 /// <see cref="RetailFillOutEndLevelData.ForLevel100Won"/>. This owner
 /// only persists through the already-pinned

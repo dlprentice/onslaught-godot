@@ -12,8 +12,8 @@ namespace OnslaughtRebuild.Client;
 /// <c>Frontend.h:241</c>, and the page-table slot at <c>FrontEnd.cpp:126</c>).
 /// So the widget layer is recovered from the shipped bytes and from real retail
 /// pixels, not ported. The byte recovery is
-/// <c>local-lab/OPTIONS-PAGE-RECOVERY-2026-07-27.md</c>; the pixels are the nine
-/// PNGs in <c>local-lab/retail-captures-options-pause-2026-07-27/</c>.
+/// the private lab note OPTIONS-PAGE-RECOVERY-2026-07-27.md; the pixels are the nine
+/// PNGs in a private retail reference capture.
 ///
 /// What IS in the drop, and is ported here rather than re-derived, is the career
 /// option fields and their defaults (<c>Career.h:201-207</c>,
@@ -77,7 +77,7 @@ public sealed class RetailOptionsMenu
     /// <summary>
     /// <c>g_MouseSensitivity = (index + 1) * 3.0f</c>. Setter <c>0x004CEFE0</c>,
     /// the 3.0 is the float32 at <c>0x005D8CC0</c>, read from the pristine
-    /// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>
+    /// specimen a private pristine copy
     /// (sha256 <c>74154bfa...</c>) - never from the installed, deliberately
     /// patched <c>BEA.exe</c>.
     /// </summary>
@@ -606,15 +606,15 @@ public sealed class RetailOptionsMenu
         // the recovery note's open item 8.4 and the implementation note's GUESS 3.
         //
         // The chain closes without inference. Its +0x40 state count (0x004059C0) is a
-        // body whose whole text is `mov eax,2; ret`, and its +0x44 (0x004D01F0)
+        // body whose whole text is a load of constant 2 into eax, then return, and its +0x44 (0x004D01F0)
         // returns Localization 0xF0 "Custom" for state 0 and 0xF3 "WASD + mouse" for
         // anything else. What was missing was whether the dropdown INDEX is the same
         // integer as the preset SCHEME. It is, in both directions and with no remap:
         //   SET +0x38 (0x004D01D0) passes the index straight to Controls__ApplyPreset
-        //     (0x00453780), whose first act is `mov [0x00677D70], ebp` at 0x0045378A
+        //     (0x00453780), whose first act is a store of ebp to the value at 0x00677D70 at 0x0045378A
         //     - the index stored verbatim;
-        //   GET +0x3C (0x004D01E0) is `mov eax,[0x00677D70]; ret`.
-        // ApplyPreset's own shape corroborates the labels: `test ebp,ebp; je` at
+        //   GET +0x3C (0x004D01E0) is a load of the value at 0x00677D70 into eax, then return.
+        // ApplyPreset's own shape corroborates the labels: a zero test of ebp, branching when equal at
         // 0x00453787 means scheme 0 applies NO bindings, which is exactly what
         // "Custom" denotes; nonzero schemes walk the 0x20-byte binding records at
         // 0x00677AF0, using the scheme integer as the count of terminators to skip.
@@ -664,7 +664,7 @@ public sealed class RetailOptionsMenu
         // STATE ORDER READ, 2026-07-27, was inferred from id adjacency. CVideoDetailLevel's
         // +0x44 label vfunc (0x004D01A0) is `Localization(state + 0xE0)`, and the English arm
         // gives 0xE0 Custom, 0xE1 Lowest, 0xE2 Medium, 0xE3 High. Specimen
-        // local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256 74154bfa...
+        // a private pristine copy, sha256 74154bfa...
         RetailOptionsRow.Drop(
             "Overall Detail level:",
             ["Custom", "Lowest", "Medium", "High"],
@@ -966,8 +966,8 @@ public sealed class RetailOptionsRow
 
     /// <summary>
     /// The bindings grid is deliberately excluded: its own vtable
-    /// (<c>0x005DB404</c>) has <c>ButtonPressed = RET 0xC</c> and
-    /// <c>IsEnabled = xor eax,eax</c>, so the keyboard walk cannot land on it.
+    /// (<c>0x005DB404</c>) has <c>ButtonPressed</c> = a return that pops 12 bytes of arguments and
+    /// <c>IsEnabled</c> = a zeroing of eax, so the keyboard walk cannot land on it.
     /// Status rows are drawn disabled in the retail frame.
     /// </summary>
     public bool IsSelectable =>
@@ -1147,7 +1147,7 @@ public sealed class RetailOptionsSettings
     /// (<c>0x004CFFD0</c>, running to <c>0x004D0199</c>) is three sequential
     /// nine-field tuple compares against the Lowest / Medium / High presets, and the
     /// sole fall-through for all three arms is
-    /// <c>0x004D0196: xor eax,eax; ret</c> - Custom. Every arm requires Shadow and
+    /// <c>0x004D0196</c>: a zeroing of eax, then return - Custom. Every arm requires Shadow and
     /// Geometry to be EQUAL (0/0, 1/1, 2/2), and the shipped pair is Shadow 0 with
     /// Geometry 1, so all three arms fail on that pair alone. The verdict does not
     /// depend on any other child row's default.
@@ -1173,7 +1173,7 @@ public sealed class RetailOptionsSettings
     /// has been reset.
     ///
     /// Specimen for every address here:
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+    /// a private pristine copy,
     /// sha256 <c>74154bfa...</c>. File offset is VA - 0x400000 uniformly.
     /// </summary>
     public int ShadowDetail { get; set; }
@@ -1191,7 +1191,8 @@ public sealed class RetailOptionsSettings
     /// Yes. READ 2026-07-27, was a GUESS that happened to be right.
     ///
     /// The CVar behind this row is registered at <c>0x004CDE30</c> -
-    /// <c>push 0; push 0x00631198; mov ecx,0x0082B468; call 0x00528AA0</c> - so its
+    /// (a push of constant 0, then push of constant 0x00631198, then load of
+    /// constant 0x0082B468 into ecx, then direct call to 0x00528AA0) - so its
     /// authored default is <b>0</b> and its name is
     /// <c>RENDERSTATE_DISALLOW_MIPMAPPING</c>. That name settles the inversion the
     /// recovery note flagged: the CVar is the NEGATION of the row. The GET
@@ -1220,7 +1221,7 @@ public sealed class RetailOptionsSettings
     /// High. READ 2026-07-27, was a GUESS that happened to be right.
     ///
     /// CVar <c>LANDSCAPE_MAXLEVELS_USER</c> on object <c>0x008AA950</c> is registered
-    /// at <c>0x00544660</c> with <c>push 5</c>, so its authored value is 5. The GET
+    /// at <c>0x00544660</c> with a push of constant 5, so its authored value is 5. The GET
     /// (<c>0x004CF690</c>) maps cvar 1 -> 0, 3 -> 1, 4 -> 2, anything else -> 3, and
     /// the SET's arms write 1.0 / 3.0 / 4.0 / 5.0 in that order. 5 is index 3.
     /// </summary>
@@ -1232,7 +1233,7 @@ public sealed class RetailOptionsSettings
     /// off the captured machine's frame.
     ///
     /// The CVar is registered at <c>0x00556C30</c> as
-    /// <c>push -1; push 0x00652610; mov ecx,0x009CC0F8</c> - name
+    /// a push of constant -1, then push of constant 0x00652610, then load of constant 0x009CC0F8 into ecx - name
     /// <c>USER_TEXTURE_RES_LOSS_SHIFT</c>, authored value <c>-1</c> - and the GET
     /// (<c>0x004CF7A0</c>) returns <c>[0x009CC104]</c> unless it is <c>&lt;= -1</c>,
     /// in which case it returns the recommendation at <c>[0x009CC114]</c>.
@@ -1242,7 +1243,7 @@ public sealed class RetailOptionsSettings
     /// <summary>
     /// <b>-1, the same "unset" sentinel.</b> CVar <c>USER_TEXTURE_ALLOW_32_BIT</c> on
     /// object <c>0x009CC0D8</c> is registered at <c>0x00556C90</c> with
-    /// <c>push -1</c>; the GET (<c>0x004CF860</c>) asks the CVar whether it was ever
+    /// a push of constant -1; the GET (<c>0x004CF860</c>) asks the CVar whether it was ever
     /// set and returns <c>[0x009CC0F4]</c>, the recommendation, when it was not.
     /// </summary>
     public int Enable32BitTextures { get; set; } = -1;

@@ -128,7 +128,7 @@ public sealed class Level100ReleasedRandom
     /// </summary>
     public int NextSignedUnitScaled(int scale)
     {
-        // `uVar5 & 0x8000ffff` plus the sign fix-up is the MSVC idiom for a
+        // Masking with 0x8000ffff plus the sign fix-up is the MSVC idiom for a
         // SIGNED `% 65536`: the remainder keeps the dividend's sign. Next()
         // sign-normalizes every return except INT_MIN, whose remainder is
         // exactly zero, so the actual domain is still [0, 65535]. Internal

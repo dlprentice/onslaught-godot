@@ -7,13 +7,13 @@ namespace OnslaughtRebuild.Core.Tests;
 
 /// <summary>
 /// Beat 6 <c>player.EnableFlightMode()</c> is the training path
-/// that stores <c>mov [ecx+0x58c], 1</c>. Isolated
+/// that stores a store of constant 1 to field +0x58c of ecx. Isolated
 /// <see cref="RetailEnableFlightMode.Enable"/> names that
 /// immediate without takeoff. Isolated
 /// <see cref="WorldSnapshot.Level100FlightEnabled"/> names the
 /// rebuild bool and still lets GrantFlight transform if this
 /// store is skipped. Disable's clear / morph / wrapper
-/// <c>test [ecx+0x34], 8</c> stay unclaimed. ChargeWeapon /
+/// (a bit test of field +0x34 of ecx against 8) stay unclaimed. ChargeWeapon /
 /// ReadyToCharge / Charged-2 stay unclaimed. Live
 /// <c>GAME.mSlots</c> stay unclaimed. No new secondaries.
 /// </summary>

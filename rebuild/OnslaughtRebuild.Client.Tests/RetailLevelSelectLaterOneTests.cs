@@ -7,29 +7,25 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CFEPLevelSelect::Render</c> later leftover after the
-/// later <c>[esp+0x94]</c> shift — <c>0x00460E62</c>
-/// <c>fcom [0x005D8568]</c> (1.0) / <c>0x00460E77</c>
-/// <c>fmul [0x005D8C70]</c> (255.0) — recovered from official
+/// later <c>[esp+0x94]</c> shift — <c>0x00460E62</c>: a float compare against the value at 0x005D8568 (1.0)
+/// / <c>0x00460E77</c>: a float multiply by the value at 0x005D8C70 (255.0) — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash. <c>FEPLevelSelect</c> is absent from the
 /// pinned GPL drop.
 ///
 /// <para>Official bytes independently re-read this cycle:
 /// <c>0x00460E4D</c> is already the later-esp94 first store
-/// consumer <c>fst [esp+0x40]</c> (<c>d9 54 24 40</c>).
-/// <c>0x00460E62</c> <c>fcom [0x005D8568]</c>
-/// (<c>d8 15 68 85 5d 00</c>), <c>0x005D8568</c> is
-/// <c>00 00 80 3f</c> (1.0, bits <c>0x3F800000</c>),
-/// <c>0x00460E77</c> <c>fmul [0x005D8C70]</c>
-/// (<c>d8 0d 70 8c 5d 00</c>), <c>0x005D8C70</c> is
-/// <c>00 00 7f 43</c> (255.0, bits <c>0x437F0000</c>).
-/// First store consumer is <c>0x00460E7F</c>
-/// <c>fistp [esp+0x4C]</c> (<c>df 7c 24 4c</c>). That is
+/// consumer (a float store to stack local +0x40 (without popping)).
+/// <c>0x00460E62</c>: a float compare against the value at 0x005D8568, <c>0x005D8568</c> is
+/// 1.0 (bits <c>0x3F800000</c>),
+/// <c>0x00460E77</c>: a float multiply by the value at 0x005D8C70, <c>0x005D8C70</c> is
+/// 255.0 (bits <c>0x437F0000</c>).
+/// First store consumer is <c>0x00460E7F</c>: a float-to-integer store to stack local +0x4C. That is
 /// not dest. The later <c>[esp+0x94]</c> shift at
 /// <c>0x00460E34</c> is already owned. The later 148.0
 /// triple at <c>0x00460E24</c> is already owned. The 10.0
@@ -37,7 +33,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// at <c>0x00460B66</c> is already owned. Sliding-borders
 /// already owns <c>0x00460B61</c>. Latch SET already owns
 /// <c>0x0042D5CF</c>. FMV skip already owns the OR at
-/// <c>0x0053F2EB</c>. The earlier <c>fmul 255.0</c> at
+/// <c>0x0053F2EB</c>. The earlier (a float multiply by 255.0) at
 /// <c>0x00460B8D</c> is earlier. The later 610.0 / 0.0 pair
 /// at <c>0x00460F30</c> is later. Dest Y does not. Dest is
 /// not 15.5, 322.5, 148.0, 10.0, 138.0, 322.0, 610.0, 90.0,

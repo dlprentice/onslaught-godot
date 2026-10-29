@@ -5,15 +5,15 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render Forseti writing-chrome colour — recovered from
 /// the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes).
 ///
 /// <para><b>Site.</b> After the 0x00462DD2 <c>fistp</c> of the page
-/// fade, <c>0x00462DDD</c> is <c>mov ecx, eax</c>.
-/// <c>0x00462DE4</c> is <c>shl ecx, 6; sub ecx, eax; shl 16</c>.
-/// <c>0x00462DDF</c> is the intervening <c>push 0x3F800000</c>;
+/// fade, <c>0x00462DDD</c> is a copy of eax into ecx.
+/// <c>0x00462DE4</c> is a left shift of ecx by 6, then subtraction of eax from ecx, then left shift by 16.
+/// <c>0x00462DDF</c> is the intervening (a push of constant 0x3F800000);
 /// <c>0x00462DE3</c> is that immediate's last byte, not the shl.
 /// EAX is the
 /// 0x00462D7A <c>(transition-0.75)*4</c> fade byte, clamped
@@ -36,16 +36,16 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuWritingColor
 {
-    /// <summary><c>mov ecx, eax</c> at <c>0x00462DDD</c>.</summary>
+    /// <summary>A copy of eax into ecx at <c>0x00462DDD</c>.</summary>
     public const uint Site = 0x00462DDDu;
 
-    /// <summary><c>shl ecx, 6</c> at <c>0x00462DE4</c>.</summary>
+    /// <summary>A left shift of ecx by 6 at <c>0x00462DE4</c>.</summary>
     public const uint ShiftSite = 0x00462DE4u;
 
-    /// <summary><c>shl ecx, 6</c>.</summary>
+    /// <summary>A left shift of ecx by 6.</summary>
     public const int ShiftLeft = 6;
 
-    /// <summary><c>or esi, 0x00FFFFFF</c> at <c>0x00462DF6</c>.</summary>
+    /// <summary>An or of 0x00FFFFFF into esi at <c>0x00462DF6</c>.</summary>
     public const uint RgbOr = 0x00FFFFFFu;
 
     /// <summary>Settled <c>fistp</c> after the 0x00462D9x clamp.</summary>

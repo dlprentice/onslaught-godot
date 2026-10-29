@@ -18,7 +18,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <c>reverse-engineering/binary-analysis/terrain-ambient-light-material-2026-07-26.md</c>.
 /// These tests pin that every coefficient stays a shipped byte: the light
 /// colours are read from the HFLD at load, the 0.8 is the material record's
-/// ambient, the 1/256 is <c>_DAT_005db060</c>, and the 2 is the stage op and
+/// ambient, the 1/256 is <c>0x005db060</c>, and the 2 is the stage op and
 /// lives in the shader beside the stage it belongs to.
 /// </summary>
 public sealed class Level100TerrainAmbientLightTests
@@ -54,7 +54,7 @@ public sealed class Level100TerrainAmbientLightTests
     [Fact]
     public void TheCoefficientsAreTheShippedBytesAndTheClampIsDirect3DsOwn()
     {
-        // 0x3f4ccccd at 0x0083d28c + 0x10, and 0x3b800000 = _DAT_005db060.
+        // 0x3f4ccccd at 0x0083d28c + 0x10, and 0x3b800000 = 0x005db060.
         Assert.Equal(0.8f, Level100TerrainCompositor.TerrainMaterialAmbient);
         Assert.Equal(1f / 256f, Level100TerrainCompositor.LightColorByteScale);
 

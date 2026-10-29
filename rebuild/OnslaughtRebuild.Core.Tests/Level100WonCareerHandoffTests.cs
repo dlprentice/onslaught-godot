@@ -914,7 +914,7 @@ public sealed class Level100WonCareerHandoffTests
 
     /// <summary>
     /// <c>IScript::AddScore</c> at <c>0x005343cb</c> is
-    /// <c>add [0x008a9b8c], eax</c>. First-play
+    /// an addition of eax to the value at 0x008a9b8c. First-play
     /// <c>TUTORIAL_DODGE_GOOD</c> posts one <c>AddScore(50)</c>,
     /// so <c>CGame+0xf4</c> is 50 before FillOut. Isolated
     /// <c>ScoreDelta</c> = 50 names the rebuild accumulator and
@@ -946,7 +946,7 @@ public sealed class Level100WonCareerHandoffTests
     /// <summary>
     /// <c>IScript::EnableFlightMode</c> at <c>0x00535079</c>
     /// calls <c>0x0040dcb0</c>, which is
-    /// <c>mov dword ptr [ecx+0x58c], 1</c>. First-play beat 6
+    /// a store of constant 1 to field +0x58c of ecx. First-play beat 6
     /// posts one Enable, so <c>CBattleEngine+0x58c</c> is 1
     /// before FillOut. Isolated
     /// <c>FlightModeEnabled</c> = true names the rebuild bool
@@ -1018,7 +1018,7 @@ public sealed class Level100WonCareerHandoffTests
     /// calls thing vfunc <c>+0x198</c>. The Level 100 player
     /// override <c>0x0040dc30</c> forwards to walker
     /// <c>0x00414970</c>, which is
-    /// <c>mov dword ptr [edi+0x9c], 1</c>. First-play
+    /// a store of constant 1 to field +0x9c of edi. First-play
     /// <c>EnableWeapon("Mech Twin Vulcan Cannon")</c> therefore
     /// stores 1 at Twin's <c>+0x9c</c> before FillOut. Isolated
     /// last <c>Enabled</c> = true names the rebuild bool and
@@ -1053,9 +1053,9 @@ public sealed class Level100WonCareerHandoffTests
 
     /// <summary>
     /// <c>IScript::SetObjective</c> at <c>0x00535ed5</c> is
-    /// <c>push 1 / call 0x004f3970</c>. Official
+    /// a push of constant 1, then direct call to 0x004f3970. Official
     /// <c>CThing::SetObjective</c> at <c>0x004f398e</c> is
-    /// <c>or byte ptr [esi+0x2c], 0x20</c>. First-play
+    /// an or of 0x20 into byte field +0x2c of esi. First-play
     /// LevelScript <c>GetThingRef("Target Zone 4")</c> then
     /// <c>SetObjective</c> therefore ORs bit 0x20 at that
     /// thing's <c>+0x2c</c> before FillOut. Isolated last
@@ -1090,7 +1090,7 @@ public sealed class Level100WonCareerHandoffTests
 
     /// <summary>
     /// <c>CCareer::Update</c> at <c>0x0041BD06</c> is
-    /// <c>cmp eax, 5</c> / <c>jne</c>. Lost is 4, so FillOut is never
+    /// a compare of eax with 5 / <c>jne</c>. Lost is 4, so FillOut is never
     /// applied even if the handoff state is claimed. Mutation: dropping
     /// the Won check from <see cref="Level100WonCareerHandoff.TryApply"/>
     /// unlocks world 110 on Lost.

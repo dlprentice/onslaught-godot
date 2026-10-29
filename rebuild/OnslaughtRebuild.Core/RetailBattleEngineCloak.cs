@@ -27,13 +27,13 @@ namespace OnslaughtRebuild.Core;
 /// </para>
 /// <list type="bullet">
 /// <item>
-/// <c>0x0040D4FA</c> is <c>test ah, 1</c> with <c>jne</c> to the do-nothing
+/// <c>0x0040D4FA</c> is a bit test of ah against 1 with <c>jne</c> to the do-nothing
 /// exit — C0 alone. An unordered compare sets C0, so a NaN energy takes the
 /// exit, and C's <c>mEnergy &gt;= mMinTransformEnergy</c> is also false for a
 /// NaN. <b>Agrees.</b>
 /// </item>
 /// <item>
-/// <c>0x0040D50D</c> is <c>test ah, 0x41</c> with <c>jne</c> to the same exit —
+/// <c>0x0040D50D</c> is a bit test of ah against 0x41 with <c>jne</c> to the same exit —
 /// C0 or C3, either of which an unordered compare sets. So a NaN configuration
 /// stealth blocks the cloak, and C's <c>mStealth &gt; 0</c> is false for a NaN
 /// too. <b>Agrees.</b>
@@ -43,7 +43,7 @@ namespace OnslaughtRebuild.Core;
 /// This is worth stating positively: MSVC's <c>&gt;=</c> and <c>&gt;</c> idioms
 /// are NaN-correct, and it is the <i>equality</i> and truthiness idioms that are
 /// not — compare <see cref="RetailCareerGrade.GradeByteFromRanking"/>, whose
-/// <c>test ah, 0x40</c> hands a NaN the top grade, and
+/// bit test of ah against 0x40 hands a NaN the top grade, and
 /// <see cref="RetailJetThrust.Thrust"/>, whose <c>if (float)</c> gate reads a
 /// NaN as zero.
 /// </para>
@@ -59,8 +59,8 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <b>The desired stealth is a raw dword copy, not an arithmetic
 /// assignment.</b> <c>0x0040D512</c> is
-/// <c>mov eax, dword ptr [edx + 0xA0]</c> followed by
-/// <c>mov dword ptr [ecx + 0x5DC], eax</c> — the configuration's word arrives
+/// a load of field +0xA0 of edx into eax followed by
+/// a store of eax to field +0x5DC of ecx — the configuration's word arrives
 /// bit for bit, so a signalling NaN or a trap payload would survive. It cannot
 /// be a NaN in practice because the gate above rejected one; it can be a
 /// subnormal, and that survives too. <see cref="HandleCloak"/> copies bits.
@@ -69,7 +69,7 @@ namespace OnslaughtRebuild.Core;
 /// <b><c>mCloaked</c> is a stored word, and only literals go in.</b>
 /// <c>0x0040D518</c> writes the literal <c>1</c> and the decloak arm writes the
 /// literal <c>0</c>, but the <i>test</i> at <c>0x0040D4D8</c> is
-/// <c>cmp edx, eax</c> against a zeroed register — non-zero, not
+/// a compare of edx with eax against a zeroed register — non-zero, not
 /// <c>== TRUE</c>. So an externally planted <c>2</c> decloaks, unlike
 /// <see cref="RetailCareerSlots"/> whose writer insists on a literal <c>1</c>.
 /// It is modelled as a raw <c>int</c> for that reason.
@@ -86,7 +86,8 @@ namespace OnslaughtRebuild.Core;
 /// </remarks>
 public sealed class RetailBattleEngineCloak
 {
-    /// <summary>The stealth floor — <c>fcomp dword ptr [0x005D856C]</c> at <c>0x0040D505</c>.</summary>
+    /// <summary>The stealth floor — a float compare against the value at
+    /// 0x005D856C, popping the result at <c>0x0040D505</c>.</summary>
     public const float NoStealth = 0.0f;
 
     /// <summary><c>mCloaked</c> — <c>this + 0x4AC</c>. The raw word, tested for non-zero.</summary>
@@ -118,7 +119,7 @@ public sealed class RetailBattleEngineCloak
     {
         float stealth = BitConverter.UInt32BitsToSingle(configurationStealthBits);
 
-        // test ah, 0x41 with jne: C0 or C3, so an unordered or non-positive
+        // A bit test of ah against 0x41 with jne: C0 or C3, so an unordered or non-positive
         // stealth leaves both fields alone.
         if (!(stealth > NoStealth))
         {
@@ -149,7 +150,7 @@ public sealed class RetailBattleEngineCloak
             return;
         }
 
-        // test ah, 1 with jne: C0 alone, so an unordered energy is "less than".
+        // A bit test of ah against 1 with jne: C0 alone, so an unordered energy is "less than".
         if (!(energy >= minTransformEnergy))
         {
             return;

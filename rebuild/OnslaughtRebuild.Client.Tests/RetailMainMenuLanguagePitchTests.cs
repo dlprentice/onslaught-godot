@@ -6,26 +6,26 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the CFEPMain::Render language-row fall-through
-/// increment at <c>0x00463647</c> — <c>fld [esp+0x10]</c>
-/// then <c>fadd [0x005DB5D8]</c> (36.0) into the shared
+/// increment at <c>0x00463647</c> — a float load of stack local +0x10
+/// then a float add of the value at 0x005DB5D8 (36.0) into the shared
 /// tail — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004634EE</c> <c>jne 0x00463643</c>,
-/// <c>0x0046363B</c> <c>call 0x005563D0</c> then
-/// <c>0x00463640</c> <c>add esp, 0x58</c> fall through,
-/// <c>0x00463643</c> <c>fld [esp+0x10]</c>,
-/// <c>0x00463647</c> <c>fadd [0x005DB5D8]</c>,
-/// <c>0x005DB5D8</c> is <c>00 00 10 42</c> (36.0),
-/// <c>0x0046364D</c> shared tail <c>mov ebx, [esp+0x20]</c>,
-/// <c>0x00463653</c> <c>fstp [esp+0x10]</c>,
-/// <c>0x00463657</c> <c>inc ebx</c>. Labels
-/// <c>jmp 0x0046364D</c> after their own <c>fadd [0x005D857C]</c>
-/// (20.0). Nearby <c>push 0x438E0000</c> at
+/// <c>0x004634EE</c>: a conditional branch to 0x00463643 (taken when not equal),
+/// <c>0x0046363B</c>: a direct call to 0x005563D0 then
+/// <c>0x00463640</c>: a stack cleanup of 0x58 bytes fall through,
+/// <c>0x00463643</c>: a float load of stack local +0x10,
+/// <c>0x00463647</c>: a float add of the value at 0x005DB5D8,
+/// <c>0x005DB5D8</c> is 36.0,
+/// <c>0x0046364D</c> shared tail (a load of stack local +0x20 into ebx),
+/// <c>0x00463653</c>: a float store to stack local +0x10,
+/// <c>0x00463657</c>: an increment of ebx. Labels
+/// (a jump to 0x0046364D) after their own (a float add of the value at 0x005D857C)
+/// (20.0). Nearby push of constant 0x438E0000 at
 /// <c>0x00463636</c> is 284.0 and is not dest. Dest Y stays
 /// the dest leftover. DrawMainMenu keeps dest Y as rowY-8
 /// and regular rows at NonzeroSlotY. Do not invent dest

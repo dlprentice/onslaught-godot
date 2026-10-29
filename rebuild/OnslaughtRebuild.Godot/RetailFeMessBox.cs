@@ -9,12 +9,12 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Create() width and centre</b> were recovered from
 /// <c>CFEPMain__DoAction</c> <c>0x004623E0</c>–<c>0x00462618</c> in the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Selection 6 pushes localization id
 /// <c>0xE4</c> at <c>0x004625D1</c>, then:</para>
 /// <code>
-/// 0x004625E1  push 0x3DCCCCCD   ; 0.1f — not claimed as a pixel height
+/// 0x004625E1: a push of constant 0x3DCCCCCD; 0.1f — not claimed as a pixel height
 /// 0x004625E6  push 400.0f
 /// 0x004625EB  push 240.0f
 /// 0x004625F0  push 320.0f
@@ -24,7 +24,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <para><b>Remaining chrome, not tiles from FEMessBox.cpp.</b>
 /// <c>FEMessBox.cpp</c> / <c>FEMessBox.h</c> are absent from the GPL drop and
 /// there is no quit-confirm capture under
-/// <c>local-lab/retail-reference-pristine/</c>. Pixel height therefore stays
+/// a private retail reference capture. Pixel height therefore stays
 /// reconstruction. The panel, four-edge box, YESNO stack, and init colours
 /// are cited from owners that do exist:</para>
 /// <list type="bullet">

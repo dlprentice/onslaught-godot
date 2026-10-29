@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay font-slot leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -16,13 +16,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailMainMenuVersionOverlay"/>. Dest Y
 /// (GetWindowHeight-16), dest X push 0, and Z 0.01 are already
 /// <see cref="RetailMainMenuVersionOverlayZ"/>. This leftover is
-/// the <c>push 1</c> / <c>CPlatform__Font</c> select. Do not redo
+/// the push of constant 1 / <c>CPlatform__Font</c> select. Do not redo
 /// the sprintf, the colour OR, or dest/Z.</para>
 ///
 /// <para><b>Select.</b> <c>0x00515A70</c> is
-/// <c>mov eax, [esp+4]; cmp eax, 3; ja zero; jmp [eax*4+0x00515AA0]</c>
-/// (<c>RET 4</c>). Jump-table slot 1 is <c>0x00515A8C</c>:
-/// <c>mov eax, [ecx+0x20]; ret 4</c>. It is not this+0x1C.
+/// a load of stack local +4 into eax, then compare of eax with 3, branching when above, then jump-table dispatch
+/// (a return that pops 4 bytes of arguments). Jump-table slot 1 is <c>0x00515A8C</c>:
+/// a load of field +0x20 of ecx into eax, then return that pops 4 bytes of arguments. It is not this+0x1C.
 /// Slot 2 is this+0x1C. Slot 0 is this+0x18. Slot 3 is this+0x24.
 /// InitFonts at <c>0x0051571B</c> / <c>0x0051571D</c> pushes 16
 /// then <c>0x0063E10C</c> <c>"Font13PS.tga"</c>, stores
@@ -33,9 +33,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// <c>Font(FONT_SMALL)</c> returns <c>SmallFont()</c>. The parent
 /// card's this+0x1C is slot 2 / Terminal, not this leftover.</para>
 ///
-/// <para><b>Call.</b> Version site <c>push 1</c> at
-/// <c>0x004641E4</c>, <c>call 0x00515A70</c> at
-/// <c>0x004641E6</c>, <c>mov ecx, eax</c>, then
+/// <para><b>Call.</b> Version site (a push of constant 1) at
+/// <c>0x004641E4</c>, a direct call to 0x00515A70 at
+/// <c>0x004641E6</c>, a copy of eax into ecx, then
 /// <c>CDXFont__DrawTextDynamic</c> at <c>0x004641ED</c>. There is
 /// no <c>CDXFont__GetTextExtent</c> on the sprintf buffer. The
 /// 2px MeasureText residual stays open; do not invent a kerning
@@ -63,22 +63,22 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuVersionOverlayFont
 {
-    /// <summary><c>CPlatform__Font</c>. <c>RET 4</c>.</summary>
+    /// <summary><c>CPlatform__Font</c>. A return that pops 4 bytes of arguments.</summary>
     public const uint FontHelper = 0x00515A70u;
 
-    /// <summary><c>jmp [eax*4+0x00515AA0]</c>.</summary>
+    /// <summary>A jump-table dispatch.</summary>
     public const uint JumpTableSite = 0x00515AA0u;
 
-    /// <summary>Slot 0 case. <c>mov eax, [ecx+0x18]; ret 4</c>.</summary>
+    /// <summary>Slot 0 case. A load of field +0x18 of ecx into eax, then return that pops 4 bytes of arguments.</summary>
     public const uint Slot0Case = 0x00515A80u;
 
-    /// <summary>Slot 1 case. <c>mov eax, [ecx+0x20]; ret 4</c>.</summary>
+    /// <summary>Slot 1 case. A load of field +0x20 of ecx into eax, then return that pops 4 bytes of arguments.</summary>
     public const uint Slot1Case = 0x00515A8Cu;
 
-    /// <summary>Slot 2 case. <c>mov eax, [ecx+0x1C]; ret 4</c>.</summary>
+    /// <summary>Slot 2 case. A load of field +0x1C of ecx into eax, then return that pops 4 bytes of arguments.</summary>
     public const uint Slot2Case = 0x00515A86u;
 
-    /// <summary>Slot 3 case. <c>mov eax, [ecx+0x24]; ret 4</c>.</summary>
+    /// <summary>Slot 3 case. A load of field +0x24 of ecx into eax, then return that pops 4 bytes of arguments.</summary>
     public const uint Slot3Case = 0x00515A92u;
 
     /// <summary>FONT_NORMAL / font22.512.tga.</summary>
@@ -93,25 +93,25 @@ public static class RetailMainMenuVersionOverlayFont
     /// <summary>FONT_TITLE / TitleFont.tga.</summary>
     public const int Slot3Offset = 0x24;
 
-    /// <summary><c>push 1</c> at <c>0x004641E4</c>.</summary>
+    /// <summary>A push of constant 1 at <c>0x004641E4</c>.</summary>
     public const uint FontSlotPushSite = 0x004641E4u;
 
     /// <summary>GPL <c>FONT_SMALL</c>. Same push as the dest/Z sibling.</summary>
     public const int FontSlot = 1;
 
-    /// <summary><c>call 0x00515A70</c> at <c>0x004641E6</c>.</summary>
+    /// <summary>A direct call to 0x00515A70 at <c>0x004641E6</c>.</summary>
     public const uint FontCallSite = 0x004641E6u;
 
-    /// <summary><c>call 0x00465710</c> at <c>0x004641ED</c>.</summary>
+    /// <summary>A direct call to 0x00465710 at <c>0x004641ED</c>.</summary>
     public const uint DrawCallSite = 0x004641EDu;
 
-    /// <summary><c>CDXFont__DrawTextDynamic</c>. <c>RET 0x28</c>.</summary>
+    /// <summary><c>CDXFont__DrawTextDynamic</c>. A return that pops 40 bytes of arguments.</summary>
     public const uint DrawTextDynamic = 0x00465710u;
 
     /// <summary>Not called on the version sprintf buffer.</summary>
     public const uint GetTextExtent = 0x00540680u;
 
-    /// <summary><c>push 0x0063E10C</c> at <c>0x0051571D</c>.</summary>
+    /// <summary>A push of constant 0x0063E10C at <c>0x0051571D</c>.</summary>
     public const uint Slot1NamePushSite = 0x0051571Du;
 
     /// <summary>Image bytes at the slot-1 name push.</summary>
@@ -120,13 +120,13 @@ public static class RetailMainMenuVersionOverlayFont
     /// <summary>InitFonts name for <see cref="Slot1Offset"/>.</summary>
     public const string Slot1Name = "Font13PS.tga";
 
-    /// <summary><c>push 16</c> at <c>0x0051571B</c>.</summary>
+    /// <summary>A push of constant 16 at <c>0x0051571B</c>.</summary>
     public const uint Slot1CellPushSite = 0x0051571Bu;
 
     /// <summary>Font13PS cell size. Matches GPL InitialiseAsBitmapFont 16.</summary>
     public const int Slot1CellSize = 16;
 
-    /// <summary><c>mov [esi+0x20], eax</c> at <c>0x0051572C</c>.</summary>
+    /// <summary>A store of eax to field +0x20 of esi at <c>0x0051572C</c>.</summary>
     public const uint Slot1StoreSite = 0x0051572Cu;
 
     /// <summary><c>CDXBitmapFont__InitTextureFontSlot</c> after the store.</summary>

@@ -652,10 +652,10 @@ public sealed class Level100HudPresentationTests
 
     // ---------------------------------------------------------------------
     // Message panel: retail behaviour measured off the 640x480 gameplay
-    // captures in local-lab/retail-reference-pristine/level100-gameplay/.
+    // captures in a private retail reference capture.
     // Every expectation below is a transcription of a specific frame, not a
     // restatement of the code under test. The working is written up in
-    // local-lab/HUD-MESSAGE-PANEL-2026-07-26.md.
+    // the private lab note HUD-MESSAGE-PANEL-2026-07-26.md.
     // ---------------------------------------------------------------------
 
     private const string Hud02 =

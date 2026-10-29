@@ -6,21 +6,20 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the <c>CMenuItemDropdown::Render</c> click-hit sound leftover
-/// after <c>0x004A403A</c> <c>push 1</c> /
-/// <c>0x004A403C</c> <c>call 0x00468770</c> /
-/// <c>0x004A4041</c> <c>add esp, 4</c> — recovered from official
+/// after <c>0x004A403A</c>: a push of constant 1; <c>0x004A403C</c>: a direct call to
+/// 0x00468770; <c>0x004A4041</c>: a stack cleanup of 4 bytes — recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para>Official bytes independently re-read this cycle:
-/// <c>0x004A403A</c> <c>push 1</c>,
-/// <c>0x004A403C</c> <c>call 0x00468770</c>,
-/// <c>0x004A4041</c> <c>add esp, 4</c>.
+/// <c>0x004A403A</c>: a push of constant 1,
+/// <c>0x004A403C</c>: a direct call to 0x00468770,
+/// <c>0x004A4041</c>: a stack cleanup of 4 bytes.
 /// That is <c>CFrontEnd__PlaySound(1)</c> Front End Select after the
 /// click writes. Dest Y does not. Colour leftover already consults
 /// currentIndex. Hover leftover already owns <c>0x004A3FA6</c>. Click

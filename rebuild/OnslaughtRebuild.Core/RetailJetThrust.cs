@@ -105,10 +105,9 @@ public sealed class RetailJetThrustMainPart
 /// <c>0x004103A9-0x004103B8</c> it loads the clock again, subtracts
 /// <c>0x005D85C0</c> (<c>0.1f</c>) at <c>0x004103C4</c>, and requires
 /// <c>mLastStartHardForwardTime &lt; now - 0.1f</c>
-/// (<c>0x004103CC-0x004103D3</c>, <c>je</c> past the whole loop body). The raw
-/// bytes are
-/// <c>D9 05 D0 2F 67 00 / D8 25 C0 85 5D 00 / D9 C9 / DE D9 / DF E0 / F6 C4 01 /
-/// 0F 84 9C 00 00 00</c>. So the loop trigger needs the hard-forward stamp inside
+/// (<c>0x004103CC-0x004103D3</c>, <c>je</c> past the whole loop body). The
+/// sequence is a clock load, a subtraction of 0.1f, a compare against the stored stamp, a status-word read and a
+/// C0 test with a branch past the loop body. So the loop trigger needs the hard-forward stamp inside
 /// the <b>open interval</b> <c>(now - 0.2, now - 0.1)</c>: pulling back within
 /// 100 ms of the forward push does nothing, and after 200 ms it is too late. The
 /// released game therefore has a 100 ms dead band the Xbox source does not, and
@@ -133,14 +132,14 @@ public sealed class RetailJetThrustMainPart
 /// <list type="bullet">
 /// <item>
 /// <c>0x00410321</c> (<c>mDoingBarrelCount &gt; 0</c>) is
-/// <c>test ah, 0x41</c> with <c>je</c> to the early exit — the exit is taken only
+/// a bit test of ah against 0x41 with <c>je</c> to the early exit — the exit is taken only
 /// when the compare is <i>ordered and strictly greater</i>, so a NaN barrel
 /// count falls through into the body. C's <c>&gt;</c> does the same.
 /// <b>Agrees.</b>
 /// </item>
 /// <item>
 /// <c>0x00410346</c> (<c>if (mMainPart-&gt;mEnergy)</c>) is
-/// <c>test ah, 0x40</c> with <c>jne</c> past the body — <b>C3 alone</b>. An
+/// a bit test of ah against 0x40 with <c>jne</c> past the body — <b>C3 alone</b>. An
 /// unordered compare sets C3, so a NaN energy is treated as <b>zero energy</b>
 /// and the whole throttle body is skipped. The C text is a float used as a
 /// truth value, which is <c>!= 0.0</c> and is <b>true</b> for a NaN.
@@ -149,27 +148,27 @@ public sealed class RetailJetThrustMainPart
 /// </item>
 /// <item>
 /// <c>0x0041036D</c> (<c>mLastMoveYVal &gt; -0.6f</c>) is
-/// <c>test ah, 0x41</c> with <c>jne</c> past the arm. <b>Agrees.</b>
+/// a bit test of ah against 0x41 with <c>jne</c> past the arm. <b>Agrees.</b>
 /// </item>
 /// <item>
-/// <c>0x0041037E</c> (<c>vy &lt; -0.9f</c>) is <c>test ah, 1</c> with <c>je</c>
+/// <c>0x0041037E</c> (<c>vy &lt; -0.9f</c>) is a bit test of ah against 1 with <c>je</c>
 /// past the arm — C0 alone, which an unordered compare sets. So a NaN
 /// <paramref name="vy"/> <b>stamps the hard-forward time</b> where C would not.
 /// <b>Diverges.</b>
 /// </item>
 /// <item>
 /// <c>0x00410397</c> (<c>vy &gt; 0.8f</c>) and <c>0x004103B5</c>
-/// (the <c>0.2f</c> window) are <c>test ah, 0x41</c> with <c>jne</c>.
+/// (the <c>0.2f</c> window) are a bit test of ah against 0x41 with <c>jne</c>.
 /// <b>Agree.</b>
 /// </item>
 /// <item>
 /// <c>0x004103D0</c> (the retail-only <c>0.1f</c> window) is
-/// <c>test ah, 1</c> with <c>je</c> — C0 alone, so an unordered stamp passes it.
+/// a bit test of ah against 1 with <c>je</c> — C0 alone, so an unordered stamp passes it.
 /// There is no source text to diverge from.
 /// </item>
 /// <item>
 /// <c>0x004103E7</c> (<c>mMainPart-&gt;mEnergy &gt; 0</c>) and <c>0x0041041A</c>
-/// (the squared speed) are <c>test ah, 0x41</c> with <c>jne</c>. <b>Agree</b> —
+/// (the squared speed) are a bit test of ah against 0x41 with <c>jne</c>. <b>Agree</b> —
 /// and the energy one is unreachable with a NaN, because the truthiness gate
 /// above already rejected it.
 /// </item>
@@ -177,8 +176,8 @@ public sealed class RetailJetThrustMainPart
 /// <para>
 /// <b>The early return is the only exit that does not record the input.</b>
 /// <c>0x00410324</c> jumps to <c>0x0041047C</c>, which is
-/// <c>pop esi / add esp, 0x10 / ret 4</c> — past the
-/// <c>mov eax, [esp + 0x18] / mov [esi + 0x24], eax</c> at <c>0x00410475</c>
+/// a pop into esi, then stack cleanup of 0x10 bytes, then return that pops 4 bytes of arguments — past the
+/// sequence (load of stack local +0x18 into eax, then store of eax to field +0x24 of esi) at <c>0x00410475</c>
 /// that every other exit runs. So a barrel-rolling jet's
 /// <c>mLastMoveYVal</c> is frozen at whatever it was when the roll began, which
 /// is what makes the <c>-0.6f</c> arm fire on the first frame after the roll
@@ -198,12 +197,12 @@ public sealed class RetailJetThrustMainPart
 /// <para>
 /// <b>The halved input is a multiply, and that one really is exact.</b>
 /// <c>BattleEngineJetPart.cpp:73</c> is <c>0.5f-vy/2.0f</c>; the shipped body is
-/// <c>fmul dword ptr [0x005D85EC]</c> then
-/// <c>fsubr dword ptr [0x005D85EC]</c>, i.e. a multiply by <c>0.5f</c>. Dividing
+/// a float multiply by the value at 0x005D85EC then
+/// a reversed float subtract of the value at 0x005D85EC, i.e. a multiply by <c>0.5f</c>. Dividing
 /// by two and multiplying by one half are the same IEEE-754 operation for every
 /// input including subnormals, so this is a strength reduction with no
 /// observable consequence — recorded so a reviewer does not go looking for one.
-/// The single rounding is the <c>fstp dword</c> at <c>0x0041035F</c>.
+/// The single rounding is the float store to dword at <c>0x0041035F</c>.
 /// </para>
 /// <para>
 /// <b>Not established here.</b> <c>GetVelocity</c> is the virtual at
@@ -286,7 +285,7 @@ public static class RetailJetThrust
             throw new ArgumentNullException(nameof(mainPart));
         }
 
-        // test ah, 0x41 with je to the exit that skips the mLastMoveYVal store.
+        // A bit test of ah against 0x41 with je to the exit that skips the mLastMoveYVal store.
         if (state.DoingBarrelCount > 0.0f)
         {
             return;
@@ -294,12 +293,12 @@ public static class RetailJetThrust
 
         if (state.DoingLoop == 0)
         {
-            // test ah, 0x40 - C3 alone, so an unordered energy reads as zero.
+            // A bit test of ah against 0x40 - C3 alone, so an unordered energy reads as zero.
             if (mainPart.Energy != 0.0f && !float.IsNaN(mainPart.Energy))
             {
                 state.ThrusterValue = ThrusterValueFor(vy);
 
-                // test ah, 0x41 then test ah, 1: the first is a plain ordered
+                // A bit test of ah against 0x41 then a bit test of ah against 1: the first is a plain ordered
                 // strictly-greater, the second admits an unordered vy.
                 if (state.LastMoveYVal > HardForwardArmThreshold &&
                     !(vy >= HardForwardThreshold))
@@ -314,13 +313,13 @@ public static class RetailJetThrust
                     stamp > now - (double)LoopWindowOldest &&
                     !(stamp >= now - (double)LoopWindowNewest))
                 {
-                    // test ah, 0x41 with jne to the low-energy arm.
+                    // A bit test of ah against 0x41 with jne to the low-energy arm.
                     if (mainPart.Energy > 0.0f)
                     {
                         double magnitudeSq = RetailJetAutoLevel.VelocityMagnitudeSquared(
                             velocityX, velocityY, velocityZ);
 
-                        // test ah, 0x41 with jne past the loop start.
+                        // A bit test of ah against 0x41 with jne past the loop start.
                         if (magnitudeSq > (double)MinManoeuvreVelocitySq)
                         {
                             state.DoingLoop = 1;

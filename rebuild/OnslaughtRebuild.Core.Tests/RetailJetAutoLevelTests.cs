@@ -122,7 +122,7 @@ public sealed class RetailJetAutoLevelTests
         Assert.Equal(0x43B0000000000001UL, BitConverter.DoubleToUInt64Bits(other));
     }
 
-    // The energy gate is `test ah, 1` - C0 alone - so it is a strict less-than
+    // The energy gate is a bit test of ah against 1 - C0 alone - so it is a strict less-than
     // against +0.0f. Exactly zero passes; negative zero compares equal and also
     // passes.
     [Theory]
@@ -160,7 +160,7 @@ public sealed class RetailJetAutoLevelTests
     }
 
     // BattleEngineJetPart.h:105 declares mDoingBarrelCount as a float and
-    // 0x00412971 is `fld dword`, so a fractional count between zero and one
+    // 0x00412971 is a float load of dword, so a fractional count between zero and one
     // blocks the auto-level. An int-typed rebuild would truncate 0.5 to 0 and
     // let it through.
     [Theory]

@@ -9,7 +9,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// Pins the CFEPMain::Render 0x0089D88C title-logo shadow dest
 /// leftover and Z at <c>0x00464251</c>, recovered from official
 /// 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
@@ -17,17 +17,16 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para>RetailMainMenuTitleLogoShadow already owns the pack at
 /// <c>0x0046424F</c> and says <c>0x00464251</c> is the texture
 /// load, not the pack. Official bytes independently re-read this
-/// cycle: <c>mov eax, [0x0089D88C]</c> at <c>0x00464251</c>
-/// (<c>a1 8c d8 89 00</c>). <c>push 0x3DCCCCCD</c> at
+/// cycle: a load of the value at 0x0089D88C into eax at <c>0x00464251</c>. A push of constant 0x3DCCCCCD at
 /// <c>0x0046427B</c>. Dest is not an immediate 325/140:
-/// <c>call 0x00468750</c> at <c>0x00464285</c> then
-/// <c>fadd [0x005D8C20]=140.0</c>; <c>call 0x00468730</c> at
-/// <c>0x00464299</c> then <c>fadd [0x005DB4A8]=325.0</c>. Load
+/// a direct call to 0x00468750 at <c>0x00464285</c> then
+/// a float add of the value at 0x005D8C20 (value 140.0); a direct call to 0x00468730 at
+/// <c>0x00464299</c> then a float add of the value at 0x005DB4A8 (value 325.0). Load
 /// identity is already Title2 via ebp+0x12C. Shadow scale
-/// <c>push 0x3F866666</c> at <c>0x00464269</c> /
+/// (a push of constant 0x3F866666) at <c>0x00464269</c> /
 /// <c>0x00464274</c> is already ShadowScaleBoost 1.05. Calls
 /// <c>CDXSurf__RenderSurface</c> (<c>0x005563D0</c>) at
-/// <c>0x004642A8</c>; <c>add esp, 0x2C</c> is eleven dwords.
+/// <c>0x004642A8</c>; a stack cleanup of 0x2C bytes is eleven dwords.
 /// The leftover 0.1 is Z, not scale and not a 29% title-logo.
 /// Body dest/Z sibling 0x004642CE is already
 /// RetailMainMenuTitleLogoZ. DrawMainMenu keeps ShadowTint,

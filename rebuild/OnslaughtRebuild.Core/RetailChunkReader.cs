@@ -33,7 +33,7 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <c>Skip</c> differs from <c>Read</c> in two ways. It short-circuits
 /// <c>if (!size) return 0;</c> ahead of everything else
-/// (<c>DXMemBuffer.cpp:354</c>; <c>test ebx, ebx / jne</c> at
+/// (<c>DXMemBuffer.cpp:354</c>; a zero test of ebx, branching when not equal at
 /// <c>0x005482DB</c>), which for a resident buffer is an early-out and nothing
 /// more — a zero-size request could not have raised EOF or moved <c>mPos</c>
 /// anyway, so removing it changes no observable, and this type keeps it only

@@ -19,7 +19,7 @@ internal sealed class Level100TerrainCompositor
     public const int RootTextureLength = MapSize * MapSize * sizeof(ushort);
 
     /// <summary>
-    /// `_DAT_005db060` = `0x3b800000` = 1/256, the scale `CEngine::SetupLights`
+    /// `0x005db060` = `0x3b800000` = 1/256, the scale `CEngine::SetupLights`
     /// @ `0x0044a2d0` applies to each HFLD light-colour byte before the triple is
     /// copied into the cached light record (`0x0044a431`, `0x0044a457`,
     /// `0x0044a470` and the matching sequence at `0x0044a4f8`-`0x0044a545`).
@@ -200,7 +200,7 @@ internal sealed class Level100TerrainCompositor
                             color = BlendMaterial(color, candidate);
                         }
 
-                        // 0x0047f54a is a bare `sar edx,8` with no clamp; this
+                        // 0x0047f54a is a bare arithmetic right shift of edx by 8 with no clamp; this
                         // bound is defensive only. Measured over every island
                         // tile at levels 0-4, the raw index never leaves 0..63,
                         // so the clamp does not fire and is not a divergence.

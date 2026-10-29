@@ -6,7 +6,7 @@ namespace OnslaughtRebuild.Client.Tests;
 
 /// <summary>
 /// Pins the CFEPIntro LostToys slide recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, SHA-256
+/// (a private pristine copy), SHA-256
 /// <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle).
 ///
@@ -25,9 +25,9 @@ public sealed class RetailClickToStartSlideTests
     [Fact]
     public void FadeClampsTimerMinusFourToTheClosedUnitInterval()
     {
-        // 0x0051BAD0 fld [this+0x18]; 0x0051BAD3 fsub [4.0f] at 0x005D85BC;
-        // 0x0051BAD9 fcom [0.0f] / test ah,1 / je keep; 0x0051BAF0 fcom [1.0f]
-        // / test ah,0x41 / jne keep.
+        // 0x0051BAD0: a float load of field +0x18 of this; 0x0051BAD3: a float subtract of the constant 4.0f at 0x005D85BC;
+        // 0x0051BAD9: a float compare against the constant 0.0f, then bit test of ah against 1 / je keep;
+        // 0x0051BAF0: a float compare against the constant 1.0f, then bit test of ah against 0x41 / jne keep.
         Assert.Equal(4.0, RetailClickToStartSlide.GateSeconds, 5);
         Assert.Equal(0f, RetailClickToStartSlide.Fade(0d));
         Assert.Equal(0f, RetailClickToStartSlide.Fade(4.0d));
@@ -40,8 +40,8 @@ public sealed class RetailClickToStartSlideTests
     [Fact]
     public void OffsetIsTheSquaredRemainderTimesFourHundredNotALinearTravel()
     {
-        // 0x0051BB05 fsubr [1.0f]; 0x0051BB0D fmul st(1);
-        // 0x0051BB1D fmul [400.0f] at 0x005DB358.
+        // 0x0051BB05: a reversed float subtract of the constant 1.0f; 0x0051BB0D: a float multiply using the FPU stack;
+        // 0x0051BB1D: a float multiply by the constant 400.0f at 0x005DB358.
         Assert.Equal(400f, RetailClickToStartSlide.TravelPixels);
         Assert.Equal(400f, RetailClickToStartSlide.Offset(0d));
         Assert.Equal(400f, RetailClickToStartSlide.Offset(4.0d));

@@ -23,7 +23,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// 21.28 % material / meanD 16.5 on the message panel and 25.15 % / 5.0 on the
 /// portrait/compass region, against retail's 0.02 % cross-run floor on the same
 /// frame and 0.00 % on five other regions of ours
-/// (local-lab/COMPASS-GAUGE-BLEND-2026-07-26.md section 4). Both regions are
+/// (the private lab note COMPASS-GAUGE-BLEND-2026-07-26.md section 4). Both regions are
 /// driven by this clock: the type-on reveal and both
 /// <c>FirstFlightHud.PortraitPoseIndex</c> and
 /// <c>FirstFlightHud.MessageNoisePhaseIndex</c> hash the same position.

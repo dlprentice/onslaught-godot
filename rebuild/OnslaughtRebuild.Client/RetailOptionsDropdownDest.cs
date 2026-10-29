@@ -5,13 +5,13 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItemDropdown::Render</c> label dest leftover — recovered
 /// from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
-/// <para><b>Sibling.</b> <c>cmp [esi+0x1C], [esi+0x20]</c> at
+/// <para><b>Sibling.</b> a compare of field +0x1C of esi with field +0x20 of esi at
 /// <c>0x004A3C69</c> is already
 /// <see cref="RetailOptionsApplyPulse.DropdownCompareSite"/>.
 /// <c>CMenuItem__Render</c> dest at <c>0x004A3394</c> is already
@@ -22,18 +22,17 @@ namespace OnslaughtRebuild.Client;
 /// pad.</para>
 ///
 /// <para><b>Dest X.</b> Official 74154bfa independently re-read:
-/// <c>0x004A3D0D</c> is <c>call 0x00515A70</c>.
-/// <c>0x004A3D14</c> is <c>call 0x00540680</c>.
-/// <c>0x004A3D19</c> is <c>fild [esp+0x1C]</c> (SIZE.cx).
-/// <c>0x004A3D1D</c> is <c>fld [esp+0x108]</c> (incoming dest X).
+/// <c>0x004A3D0D</c> is a direct call to 0x00515A70.
+/// <c>0x004A3D14</c> is a direct call to 0x00540680.
+/// <c>0x004A3D19</c> is an integer-to-float load of stack local +0x1C (SIZE.cx).
+/// <c>0x004A3D1D</c> is a float load of stack local +0x108 (incoming dest X).
 /// <c>0x004A3D24</c> stores identity scale 1.0.
-/// <c>0x004A3D2C</c> is <c>fsub st(1)</c> into
-/// <c>0x004A3D2E</c> <c>fstp [esp+0x0C]</c>.</para>
+/// <c>0x004A3D2C</c> is a float subtract using the FPU stack into
+/// <c>0x004A3D2E</c>: a float store to stack local +0x0C.</para>
 ///
-/// <para><b>Not dest Y.</b> Nearby <c>fcomp [0x005D85D8]</c>
-/// (5.0) at <c>0x004A3D46</c> and the <c>mov [esp+0x0C],
-/// 0x40A00000</c> store at <c>0x004A3D60</c> are leftover min
-/// dest X, not dest Y. Nearby <c>fadd [0x005D8BA0]</c> is 2.0
+/// <para><b>Not dest Y.</b> Nearby float compare against the value at 0x005D85D8, popping the result
+/// (5.0) at <c>0x004A3D46</c> and the store of constant 0x40A00000 to stack local +0x0C at <c>0x004A3D60</c> are leftover min
+/// dest X, not dest Y. Nearby float add of the value at 0x005D8BA0 is 2.0
 /// and is not dest. Dest Y is incoming <c>[esp+0x10C]</c> at
 /// <c>0x004A3D78</c>. DrawLabelValueRow keeps dest Y as the row
 /// top and scale 1.0. The collapsed value dest at
@@ -54,37 +53,37 @@ public static class RetailOptionsDropdownDest
     /// <summary><c>CMenuItemDropdown::Render</c> body at <c>0x004A3C30</c>.</summary>
     public const uint RenderSite = 0x004A3C30u;
 
-    /// <summary><c>call 0x00515A70</c> before the extent.</summary>
+    /// <summary>A direct call to 0x00515A70 before the extent.</summary>
     public const uint FontCallSite = 0x004A3D0Du;
 
     /// <summary>Font helper. Not the dest leftover.</summary>
     public const uint Font = 0x00515A70u;
 
-    /// <summary><c>call 0x00540680</c>.</summary>
+    /// <summary>A direct call to 0x00540680.</summary>
     public const uint ExtentCallSite = 0x004A3D14u;
 
     /// <summary>SIZE store. Same helper as CMenuItem dest.</summary>
     public const uint GetTextExtent = 0x00540680u;
 
-    /// <summary><c>fild [esp+0x1C]</c>. SIZE.cx, not integer-half.</summary>
+    /// <summary>An integer-to-float load of stack local +0x1C. SIZE.cx, not integer-half.</summary>
     public const uint FildCxSite = 0x004A3D19u;
 
-    /// <summary><c>fld [esp+0x108]</c>. Incoming dest X.</summary>
+    /// <summary>A float load of stack local +0x108. Incoming dest X.</summary>
     public const uint FldDestXSite = 0x004A3D1Du;
 
-    /// <summary><c>mov [esp+0x14], 0x3F800000</c>.</summary>
+    /// <summary>A store of constant 0x3F800000 to stack local +0x14.</summary>
     public const uint ScaleStoreSite = 0x004A3D24u;
 
     /// <summary>IEEE bits of the identity scale store. 1.0.</summary>
     public const uint ScaleBits = 0x3F800000u;
 
-    /// <summary><c>fsub st(1)</c>.</summary>
+    /// <summary>A float subtract using the FPU stack.</summary>
     public const uint FsubSite = 0x004A3D2Cu;
 
-    /// <summary><c>fstp [esp+0x0C]</c>. Dest X leftover.</summary>
+    /// <summary>A float store to stack local +0x0C. Dest X leftover.</summary>
     public const uint DestStoreSite = 0x004A3D2Eu;
 
-    /// <summary><c>fcomp [0x005D85D8]</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D85D8, popping the result.</summary>
     public const uint FcompSite = 0x004A3D46u;
 
     /// <summary>5.0 source. Leftover min dest X, not dest Y.</summary>
@@ -93,7 +92,7 @@ public static class RetailOptionsDropdownDest
     /// <summary>IEEE bits at <see cref="LeftoverMinGlobal"/>. 5.0.</summary>
     public const uint LeftoverMinBits = 0x40A00000u;
 
-    /// <summary><c>mov [esp+0x0C], 0x40A00000</c>. Leftover min dest X.</summary>
+    /// <summary>A store of constant 0x40A00000 to stack local +0x0C. Leftover min dest X.</summary>
     public const uint LeftoverMinStoreSite = 0x004A3D60u;
 
     /// <summary>Nearby 2.0 source. Not dest.</summary>
@@ -102,10 +101,10 @@ public static class RetailOptionsDropdownDest
     /// <summary>IEEE bits at <see cref="PadGlobal"/>. 2.0.</summary>
     public const uint PadBits = 0x40000000u;
 
-    /// <summary><c>mov ebx, [esp+0x10C]</c>. Incoming dest Y.</summary>
+    /// <summary>A load of stack local +0x10C into ebx. Incoming dest Y.</summary>
     public const uint DestYLoadSite = 0x004A3D78u;
 
-    /// <summary><c>call 0x004659A0</c> after the dest leftover.</summary>
+    /// <summary>A direct call to 0x004659A0 after the dest leftover.</summary>
     public const uint DrawTextCallSite = 0x004A3DA3u;
 
     /// <summary>Label draw. Not DrawTextDynamic.</summary>

@@ -7,11 +7,12 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render title-logo shadow colour at
 /// <c>0x0046424F</c>, recovered from the pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). File offset = VA − <c>0x400000</c>.
 ///
-/// <para><c>mov ecx, esi; shl 6; sub ecx, esi; shl 16; and 0xFF000000</c>.
+/// <para>A copy of esi into ecx, then left shift by 6, then subtraction
+/// of esi from ecx, then left shift by 16, then mask with 0xFF000000.
 /// ESI is the 0x00464240 <c>fistp</c> fade byte, forced to 255 when
 /// dest == 0x0c at <c>0x0046423D</c>. Settled 255 submits
 /// <c>0x3E000000</c>, which is capture ShadowTint. DrawMainMenu

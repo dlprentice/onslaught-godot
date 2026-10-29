@@ -4,19 +4,19 @@ namespace OnslaughtRebuild.GodotClient;
 
 /// <summary>
 /// What confirms CFEPIntro click-to-start — recovered from the pristine
-/// specimen <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// specimen (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this cycle
 /// (2,506,752 bytes).
 ///
 /// <para><b>Action.</b> <c>CFEPIntro</c> handler <c>0x0051B660</c>–
-/// <c>0x0051B6AA</c> (<c>RET 8</c>):</para>
+/// <c>0x0051B6AA</c> (a return that pops 8 bytes of arguments):</para>
 /// <list type="number">
-/// <item><c>cmp [esp+4], 0x2C</c> / <c>jne ret</c>.</item>
-/// <item><c>mov eax,[ecx+0x0C]</c> / <c>test</c> / <c>jnz ret</c> —
+/// <item>A compare of stack local +4 with 0x2C, then conditional branch to ret (taken when not equal).</item>
+/// <item>A load of field +0x0C of ecx into eax / <c>test</c> / a conditional branch to ret (taken when not zero) —
 /// page substate must be zero.</item>
 /// <item>Cold-start globals then
-/// <c>push 0x32; push 0; mov ecx, 0x0089D758; call 0x00466AE0</c>
+/// a push of constant 0x32, then push of constant 0, then load of constant 0x0089D758 into ecx, then direct call to 0x00466AE0
 /// (<c>CFrontEnd::SetPage(FEP_MAIN, 50)</c>). Two other SetPage pairs
 /// sit behind <c>[0x008A9AB4]</c> and <c>[0x0083D448]</c> and are not
 /// this path.</item>
@@ -40,13 +40,13 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailClickToStartInput
 {
-    /// <summary><c>cmp [esp+4], 0x2C</c> at <c>0x0051B660</c>.</summary>
+    /// <summary>A compare of stack local +4 with 0x2C at <c>0x0051B660</c>.</summary>
     public const int ConfirmAction = 0x2C;
 
-    /// <summary><c>push 0</c> at <c>0x0051B690</c>. FEP_MAIN.</summary>
+    /// <summary>A push of constant 0 at <c>0x0051B690</c>. FEP_MAIN.</summary>
     public const int SetPageOrdinal = 0;
 
-    /// <summary><c>push 0x32</c> at <c>0x0051B686</c>.</summary>
+    /// <summary>A push of constant 0x32 at <c>0x0051B686</c>.</summary>
     public const int SetPageFrames = 50;
 
     /// <summary>
@@ -55,10 +55,10 @@ public static class RetailClickToStartInput
     /// </summary>
     public static readonly int[] DefaultConfirmScanCodes = [0x1C, 0x39];
 
-    /// <summary><c>push 0</c> at <c>0x0051B831</c> — dest X.</summary>
+    /// <summary>A push of constant 0 at <c>0x0051B831</c> — dest X.</summary>
     public const float MouseRectLeft = 0f;
 
-    /// <summary><c>push 0</c> at <c>0x0051B82F</c> — dest Y.</summary>
+    /// <summary>A push of constant 0 at <c>0x0051B82F</c> — dest Y.</summary>
     public const float MouseRectTop = 0f;
 
     /// <summary>

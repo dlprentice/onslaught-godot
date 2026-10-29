@@ -5,18 +5,18 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render 0x0089D88C title-logo body dest X/Y and Z —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Texture.</b> Load at <c>0x004642CE</c> is
-/// <c>mov eax, [0x0089D88C]</c> then later <c>push eax</c>. That is
+/// a load of the value at 0x0089D88C into eax then later push of eax. That is
 /// the title-logo body, not 0x0089D7F0 / D894 / D898 / D89C / D8A0 /
 /// D8A4. Init stores the previous load of
 /// <c>FrontEnd\v3\FE_BEA_Title2.tga</c> (<c>0x0062A3A0</c>)
-/// at <c>mov [ebp+0x12C], eax</c> (<c>0x00468E60</c>). The parent
+/// at a store of eax to frame local +0x12C (<c>0x00468E60</c>). The parent
 /// card's 0x004642CB is the previous call's last 00; <c>a1</c>
 /// starts at 0x004642CE. Do not redo
 /// <see cref="RetailMainMenuTitleLogoShadow"/>,
@@ -35,22 +35,22 @@ namespace OnslaughtRebuild.GodotClient;
 /// <see cref="RetailMainMenuRightTwinOverlay"/>.</para>
 ///
 /// <para><b>Site.</b> Colour siblings <c>0x004642E4</c>
-/// (<c>and edx, 0xFFAFCFFF</c>) and <c>0x004642F1</c>
-/// (<c>or edx, 0x00AFCFFF</c>) already own TitleLogoTint.
+/// (a mask of edx with 0xFFAFCFFF) and <c>0x004642F1</c>
+/// (an or of 0x00AFCFFF into edx) already own TitleLogoTint.
 /// Shadow colour sibling <c>0x0046424F</c> is already
 /// <see cref="RetailMainMenuTitleLogoShadow"/>. Identity scale
-/// <c>push 0x3F800000</c> at <c>0x004642DD</c> /
+/// (a push of constant 0x3F800000) at <c>0x004642DD</c> /
 /// <c>0x004642EC</c> / <c>0x004642F7</c> is 1.0, not 0.999.
-/// Nearby <c>push 0x3F866666</c> at <c>0x00464269</c> is already
+/// Nearby push of constant 0x3F866666 at <c>0x00464269</c> is already
 /// ShadowScaleBoost 1.05. <c>0x004642FE</c> is
-/// <c>push 0x3F7FBE77</c>. <c>0x00464303</c> is
-/// <c>push 0x43020000</c> (130.0). <c>0x00464308</c> is
-/// <c>push 0x43A00000</c> (320.0). Do not invent a 29%
+/// a push of constant 0x3F7FBE77. <c>0x00464303</c> is
+/// a push of constant 0x43020000 (130.0). <c>0x00464308</c> is
+/// a push of constant 0x43A00000 (320.0). Do not invent a 29%
 /// title-logo scale.</para>
 ///
 /// <para><b>Call.</b> Eleven cdecl dwords into
 /// <c>CDXSurf__RenderSurface</c> at <c>0x005563D0</c> (call at
-/// <c>0x0046430D</c>, <c>add esp, 0x2C</c> at <c>0x00464312</c>).
+/// <c>0x0046430D</c>, a stack cleanup of 0x2C bytes at <c>0x00464312</c>).
 /// The leftover 0.999 push is Z, not scale. Dest Y is 130. Dest X
 /// is 320. Mode 4 is the centre-anchor. The 2-D consumer ignores z.
 /// Not a 29% title-logo scale. Not a sheen.</para>
@@ -74,7 +74,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuTitleLogoZ
 {
-    /// <summary><c>mov eax, [0x0089D88C]</c> at <c>0x004642CE</c>.</summary>
+    /// <summary>A load of the value at 0x0089D88C into eax at <c>0x004642CE</c>.</summary>
     public const uint TextureLoadSite = 0x004642CEu;
 
     /// <summary>Title-logo texture global.</summary>
@@ -86,25 +86,25 @@ public static class RetailMainMenuTitleLogoZ
     /// <summary>Load identity string. Not writing-chrome, not the selector bar.</summary>
     public const string TexturePath = @"FrontEnd\v3\FE_BEA_Title2.tga";
 
-    /// <summary><c>mov [ebp+0x12C], eax</c> at <c>0x00468E60</c>.</summary>
+    /// <summary>A store of eax to frame local +0x12C at <c>0x00468E60</c>.</summary>
     public const uint TextureStoreSite = 0x00468E60u;
 
     /// <summary>Store displacement. Previous load of <see cref="TexturePath"/>.</summary>
     public const int TextureStoreOffset = 0x12C;
 
-    /// <summary><c>push 0x3F7FBE77</c> at <c>0x004642FE</c>.</summary>
+    /// <summary>A push of constant 0x3F7FBE77 at <c>0x004642FE</c>.</summary>
     public const uint ZPushSite = 0x004642FEu;
 
-    /// <summary><c>push 0x43020000</c> at <c>0x00464303</c>.</summary>
+    /// <summary>A push of constant 0x43020000 at <c>0x00464303</c>.</summary>
     public const uint YPushSite = 0x00464303u;
 
-    /// <summary><c>push 0x43A00000</c> at <c>0x00464308</c>.</summary>
+    /// <summary>A push of constant 0x43A00000 at <c>0x00464308</c>.</summary>
     public const uint XPushSite = 0x00464308u;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x0046430D</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x0046430D</c>.</summary>
     public const uint CallSite = 0x0046430Du;
 
-    /// <summary><c>push 0x3F800000</c> at <c>0x004642DD</c>. Identity 1.0, not 0.999.</summary>
+    /// <summary>A push of constant 0x3F800000 at <c>0x004642DD</c>. Identity 1.0, not 0.999.</summary>
     public const uint ScalePushSite = 0x004642DDu;
 
     /// <summary>Identity scale immediate. Not a title-logo 29%.</summary>

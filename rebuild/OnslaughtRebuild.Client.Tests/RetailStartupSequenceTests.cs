@@ -173,7 +173,7 @@ public sealed class RetailStartupSequenceTests
         // TWIMTBP_GefFX_640x480_Audio.vid ships and IS reachable: 0x83d404 is
         // the value field of a CVar named "TWIMTBP" constructed at 0x83d3f8
         // (0x004efae0), written object-relative by CVar::Init's
-        // `mov [eax+0xc], ecx`, and the shipped cardid.txt sets
+        // (a store of ecx to field +0xc of eax), and the shipped cardid.txt sets
         // `Tweak:TWIMTBP 1` for Vendor:10DE Device:0330 GeForce FX 5900 Ultra.
         // It is omitted because no modern adapter matches that one entry and it
         // did not play on the measured hardware — the released PC path this

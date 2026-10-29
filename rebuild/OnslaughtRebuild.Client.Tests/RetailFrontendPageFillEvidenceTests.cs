@@ -21,7 +21,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <para><b>Both retail references are <c>-skipfmv</c> captures.</b> That switch
 /// suppresses the FEBack128 video, and the video is what covers the page. Retail
 /// captured WITHOUT it
-/// (<c>local-lab/retail-reference-pristine/nofmv-frontend-2026-07-26/</c>) is not
+/// (a private retail reference capture) is not
 /// flat either — over run1's fifteen settled main-menu frames the modal colour
 /// holds only 1.36%..3.57% of the frame across 34,795..39,593 distinct colours,
 /// and <c>mm-t001020ms.png</c> reads modal (30,31,60) at 3.57% against our own

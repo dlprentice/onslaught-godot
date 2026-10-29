@@ -5,12 +5,12 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>PlatformInput__PollMouseState</c> latch-to-button SET leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>. Twin
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> is
+/// a private twin copy is
 /// the same size and hash.
 ///
 /// <para><b>Sibling.</b> Expanded list click at <c>0x004A4010</c> is
@@ -37,19 +37,19 @@ namespace OnslaughtRebuild.Client;
 /// <c>0x004A403C</c> is already
 /// <see cref="RetailOptionsDropdownListClickSound"/>. FMV skip OR at
 /// <c>0x0053F2EB</c> already owns the three latch dwords. This leftover
-/// is the <c>test ah, 0x80</c> / <c>mov [0x0089BE28], ecx</c> SET.
+/// is the sequence (bit test of ah against 0x80, then store of ecx to the value at 0x0089BE28) SET.
 /// Do not redo those. Do not invent dest Y as 5, 15.5, 268, 284, or
 /// 304. Do not invent dest X as 322.5 or dest from 148.0. Do not
 /// invent dest as the 2.0 constant.</para>
 ///
 /// <para><b>SET.</b> Official 74154bfa independently re-read:
 /// <c>0x0042D4D0</c> is <c>PlatformInput__PollMouseState</c>.
-/// <c>0x0042D4D6</c> is <c>xor ebx, ebx</c> (<c>33 db</c>).
-/// <c>0x0042D58F</c> is <c>mov ecx, 1</c> (<c>b9 01 00 00 00</c>).
-/// <c>0x0042D5CA</c> is <c>test ah, 0x80</c> (<c>f6 c4 80</c>).
-/// <c>0x0042D5CD</c> is <c>je +0x0e</c> (target <c>0x0042D5DD</c>).
-/// <c>0x0042D5CF</c> is the unique <c>mov [0x0089BE28], ecx</c>
-/// (<c>89 0d 28 be 89 00</c>, one image hit). Cycle 85 retargets the
+/// <c>0x0042D4D6</c> is a zeroing of ebx.
+/// <c>0x0042D58F</c> is a load of constant 1 into ecx.
+/// <c>0x0042D5CA</c> is a bit test of ah against 0x80.
+/// <c>0x0042D5CD</c> is a conditional branch to +0x0e (taken when equal) (target <c>0x0042D5DD</c>).
+/// <c>0x0042D5CF</c> is the unique store of ecx to the value at 0x0089BE28
+/// (one image hit). Cycle 85 retargets the
 /// five published sites that sat mid-instruction. That is the
 /// right-mouse latch SET. A miss jumps to <c>0x0042D5DD</c> and skips
 /// the write of 1. Dest Y does not.
@@ -76,28 +76,28 @@ public static class RetailFrontendLatchToButton
     /// <summary><c>PlatformInput__PollMouseState</c> body at <c>0x0042D4D0</c>.</summary>
     public const uint PollSite = 0x0042D4D0u;
 
-    /// <summary><c>xor ebx, ebx</c>. Clear path leftover, not dest.</summary>
+    /// <summary>A zeroing of ebx. Clear path leftover, not dest.</summary>
     public const uint EbxZeroSite = 0x0042D4D6u;
 
-    /// <summary><c>mov ecx, 1</c> at <c>0x0042D58F</c>. SET value leftover. Not dest.</summary>
+    /// <summary>A load of constant 1 into ecx at <c>0x0042D58F</c>. SET value leftover. Not dest.</summary>
     public const uint OneLoadSite = 0x0042D58Fu;
 
     /// <summary>SET writes 1. Miss skips that write.</summary>
     public const uint SetValue = 1u;
 
-    /// <summary><c>test ah, 0x80</c> at <c>0x0042D5CA</c>. Right-button leftover. Not dest.</summary>
+    /// <summary>A bit test of ah against 0x80 at <c>0x0042D5CA</c>. Right-button leftover. Not dest.</summary>
     public const uint RightMaskSite = 0x0042D5CAu;
 
     /// <summary>AH bit 0x80. Right mouse. Not dest.</summary>
     public const byte RightButtonMask = 0x80;
 
-    /// <summary><c>je +0x0e</c> at <c>0x0042D5CD</c>. Miss skips the SET leftover.</summary>
+    /// <summary>A conditional branch to +0x0e (taken when equal) at <c>0x0042D5CD</c>. Miss skips the SET leftover.</summary>
     public const uint RightSkipSite = 0x0042D5CDu;
 
     /// <summary>Miss target at <c>0x0042D5DD</c> skips the SET leftover.</summary>
     public const uint RightMissTarget = 0x0042D5DDu;
 
-    /// <summary>Unique <c>mov [0x0089BE28], ecx</c> at <c>0x0042D5CF</c>. Latch-to-button SET leftover.</summary>
+    /// <summary>Unique (a store of ecx to the value at 0x0089BE28) at <c>0x0042D5CF</c>. Latch-to-button SET leftover.</summary>
     public const uint RightSetSite = 0x0042D5CFu;
 
     /// <summary>Latch at <c>0x0089BE28</c>. Already cancel leftover's load/clear.</summary>
@@ -245,7 +245,7 @@ public static class RetailFrontendLatchToButton
     public const bool ChangesMeasureText = false;
 
     /// <summary>
-    /// Right-mouse SET. <c>test ah, 0x80</c> then write 1. A miss
+    /// Right-mouse SET. A bit test of ah against 0x80 then write 1. A miss
     /// jumps to <see cref="RightMissTarget"/> and skips the write.
     /// That is not dest.
     /// </summary>

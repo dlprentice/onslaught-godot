@@ -25,10 +25,10 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <b>Source and retail agree</b> on the whole ladder, including the direction
 /// of every comparison. The water/ground choice at <c>0x00411AC8</c> is
-/// <c>test ah, 1</c> — C0 alone, so strictly-less, matching
+/// a bit test of ah against 1 — C0 alone, so strictly-less, matching
 /// <c>if (waterLevel&lt;groundLevel)</c>. The altitude subtraction is
-/// <c>fsub dword ptr [ecx + 0x24]</c> against the chassis position's Z and is
-/// then <b>stored back to a float</b> (<c>fstp dword ptr [esp]</c> at
+/// a float subtract of field +0x24 of ecx against the chassis position's Z and is
+/// then <b>stored back to a float</b> (a float store to the top of the stack at
 /// <c>0x00411ADF</c>) before any comparison, which is what makes
 /// <c>float altitude</c> in the source exact rather than approximate. The
 /// magnitude at <c>0x00411B19-0x00411B31</c> is
@@ -39,7 +39,7 @@ namespace OnslaughtRebuild.Core;
 /// <para>
 /// <b>Every comparison is C0-only, so unordered inputs fall the "less"
 /// way.</b> All three tests are <c>fcomp</c> / <c>fnstsw</c> /
-/// <c>test ah, 1</c>. An unordered compare sets C0, so a NaN altitude takes the
+/// a bit test of ah against 1. An unordered compare sets C0, so a NaN altitude takes the
 /// <c>altitude &lt; 1</c> arm and returns <c>0.99f</c>, and a NaN velocity
 /// magnitude takes the slow arm and interpolates. C# <c>&lt;</c> is false for
 /// NaN, which is why the tests below are written as negated
@@ -111,7 +111,7 @@ public static class RetailJetFriction
     /// <remarks>
     /// Which surface "numerically smaller" picks in world terms depends on the
     /// sign of the retail Z axis, and that is not established here: all that is
-    /// measured is <c>fcomp</c> then <c>fsub dword ptr [ecx + 0x24]</c>. Core's
+    /// measured is <c>fcomp</c> then a float subtract of field +0x24 of ecx. Core's
     /// own jet model reaches the mirror-image expression
     /// (<c>elevation - Math.Max(ground, water)</c>), which is consistent with
     /// the two working in opposite Z conventions rather than disagreeing; that
@@ -119,7 +119,7 @@ public static class RetailJetFriction
     /// </remarks>
     public static float Altitude(float waterLevel, float groundLevel, float positionZ)
     {
-        // test ah, 1 again: unordered picks the water level, not the ground.
+        // A bit test of ah against 1 again: unordered picks the water level, not the ground.
         float reference = !(waterLevel >= groundLevel) ? waterLevel : groundLevel;
         return (float)((double)reference - (double)positionZ);
     }
@@ -151,7 +151,7 @@ public static class RetailJetFriction
     {
         float altitude = Altitude(waterLevel, groundLevel, positionZ);
 
-        // test ah, 1 - C0 alone, so unordered falls here too.
+        // A bit test of ah against 1 - C0 alone, so unordered falls here too.
         if (!(altitude >= NearSurfaceAltitude))
         {
             return NearSurfaceFriction;

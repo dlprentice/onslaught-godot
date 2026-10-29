@@ -30,6 +30,6 @@ Summary: the rules for working in this repository, for people and automated agen
   `cd rebuild/OnslaughtRebuild.Host && HOST_PRESENT=150 HOST_CAPTURE=/var/tmp/host-present150.png godot-offscreen
   --path . --qa local-data/qa/run --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 --
   --audio-driver Dummy`. The installed engine is `godot48-mono`. The earlier launcher's retail inputs come from the
-  canonical Onslaught-Career-Editor checkout's `local-lab/` (`BEA_LOCAL_LAB`); worktrees reuse it, never a copy.
+  canonical Onslaught-Career-Editor checkout's the private lab folder (`BEA_LOCAL_LAB`); worktrees reuse it, never a copy.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).

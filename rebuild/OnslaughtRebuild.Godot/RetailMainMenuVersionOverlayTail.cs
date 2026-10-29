@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay leftover stack into
 /// CDXFont__DrawTextDynamic — recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -25,36 +25,35 @@ namespace OnslaughtRebuild.GodotClient;
 /// widen at <c>0x00464191</c> is already
 /// <see cref="RetailMainMenuVersionOverlayWiden"/> and does not
 /// own these three pushes. This leftover is the leftover stack
-/// that remains after <c>add esp, 4</c>. Do not redo the
+/// that remains after a stack cleanup of 4 bytes. Do not redo the
 /// sprintf, the colour OR, dest/Z, the font slot, the pre-draw
 /// store, the post-draw stores, or the widen.</para>
 ///
 /// <para><b>Slots.</b> After the enable-byte store,
-/// <c>0x00464187</c> is <c>push 0</c>, <c>0x00464189</c> is
-/// <c>push 0</c>, and <c>0x0046418B</c> is
-/// <c>push 0x447A0000</c>. <c>add esp, 4</c> at
+/// <c>0x00464187</c> is a push of constant 0, <c>0x00464189</c> is
+/// a push of constant 0, and <c>0x0046418B</c> is
+/// a push of constant 0x447A0000. A stack cleanup of 4 bytes at
 /// <c>0x004641A0</c> pops only the cdecl widen argument, so those
 /// three dwords remain. Later pushes are dest X, dest Y, Z,
 /// identity scales, colour, and the wide pointer. Right-to-left
-/// that is ten stack args into <c>call 0x00465710</c> at
-/// <c>0x004641ED</c>. The body exits <c>RET 0x28</c> at
+/// that is ten stack args into a direct call to 0x00465710 at
+/// <c>0x004641ED</c>. The body exits (a return that pops 40 bytes of arguments) at
 /// <c>0x00465997</c>. The first leftover push is stack arg 10,
 /// the second is arg 9, and the float is arg 8. Dest, Z, scale,
 /// colour, and the wide pointer stay with their siblings.</para>
 ///
 /// <para><b>Body.</b> Alloca is <c>0x2720</c>, then four
-/// register pushes. Arg 8 is <c>fld [esp+0x2750]</c> at
+/// register pushes. Arg 8 is a float load of stack local +0x2750 at
 /// <c>0x0046578F</c>, then <c>fcom</c> against image
 /// <c>+0.0</c> / <c>+0.25</c> / <c>+0.5</c>. The leftover
 /// float is past all three. Arg 9 is
-/// <c>mov eax, [esp+0x2754]</c> at <c>0x0046587A</c>;
-/// <c>test eax, eax</c> / <c>jz</c> skips that arm because
+/// a load of stack local +0x2754 into eax at <c>0x0046587A</c>;
+/// a zero test of eax / <c>jz</c> skips that arm because
 /// the leftover is 0. Arg 10 is
-/// <c>mov edi, [esp+0x2758]</c> at <c>0x00465902</c>. The
-/// <c>cmp ebx, 0x3E8</c> at <c>0x00465771</c>
-/// (<c>81 fb e8 03 00 00</c>) is a wchar-count clamp, not this
+/// a load of stack local +0x2758 into edi at <c>0x00465902</c>. The
+/// compare of ebx with 0x3E8 at <c>0x00465771</c> is a wchar-count clamp, not this
 /// leftover float. <c>0x00465777</c> is the separate following
-/// <c>mov word [eax], 0</c> store (<c>66 c7 00 00 00</c>). GPL
+/// store of constant 0 to 16-bit word value pointed to by eax. GPL
 /// <c>references/Onslaught/FrontEnd.cpp</c> line 1225 shows the
 /// same <c>1000.f</c> as the eighth argument on the title-bar
 /// path; that call's tenth argument is
@@ -63,9 +62,9 @@ namespace OnslaughtRebuild.GodotClient;
 /// from the leftover slots.</para>
 ///
 /// <para><b>Not a fade.</b> The post-call
-/// <c>fmul [0x005D8C70]</c> is already the colour-pack 255 scale
+/// (a float multiply by the value at 0x005D8C70) is already the colour-pack 255 scale
 /// in <see cref="RetailMainMenuVersionOverlay"/>. The post-draw
-/// <c>fcom [0.0]</c> is already the title-logo shadow clamp in
+/// (a float compare against the constant 0.0) is already the title-logo shadow clamp in
 /// <see cref="RetailMainMenuVersionOverlayFlags"/>. This type
 /// does not invent a version fade, a sheen, dest immediates, a
 /// wrap width, or a 2px kerning hack. DrawMainMenu keeps
@@ -94,13 +93,13 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>Already <see cref="RetailMainMenuVersionOverlayEnable"/>.</summary>
     public const uint EnableSiblingSite = 0x00464180u;
 
-    /// <summary><c>push 0</c>. DrawTextDynamic stack arg 10.</summary>
+    /// <summary>A push of constant 0. DrawTextDynamic stack arg 10.</summary>
     public const uint FirstLeftoverPushSite = 0x00464187u;
 
-    /// <summary>Second <c>push 0</c>. DrawTextDynamic stack arg 9.</summary>
+    /// <summary>Second push of constant 0. DrawTextDynamic stack arg 9.</summary>
     public const uint SecondLeftoverPushSite = 0x00464189u;
 
-    /// <summary><c>push 0x447A0000</c>. DrawTextDynamic stack arg 8.</summary>
+    /// <summary>A push of constant 0x447A0000. DrawTextDynamic stack arg 8.</summary>
     public const uint FloatLeftoverPushSite = 0x0046418Bu;
 
     /// <summary>IEEE bits of stack arg 8. Not dest and not wrap.</summary>
@@ -112,16 +111,16 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>One cdecl dword popped. These three leftover pushes stay.</summary>
     public const int WidenAddEspImmediate = 4;
 
-    /// <summary><c>call 0x00465710</c> at <c>0x004641ED</c>.</summary>
+    /// <summary>A direct call to 0x00465710 at <c>0x004641ED</c>.</summary>
     public const uint CallSite = 0x004641EDu;
 
     /// <summary><c>CDXFont__DrawTextDynamic</c>.</summary>
     public const uint DrawTextDynamic = 0x00465710u;
 
-    /// <summary><c>RET 0x28</c> at <c>0x00465997</c>.</summary>
+    /// <summary>A return that pops 40 bytes of arguments at <c>0x00465997</c>.</summary>
     public const uint BodyRetSite = 0x00465997u;
 
-    /// <summary>Ten stack dwords. Not <c>RET 0x2C</c>.</summary>
+    /// <summary>Ten stack dwords. Not a return that pops 44 bytes of arguments.</summary>
     public const int BodyRetImmediate = 0x28;
 
     /// <summary>Thiscall stack arity implied by <see cref="BodyRetImmediate"/>.</summary>
@@ -130,7 +129,7 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>Alloca probe immediate at the DrawTextDynamic prologue.</summary>
     public const int AllocaSize = 0x2720;
 
-    /// <summary><c>push ebx/ebp/esi/edi</c> after the this-save.</summary>
+    /// <summary>A push of ebx, ebp, esi (a mask with edi) after the this-save.</summary>
     public const int RegisterPushBytes = 0x10;
 
     /// <summary>One-based stack-arg index of the leftover float.</summary>
@@ -142,25 +141,25 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>One-based stack-arg index of the first leftover 0.</summary>
     public const int FirstStackArg = 10;
 
-    /// <summary><c>fld [esp+0x2750]</c> at <c>0x0046578F</c>.</summary>
+    /// <summary>A float load of stack local +0x2750 at <c>0x0046578F</c>.</summary>
     public const uint Arg8LoadSite = 0x0046578Fu;
 
     /// <summary>Displacement after alloca and four register pushes.</summary>
     public const int Arg8Disp = 0x2750;
 
-    /// <summary><c>mov eax, [esp+0x2754]</c> at <c>0x0046587A</c>.</summary>
+    /// <summary>A load of stack local +0x2754 into eax at <c>0x0046587A</c>.</summary>
     public const uint Arg9LoadSite = 0x0046587Au;
 
     /// <summary>Displacement of stack arg 9 after the frame.</summary>
     public const int Arg9Disp = 0x2754;
 
-    /// <summary><c>mov edi, [esp+0x2758]</c> at <c>0x00465902</c>.</summary>
+    /// <summary>A load of stack local +0x2758 into edi at <c>0x00465902</c>.</summary>
     public const uint Arg10LoadSite = 0x00465902u;
 
     /// <summary>Displacement of stack arg 10 after the frame.</summary>
     public const int Arg10Disp = 0x2758;
 
-    /// <summary><c>fcom [0x005D856C]</c> at <c>0x00465796</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D856C at <c>0x00465796</c>.</summary>
     public const uint BelowZeroCompareSite = 0x00465796u;
 
     /// <summary>Image dword compared first. <c>+0.0f</c>.</summary>
@@ -169,7 +168,7 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>IEEE bits at <see cref="BelowZeroGlobal"/>.</summary>
     public const uint BelowZeroBits = 0x00000000u;
 
-    /// <summary><c>fcom [0x005D858C]</c> at <c>0x004657A7</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D858C at <c>0x004657A7</c>.</summary>
     public const uint BelowQuarterCompareSite = 0x004657A7u;
 
     /// <summary>Image dword compared second. <c>+0.25f</c>.</summary>
@@ -178,7 +177,7 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>IEEE bits at <see cref="BelowQuarterGlobal"/>.</summary>
     public const uint BelowQuarterBits = 0x3E800000u;
 
-    /// <summary><c>fcom [0x005D85EC]</c> at <c>0x004657DD</c>.</summary>
+    /// <summary>A float compare against the value at 0x005D85EC at <c>0x004657DD</c>.</summary>
     public const uint BelowHalfCompareSite = 0x004657DDu;
 
     /// <summary>Image dword compared third. <c>+0.5f</c>.</summary>
@@ -187,7 +186,7 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>IEEE bits at <see cref="BelowHalfGlobal"/>.</summary>
     public const uint BelowHalfBits = 0x3F000000u;
 
-    /// <summary><c>test eax, eax</c> of stack arg 9 at <c>0x00465881</c>.</summary>
+    /// <summary>A zero test of eax of stack arg 9 at <c>0x00465881</c>.</summary>
     public const uint Arg9TestSite = 0x00465881u;
 
     /// <summary>Immediate stored as stack arg 9. Skips that arm.</summary>
@@ -196,10 +195,10 @@ public static class RetailMainMenuVersionOverlayTail
     /// <summary>Immediate stored as stack arg 10. Not the title-bar flag.</summary>
     public const int FirstSlot = 0;
 
-    /// <summary><c>cmp ebx, 0x3E8</c> at <c>0x00465771</c>. Wchar clamp.</summary>
+    /// <summary>A compare of ebx with 0x3E8 at <c>0x00465771</c>. Wchar clamp.</summary>
     public const uint LengthClampSite = 0x00465771u;
 
-    /// <summary><c>mov word [eax], 0</c>. Following store, not the clamp compare.</summary>
+    /// <summary>A store of constant 0 to 16-bit word value pointed to by eax. Following store, not the clamp compare.</summary>
     public const uint LengthClampStoreSite = 0x00465777u;
 
     /// <summary>Wchar-count clamp. Not the leftover float.</summary>

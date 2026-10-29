@@ -174,7 +174,7 @@ internal sealed class Level100WaterAsset
             // This shader previously computed waves + diffuse * current, which
             // is a different operator: it added the wave texture at full
             // strength independently of the vertex colour ramp. Measured
-            // consequence in local-lab/godot-captures at the retail-matched
+            // consequence in a private capture folder at the retail-matched
             // offsets t0+2/256/499/749 ms: 2,600-6,000 px per water box with
             // G >= 250 and B >= 250, against 0 such px in the same boxes of
             // the retail reference. waves is also the only water texture with
@@ -254,7 +254,7 @@ internal sealed class Level100WaterAsset
     //    single hue-bearing texture landed twice. No `D3DRS_SRCBLEND` /
     //    `DESTBLEND` / `ALPHABLENDENABLE` write is decoded anywhere in
     //    `reverse-engineering/` for the water or sky (see
-    //    `local-lab/WATER-SKY-EVIDENCE-2026-07-25.md` 5.2); the two
+    //    the private lab note WATER-SKY-EVIDENCE-2026-07-25.md 5.2); the two
     //    `CDXSurf__Render` call sites in `CWaterRenderSystem__RenderMainPass`
     //    (`DXSurf.cpp.md:25,55`) enter the *same* function with the same bound
     //    render state and differ only in its `validated_mode` byte, so they

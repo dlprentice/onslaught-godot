@@ -72,8 +72,8 @@ public sealed partial class FirstFlightWorldView : Node3D
     // reconstruction was implicitly asserting that it holds identity.
     //
     // It does not. Read out of a running COPY of the game
-    // (local-lab/safe-copy-bea-pristine/BEA.exe, sha256 E1436EF7E0AD9CCBDDD43
-    // AAACA952F6E84D4B1A282835CEAD745EFCFC32FADF4) at the Level 100 cockpit
+    // (a private patched copy, sha256
+    // E1436EF7E0AD9CCBDDD43AAACA952F6E84D4B1A282835CEAD745EFCFC32FADF4) at the Level 100 cockpit
     // draw, breakpoint window armed at 0x0053bb50 and disarmed at 0x0053ec6f,
     // dumped at 0x0053bb56 where ESI is the CCockpit, three draw windows, all
     // three identical, memory reads only:
@@ -118,7 +118,7 @@ public sealed partial class FirstFlightWorldView : Node3D
     // pose that level presents - and must not be promoted to a general
     // cockpit mount until the generator is closed.
     //
-    // See local-lab/COMPOSITION-RESIDUAL-2026-07-26.md.
+    // See the private lab note COMPOSITION-RESIDUAL-2026-07-26.md.
     private static readonly Basis RetailNoCockpitOrientationOffset = Basis.Identity;
     private static readonly Basis RetailLevel100CockpitOrientationOffset = new(
         new Vector3(0.99880058f, 0.03836670f, 0.03041990f),

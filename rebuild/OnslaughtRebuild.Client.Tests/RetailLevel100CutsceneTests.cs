@@ -12,7 +12,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// The presentation numbers come from a passive D3D9 capture of the released
 /// build (<c><maintainer evidence>\bea-d3d9-capture\d3d9-20260728-111552.log</c>, 900 frames /
 /// 896 draws, refusals 0, warnings 0, specimen verified unchanged afterwards),
-/// written up in <c>local-lab/FMV-PRESENTATION-2026-07-28.md</c>. The routing
+/// written up in the private lab note FMV-PRESENTATION-2026-07-28.md. The routing
 /// comes from the pinned source and from the campaign FMV table read out of the
 /// pristine specimen.</para>
 ///
@@ -25,7 +25,7 @@ public sealed class RetailLevel100CutsceneTests
 {
     /// <summary>
     /// <c>data/video/cutscenes/01.vid</c>, from its Bink header via ffprobe on
-    /// <c>local-lab/safe-copy-bea-pristine</c>: 480x300, 25 fps, 123.80 s.
+    /// a private pristine copy: 480x300, 25 fps, 123.80 s.
     /// </summary>
     private static readonly RetailStartupClip Level100Intro = new(3095, 25, 1, 480, 300);
 

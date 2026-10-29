@@ -7,21 +7,21 @@ namespace OnslaughtRebuild.Client.Tests;
 /// <summary>
 /// Pins the CFEPMain::Render 0x0089D8A4 *63 alpha shadow pack at
 /// <c>0x00463F3F</c>, recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>
 /// (2,506,752 bytes, re-hashed this cycle). Image base <c>0x400000</c>.
 /// File offset = VA − <c>0x400000</c>.
 ///
 /// <para>The keep-going leftover labeled <c>0x00463F3F</c> as the
 /// *63 pack immediately before the already-shipped 0x00463F83 body
-/// overlay. Official bytes: <c>mov ecx, esi</c> at <c>0x00463F3F</c>,
-/// then <c>shl 6 / sub esi / shl 16 / and 0xFF000000</c>. Texture is
+/// overlay. Official bytes: a copy of esi into ecx at <c>0x00463F3F</c>,
+/// then a left shift by 6, then subtraction of esi, then left shift by 16, then mask with 0xFF000000. Texture is
 /// 0x0089D8A4. The leftover 0.35 push at <c>0x00463F51</c> is
 /// CDXSurf Z <c>0x3EB33333</c>, not scale and not a 29% title-logo.
-/// Dest addends are <c>fadd [0x005DB5C8]=365.0</c> then
-/// <c>fadd [0x005DB5C4]=462.0</c> before <c>CDXSurf__RenderSurface</c>
-/// (<c>0x005563D0</c>). Gate is <c>0x00463E8D</c>
-/// <c>test ah, 1 / je 0x00463FC7</c> — transition &lt; 0.9 only.
+/// Dest addends are a float add of the value at 0x005DB5C8 (value 365.0) then
+/// a float add of the value at 0x005DB5C4 (value 462.0) before <c>CDXSurf__RenderSurface</c>
+/// (<c>0x005563D0</c>). Gate is <c>0x00463E8D</c>: a bit test of ah against
+/// 1, branching to 0x00463FC7 when equal — transition &lt; 0.9 only.
 /// Settled 255 submits <c>0x3E000000</c>, which is capture
 /// ShadowTint. DrawMainMenu keeps ShadowTint. Not a sheen
 /// (that is already 0x00464343). Not SetLanguage. Not a Process

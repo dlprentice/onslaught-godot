@@ -6,8 +6,7 @@ namespace OnslaughtRebuild.Core.Tests;
 
 /// <summary>
 /// <c>IScript::HighlightHudPart</c> at <c>0x00535e60</c> on specimen
-/// <c>74154bfa…</c>. Official file <c>0x00135e60</c> is
-/// <c>8b 44 24 04 8b 08 8b 11 ff 52 30 c7 04 85 1c a5 8a 00 02 00 00 00 c2 0c 00</c>.
+/// <c>74154bfa…</c>. Official file <c>0x00135e60</c> holds the 25-byte body.
 /// Twin UnHighlight at <c>0x00535e80</c> stores immediate 1, not 0.
 /// Isolated <see cref="Level100HudEmphasisChanged.Emphasized"/> names
 /// the rebuild bool, not these stores. Array extent and state-1/2

@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render version overlay pre-draw enable-byte leftover —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -25,11 +25,11 @@ namespace OnslaughtRebuild.GodotClient;
 /// post-draw stores.</para>
 ///
 /// <para><b>Store.</b> After sprintf at <c>0x00464174</c>
-/// (<c>0x0055DE9B</c>), <c>add esp, 0x10</c> at
-/// <c>0x00464179</c>, and <c>lea edx, [esp+0x3C]</c> at
+/// (<c>0x0055DE9B</c>), a stack cleanup of 0x10 bytes at
+/// <c>0x00464179</c>, and an address computation (esp+0x3C) into edx at
 /// <c>0x0046417C</c>, <c>0x00464180</c> is
-/// <c>mov byte [0x00679B40], 0</c>. The next instruction is
-/// <c>push 0</c> at <c>0x00464187</c>. The
+/// a store of constant 0 to the byte value at 0x00679B40. The next instruction is
+/// a push of constant 0 at <c>0x00464187</c>. The
 /// <c>Text__AsciiToWideScratch</c> call at <c>0x00464191</c>
 /// (<c>0x004F7BF0</c>) is a sibling leftover, not this one. The
 /// CFrontEnd::Run stores at <c>0x00468500</c> / <c>0x0046858B</c>
@@ -37,12 +37,12 @@ namespace OnslaughtRebuild.GodotClient;
 /// bytes.</para>
 ///
 /// <para><b>Reader.</b> A two-instruction reader at
-/// <c>0x00465F00</c> is <c>mov al, [0x00679B40]; ret</c>. Six
+/// <c>0x00465F00</c> is a load of the value at 0x00679B40 into al, then return. Six
 /// CALL sites land on that reader. This type does not invent
 /// what those callers do with AL.</para>
 ///
 /// <para><b>Not a fade.</b> The post-draw
-/// <c>fcom [0.0]</c> is already the title-logo shadow clamp in
+/// (a float compare against the constant 0.0) is already the title-logo shadow clamp in
 /// <see cref="RetailMainMenuVersionOverlayFlags"/>. This type
 /// does not invent a version fade, a sheen, dest immediates, or
 /// a 2px kerning hack. DrawMainMenu keeps title-font DrawText,
@@ -70,25 +70,25 @@ public static class RetailMainMenuVersionOverlayEnable
     /// <summary>Already-shipped format sibling. Not this leftover.</summary>
     public const uint FormatSiblingSite = 0x0046416Eu;
 
-    /// <summary><c>call 0x0055DE9B</c> at <c>0x00464174</c>.</summary>
+    /// <summary>A direct call to 0x0055DE9B at <c>0x00464174</c>.</summary>
     public const uint SprintfSite = 0x00464174u;
 
     /// <summary>CRT sprintf. Not this leftover.</summary>
     public const uint Sprintf = 0x0055DE9Bu;
 
-    /// <summary><c>add esp, 0x10</c> at <c>0x00464179</c>.</summary>
+    /// <summary>A stack cleanup of 0x10 bytes at <c>0x00464179</c>.</summary>
     public const uint AddEspSite = 0x00464179u;
 
     /// <summary>Stack pop after sprintf. Four pushed dwords.</summary>
     public const int AddEspImmediate = 0x10;
 
-    /// <summary><c>lea edx, [esp+0x3C]</c> at <c>0x0046417C</c>.</summary>
+    /// <summary>An address computation (esp+0x3C) into edx at <c>0x0046417C</c>.</summary>
     public const uint LeaSite = 0x0046417Cu;
 
     /// <summary>Displacement of the sprintf-buffer lea.</summary>
     public const int LeaDisp = 0x3C;
 
-    /// <summary><c>mov byte [0x00679B40], 0</c> at <c>0x00464180</c>.</summary>
+    /// <summary>A store of constant 0 to the byte value at 0x00679B40 at <c>0x00464180</c>.</summary>
     public const uint StoreSite = 0x00464180u;
 
     /// <summary>Pre-draw enable-byte global.</summary>
@@ -100,21 +100,21 @@ public static class RetailMainMenuVersionOverlayEnable
     /// <summary>Already <see cref="RetailMainMenuVersionOverlayFlags"/>.</summary>
     public const byte EnableByteAfterDraw = 1;
 
-    /// <summary><c>push 0</c> immediately after the store.</summary>
+    /// <summary>A push of constant 0 immediately after the store.</summary>
     public const uint NextInstructionSite = 0x00464187u;
 
     /// <summary>
-    /// Sibling leftover. <c>call 0x004F7BF0</c> at <c>0x00464191</c>.
+    /// Sibling leftover. A direct call to 0x004F7BF0 at <c>0x00464191</c>.
     /// </summary>
     public const uint AsciiToWideSiblingSite = 0x00464191u;
 
     /// <summary><c>Text__AsciiToWideScratch</c>. Not this leftover.</summary>
     public const uint AsciiToWideScratch = 0x004F7BF0u;
 
-    /// <summary><c>mov al, [0x00679B40]; ret</c>.</summary>
+    /// <summary>A load of the value at 0x00679B40 into al, then return.</summary>
     public const uint EnableByteReader = 0x00465F00u;
 
-    /// <summary>First byte of the reader. <c>mov al, moffs8</c>.</summary>
+    /// <summary>First byte of the reader. A load of moffs8 into al.</summary>
     public const byte ReaderMovAlOpcode = 0xA0;
 
     /// <summary>Second instruction of the reader. Near <c>ret</c>.</summary>

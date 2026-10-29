@@ -52,7 +52,7 @@ public sealed class InteractiveSession
     // It read 702049/1000000 - (10/17)^(2/3) - while Core ran at 30 Hz.
     //
     // The scalar is exactly 13/3000. Verified in the PRISTINE specimen
-    // (local-lab/safe-copy-bea-pristine/BEA.exe.original.backup, sha256
+    // (a private pristine copy, sha256
     // 74154bfa...) at VA 0x005d97c8 -> file 0x001d97c8, float32
     // 0.004333333112299442. Read it from that file. The installed Steam
     // executable on this Linux host hashed 74154bfa... (pristine) on 2026-09-26;
@@ -72,7 +72,7 @@ public sealed class InteractiveSession
     // says so and they are not drift.
     //
     // The CAPTURE TARGET is a different specimen and carries only ONE of them:
-    // local-lab/safe-copy-bea-pristine/BEA.exe (e1436ef7...) differs from
+    // a private patched copy (e1436ef7...) differs from
     // pristine in 4 bytes at 0x12A644 alone, the same force_windowed site. A
     // reviewer diffing the safe-copy pair therefore finds one patch and can
     // conclude "four" is wrong; it is not, it is a statement about the Steam
@@ -755,7 +755,7 @@ public sealed class InteractiveSession
     /// GATE - <c>ANALOGUE_PLUS</c> zeroes <c>v &lt; 0</c> and
     /// <c>ANALOGUE_MINUS</c> zeroes <c>v &gt; 0</c>. The three constants are
     /// read from the pristine specimen
-    /// (<c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>, sha256
+    /// (a private pristine copy, sha256
     /// <c>74154bfa…</c>): VA 0x005D8BE0 = -1.0, VA 0x005D8568 = +1.0, and the
     /// gate's threshold VA 0x005D856C = <b>0.0</b>. There is no other
     /// comparison on that path.</para>
@@ -765,7 +765,7 @@ public sealed class InteractiveSession
     /// <c>Controller.cpp:227-233</c>) is a JOYSTICK rule - it guards
     /// <c>GetJoyAnalogue*</c>, and its own comment says "the Xbox controllers
     /// appear to need really huge dead zones". It is not in the shipped PC
-    /// image at all: the float32 0.36 (<c>EC 51 B8 3E</c>) occurs <b>zero</b>
+    /// image at all: the float32 0.36 occurs <b>zero</b>
     /// times in that 2,506,752-byte specimen.</para>
     ///
     /// <para>So retail's floor is not a threshold, it is a QUANTUM. The

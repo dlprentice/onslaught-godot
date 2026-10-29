@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render label GetTextExtent dest law — recovered
 /// from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
@@ -21,30 +21,30 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Measure.</b> Regular rows (ebx != -1) save the
 /// <c>[edx+0x30]</c> text pointer at <c>[esp+0x28]</c>.
-/// <c>0x00462F25</c> is <c>lea ecx,[esp+0x18]</c>, then
-/// <c>push ecx / push eax / push 1</c>,
-/// <c>mov ecx, 0x0088A0A8</c>, <c>call 0x00515A70</c> at
-/// <c>0x00462F36</c>, <c>call 0x00540680</c> at
-/// <c>0x00462F3D</c>. The body exits <c>RET 8</c>. SIZE
-/// layout is <c>mov [edi],edx</c> at <c>0x00540807</c>
-/// (cx at +0) then <c>mov [edi+4],eax</c> at
+/// <c>0x00462F25</c> is an address computation (esp+0x18) into ecx, then
+/// a push of ecx, then push of eax, then push of constant 1,
+/// a load of constant 0x0088A0A8 into ecx, a direct call to 0x00515A70 at
+/// <c>0x00462F36</c>, a direct call to 0x00540680 at
+/// <c>0x00462F3D</c>. The body exits (a return that pops 8 bytes of arguments). SIZE
+/// layout is a store of edx to value pointed to by edi at <c>0x00540807</c>
+/// (cx at +0) then a store of eax to field +4 of edi at
 /// <c>0x00540815</c> (cy at +4). Do not invent dest
 /// immediates from either store.</para>
 ///
 /// <para><b>Dest X.</b> After the colour unpack,
-/// <c>0x0046303B</c> is <c>fild [esp+0x18]</c>,
-/// <c>0x0046303F</c> is <c>fmul [0x005D85EC]</c> (0.5),
-/// <c>0x00463045</c> is <c>fsubr [0x005DB5E0]</c> (219.0),
-/// then <c>fstp [esp+0x30]</c> and
-/// <c>mov ebx,[esp+0x30]</c> at <c>0x00463077</c>. Dest X
+/// <c>0x0046303B</c> is an integer-to-float load of stack local +0x18,
+/// <c>0x0046303F</c> is a float multiply by the value at 0x005D85EC (0.5),
+/// <c>0x00463045</c> is a reversed float subtract of the value at 0x005DB5E0 (219.0),
+/// then a float store to stack local +0x30 and
+/// a load of stack local +0x30 into ebx at <c>0x00463077</c>. Dest X
 /// is therefore <c>219.0 − cx×0.5</c>, not a 219 push.</para>
 ///
 /// <para><b>Dest Y.</b> <c>0x0046308C</c> loads
 /// <c>[esp+0x1C]</c> (cy). Then <c>cdq</c> /
-/// <c>sub eax,edx</c> / <c>sar eax,1</c> at
+/// a subtraction of edx from eax, then arithmetic right shift of eax by 1 at
 /// <c>0x00463093</c>, <c>fild</c>,
-/// <c>fsubr [esp+0x10]</c> at <c>0x0046309D</c>,
-/// <c>fstp [esp+0x24]</c>. Dest Y is the row-Y slot minus
+/// a reversed float subtract of stack local +0x10 at <c>0x0046309D</c>,
+/// a float store to stack local +0x24. Dest Y is the row-Y slot minus
 /// integer-half cy, not float-half cy and not a 304
 /// immediate. The 2px MeasureText residual is width, not
 /// this dest. DrawMainMenu keeps LabelColor, MeasureText
@@ -53,11 +53,11 @@ namespace OnslaughtRebuild.GodotClient;
 /// cy immediate. Do not invent a 2px kerning hack.</para>
 ///
 /// <para><b>Not a fade.</b> Post-call
-/// <c>fld [esp+0x10] / fadd [0x005D857C]</c> is the 20.0
+/// (a float load of stack local +0x10, then float add of the value at 0x005D857C) is the 20.0
 /// row pitch already named by
 /// <see cref="RetailMainMenuLabelText"/>. Nearby
-/// <c>fadd [0x005DB5D8]</c> (36.0) is a different path
-/// skipped by the label <c>jmp 0x0046364D</c>. This type
+/// float add of the value at 0x005DB5D8 (36.0) is a different path
+/// skipped by the label (a jump to 0x0046364D). This type
 /// does not invent dest from that 36.0. It does not invent
 /// a sheen, dest immediates, a wrap width, or a 2px
 /// kerning hack. It does not change MeasureText.</para>
@@ -81,37 +81,37 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuLabelDest
 {
-    /// <summary><c>lea ecx,[esp+0x18]</c>. SIZE out-pointer.</summary>
+    /// <summary>An address computation (esp+0x18) into ecx. SIZE out-pointer.</summary>
     public const uint SizeLeaSite = 0x00462F25u;
 
-    /// <summary><c>mov [esp+0x28], eax</c> after <c>[edx+0x30]</c>.</summary>
+    /// <summary>A store of eax to stack local +0x28 after <c>[edx+0x30]</c>.</summary>
     public const uint TextSaveSite = 0x00462F29u;
 
-    /// <summary><c>push 1</c>. FONT_SMALL for <see cref="FontHelper"/>.</summary>
+    /// <summary>A push of constant 1. FONT_SMALL for <see cref="FontHelper"/>.</summary>
     public const uint FontSlotPushSite = 0x00462F2Fu;
 
     /// <summary>GPL <c>FONT_SMALL</c>. Same slot as the label draw.</summary>
     public const int FontSlot = 1;
 
-    /// <summary><c>mov ecx, 0x0088A0A8</c> at <c>0x00462F31</c>.</summary>
+    /// <summary>A load of constant 0x0088A0A8 into ecx at <c>0x00462F31</c>.</summary>
     public const uint FontThis = 0x0088A0A8u;
 
-    /// <summary><c>call 0x00515A70</c> at <c>0x00462F36</c>.</summary>
+    /// <summary>A direct call to 0x00515A70 at <c>0x00462F36</c>.</summary>
     public const uint FontCallSite = 0x00462F36u;
 
-    /// <summary><c>CPlatform__Font</c>. <c>RET 4</c>.</summary>
+    /// <summary><c>CPlatform__Font</c>. A return that pops 4 bytes of arguments.</summary>
     public const uint FontHelper = 0x00515A70u;
 
-    /// <summary><c>call 0x00540680</c> at <c>0x00462F3D</c>.</summary>
+    /// <summary>A direct call to 0x00540680 at <c>0x00462F3D</c>.</summary>
     public const uint GetTextExtentSite = 0x00462F3Du;
 
-    /// <summary><c>CDXFont__GetTextExtent</c>. <c>RET 8</c>.</summary>
+    /// <summary><c>CDXFont__GetTextExtent</c>. A return that pops 8 bytes of arguments.</summary>
     public const uint GetTextExtent = 0x00540680u;
 
-    /// <summary><c>mov [edi], edx</c>. SIZE.cx fistp.</summary>
+    /// <summary>A store of edx to value pointed to by edi. SIZE.cx fistp.</summary>
     public const uint SizeCxStoreSite = 0x00540807u;
 
-    /// <summary><c>mov [edi+4], eax</c>. SIZE.cy fistp.</summary>
+    /// <summary>A store of eax to field +4 of edi. SIZE.cy fistp.</summary>
     public const uint SizeCyStoreSite = 0x00540815u;
 
     /// <summary>First dword of the SIZE out-pointer.</summary>
@@ -120,13 +120,13 @@ public static class RetailMainMenuLabelDest
     /// <summary>Second dword of the SIZE out-pointer.</summary>
     public const int SizeCyOffset = 4;
 
-    /// <summary><c>RET 8</c> at <c>0x00540823</c>.</summary>
+    /// <summary>A return that pops 8 bytes of arguments at <c>0x00540823</c>.</summary>
     public const int BodyRetImmediate = 8;
 
-    /// <summary><c>fild [esp+0x18]</c>. SIZE.cx, not dest.</summary>
+    /// <summary>An integer-to-float load of stack local +0x18. SIZE.cx, not dest.</summary>
     public const uint DestXFildSite = 0x0046303Bu;
 
-    /// <summary><c>fmul [0x005D85EC]</c>.</summary>
+    /// <summary>A float multiply by the value at 0x005D85EC.</summary>
     public const uint DestXHalfMulSite = 0x0046303Fu;
 
     /// <summary>Half-extent global. Same 0.5 as click-to-start.</summary>
@@ -135,7 +135,7 @@ public static class RetailMainMenuLabelDest
     /// <summary>IEEE bits at <see cref="HalfGlobal"/>. 0.5.</summary>
     public const uint HalfBits = 0x3F000000u;
 
-    /// <summary><c>fsubr [0x005DB5E0]</c>.</summary>
+    /// <summary>A reversed float subtract of the value at 0x005DB5E0.</summary>
     public const uint DestXFsubrSite = 0x00463045u;
 
     /// <summary><c>fsubr</c> source. Dest X is not a push immediate.</summary>
@@ -144,22 +144,23 @@ public static class RetailMainMenuLabelDest
     /// <summary>IEEE bits at <see cref="DestXGlobal"/>. 219.0.</summary>
     public const uint DestXGlobalBits = 0x435B0000u;
 
-    /// <summary><c>fstp [esp+0x30]</c>.</summary>
+    /// <summary>A float store to stack local +0x30.</summary>
     public const uint DestXStoreSite = 0x0046304Bu;
 
-    /// <summary><c>mov ebx,[esp+0x30]</c>. Dest X into ebx.</summary>
+    /// <summary>A load of stack local +0x30 into ebx. Dest X into ebx.</summary>
     public const uint DestXLoadSite = 0x00463077u;
 
-    /// <summary><c>mov eax,[esp+0x1C]</c>. SIZE.cy, not dest.</summary>
+    /// <summary>A load of stack local +0x1C into eax. SIZE.cy, not dest.</summary>
     public const uint DestYCyLoadSite = 0x0046308Cu;
 
-    /// <summary><c>sar eax,1</c> after <c>cdq / sub eax,edx</c>.</summary>
+    /// <summary>An arithmetic right shift of eax by 1 after a sign extension
+    /// of eax into edx, then subtraction of edx from eax.</summary>
     public const uint DestYSarSite = 0x00463093u;
 
-    /// <summary><c>fsubr [esp+0x10]</c>. Row-Y slot, not a 304 immediate.</summary>
+    /// <summary>A reversed float subtract of stack local +0x10. Row-Y slot, not a 304 immediate.</summary>
     public const uint DestYFsubrSite = 0x0046309Du;
 
-    /// <summary><c>fstp [esp+0x24]</c>. Dest Y later loaded into ecx.</summary>
+    /// <summary>A float store to stack local +0x24. Dest Y later loaded into ecx.</summary>
     public const uint DestYStoreSite = 0x004630A1u;
 
     /// <summary>Dest is ebx/ecx. Do not invent a 219/304 push.</summary>
@@ -211,7 +212,8 @@ public static class RetailMainMenuLabelDest
     public static float DestXAnchor => BitConverter.UInt32BitsToSingle(DestXGlobalBits);
 
     /// <summary>
-    /// <c>cdq / sub eax,edx / sar eax,1</c>. Toward-zero half of
+    /// A sign extension of eax into edx, then subtraction of edx from
+    /// eax, then arithmetic right shift of eax by 1. Toward-zero half of
     /// SIZE.cy. Not float half.
     /// </summary>
     public static int IntegerHalf(int value) => value / 2;

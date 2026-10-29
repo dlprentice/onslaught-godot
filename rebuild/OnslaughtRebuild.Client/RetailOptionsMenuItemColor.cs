@@ -5,7 +5,7 @@ namespace OnslaughtRebuild.Client;
 /// <summary>
 /// <c>CMenuItem__Render</c> packed colour combine — recovered from the
 /// pristine specimen
-/// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this cycle
 /// (2,506,752 bytes).
@@ -13,11 +13,11 @@ namespace OnslaughtRebuild.Client;
 /// <para><b>Base.</b> <c>0x004A32CF</c> loads ESI from <c>[this+0x14]</c>.
 /// <c>CMenuItem__Init</c> <c>0x004A354B</c> writes
 /// <see cref="IdlePackedColor"/>. <c>0x004A335E</c> is
-/// <c>test [selected]; je; mov esi, 0xFFFFCC00</c>. <c>0x004A336B</c> is
-/// <c>test [this+0x10]; jne; mov esi, 0x50505050</c> and overrides
+/// a bit test of selected, branching when equal, then load of constant 0xFFFFCC00 into esi. <c>0x004A336B</c> is
+/// a bit test of field +0x10 of this, branching when not equal, then load of constant 0x50505050 into esi and overrides
 /// selected.</para>
 ///
-/// <para><b>Combine.</b> <c>0x004A33FC</c> is <c>and esi, ebp</c>. EBP is
+/// <para><b>Combine.</b> <c>0x004A33FC</c> is a mask of esi with ebp. EBP is
 /// the incoming ARGB. <c>CMenuItem__RenderCentered</c> <c>0x004A3275</c>
 /// pushes <c>-1</c>, so the AND is identity. Apply's pulse is the
 /// non-identity incoming. Dropdown has its own Render and does not use
@@ -29,26 +29,26 @@ public static class RetailOptionsMenuItemColor
     /// <summary><c>CMenuItem__Render</c> body at <c>0x004A32C0</c>.</summary>
     public const uint RenderSite = 0x004A32C0u;
 
-    /// <summary><c>and esi, ebp</c> at <c>0x004A33FC</c>.</summary>
+    /// <summary>A mask of esi with ebp at <c>0x004A33FC</c>.</summary>
     public const uint AndSite = 0x004A33FCu;
 
-    /// <summary><c>mov esi, [edi+0x14]</c> at <c>0x004A32CF</c>.</summary>
+    /// <summary>A load of field +0x14 of edi into esi at <c>0x004A32CF</c>.</summary>
     public const uint IdleColorOffset = 0x14u;
 
-    /// <summary><c>CMenuItem__Init</c> <c>mov [esi+0x14], 0xFFD6D6D6</c>.</summary>
+    /// <summary><c>CMenuItem__Init</c> a store of constant 0xFFD6D6D6 to field +0x14 of esi.</summary>
     public const uint IdlePackedColor = 0xFFD6D6D6u;
 
-    /// <summary><c>mov esi, 0xFFFFCC00</c> at <c>0x004A3366</c>.</summary>
+    /// <summary>A load of constant 0xFFFFCC00 into esi at <c>0x004A3366</c>.</summary>
     public const uint SelectedPackedColor = 0xFFFFCC00u;
 
-    /// <summary><c>test [edi+0x10]</c> at <c>0x004A336B</c>.</summary>
+    /// <summary>A bit test of field +0x10 of edi at <c>0x004A336B</c>.</summary>
     public const uint EnabledOffset = 0x10u;
 
-    /// <summary><c>mov esi, 0x50505050</c> at <c>0x004A3372</c>.</summary>
+    /// <summary>A load of constant 0x50505050 into esi at <c>0x004A3372</c>.</summary>
     public const uint DisabledPackedColor = 0x50505050u;
 
     /// <summary>
-    /// <c>CMenuItem__RenderCentered</c> <c>push -1</c> at <c>0x004A3275</c>.
+    /// <c>CMenuItem__RenderCentered</c> a push of constant -1 at <c>0x004A3275</c>.
     /// </summary>
     public const uint IncomingIdentity = 0xFFFFFFFFu;
 
@@ -67,7 +67,7 @@ public static class RetailOptionsMenuItemColor
     }
 
     /// <summary>
-    /// <c>and esi, ebp</c>. Incoming is the caller ARGB; Apply's pulse is
+    /// A mask of esi with ebp. Incoming is the caller ARGB; Apply's pulse is
     /// the non-identity case.
     /// </summary>
     public static uint PackedColor(bool selected, bool enabled, uint incoming) =>

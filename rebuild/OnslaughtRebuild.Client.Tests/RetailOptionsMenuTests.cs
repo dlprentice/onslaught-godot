@@ -247,8 +247,8 @@ public sealed class RetailOptionsMenuTests
 
     /// <summary>
     /// The bindings grid and the Joystick status rows are drawn but cannot be
-    /// selected: the grid's own vtable has <c>IsEnabled = xor eax,eax</c> and
-    /// <c>ButtonPressed = RET 0xC</c>, and the retail frame draws the Joystick
+    /// selected: the grid's own vtable has <c>IsEnabled</c> = a zeroing of eax and
+    /// <c>ButtonPressed</c> = a return that pops 12 bytes of arguments, and the retail frame draws the Joystick
     /// rows in the disabled colour. A selection walk that stopped on either would
     /// strand the player.
     /// </summary>
@@ -310,7 +310,7 @@ public sealed class RetailOptionsMenuTests
     /// <summary>
     /// The index -> label order of every fixed-state dropdown, recovered on
     /// 2026-07-27 from each row's <c>+0x44</c> label vfunc in the pristine specimen
-    /// <c>local-lab/safe-copy-bea-pristine/BEA.exe.original.backup</c> (sha256
+    /// a private pristine copy (sha256
     /// <c>74154bfa...</c>). Before that, these orders were INFERRED from Localization
     /// id adjacency, and two of them were wrong.
     ///
@@ -404,7 +404,7 @@ public sealed class RetailOptionsMenuTests
         Assert.Equal(0, settings.SoundMethod3D);
 
         // CVideoDetailLevel's GET 0x004CFFD0 falls through all three preset compares
-        // to `xor eax,eax; ret`. Every arm needs Shadow == Geometry, and the shipped
+        // to a zeroing of eax, then return. Every arm needs Shadow == Geometry, and the shipped
         // pair is 0 and 1, so no arm can match.
         Assert.Equal(0, settings.OverallDetail);
         Assert.NotEqual(settings.ShadowDetail, settings.GeometryDetail);
@@ -450,14 +450,14 @@ public sealed class RetailOptionsMenuTests
     /// The <c>Configuration:</c> row's index IS the preset scheme integer, with no
     /// remap in either direction - <c>CConfigName</c>'s SET (<c>0x004D01D0</c>)
     /// passes it straight to <c>Controls__ApplyPreset</c> (<c>0x00453780</c>), whose
-    /// first act is <c>mov [0x00677D70], ebp</c>, and its GET (<c>0x004D01E0</c>)
+    /// first act is a store of ebp to the value at 0x00677D70, and its GET (<c>0x004D01E0</c>)
     /// reads that same global back. That is what was missing when this mapping was
     /// a guess.
     ///
-    /// Scheme 0 is a pure marker: <c>test ebp,ebp; je</c> returns before touching a
+    /// Scheme 0 is a pure marker: a zero test of ebp, branching when equal returns before touching a
     /// single binding, which is what "Custom" means. Scheme 1 stamps the one preset
     /// block that exists in the shipped data. The row has two states because
-    /// <c>+0x40</c> is a literal <c>mov eax,2</c>, so the three further names in the
+    /// <c>+0x40</c> is a literal (a load of constant 2 into eax), so the three further names in the
     /// string table (<c>0xF1</c>, <c>0xF2</c>, <c>0xF4</c>) are unreachable.
     /// </summary>
     [Fact]

@@ -51,7 +51,7 @@ namespace OnslaughtRebuild.Client.Tests;
 /// frame.</para>
 ///
 /// <para><b>The retail envelope</b>, over
-/// <c>local-lab/retail-reference-pristine/level100-gameplay/opening-pan-run1</c>,
+/// a private retail reference capture,
 /// 73,200 px:</para>
 /// <code>
 ///   offset  rect                  n       median         p99            white  B&gt;G&gt;R
@@ -71,11 +71,11 @@ namespace OnslaughtRebuild.Client.Tests;
 /// which lives on an ignored path:</para>
 /// <code>
 ///   npm run ref:godot-capture -- --plan gameplay --purpose production \
-///       --retail-offset-manifest local-lab/retail-reference-pristine/level100-gameplay/manifest.json
+///       --retail-offset-manifest a private retail reference capture
 /// </code>
 /// <para>The launcher writes it under <c>local-data/first-flight/</c>; point
 /// <c>ONSLAUGHT_WATER_CAPTURE_DIR</c> at that directory, or keep it under
-/// <c>local-lab/godot-captures/</c>, where this gate looks by itself.</para>
+/// a private capture folder, where this gate looks by itself.</para>
 /// <para>If no capture is scored the pixel assertions cannot run, and
 /// <see cref="ShorelineCompositionKeepsTheOperandOrderTheEnvelopeDependsOn"/>
 /// is the always-on backstop for the specific regressions above.</para>
@@ -318,7 +318,7 @@ public sealed class Level100WaterEnvelopeTests
     /// this gate is validated against a known-bad capture.</para>
     ///
     /// <para>Otherwise the newest capture under
-    /// <c>local-lab/godot-captures/</c> is taken, subject to two filters. It
+    /// a private capture folder is taken, subject to two filters. It
     /// must be at least as new as <c>Level100WaterAsset.cs</c> - a capture that
     /// predates the current water source describes a build that no longer
     /// exists, so it is ignored rather than judged. And its manifest must

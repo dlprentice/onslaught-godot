@@ -5,18 +5,18 @@ namespace OnslaughtRebuild.GodotClient;
 /// <summary>
 /// CFEPMain::Render 0x0089D89C selector-bar texture, dest X and Z —
 /// recovered from official 74154bfa
-/// <c>local-lab/pristine-verification-2026-07-26/pristine-target/BEA.exe</c>,
+/// (a private pristine copy),
 /// SHA-256 <c>74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750</c>.
 /// File offset = VA − <c>0x400000</c>. Independently re-hashed this
 /// cycle (2,506,752 bytes). Official 74154bfa image base is
 /// <c>0x400000</c>.
 ///
 /// <para><b>Texture.</b> Load at <c>0x00462FED</c> is
-/// <c>mov eax, [0x0089D89C]</c> then <c>push eax</c>. That is the
+/// a load of the value at 0x0089D89C into eax then a push of eax. That is the
 /// selector-bar tile, not 0x0089D7F0 / D894 / D898 / D8A0 / D8A4.
 /// Init stores the previous load of
 /// <c>FrontEnd\v3\FE_BEA_title_text_box.tga</c> (<c>0x0062A300</c>)
-/// at <c>mov [ebp+0x13C], eax</c> (<c>0x00468EC3</c>). Do not redo
+/// at a store of eax to frame local +0x13C (<c>0x00468EC3</c>). Do not redo
 /// <see cref="RetailMainMenuSelectorBarColor"/>,
 /// <see cref="RetailMainMenuWritingZ"/>,
 /// <see cref="RetailMainMenuWritingColor"/>,
@@ -32,14 +32,14 @@ namespace OnslaughtRebuild.GodotClient;
 ///
 /// <para><b>Site.</b> Colour sibling <c>0x00462FB9</c> is already
 /// <see cref="RetailMainMenuSelectorBarColor"/>. Identity scale
-/// <c>push 0x3F800000</c> at <c>0x00462FC6</c> is 1.0, not 0.33.
-/// <c>0x00462FF3</c> is <c>push 0x3EA8F5C3</c>. <c>0x00462FF9</c>
-/// is <c>push 0x435B0000</c> (219.0). Dest Y is the selected-row
+/// (a push of constant 0x3F800000) at <c>0x00462FC6</c> is 1.0, not 0.33.
+/// <c>0x00462FF3</c> is a push of constant 0x3EA8F5C3. <c>0x00462FF9</c>
+/// is a push of constant 0x435B0000 (219.0). Dest Y is the selected-row
 /// register, not this leftover. Do not invent dest Y.</para>
 ///
 /// <para><b>Call.</b> Eleven cdecl dwords into
 /// <c>CDXSurf__RenderSurface</c> at <c>0x005563D0</c> (call at
-/// <c>0x00462FFE</c>, <c>add esp, 0x2C</c> at <c>0x00463003</c>).
+/// <c>0x00462FFE</c>, a stack cleanup of 0x2C bytes at <c>0x00463003</c>).
 /// The leftover 0.33 push is Z, not scale. Dest X is 219. Mode 4
 /// is the centre-anchor. The 2-D consumer ignores z. Not a 29%
 /// title-logo scale. Not a sheen.</para>
@@ -64,7 +64,7 @@ namespace OnslaughtRebuild.GodotClient;
 /// </summary>
 public static class RetailMainMenuSelectorBarZ
 {
-    /// <summary><c>mov eax, [0x0089D89C]</c> at <c>0x00462FED</c>.</summary>
+    /// <summary>A load of the value at 0x0089D89C into eax at <c>0x00462FED</c>.</summary>
     public const uint TextureLoadSite = 0x00462FEDu;
 
     /// <summary>Selector-bar texture global.</summary>
@@ -76,22 +76,22 @@ public static class RetailMainMenuSelectorBarZ
     /// <summary>Load identity string. Not writing-chrome, not a bracket.</summary>
     public const string TexturePath = @"FrontEnd\v3\FE_BEA_title_text_box.tga";
 
-    /// <summary><c>mov [ebp+0x13C], eax</c> at <c>0x00468EC3</c>.</summary>
+    /// <summary>A store of eax to frame local +0x13C at <c>0x00468EC3</c>.</summary>
     public const uint TextureStoreSite = 0x00468EC3u;
 
     /// <summary>Store displacement. Previous load of <see cref="TexturePath"/>.</summary>
     public const int TextureStoreOffset = 0x13C;
 
-    /// <summary><c>push 0x3EA8F5C3</c> at <c>0x00462FF3</c>.</summary>
+    /// <summary>A push of constant 0x3EA8F5C3 at <c>0x00462FF3</c>.</summary>
     public const uint ZPushSite = 0x00462FF3u;
 
-    /// <summary><c>push 0x435B0000</c> at <c>0x00462FF9</c>.</summary>
+    /// <summary>A push of constant 0x435B0000 at <c>0x00462FF9</c>.</summary>
     public const uint XPushSite = 0x00462FF9u;
 
-    /// <summary><c>call 0x005563D0</c> at <c>0x00462FFE</c>.</summary>
+    /// <summary>A direct call to 0x005563D0 at <c>0x00462FFE</c>.</summary>
     public const uint CallSite = 0x00462FFEu;
 
-    /// <summary><c>push 0x3F800000</c> at <c>0x00462FC6</c>. Identity 1.0, not 0.33.</summary>
+    /// <summary>A push of constant 0x3F800000 at <c>0x00462FC6</c>. Identity 1.0, not 0.33.</summary>
     public const uint ScalePushSite = 0x00462FC6u;
 
     /// <summary>Identity scale immediate. Not a title-logo 29%.</summary>
