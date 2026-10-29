@@ -1353,7 +1353,8 @@ public sealed partial class BattleEngine
             return;
         }
 
-        FMatrix autoAim = FMatrix.FromYawPitchRoll(AutoAimYawOffset, AutoAimPitchOffset, 0.0f);
+        // GetLaunchPosition calls the out-of-line rotation constructor and matrix product in the original.
+        FMatrix autoAim = FMatrix.MakeRotationOutOfLine(AutoAimYawOffset, AutoAimPitchOffset, 0.0f);
         Game.Camera? camera = (Player as Game.Player) is { } player ? Context.Game?.GetCurrentCamera(player.Number - 1) : null;
         FVector camPos = camera?.GetPos() ?? new FVector(0, 0, 0);
         FMatrix camOri = camera?.GetOrientation() ?? FMatrix.Identity;
@@ -1367,7 +1368,7 @@ public sealed partial class BattleEngine
         float angle = (vectorA.X * vectorB.X) + (vectorA.Y * vectorB.Y) + (vectorA.Z * vectorB.Z);
         if (angle > 0.9f && weapon.Data.AdjustAim != 0)
         {
-            FVector endPoint = camPos + camOri.Multiply(autoAim).Transform(new FVector(0.0f, 200.0f, 0.0f));
+            FVector endPoint = camPos + camOri.MultiplyOutOfLine(autoAim).Transform(new FVector(0.0f, 200.0f, 0.0f));
             if (Wlcr.HitType != World.LineHitType.Nothing)
             {
                 FVector targetVector = endPoint - camPos;

@@ -217,7 +217,8 @@ public partial class Round : Actor
             FVector start = Pos;
             float speed = GetVelocity().Magnitude() * GameFr;
             FVector dir = GetVelocity();
-            dir.Normalise();
+            // CRound::Init 004d8848 groups Y² and Z² before X² here (port patch 0055).
+            dir.NormaliseYZX();
             if (Context.Map.LineHits(start, start + (dir * (speed * init.LifeSpan)), out FVector hit, true))
             {
                 float t = (start - hit).Magnitude() / speed;

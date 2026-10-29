@@ -62,6 +62,19 @@ public struct FVector : IEquatable<FVector>
         }
     }
 
+    /// <summary>Normalise at a verified inline site which adds the Y and Z squares before X.</summary>
+    public void NormaliseYZX()
+    {
+        float m = MagnitudeYZX();
+        if (m != 0)
+        {
+            m = 1.0f / m;
+            X *= m;
+            Y *= m;
+            Z *= m;
+        }
+    }
+
     public readonly bool Equals(FVector other) =>
         BitConverter.SingleToInt32Bits(X) == BitConverter.SingleToInt32Bits(other.X)
         && BitConverter.SingleToInt32Bits(Y) == BitConverter.SingleToInt32Bits(other.Y)

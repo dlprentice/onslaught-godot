@@ -145,7 +145,7 @@ public sealed class GoldOwnRouteTests(ITestOutputHelper output)
     /// while CFrontEnd::Run runs; GAME's fields from the level that ran last; a missing random stream or player reads as
     /// zeros.
     /// </summary>
-    private static Dictionary<string, string> Probe(GameRun run)
+    internal static Dictionary<string, string> Probe(GameRun run)
     {
         static string Hex(ReadOnlySpan<byte> b) => Convert.ToHexString(b).ToLowerInvariant();
         static string U32(uint v) { Span<byte> b = stackalloc byte[4]; BinaryPrimitives.WriteUInt32LittleEndian(b, v); return Hex(b); }

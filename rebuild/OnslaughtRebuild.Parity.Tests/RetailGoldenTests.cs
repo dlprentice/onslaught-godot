@@ -23,7 +23,7 @@ public sealed class RetailGoldenFactAttribute : FactAttribute
     {
         if (files.FirstOrDefault(file => RetailGolden.File(file) is null) is { } missing)
         {
-            Skip = $"retail golden '{missing}' not found (set ONSLAUGHT_RETAIL_GOLDEN, ONSLAUGHT_GOLDEN_VDS for vds/ or ONSLAUGHT_BEOBJ_VDS for beobjvds/)";
+            Skip = $"retail golden '{missing}' not found (set ONSLAUGHT_RETAIL_GOLDEN, ONSLAUGHT_GOLDEN_VDS for vds/, ONSLAUGHT_BEOBJ_VDS for beobjvds/, ONSLAUGHT_PORT_REFS for portrefs/ or ONSLAUGHT_RETAIL_MCLK2 for mclk2/)";
         }
         else if (GameData.Root is null)
         {
@@ -35,7 +35,8 @@ public sealed class RetailGoldenFactAttribute : FactAttribute
 internal static class RetailGolden
 {
     /// <summary>
-    /// A golden by name under ONSLAUGHT_RETAIL_GOLDEN (C's golden-640), or, for names starting "vds/", under
+    /// A golden by name under ONSLAUGHT_RETAIL_GOLDEN (C's golden-640), or, for names starting "mclk2/", under
+    /// ONSLAUGHT_RETAIL_MCLK2 (the original game recorded with its music on the virtual clock), or, for names starting "vds/", under
     /// ONSLAUGHT_GOLDEN_VDS (B's golden-vds: retail with virtual DirectSound status, the audio model the port and the
     /// parity core run), or for "beobjvds/" under ONSLAUGHT_BEOBJ_VDS (B's per-Present virtual-DS run of level 100 with
     /// the battle engine's object).
@@ -46,6 +47,7 @@ internal static class RetailGolden
             : name.StartsWith("beobjvds/", StringComparison.Ordinal) ? ("beobjvds/", "ONSLAUGHT_BEOBJ_VDS")
             : name.StartsWith("portcrt/", StringComparison.Ordinal) ? ("portcrt/", "ONSLAUGHT_PORT_CRT")
             : name.StartsWith("portrefs/", StringComparison.Ordinal) ? ("portrefs/", "ONSLAUGHT_PORT_REFS")
+            : name.StartsWith("mclk2/", StringComparison.Ordinal) ? ("mclk2/", "ONSLAUGHT_RETAIL_MCLK2")
             : ("", "ONSLAUGHT_RETAIL_GOLDEN");
         string? root = Environment.GetEnvironmentVariable(variable);
         name = name[prefix.Length..];
@@ -682,6 +684,10 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
         ("mVibration..WeaponOverheatedTime", 1540, b => Words(b.Vibration, b.AmmoDepletedTime, b.WeaponOverheatedTime)),
         ("mEngineState/Old/ThrustersOn", 1584, b => [(uint)b.EngineState, (uint)b.OldEngineState, b.ThrustersOn ? 1u : 0u]),
     ];
+
+    /// <summary>The modelled battle-engine (BEO) and walker (BEW) fields with their offsets, for comparisons with the original.</summary>
+    internal static IEnumerable<(string Probe, string Name, int Offset, Func<BattleEngine, uint[]> Ours)> ObjectFields() =>
+        BattleEngineFields.Select(f => ("BEO", f.Name, f.Offset, f.Ours)).Concat(WalkerFields.Select(f => ("BEW", f.Name, f.Offset, f.Ours)));
 
     /// <summary>EBattleEngineState's values: the C# enum keeps retail's order.</summary>
     private static int StateNumber(BattleEngineState state) => (int)state;

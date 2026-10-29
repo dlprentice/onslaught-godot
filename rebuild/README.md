@@ -27,6 +27,7 @@ thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
 | `ONSLAUGHT_PORT_LOGS` | the native port's draw logs of the level-100 load | tests marked `[PortLogFact]` |
 | `ONSLAUGHT_RETAIL_ORACLE` | the retail oracle's view folder (results of retail's own code run on captured inputs) | `RetailOracleTests` |
 | `ONSLAUGHT_RETAIL_GOLDEN` | the retail replay harness's golden recordings (tapes and probe traces at 640 x 480) | `RetailGoldenTests` |
+| `ONSLAUGHT_RETAIL_MCLK2` | the original-game music-clock loss-route recordings, their starting options and captured saves | `OriginalLossRouteTests` |
 | `ONSLAUGHT_GOLDEN_VDS` | the golden recordings' value dumps | `RetailGoldenTests` |
 | `ONSLAUGHT_BEOBJ_VDS` | the battle engine's object dumps to Present 6000 | `RetailGoldenTests` |
 | `ONSLAUGHT_PORT_OCCUPANCY` | the native port's level-100 occupancy data (`paths.txt`) | `OccupancyTests` |
