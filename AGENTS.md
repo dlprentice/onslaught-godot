@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-10-29 (windowed-run wording made generic; machine-specific folders and tool names removed)
+Last updated: 2026-10-29 (sandboxed builds need a writable /tmp; windowed-run wording made generic; machine-specific folders and tool names removed)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -33,5 +33,8 @@ Summary: the rules for working in this repository, for people and automated agen
   --qa local-data/qa/run --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 -- --audio-driver Dummy`.
   The earlier launcher's retail inputs come from an ignored lab folder named by `BEA_LOCAL_LAB`; worktrees reuse it,
   never a copy.
+- **Sandboxed builds:** MSBuild's worker nodes open named pipes in the temporary folder. In a sandbox whose `/tmp` is
+  read-only every worker aborts (SIGABRT, one core dump each). Give a sandboxed build a writable private `/tmp` (or
+  `TMPDIR`), or build with `-m:1 -nodeReuse:false -p:UseSharedCompilation=false`.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).
