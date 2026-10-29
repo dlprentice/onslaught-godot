@@ -8,19 +8,20 @@ original processes that reach the debriefing take that path) on every probe at a
 frames with no player, the original's probes record POS and LIFE as null, which the comparison counts as all-zero), with
 the saved careers and the options file byte for byte. That is a private harness run with the pristine game under the replay shim in Wine, not
 a suite test; it admits a sound-pool seed and a goodie-load completion observed in port processes. The suite's own retail
-references end at Present 10000, and the loss route, audio and pictures are not compared with the original.
-Last updated: 2026-10-29 (the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; earlier: what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
+match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
+Present bounds. These comparisons do not establish audio, picture or whole-campaign parity.
+Last updated: 2026-10-29 (the two bounded loss-route comparisons with original processes stated; earlier: the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; earlier: what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
-Present by Present with recorded runs of the native port, each route to the floor its test states, with recorded runs of
-the original game through Present 10000, where its suite references end, and on one recorded win with the original's
-own process to the end (PARITY M5).
+Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
+bounds, and on one recorded win with the original's own process to the end (PARITY M5).
 
 onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. It has two parts:
 
 - **The parity core** (`rebuild/OnslaughtRebuild.Parity`): the game's simulation, deterministic given its inputs (a
   replay tape, the retail data files and a virtual clock), compared at every Present with recorded runs of
-  [Onslaught CE](https://github.com/dlprentice/onslaught-ce) (the native port), each route to the floor its test states,
-  and with recorded runs of the original game, whose references end at Present 10000.
+  [Onslaught CE](https://github.com/dlprentice/onslaught-ce) (the native port) and selected recorded runs of the original
+  game; [PARITY.md](rebuild/PARITY.md) states each comparison's fields and Present bounds.
 - **The host** (`rebuild/OnslaughtRebuild.Host`): a Godot project, built in code, that runs the parity core and draws
   the game; its drawing is being compared with the native port's frames part by part (milestone M7, in progress).
 
