@@ -898,8 +898,9 @@ public sealed partial class Weapon(ThingContext context, WeaponData data, int ty
 
             FVector vel = GetPrimaryOrientation().Transform(new FVector(0, speed, 0));
             FVector tvel = target.Velocity;
-            // (Y*Y + Z*Z) + X*X for the distance (retail's inlined Magnitude here; port patch 0098), the plain order for the speed.
-            float t = (pos - tpos).MagnitudeYZX() / vel.Magnitude();
+            // (Z*Z + Y*Y) + X*X for the distance (0050a1ac..0050a1ca; port patch 0098) and (Y*Y + Z*Z) + X*X for the speed
+            // (0050a1d4..0050a1f0; port patch 0112): retail's inlined Magnitude at both sites, not maths.h's X, Y, Z order.
+            float t = (pos - tpos).MagnitudeYZX() / vel.MagnitudeYZX();
             t *= 20.0f;
             return (tvel * t) + tpos;
         }

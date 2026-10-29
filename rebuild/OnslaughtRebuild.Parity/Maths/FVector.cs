@@ -41,7 +41,8 @@ public struct FVector : IEquatable<FVector>
 
     /// <summary>
     /// MagnitudeYZX: sqrtf(((Y*Y) + (Z*Z)) + (X*X)), the grouping retail's inlined Magnitude takes at the sites the native
-    /// port's patches 0055 and 0093-0098 name (each read from pristine 74154bfa at its address).
+    /// port's patches 0055, 0093-0098, 0111 and 0112 name (each read from pristine 74154bfa at its address). Retail adds Z*Z
+    /// before Y*Y at some of them; a sum commutes, so that is the same value.
     /// </summary>
     public readonly float MagnitudeYZX() => MathF.Sqrt(((Y * Y) + (Z * Z)) + (X * X));
 

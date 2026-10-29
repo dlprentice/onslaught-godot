@@ -1184,7 +1184,7 @@ public sealed partial class BattleEngine
     /// round's flight time for a predicting weapon (a lead over 0.2 rad becomes the tracking offsets instead); the aim
     /// offsets then ease half way to the desired ones.
     /// </summary>
-    private void UpdateAutoAim()
+    internal void UpdateAutoAim()
     {
         Weapon? weapon = GetCurrentWeapon();
         float currentYaw = CurrentOrientation.Yaw;
@@ -1200,7 +1200,9 @@ public sealed partial class BattleEngine
                 var launchVector = new FVector(0, weapon.GetLaunchVelocity(), 0);
                 FVector bv = Orientation.Transform(launchVector);
                 FVector ov = target.GetVelocity();
-                float t = (bp - op).Magnitude() / bv.Magnitude() * 20.0f;
+                // Retail adds the squares of both vectors as (Z*Z + Y*Y) + X*X (0040b258..0040b293), not maths.h's X, Y, Z order
+                // (native port patch 0111); the two groupings give different float32 lead times for some vectors.
+                float t = (bp - op).MagnitudeYZX() / bv.MagnitudeYZX() * 20.0f;
                 FVector predictedPos = op + (ov * t);
                 FVector diff = predictedPos - (Pos + GetVelocity());
                 DesiredAutoAimYawOffset = -WeaponMaths.AngleDifference(currentYaw, WeaponMaths.AzimuthUnrounded(diff));

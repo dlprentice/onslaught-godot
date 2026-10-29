@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-29 (the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-29 (the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -15,7 +15,7 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
-## Where it stands (2026-10-28)
+## Where it stands (2026-10-29)
 
 The milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones-2026-10-15);
 the dated entries below record each measurement.
@@ -25,7 +25,7 @@ the dated entries below record each measurement.
 | M0 | Met (2026-10-15): the harness parses retail's level-100 tape and golden trace and reproduces its change counts. |
 | M1 | Met for every operation measured, with one measured ceiling: `fsin`, `fcos` and `fpatan` stored to a double differ in the last bits for some arguments (M1 entry below). |
 | M2-M4 | Met on the keyboard-and-mouse tape: the sampled probes (EVT, FT, RNG, SC, LVL, POS, LIFE) equal retail's virtual-DirectSound golden through Present 10000 (`RetailGoldenTests.Level100RunMatchesTheVirtualDsGolden`). |
-| M5 | Open against retail; met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win, and retail is not yet a reference for a win: its paired runs of the same tape differ from each other. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). A separately recorded level-100 win (2026-10-28) matches the port through its last input only in a diagnostic run: it uses that replay's separately observed sound-pool seed and one instrumented process's goodie-load completion, and it is a port comparison, not retail (the 2026-10-28 recorded-win entry below). |
+| M5 | Met against the original game's fl2a process (one of the two debriefing paths the original takes; 2 of 8 processes) on one separately recorded level-100 win (2026-10-29); otherwise met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win. On the recorded win (a player's own game from boot, recorded 2026-10-28) the rebuild equals that original process on EVT, EVN, FT, SC, LVL, RNG, POS and LIFE at all 12,312 of its Presents, on the front end's line, on both END_LEVEL_DATA records, and on the saved careers and the options file byte for byte; it also equals the native port with its patch 0111 on every field the port records (the 2026-10-29 entry below). The original is not repeatable on this tape: its debriefing reads an uninitialised slot, so the first Enter is accepted in 6 of 8 original processes and ignored in the other 2, and the rebuild equals the ignored path only. The diagnostic run uses that replay's separately observed sound-pool seed and one instrumented process's goodie-load completion, both observed in port processes, not in the original. Not compared with the original game: the loss route, the object words, audio, pictures. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). |
 | M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
 | M7 | In progress: the Host runs the whole game from boot to quit (`HOST_LIVE=flow`), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
 
@@ -60,7 +60,46 @@ ancillary files are authenticated but not modeled. With this process-specific so
 fields match through Present 11670; the goodie-8 viewer is not implemented, so without a supplied load completion the
 rebuild refuses there. With one observed, caller-supplied goodie-load completion the diagnostic run matches through the last
 input at P12312 (the 2026-10-28 recorded-win entry below, with its caveats). This does not establish the recording's original
-allocator contents, arbitrary process behavior, retail parity or a full rebuild win.
+allocator contents, arbitrary process behavior, retail parity or a full rebuild win. The 2026-10-29 entry below compares the
+same replay with the original game.
+
+Lead-time sum orders and the recorded win against the original game (2026-10-29): `CBattleEngine::UpdateAutoAim` leads its
+target by t = |bp - op| / |bv| * 20, and the pristine specimen adds the squares of both vectors as (Z² + Y²) + X²
+(`0040b258..0040b293`). `CWeapon::GetPredictedTargetPos` adds |pos - tpos| the same way (`0050a1ac..0050a1ca`) and |vel| as
+(Y² + Z²) + X² (`0050a1d4..0050a1f0`); a sum commutes, so these are one grouping, X last, not maths.h's X, Y, Z. The rebuild had
+maths.h's order for both of UpdateAutoAim's magnitudes and for |vel| (the predicted aim's distance already had retail's); all
+three now use `FVector.MagnitudeYZX`, as the native port does with its patches 0111 and 0112. `LeadTimeSumOrderTests` holds two
+authored encounters (nothing is copied from a recording), each a case where the two groupings give different float32 lead times:
+one only through the distance's grouping and one only through the speed's. With the former order three of its four checks fail
+(the engine's tracking offsets differ by 1 to 173 ULPs, the predicted position by 1 to 2); the fourth guards the distance grouping
+the rebuild already had. Reverting each of the four magnitudes alone, in a scratch copy, fails exactly the check written for it.
+
+The recorded win of 2026-10-28 (the diagnostic admission above) differed from the native port with patch 0111 before the correction
+in EVN alone: from Present 9493, at 1,932 Presents, the port one higher. After it the rebuild equals that port run on all 112,053
+sampled fields at all 12,312 Presents (EVT, EVN, FT, SC, LVL, RNG, POS, LIFE and CRT, and the front end's line at 1,245), on both
+END_LEVEL_DATA records, on the 663 goodie viewer states (against the viewer trace of the build without patch 0111; none was taken
+on the patched build) and on the five careers and the options file byte for byte.
+
+Against the original game (the pristine executable under the retail replay harness's shim in Wine, every Present sampled) the same
+replay equals the recording's process fl2a, one of the two debriefing outcomes the original takes (2 of its 8 processes): EVT, EVN,
+FT, SC, LVL, RNG, POS and LIFE at all 12,312 Presents with none missing and none different, the front end's line (the original's
+three front-end lines joined) at 1,245 Presents, END_LEVEL_DATA at its two changes (P1 and P11404), and `BEA 1` to `BEA 4`,
+`Linux Test 1` and `defaultoptions.bea` byte for byte; `BEA 4`, the career saved after the win, equals the original's. Before the
+correction the same comparison differed in EVN alone, from P9493, the original one higher. The original is not repeatable on this
+tape: `CFEPDebriefing::Process` tests a slot of an uninitialised `new FVector[100]`, so the first Enter at the debriefing
+(Present 11468) was accepted in 6 of the 8 original processes, which leave the page at Present 11469, and ignored in 2 (fl2a is
+one of these); the rebuild's slot is zero (`DebriefingPage.UnshownPositionX`), the ignored path, so it can equal that outcome
+only. The original processes also differ from each other in pointer-valued object words.
+
+Not established: the original's object words (the battle engine's, weapons' and jets'), whose auto-aim words differ in the native
+port with the old order (that port measurement is not repeated on the rebuild); the game's C runtime random state (the original has
+no probe for it); the goodie viewer against the original (it has no trace; the viewer states above are the port's); audio and
+pictures; the loss route; any other tape. The sound-pool seed and the goodie-load completion are admitted from port processes, not
+observed in the original. An instrumented replay of the same tape (a scratch build, not committed) evaluated UpdateAutoAim's lead
+time 769 times, so that correction is exercised, but called `GetPredictedTargetPos` 173 times without once taking its predictive
+branch (a weapon mode with `Predictive` set), and the native port's own observer found no sampled run of the port that reaches it;
+so |vel|'s grouping rests on the pristine instructions and the authored case, not on a recorded value. Receipts are in the
+maintainers' private evidence store.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in
