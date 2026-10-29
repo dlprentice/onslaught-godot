@@ -138,7 +138,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             {
                 ReferenceCoverage.RequireValue("CRT", f[3], long.Parse(f[1], CultureInfo.InvariantCulture));
                 byte[] b = Convert.FromHexString(f[3]);
-                port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
+                long present = long.Parse(f[1], CultureInfo.InvariantCulture);
+                ReferenceCoverage.AddChecked(port, present, (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4)), $"P{present} CRT");
             }
         }
 
@@ -365,7 +366,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             {
                 ReferenceCoverage.RequireValue("CRT", f[3], long.Parse(f[1], CultureInfo.InvariantCulture));
                 byte[] b = Convert.FromHexString(f[3]);
-                port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
+                long present = long.Parse(f[1], CultureInfo.InvariantCulture);
+                ReferenceCoverage.AddChecked(port, present, (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4)), $"P{present} CRT");
             }
         }
 
@@ -375,7 +377,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             string[] f = line.Split(' ');
             if (f.Length == 4 && f[0] == "P" && f[2] is "EVT" or "FT" or "RNG" or "POS" or "LIFE")
             {
-                probes[(long.Parse(f[1], CultureInfo.InvariantCulture), f[2])] = f[3];
+                long present = long.Parse(f[1], CultureInfo.InvariantCulture);
+                ReferenceCoverage.AddChecked(probes, (present, f[2]), f[3], $"P{present} {f[2]}");
             }
         }
 
@@ -488,7 +491,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             string[] f = line.Split(' ');
             if (f.Length == 4 && f[0] == "P")
             {
-                golden[(long.Parse(f[1]), f[2])] = f[3];
+                long present = long.Parse(f[1]);
+                ReferenceCoverage.AddChecked(golden, (present, f[2]), f[3], $"P{present} {f[2]}");
             }
         }
 
@@ -749,7 +753,8 @@ public sealed class RetailGoldenTests(ITestOutputHelper output)
             string[] f = line.Split(' ');
             if (f.Length == 4 && f[0] == "P" && f[2] == "EVT" && f[3] != "null")
             {
-                times[int.Parse(f[1])] = BitConverter.ToUInt32(Convert.FromHexString(f[3]));
+                int present = int.Parse(f[1]);
+                ReferenceCoverage.AddChecked(times, present, BitConverter.ToUInt32(Convert.FromHexString(f[3])), $"P{present} EVT");
             }
         }
 

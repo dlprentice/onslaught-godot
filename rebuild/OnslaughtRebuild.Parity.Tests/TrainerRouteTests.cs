@@ -86,15 +86,19 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
     }
 
     /// <summary>The port's every-Present probe fields by Present and name (without its ELD, ELDEXIT and FE records).</summary>
-    internal static Dictionary<(long Present, string Name), string> ReadPortProbes(string probesFile)
+    internal static Dictionary<(long Present, string Name), string> ReadPortProbes(string probesFile) =>
+        ReadPortProbeRows(File.ReadLines(RetailGolden.File(probesFile)!));
+
+    internal static Dictionary<(long Present, string Name), string> ReadPortProbeRows(IEnumerable<string> lines)
     {
         var port = new Dictionary<(long Present, string Name), string>();
-        foreach (string line in File.ReadLines(RetailGolden.File(probesFile)!))
+        foreach (string line in lines)
         {
             string[] f = line.Split(' ');
             if (f.Length == 4 && f[0] == "P" && f[2] is not ("ELD" or "ELDEXIT" or "FE"))
             {
-                port[(long.Parse(f[1]), f[2])] = f[3];
+                var key = (long.Parse(f[1]), f[2]);
+                ReferenceCoverage.AddChecked(port, key, f[3], $"P{key.Item1} {key.Item2}");
             }
         }
 

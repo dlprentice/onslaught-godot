@@ -5,6 +5,15 @@ namespace OnslaughtRebuild.Parity.Tests;
 /// <summary>The required reference schedule, independent of which rows happen to survive in a trace file.</summary>
 internal static class ReferenceCoverage
 {
+    /// <summary>Preserve repeated identical observations, but reject ambiguous values for the same reference key.</summary>
+    public static void AddChecked<TKey, TValue>(Dictionary<TKey, TValue> rows, TKey key, TValue value, string label)
+        where TKey : notnull
+    {
+        if (rows.TryGetValue(key, out TValue? previous) && !EqualityComparer<TValue>.Default.Equals(previous, value))
+            throw new InvalidDataException($"Conflicting reference rows for {label}");
+        rows[key] = value;
+    }
+
     public static void RequireFrames(IEnumerable<long> frames, long first, long last, int step = 1)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(first, 1);

@@ -37,7 +37,7 @@ public sealed class GoldOwnRouteTests(ITestOutputHelper output)
             if (f.Length == 4 && f[0] == "P" && f[2] is not ("ELD" or "ELDEXIT"))
             {
                 long p = long.Parse(f[1]);
-                port[(p, f[2])] = f[3];
+                ReferenceCoverage.AddChecked(port, (p, f[2]), f[3], $"P{p} {f[2]}");
                 last = Math.Max(last, p);
             }
         }

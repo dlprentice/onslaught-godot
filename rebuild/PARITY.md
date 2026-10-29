@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-29 (loss-reference duplicate admission; recorded loss routes against both original processes, launch-product and round-direction rounding; subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-29 (duplicate admission in the loss and selected port-reference readers; recorded loss routes against both original processes, launch-product and round-direction rounding; subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -146,6 +146,9 @@ battle-engine fields. These are two controlled recordings, not evidence for ever
 the tests do not establish audible or visual parity. References are private and a missing reference is a skip, not a pass.
 The loader accepts identical repeated rows but rejects conflicting values for the same Present and field; the original
 recordings repeat their last rows identically (`OriginalLossReferenceTests`).
+The trainer, full-boot, front-end CRT and standard golden readers also reject conflicting duplicates rather than
+silently choosing the last row (`ReferenceCoverageTests`); identical observations remain valid. These checks admit
+the reference data; they do not prove the simulation itself matches it.
 
 The Parity suite gates each route at its stated floor against references kept outside the repository
 ([README](README.md#working-lane)); a missing reference is reported as a skip, which is not a pass. Suite counts in

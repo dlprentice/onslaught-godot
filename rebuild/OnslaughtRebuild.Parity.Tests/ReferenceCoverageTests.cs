@@ -43,6 +43,35 @@ public sealed class ReferenceCoverageTests
     public void CompleteReferencesAndExplicitMissingPlayersAreAdmitted() =>
         ReferenceCoverage.Require(Complete(), 3, 5, 1, "EVT", "POS");
 
+    [Fact]
+    public void IdenticalRepeatedPortProbeRowsAreAdmitted()
+    {
+        var probes = TrainerRouteTests.ReadPortProbeRows(["P 3 EVT 00000000", "P 3 EVT 00000000"]);
+        Assert.Single(probes);
+        Assert.Equal("00000000", probes[(3, "EVT")]);
+    }
+
+    [Theory]
+    [InlineData("00000000", "00000001")]
+    [InlineData("00000001", "00000000")]
+    public void ConflictingRepeatedPortProbeRowsAreRejected(string first, string second)
+    {
+        string[] lines = [$"P 3 EVT {first}", $"P 3 EVT {second}"];
+        InvalidDataException error = Assert.Throws<InvalidDataException>(() => TrainerRouteTests.ReadPortProbeRows(lines));
+        Assert.Contains("P3 EVT", error.Message);
+    }
+
+    [Fact]
+    public void RepeatedCrtRowsWithDifferentStateAreRejected()
+    {
+        var rows = new Dictionary<long, (uint Count, uint Hold)>();
+        ReferenceCoverage.AddChecked(rows, 3L, (1u, 2u), "P3 CRT");
+        ReferenceCoverage.AddChecked(rows, 3L, (1u, 2u), "P3 CRT");
+        Assert.Single(rows);
+        Assert.Contains("P3 CRT", Assert.Throws<InvalidDataException>(() =>
+            ReferenceCoverage.AddChecked(rows, 3L, (1u, 3u), "P3 CRT")).Message);
+    }
+
     [RetailGoldenFact("vds/level100.vds-a.probes")]
     public void RemovingAnInteriorProbeFromTheRetainedReferenceFailsAdmission()
     {

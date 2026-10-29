@@ -48,7 +48,8 @@ public sealed class FrontEndRouteTests(ITestOutputHelper output)
             if (f.Length >= 4 && f[0] == "P" && f[2] == "CRT")
             {
                 byte[] b = Convert.FromHexString(f[3]);
-                port[long.Parse(f[1], CultureInfo.InvariantCulture)] = (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4));
+                long present = long.Parse(f[1], CultureInfo.InvariantCulture);
+                ReferenceCoverage.AddChecked(port, present, (BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4)), $"P{present} CRT");
             }
         }
 
