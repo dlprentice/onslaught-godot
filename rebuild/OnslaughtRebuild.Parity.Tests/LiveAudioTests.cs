@@ -272,7 +272,7 @@ public sealed class LiveAudioTests
         data.Manifest["contract"] = VoicePcmLibrary.Contract; entries.Clear(); Assert.Throws<InvalidDataException>(() => data.Load());
     }
 
-    [Fact]
+    [GameDataFact]
     public void ExternalOptionsReceiveTheActualSingleBootLoadWithoutChangingPresentClockOrCRT()
     {
         int reads = 0, factories = 0;
