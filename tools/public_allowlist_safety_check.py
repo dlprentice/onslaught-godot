@@ -8,6 +8,12 @@ outputs, and obvious secret files. File extensions alone do not establish
 provenance, so ordinary project-authored or separately provided asset formats
 remain reviewable. This is intentionally not a portable-app ZIP manifest; the
 WinUI package has its own stricter payload boundary.
+
+It also guards the one thing file types cannot show: original-game bytes and private machine paths quoted in
+tracked text. Three rules fail any text file (comments, docs and code alike): a run of four or more
+space-separated hex byte tokens, a contiguous hex string of sixteen or more digits that is not a SHA-1 or SHA-256
+identity, and the private path markers ``local-lab/``, ``/srv/archive``, ``~/Projects/`` and ``/home/<user>``.
+Reviewed exceptions are listed in RETAIL_TEXT_ALLOW with a reason each.
 """
 
 from __future__ import annotations
@@ -193,6 +199,81 @@ DATA_IMAGE_RE = re.compile(r"data:image/(?:png|jpeg|jpg|gif|webp|bmp);base64,", 
 EMBEDDED_PNG_RE = re.compile(r"(?:\\x89PNG|iVBORw0KGgo)", re.IGNORECASE)
 EMBEDDED_JPEG_RE = re.compile(r"(?:\\xff\\xd8\\xff|/9j/4AAQSkZJRgABAQ)", re.IGNORECASE)
 BASE64_TOKEN_RE = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/=]{512,}(?![A-Za-z0-9+/=])")
+
+# --- original-game bytes and private paths in tracked text -----------------------------------------------------------
+#
+# (a) Four or more space-separated two-digit hex tokens (an optional 0x on each): a byte dump or an instruction
+#     encoding. Three tokens or fewer are not flagged: they cannot be told from short prose such as "be it" or "10 20".
+RETAIL_BYTE_RUN_RE = re.compile(
+    r"(?<![0-9A-Za-z_])(?:0x)?[0-9A-Fa-f]{2}(?:[ \t]+(?:0x)?[0-9A-Fa-f]{2}){3,}(?![0-9A-Za-z_])"
+)
+# (b) A contiguous run of sixteen or more hex digits holding at least one a-f letter (so long decimal numbers pass).
+#     Exactly 40 (SHA-1) and exactly 64 (SHA-256) digits are identities and pass. A 0x literal up to 64 bits (16
+#     digits) is a number, not a dump; wider than that it is not a number any code uses and is flagged. A run that
+#     follows a "." is the fraction of a decimal such as 9.2233720368547758e18 and is skipped.
+LONG_HEX_RE = re.compile(r"(?<![0-9A-Za-z_.])(0[xX])?([0-9A-Fa-f]{16,})(?![0-9A-Za-z_])")
+LONG_HEX_ALLOWED_LENGTHS = (40, 64)
+# (c) Private machine paths. The first is this project's ignored lab folder; the others are the maintainers' layout.
+PRIVATE_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_-])local-lab/[^\s\"'`<>()\[\]|,;]*|/srv/archive[^\s\"'`<>()\[\]|,;]*"
+    r"|~/Projects/[^\s\"'`<>()\[\]|,;]*|/home/[A-Za-z0-9_.][A-Za-z0-9_.-]*[^\s\"'`<>()\[\]|,;]*"
+)
+
+# Reviewed exceptions: the exact matched token in the exact file, with the reason. A token that is not listed for that
+# file fails, and a listed token fails in every other file. The hex alphabets are the only global entries.
+RETAIL_TEXT_ALLOW_ANY_FILE: dict[str, str] = {
+    "0123456789abcdef": "the lower-case hex digit alphabet, a constant string in hex-validation code",
+    "0123456789ABCDEF": "the upper-case hex digit alphabet",
+    "0123456789abcdefABCDEF": "the mixed-case hex digit alphabet",
+}
+RETAIL_TEXT_ALLOW: dict[str, dict[str, str]] = {
+    # --- code that locates the ignored lab folder by relative path (changing the string changes behaviour) ------
+    "rebuild/OnslaughtRebuild.Godot/FrontendCaptureRig.cs": {
+        "local-lab/retail-reference-pristine/level100-gameplay/manifest.json":
+            "the capture rig looks for the retail reference manifest in the ignored lab folder",
+    },
+    "rebuild/tools/frontend-parity-plan.json": {
+        "local-lab/retail-reference-pristine/nofmv-frontend-2026-07-26":
+            "referenceRoot: the scorer resolves it against the repository root",
+    },
+    "rebuild/tools/materialize_retail_assets.py": {
+        "local-lab/rebuild-godot": "default work root under the ignored lab folder (code and its help text)",
+        "local-lab/startup-media": "default startup-media folder under the ignored lab folder (code and its help text)",
+    },
+    "rebuild/tools/x87_oracle/x87_oracle.py": {
+        "local-lab/third-party/msvc6-sp5-toolchain": "default location of the pinned toolchain in the ignored lab folder",
+    },
+    "rebuild/tools/first_flight_tests.py": {
+        "local-lab/startup-media": "the test checks the tool's default startup-media path",
+        "/home/someone/profile": "a synthetic profile path in a unit test; no real account",
+    },
+    "tools/frontend_arc_bracket_fit.py": {
+        "local-lab/retail-reference-pristine/select-level/04-select-level-640x480.png":
+            "default reference image for the fit, read from the ignored lab folder",
+        "local-lab/retail-reference-pristine/choose-game-name/choose-game-name-640x480.png":
+            "default reference image for the fit, read from the ignored lab folder",
+    },
+    "tools/terrain_macro_inversion_probe.py": {
+        "local-lab/godot-captures/inv-probe": "an example value in an argparse help string",
+    },
+    # --- tools whose job is to treat the ignored lab folder specially --------------------------------------------
+    "tools/check_installed_game_claims.py": {"local-lab/": "SKIP_PREFIXES: the ignored folder is not scanned"},
+    "tools/md_link_check.py": {"local-lab/": "the scope note it prints says the ignored folder is invisible to the check"},
+    "tools/doc_header_check.py": {
+        "local-lab/": "the rule that excludes the ignored folder, and the self-test case that checks it",
+        "local-lab/NOTES.md": "self-test fixture: a path inside the excluded folder",
+        "local-lab/safe-copy-bea-pristine/": "self-test fixture text for the header check",
+        "local-lab/safe-copy-bea-pristine/BEA.exe.original.backup": "self-test fixture text for the header check",
+        "local-lab/ghidra-fullpass-2026-07-23/exports/W001/": "self-test fixture text for the header check",
+    },
+    # --- the project's own synthetic test vectors: made up inside the tests, not retail data -------------------------
+    "rebuild/OnslaughtRebuild.Parity.Tests/HarnessTests.cs": {
+        "0000a04100000040": "synthetic probe row (a LIFE pair of floats as hex) made up in the test; not retail data",
+        "45332211ddccbbaa": "synthetic RNG probe row made up in the test; not retail data",
+        "46332211ddccbbaa": "the same synthetic row with one digit changed: the mismatch the test expects to be reported",
+        "0000803f0000004000004040": "synthetic probe row (a POS triple of floats as hex) made up in the test; not retail data",
+    },
+}
 
 MAGIC_DENY_SIGNATURES = (
     ("deny-magic-executable", b"MZ"),
@@ -445,10 +526,48 @@ def text_binary_findings(root: Path, path: str) -> list[Finding]:
     return []
 
 
-def content_signature_findings(path: str, text: str) -> list[Finding]:
+def retail_text_findings(path: str, text: str) -> list[Finding]:
+    """The three retail-text rules. Details give line numbers and counts, never the bytes themselves."""
+    allowed_here = RETAIL_TEXT_ALLOW.get(path, {})
+
+    def allowed(token: str) -> bool:
+        return token in allowed_here or token in RETAIL_TEXT_ALLOW_ANY_FILE
+
+    def line_of(match: re.Match) -> int:
+        return text.count("\n", 0, match.start()) + 1
+
+    findings: list[Finding] = []
+    for match in RETAIL_BYTE_RUN_RE.finditer(text):
+        run = match.group(0)
+        if allowed(run):
+            continue
+        tokens = len(run.split())
+        findings.append(Finding(path, "deny-retail-byte-run", f"line {line_of(match)}: {tokens} space-separated hex byte tokens"))
+    for match in LONG_HEX_RE.finditer(text):
+        prefix, digits = match.group(1), match.group(2)
+        if allowed(digits) or allowed(match.group(0)):
+            continue
+        if not re.search(r"[A-Fa-f]", digits):
+            continue  # a long decimal number
+        if len(digits) in LONG_HEX_ALLOWED_LENGTHS:
+            continue  # a SHA-1 or SHA-256 identity
+        if prefix and len(digits) == 16:
+            continue  # a 64-bit numeric literal such as an IEEE-754 double pattern
+        findings.append(Finding(path, "deny-long-hex-string", f"line {line_of(match)}: {len(digits)} contiguous hex digits"))
+    for match in PRIVATE_PATH_RE.finditer(text):
+        token = match.group(0).rstrip(".:")
+        if allowed(token):
+            continue
+        findings.append(Finding(path, "deny-private-path-marker", f"line {line_of(match)}: {token}"))
+    return findings
+
+
+def content_signature_findings(path: str, text: str, *, retail_rules: bool = True) -> list[Finding]:
     findings: list[Finding] = []
     if path in PAYLOAD_TEXT_ALLOW_EXACT:
         return findings
+    if retail_rules:
+        findings.extend(retail_text_findings(path, text))
     cdb_prompt_count = len(CDB_PROMPT_RE.findall(text))
     register_count = len(REGISTER_DUMP_RE.findall(text))
     stack_trace_count = len(STACK_TRACE_RE.findall(text))
@@ -481,7 +600,7 @@ def content_signature_findings(path: str, text: str) -> list[Finding]:
     return findings
 
 
-def text_findings(root: Path, path: str) -> list[Finding]:
+def text_findings(root: Path, path: str, *, retail_rules: bool = True) -> list[Finding]:
     if path == SELF_REL or path in TEXT_ALLOW_EXACT:
         return []
     if not is_text_file(path):
@@ -500,7 +619,7 @@ def text_findings(root: Path, path: str) -> list[Finding]:
             if len(snippet) > 120:
                 snippet = snippet[:117] + "..."
             findings.append(Finding(path, label, snippet))
-    findings.extend(content_signature_findings(path, text))
+    findings.extend(content_signature_findings(path, text, retail_rules=retail_rules))
     return findings
 
 
@@ -532,15 +651,21 @@ def check_repo(root: Path, *, include_submodules: bool = False) -> list[Finding]
         return [Finding(".", "deny-public-candidate-enumeration-failed", str(exc))]
     if not paths:
         return [Finding(".", "deny-empty-public-candidate-set", "git candidate enumeration returned zero files")]
+    submodule_prefixes: tuple[str, ...] = ()
     if include_submodules:
         findings.extend(submodule_scan_findings(root))
+        try:
+            submodule_prefixes = tuple(f"{item}/" for item in submodule_paths(root))
+        except RuntimeError:
+            submodule_prefixes = ()
     for path in paths:
         findings.extend(path_findings(path))
         findings.extend(exact_allow_hash_findings(root, path))
         findings.extend(size_findings(root, path))
         findings.extend(magic_findings(root, path))
         findings.extend(text_binary_findings(root, path))
-        findings.extend(text_findings(root, path))
+        # A submodule's files are another project's published text; the retail-text rules cover this repository's own.
+        findings.extend(text_findings(root, path, retail_rules=not path.startswith(submodule_prefixes)))
     return findings
 
 
@@ -560,6 +685,143 @@ def check_payload_root(root: Path) -> list[Finding]:
         findings.extend(text_binary_findings(root, path))
         findings.extend(text_findings(root, path))
     return findings
+
+
+def retail_text_self_test() -> list[str]:
+    """Fixtures and mutants for the three retail-text rules; returns the failures (empty when all pass)."""
+    failures: list[str] = []
+
+    def labels(path: str, text: str) -> set[str]:
+        return {finding.label for finding in retail_text_findings(path, text)}
+
+    def must_fail(rule: str, name: str, text: str, path: str = "doc.md") -> None:
+        if rule not in labels(path, text):
+            failures.append(f"{rule} did not fire: {name}")
+
+    def must_pass(name: str, text: str, path: str = "doc.md") -> None:
+        found = labels(path, text)
+        if found:
+            failures.append(f"false positive ({', '.join(sorted(found))}): {name}")
+
+    run, long_hex, path_rule = "deny-retail-byte-run", "deny-long-hex-string", "deny-private-path-marker"
+
+    # (a) four or more space-separated hex byte tokens (synthetic bytes, not game bytes)
+    must_fail(run, "four tokens", "Body ab cd ef 01.\n")
+    must_fail(run, "upper case", "Body AB CD EF 01.\n")
+    must_fail(run, "tab separated", "ab\tcd\tef\t01\n")
+    must_fail(run, "several spaces", "ab  cd   ef 01\n")
+    must_fail(run, "0x on each token", "0xab 0xcd 0xef 0x01\n")
+    must_fail(run, "inside an XML doc tag", "/// <c>ab cd ef 01 23</c>\n", "Doc.cs")
+    must_fail(run, "an ellipsis in the middle", "<c>ab cd ef 01 23 45 ... 67 89</c>\n")
+    must_fail(run, "twenty tokens", "bytes " + " ".join(["ab"] * 20) + "\n")
+    must_fail(run, "in a Python comment", "x = 1  # ab cd ef 01\n", "tool.py")
+    must_fail(run, "in a JSON string", '{"note": "ab cd ef 01"}\n', "plan.json")
+    must_fail(run, "start of the file", "ab cd ef 01")
+    must_pass("three tokens", "Body ab cd ef.\n")
+    must_pass("comma separated array initialiser", "var a = new byte[] { 0xab, 0xcd, 0xef, 0x01 };\n", "Code.cs")
+    must_pass("eight digits without separators", "abcdef01\n")
+    must_pass("a run broken by a word", "ab cd of ef 01 23\n")
+    must_pass("three-digit tokens", "abc def 012 345\n")
+    must_pass("prose", "to be or not to be a fine ad\n")
+
+    # (b) contiguous hex of 16 or more digits other than a SHA-1 or SHA-256 identity
+    digits = "8b4910f64134087405e8328cedffc20c00a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5061728394a5b6c7d8e9f"
+    for length in (16, 17, 24, 33, 34, 39, 41, 63, 65, 100):
+        must_fail(long_hex, f"{length} digits", f"body {digits[:length]} on specimen\n")
+    must_fail(long_hex, "upper case", "body " + digits[:20].upper() + "\n")
+    must_fail(long_hex, "SHA-256 glued to its digits", "SHA-256" + digits[:64] + ".\n")
+    must_fail(long_hex, "0x wider than 64 bits", "0x" + digits[:18] + "\n")
+    must_fail(long_hex, "in a code string", 'const string s = "' + digits[:24] + '";\n', "Code.cs")
+    must_pass("15 digits", f"body {digits[:15]}\n")
+    must_pass("a SHA-1 identity", f"sha1 {digits[:40]}\n")
+    must_pass("a SHA-256 identity", f"sha256 {digits[:64]}\n")
+    must_pass("a SHA-256 identity after a space", f"SHA-256 {digits[:64]}\n")
+    must_pass("a long decimal number", "count 12345678901234567890\n")
+    must_pass("a decimal fraction", "x = 0.19999998807907104;\n")
+    must_pass("a decimal in exponent form", "x = 9.2233720368547758e18;\n")
+    must_pass("a 64-bit 0x literal", "const ulong a = 0x4075E00000000000UL; // bits 0x4075E00000000000\n", "Code.cs")
+    must_fail(long_hex, "the same 16 digits without 0x", "bits 4075E00000000000\n", "Code.cs")
+    must_pass("0x with 40 digits", "0x" + digits[:40] + "\n")
+    must_pass("part of an identifier", "foo_" + digits[:20] + "\n")
+    must_pass("the hex digit alphabet", 'c in "0123456789abcdef"\n', "tool.py")
+
+    # (c) private path markers
+    must_fail(path_rule, "the lab folder", "see local-lab/notes.md\n")
+    must_fail(path_rule, "the lab folder in backticks", "`local-lab/`\n")
+    must_fail(path_rule, "an archive mount", "copy to /srv/archive-a/data\n")
+    must_fail(path_rule, "the bare archive mount", "mounted at /srv/archive\n")
+    must_fail(path_rule, "a home-relative project path", "cd ~/Projects/game-dev/x\n")
+    must_fail(path_rule, "a home folder", "see /home/alice/work\n")
+    must_fail(path_rule, "after a drive path", "C:/x/local-lab/y\n")
+    must_fail(path_rule, "in a C# string", 'var p = "local-lab/startup-media";\n', "Code.cs")
+    must_pass("the word without a slash", "the local-lab folder\n")
+    must_pass("a longer name", "local-labs/x and locallab/x\n")
+    must_pass("a different prefix", "my-local-lab/x\n")
+    must_pass("projects without the slash", "~/Projects\n")
+    must_pass("another mount", "/srv/other/x\n")
+    must_pass("a bare home", "/home/\n")
+
+    # reviewed exceptions: exact token, exact file
+    saved = dict(RETAIL_TEXT_ALLOW)
+    try:
+        RETAIL_TEXT_ALLOW["listed.md"] = {"local-lab/x": "test", "abcdef0123456789": "test"}
+        must_pass("an allowed token in its file", "see local-lab/x and abcdef0123456789\n", "listed.md")
+        must_fail(path_rule, "the same token in another file", "see local-lab/x\n", "other.md")
+        must_fail(long_hex, "the same digits in another file", "abcdef0123456789\n", "other.md")
+        must_fail(path_rule, "another token in the listed file", "see local-lab/y\n", "listed.md")
+        must_fail(long_hex, "other digits in the listed file", "abcdef0123456780\n", "listed.md")
+        must_fail(run, "a byte run in the listed file", "ab cd ef 01\n", "listed.md")
+    finally:
+        RETAIL_TEXT_ALLOW.clear()
+        RETAIL_TEXT_ALLOW.update(saved)
+    for path, tokens in RETAIL_TEXT_ALLOW.items():
+        for token, reason in tokens.items():
+            if not reason.strip():
+                failures.append(f"allowlist entry without a reason: {path}: {token}")
+
+    # the rules reach every text file type through check_repo, but not a submodule's own files
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        (root / "README.MD").write_text("# OK\n", encoding="utf-8")
+        dump = "ab cd ef 01 23"
+        (root / "doc.md").write_text(f"bytes {dump}\n", encoding="utf-8")
+        (root / "Code.cs").write_text(f"// {dump}\nclass C {{}}\n", encoding="utf-8")
+        (root / "tool.py").write_text(f"# {dump}\n", encoding="utf-8")
+        (root / "data.json").write_text('{"a": "' + dump + '"}\n', encoding="utf-8")
+        (root / "long.md").write_text("body " + digits[:34] + "\n", encoding="utf-8")
+        (root / "paths.md").write_text("see local-lab/x and /home/alice/y\n", encoding="utf-8")
+        submodule = root / "references" / "upstream"
+        submodule.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q"], cwd=submodule, check=True)
+        (submodule / "notes.md").write_text(f"bytes {dump} local-lab/x {digits[:34]}\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=submodule, check=True)
+        subprocess.run(
+            ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-q", "-m", "fixture"],
+            cwd=submodule, check=True,
+        )
+        (root / ".gitmodules").write_text(
+            '[submodule "upstream"]\n\tpath = references/upstream\n\turl = ../upstream.git\n', encoding="utf-8"
+        )
+        subprocess.run(
+            ["git", "-c", "advice.addEmbeddedRepo=false", "add", "."],
+            cwd=root, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        found = check_repo(root, include_submodules=True)
+        for name, label in (
+            ("doc.md", run), ("Code.cs", run), ("tool.py", run), ("data.json", run),
+            ("long.md", long_hex), ("paths.md", path_rule),
+        ):
+            if not any(f.path == name and f.label == label for f in found):
+                failures.append(f"check_repo missed {label} in {name}")
+        leaked = [f for f in found if f.path.startswith("references/upstream/")]
+        if leaked:
+            failures.append(f"retail-text rules were applied to a submodule's files: {leaked!r}")
+        # without --include-submodules the nested files are not scanned at all
+        plain = check_repo(root)
+        if any(f.path.startswith("references/upstream/") for f in plain):
+            failures.append("submodule files were scanned without --include-submodules")
+    return failures
 
 
 def run_self_test() -> int:
@@ -960,6 +1222,12 @@ def run_self_test() -> int:
             print(f"- root findings: {sorted(root_findings, key=lambda item: item.path)!r}")
             print(f"- combined findings: {sorted(combined_findings, key=lambda item: item.path)!r}")
             return 1
+    retail_failures = retail_text_self_test()
+    if retail_failures:
+        print("Public payload safety self-test: FAIL")
+        for item in retail_failures:
+            print(f"- {item}")
+        return 1
     print("Public payload safety self-test: PASS")
     return 0
 
