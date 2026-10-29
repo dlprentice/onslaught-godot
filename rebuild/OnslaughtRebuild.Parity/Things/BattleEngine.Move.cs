@@ -1378,7 +1378,8 @@ public sealed partial class BattleEngine
             }
             else
             {
-                orientation = Orientation.Multiply(autoAim);
+                // The no-hit path uses the same out-of-line matrix product as the original.
+                orientation = Orientation.MultiplyOutOfLine(autoAim);
             }
         }
     }

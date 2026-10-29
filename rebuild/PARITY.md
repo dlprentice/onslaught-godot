@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-29 (bounded integer PC24 matrix and rotation products; out-of-line matrix register range; duplicate admission in the loss and selected port-reference readers; recorded loss routes against both original processes, launch-product and round-direction rounding; subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
+Last updated: 2026-10-29 (no-hit launch orientation product; bounded integer PC24 matrix and rotation products; out-of-line matrix register range; duplicate admission in the loss and selected port-reference readers; recorded loss routes against both original processes, launch-product and round-direction rounding; subnormal store rounding in the battle engine's decays and the mul_f_sub oracle table; the M5 row dates the measurement, not the recording; the lead-time sum orders of the auto-aim and the predicted aim, and the recorded win measured against the original game's fl2a process: M5 met on that one process; the heading date and the goodie-8 viewer status follow the 2026-10-28 recorded-win entry; retail byte dumps, instruction quotes and private paths removed from the evidence text; 2026-10-28: recorded replay sound admission, weapon zoom, CE version-2 tape input, mech hierarchy point, cylinder line branch boundaries, site-specific mech and cached-mesh products, pilot-win collision and launch-hit rounding; 2026-10-27: bounded production-device audio evidence; 2026-10-25: reference admission, Retry canvas and canonical Host phases, frontend sprites and explicit replay admission; 2026-10-23: M5 met against the port, open against retail; earlier rows keep their dates)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -137,6 +137,12 @@ adding the Y and Z squares before the X square (retail 004d8848; native-port pat
 rebuild and the native port had the same round position and velocity, but the previous normalization order caused the
 rebuild to miss the ground intersection the port found. Correcting the two call sites produces the original's event count
 at the previously divergent Present; the round-direction test uses an authored vector, not captured game data.
+
+No-hit auto-aim (2026-10-29): the original's nonballistic no-hit path also uses the out-of-line matrix product. The
+rebuild now uses that product there; its former generic order differs for some authored rotations. `BattleEngineLaunchTests`
+exercises the actual no-hit caller and retains controls for the hit path, the unsupported ballistic path and disabled or
+unrequested adjustment. The 404 paired launch calls in the earlier win1 diagnostic all had a hit, so they do not establish
+the no-hit path's behavior during a recorded game.
 
 `OriginalLossRouteTests` compares the front-end loss route to each of two original music-clock recordings at all 7,300
 Presents, including the measured front-end state, end-level data, modelled battle-engine fields and saved career. It
