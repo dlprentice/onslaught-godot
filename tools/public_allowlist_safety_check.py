@@ -725,7 +725,7 @@ def retail_text_self_test() -> list[str]:
     must_pass("prose", "to be or not to be a fine ad\n")
 
     # (b) contiguous hex of 16 or more digits other than a SHA-1 or SHA-256 identity
-    digits = "8b4910f64134087405e8328cedffc20c00a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5061728394a5b6c7d8e9f"
+    digits = "a1b2c3d4e5f60718293a4b5c6d7e8f90" * 4  # synthetic: 128 digits, no game bytes
     for length in (16, 17, 24, 33, 34, 39, 41, 63, 65, 100):
         must_fail(long_hex, f"{length} digits", f"body {digits[:length]} on specimen\n")
     must_fail(long_hex, "upper case", "body " + digits[:20].upper() + "\n")
@@ -769,6 +769,8 @@ def retail_text_self_test() -> list[str]:
         must_fail(path_rule, "the same token in another file", "see local-lab/x\n", "other.md")
         must_fail(long_hex, "the same digits in another file", "abcdef0123456789\n", "other.md")
         must_fail(path_rule, "another token in the listed file", "see local-lab/y\n", "listed.md")
+        must_fail(path_rule, "an allowed token with a suffix in the listed file", "see local-lab/xy\n", "listed.md")
+        must_fail(long_hex, "allowed digits with one more digit in the listed file", "abcdef01234567890\n", "listed.md")
         must_fail(long_hex, "other digits in the listed file", "abcdef0123456780\n", "listed.md")
         must_fail(run, "a byte run in the listed file", "ab cd ef 01\n", "listed.md")
     finally:

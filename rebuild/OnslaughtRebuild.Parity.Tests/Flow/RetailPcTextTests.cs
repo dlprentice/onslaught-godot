@@ -23,7 +23,11 @@ public sealed class RetailPcTextTests
         int at = installed.BranchOffset();
         Assert.True(installed.BranchHasExpectedShape(at));
 
-        foreach (int position in RetailPcText.BranchShapeOffsets)
+        // The six opcode positions, written out so that a check that drops one (with its digest pinned again) fails here.
+        int[] opcodePositions = [0, 5, 6, 11, 12, 13];
+        Assert.Equal(opcodePositions, RetailPcText.BranchShapeOffsets);
+
+        foreach (int position in opcodePositions)
         {
             byte[] changed = (byte[])exe.Clone();
             changed[at + position] ^= 0x01;
@@ -35,9 +39,8 @@ public sealed class RetailPcTextTests
 
         // The largest id, the branch displacement and the table address sit between the opcodes: read, not checked.
         byte[] retuned = (byte[])exe.Clone();
-        retuned[at + 1] ^= 0x01;
-        retuned[at + 7] ^= 0x01;
-        retuned[at + 14] ^= 0x01;
+        foreach (int position in new[] { 1, 2, 3, 4, 7, 8, 9, 10, 14, 15, 16, 17 })
+            retuned[at + position] ^= 0x01;
         Assert.True(new RetailPcText(retuned, 0).BranchHasExpectedShape(at));
     }
 }

@@ -468,8 +468,7 @@ own rather than a new surface: read from the pristine specimen
 2,506,752 bytes) during this pass, the vtable at `0x005DB8A8` holds eight
 entries inside one `.text` cluster (`0x0051F4B0`–`0x0051F7E0`), and within that
 cluster at `0x0051F8A6` the image executes a push of constant 1, a copy of eax into ecx and a direct call to 0x004CDE60. That branch lazily creates the
-frontend
-Options context with mode `1`; it is not taken on every entry. A replayable
+frontend Options context with mode `1`; it is not taken on every entry. A replayable
 manual trace observed the same non-null frontend context reused across two
 entries. Static branch evidence shows that state takes the reuse path, and both
 observed transitions called `CPauseMenu__InitPauseSession`, which resets the

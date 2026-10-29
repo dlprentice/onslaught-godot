@@ -1889,8 +1889,8 @@ public sealed partial class FirstFlightHud : CanvasLayer
     /// </para>
     /// <para>
     /// The MIRROR itself is pixel-derived, not byte-derived. Correlating a
-    /// median-high-passed 27-frame mean of
-    /// <c>retail-reference-pristine/level100-gameplay/hud-timeline-run1/</c>
+    /// median-high-passed 27-frame mean of a private retail capture of
+    /// level 100's HUD timeline (the maintainers' evidence store)
     /// against the high-passed weapon template in band r 48..82 about the fitted
     /// right ring centre (568.08, 416.46) gives <b>r = +0.532 mirrored at
     /// dx = dy = 0</b> against <b>r = +0.072 unmirrored</b> (best of an 81-offset
