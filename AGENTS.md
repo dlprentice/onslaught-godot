@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-10-29 (cross-project progress navigation added; sandboxed builds need a writable /tmp; windowed-run wording made generic; machine-specific folders and tool names removed)
+Last updated: 2026-10-29
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
