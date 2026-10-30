@@ -36,3 +36,7 @@ Summary: the rules for working in this repository, for people and automated agen
   `TMPDIR`), or build with `-m:1 -nodeReuse:false -p:UseSharedCompilation=false`.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).
+
+## Cross-project progress
+
+The Toolkit's [definition of progress](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md#how-progress-is-measured) and [dated cross-project chart](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md#cross-project-progress-and-priorities) provide shared context, subject to David's current direction. This repository's [parity record](rebuild/PARITY.md) owns the Godot rebuild's measured evidence and limitations.
