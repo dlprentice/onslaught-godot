@@ -10,7 +10,7 @@ Thank you for your interest. Please read this before opening an issue or a pull 
 
 Open an issue describing the problem or the change, or a pull request against `main`. Keep a pull request to one
 subject, say what it changes in behaviour, and name the evidence: the Present where the rebuild first differs from the
-reference, the capture or test that shows it, or the file and line of Stuart Gillam's source release
+reference, the capture or test that shows it, or the file and line of Stuart Gillam's GPL Onslaught project
 ([stuart73/Onslaught](https://github.com/stuart73/Onslaught), pinned in `references/Onslaught`) or of
 [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp) the change follows. A plausible name or a guess
 about what the original did is not evidence.

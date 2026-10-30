@@ -47,7 +47,7 @@ dozens of paths for no gain.
 | `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` (and their tests) | the earlier fixed-point rebuild, kept as reference only |
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
 | `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to build and test, what is measured, where code comes from, the determinism contract |
-| `references/Onslaught` | Stuart Gillam's GPL source release of the game, pinned as a submodule |
+| `references/Onslaught` | Stuart Gillam's GPL Onslaught project, pinned as a submodule |
 | `tools/` | measurement and documentation tools the rebuild uses |
 | `tests_shared/fixtures/` | the one tracked career save, a test baseline |
 
@@ -70,7 +70,7 @@ and lists the reference variables, the host's run modes and the tools.
 
 The code is free software under the GNU General Public License, version 3 only ([LICENSE](LICENSE),
 [REUSE.toml](REUSE.toml)); [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md) records which units adapt Stuart Gillam's
-GPL source release ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)). The original game is by Lost Toys.
+GPL Onslaught project ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)). The original game is by Lost Toys.
 *Battle Engine Aquila* is a trademark of its owners; this is an unofficial project, not affiliated with or endorsed by
 the game's developer, publisher or rights holders.
 
