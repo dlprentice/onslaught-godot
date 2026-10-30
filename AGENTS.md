@@ -7,11 +7,11 @@ Summary: the rules for working in this repository, for people and automated agen
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
   owner and `rebuild/OnslaughtRebuild.Host` the presentation owner; Core, Client, Godot and Headless are reference
   only. Setup, the reference environment and the gates are in [rebuild/README.md](rebuild/README.md).
-- **Determinism:** the parity core is deterministic given its inputs (the tape, the retail data and options files it
-  reads as the game does, and the virtual clock). It never reads wall time, locale, environment or thread scheduling,
-  and has no presentation, process, network or GPU dependency ([rebuild/DETERMINISM.md](rebuild/DETERMINISM.md)).
+- **Determinism:** the parity core must be deterministic given its inputs (the tape, the retail data and options files it
+  reads as the game does, and the virtual clock). It must not read wall time, locale, environment or thread scheduling,
+  and must have no presentation, process, network or GPU dependency ([rebuild/DETERMINISM.md](rebuild/DETERMINISM.md)).
   Tests compare it with recorded references Present by Present; a missing reference, an empty selection or a new
-  skip is not a pass.
+  skip is not a pass. The contract is the intended behavior; passing tests establish only the exercised inputs and environments. For measured scope and open differences see [Parity](rebuild/PARITY.md); for audio evidence see [Audio](rebuild/OnslaughtRebuild.Host/AUDIO.md).
 - **Evidence:** every behaviour claim cites a capture, a byte comparison, a focused test, or a pinned source file and
   line. Static evidence establishes identities and structures; only controlled runtime evidence establishes values.
 - **No game files, ever:** never commit the game's executables, data, saves (beyond the one tracked fixture),
@@ -22,9 +22,7 @@ Summary: the rules for working in this repository, for people and automated agen
   recorded in [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md).
 - **Machine-specific paths** (reference folders, clones) live in an ignored `local-data/rebuild-env.sh`, never in a
   tracked file. The program sends nothing over the network.
-- **Where work happens:** the rebuild is developed here since 2026-10-22, on branches merged into `main` when their
-  gate passes; Onslaught-Career-Editor's `rebuild/` is frozen until it is removed. Builds and test runs use a clone on
-  an internal disk.
+- The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until David explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
 - **Windowed runs:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
   open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
   headless mode. The wrapper, its flags, the engine build and the capture folders are the machine's own and are set in the

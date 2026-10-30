@@ -89,3 +89,9 @@ the game's developer, publisher or rights holders.
 - [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor): the companion app for saves,
   settings and lore (to be renamed onslaught-companion).
 - [stuart73/Onslaught](https://github.com/stuart73/Onslaught): Stuart Gillam's GPL source release of the game.
+
+## Long-term direction
+
+The shared [project goals](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md) and [program](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md) cover later HD assets, level and mission creation, modding and multiplayer. These are longer-term aims across the project; they do not establish that those features work in this rebuild.
+
+For this rebuild's measured status and open gaps, see [Parity](rebuild/PARITY.md). The [audio notes](rebuild/OnslaughtRebuild.Host/AUDIO.md) describe the sound evidence and its limits, and [Determinism](rebuild/DETERMINISM.md) describes the simulation contract.

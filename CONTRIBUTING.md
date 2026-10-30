@@ -1,7 +1,7 @@
 # Contributing
 
 Status: active
-Last updated: 2026-10-22
+Last updated: 2026-10-29
 Summary: how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
 Thank you for your interest. Please read this before opening an issue or a pull request.
@@ -43,3 +43,9 @@ the right to license it so.
 Never attach or commit any of the game's files or anything derived from them: executables, data, text dumps, saves
 (beyond the one tracked test fixture), captures, byte dumps, decompiler output or instruction listings. Everyone uses
 their own copy of the game; this repository contains none of it and will not accept it.
+
+## Evidence and references
+
+[Parity](rebuild/PARITY.md) records measured behavior and open differences; [Audio](rebuild/OnslaughtRebuild.Host/AUDIO.md) records the sound-specific evidence and limits. [Determinism](rebuild/DETERMINISM.md) is the simulation contract.
+
+When reporting checks, distinguish authored tests from comparisons that require local reference data. Say which reference-bearing checks ran and which were skipped; a passing authored test does not establish a result for an unavailable reference. See the [rebuild guide](rebuild/README.md) for setup.
