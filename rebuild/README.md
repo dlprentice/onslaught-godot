@@ -1,8 +1,8 @@
 # Onslaught Rebuild
 
-Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte, and on one recorded win equals one of the original game's two debriefing outcomes (its process fl2a) on every probe and the saved careers byte for byte (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
-Last updated: 2026-10-29 (the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
-Summary: the Godot/C# reconstruction: the new float-exact parity core and its harness, and the earlier fixed-point rebuild kept as reference.
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
+Last updated: 2026-10-29 (floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Summary: the Godot/C# reconstruction: the floating-point parity core and its bounded comparisons, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
 thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
@@ -54,8 +54,8 @@ captures frame for frame, and the career saved after a win must be byte-identica
 criteria are in [PARITY.md](PARITY.md#proof-of-concept-milestones-2026-10-15).
 
 The earlier Core below simulates in integer fixed point (millimetres, microradians) and cannot reproduce retail's
-float state, so the parity path is a new assembly, `OnslaughtRebuild.Parity`: a float-exact C# port of the
-decompilation's simulation with exact x87 24-bit numerics, independent of the earlier Core. `OnslaughtRebuild.Parity`
+float state, so the parity path is a new assembly, `OnslaughtRebuild.Parity`: a floating-point C# reconstruction of the
+decompilation's simulation, with x87 24-bit numerics modelled to the measured bounds in [PARITY.md](PARITY.md), independent of the earlier Core. `OnslaughtRebuild.Parity`
 holds the retail tape harness today, run by the Parity suite (`npm run test:rebuild-parity`) against the references
 named by the variables above (`ONSLAUGHT_RETAIL_GOLDEN` holds the retail replay harness's tapes and golden probe
 traces). A route passes only when every probe matches at every sample with no frame offset. The earlier Headless
@@ -102,7 +102,8 @@ You need Godot 4.8 beta1 .NET (the "Godot Engine - .NET" download of 4.8 beta1 f
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
 (`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The films are drawn from a library you decode from
 your installation with `python3 rebuild/tools/materialize_films.py <folder>` (FFmpeg required), named by
-`ONSLAUGHT_FILMS`. Nothing from the game is copied into the repository.
+`ONSLAUGHT_FILMS`. Those game data and film assets are not included in the repository; its one tracked game-generated
+career fixture is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
 
 ```bash
 export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"   # if it is not in the Steam default

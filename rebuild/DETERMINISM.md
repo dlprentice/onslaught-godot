@@ -1,7 +1,7 @@
 # Rebuild determinism contract
 
 Status: reference — the earlier fixed-point Core's contract; the parity core's is the short section at the top
-Last updated: 2026-10-29 (the specimen is cited without its private path; 2026-10-28: explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
+Last updated: 2026-10-29 (the parity core's cross-host numerical evidence boundary; earlier: the specimen is cited without its private path; 2026-10-28: explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
 Headless sources named at the bottom; the retail 20 Hz step was MEASURED in
@@ -14,10 +14,15 @@ what a contributor must do when a change legitimately moves the trace hash.
 
 ## The parity core (`OnslaughtRebuild.Parity`)
 
-The parity core is the rebuild's simulation. Given its inputs (the replay tape, the retail data and options files it
-reads as the game does, its virtual clock, and any explicitly admitted observations such as a recorded asynchronous
-goodie-load completion schedule) it produces the same run every time. Callers supplying those observations must not
-consult wall time or thread scheduling; without one the diagnostic goodie viewer remains unsupported:
+The parity core is the rebuild's simulation. It is required to produce the same run given the same inputs: the replay tape,
+the retail data and options files it reads as the game does, its virtual clock, and any explicitly admitted observations
+such as a recorded asynchronous goodie-load completion schedule. Callers supplying those observations must not consult
+wall time or thread scheduling; without one the diagnostic goodie viewer remains unsupported.
+
+This is the determinism contract, not a proof of bit-identical results on every runtime or architecture. The bounded
+integer PC24 matrix path has explicit rounding-mode controls, while portability of the general `X87` model,
+trigonometry and other arithmetic remains unestablished; see [PARITY.md](PARITY.md#where-it-stands-2026-10-29) for the
+measured scope. Cross-host comparisons need their own evidence.
 
 - It never reads wall time, locale, environment variables or thread scheduling, and has no presentation, process,
   network or GPU dependency. Retail's own clock reads go to the virtual `PlatformClock`, which counts them as retail's

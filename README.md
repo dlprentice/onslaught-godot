@@ -11,7 +11,7 @@ a suite test; it admits a sound-pool seed and a goodie-load completion observed 
 references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
 match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
 Present bounds. These comparisons do not establish audio, picture or whole-campaign parity.
-Last updated: 2026-10-29 (the two bounded loss-route comparisons with original processes stated; earlier: the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; earlier: what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+Last updated: 2026-10-29 (the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
 Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
 bounds, and on one recorded win with the original's own process to the end (PARITY M5).
@@ -30,9 +30,9 @@ To play the game, use [Onslaught CE](https://github.com/dlprentice/onslaught-ce)
 
 ## You need your own copy of the game
 
-The repository contains none of the game's files. The parity core and the host read the game's data from your own
-installation of *Battle Engine Aquila* for PC; the comparison references (recorded runs) are kept outside the
-repository and named by environment variables.
+The repository contains no game executable or game assets. It carries one [game-generated career fixture](tests_shared/fixtures/README.md)
+for regression tests. The parity core and the host read the game's data from your own installation of *Battle Engine
+Aquila* for PC; the comparison references (recorded runs) are kept outside the repository and named by environment variables.
 
 ## Layout
 
