@@ -88,7 +88,7 @@ the game's developer, publisher or rights holders.
   mechanics, levels).
 - [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor): the companion app for saves,
   settings and lore (to be renamed onslaught-companion).
-- [stuart73/Onslaught](https://github.com/stuart73/Onslaught): Stuart Gillam's GPL source release of the game.
+- [Stuart Gillam’s GPL Onslaught project](https://github.com/stuart73/Onslaught).
 
 ## Long-term direction
 
