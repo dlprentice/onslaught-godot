@@ -18,7 +18,7 @@ bounds, and on one recorded win with the original's own process to the end (PARI
 
 onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. It has two parts:
 
-- **The parity core** (`rebuild/OnslaughtRebuild.Parity`): the game's simulation, deterministic given its inputs (a
+- **The parity core** (`rebuild/OnslaughtRebuild.Parity`): the game's simulation, designed to be deterministic given its inputs (a
   replay tape, the retail data files and a virtual clock), compared at every Present with recorded runs of
   [Onslaught CE](https://github.com/dlprentice/onslaught-ce) (the native port) and selected recorded runs of the original
   game; [PARITY.md](rebuild/PARITY.md) states each comparison's fields and Present bounds.
