@@ -82,7 +82,12 @@ public struct FVector : IEquatable<FVector>
 
     public override readonly bool Equals(object? obj) => obj is FVector v && Equals(v);
 
-    public override readonly int GetHashCode() => HashCode.Combine(X, Y, Z);
+    // Match equality's bit patterns without a per-process hash seed.
+    public override readonly int GetHashCode() =>
+        unchecked(
+            ((System.BitConverter.SingleToInt32Bits(X) * 31)
+                ^ System.BitConverter.SingleToInt32Bits(Y)) * 31
+            ^ System.BitConverter.SingleToInt32Bits(Z));
 
     public override readonly string ToString() => $"({X:R}, {Y:R}, {Z:R})";
 }
