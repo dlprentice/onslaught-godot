@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-10-29
+Last updated: 2026-10-31 (commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -36,6 +36,7 @@ Summary: the rules for working in this repository, for people and automated agen
   `TMPDIR`), or build with `-m:1 -nodeReuse:false -p:UseSharedCompilation=false`.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).
+- **Commit messages:** Commits here are public: keep the Co-Authored-By line, add no Claude-Session line, and describe the change itself, not which agent or role made it.
 
 ## Cross-project progress
 
