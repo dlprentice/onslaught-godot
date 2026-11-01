@@ -32,6 +32,8 @@ public partial class Host
     private bool _flowReplay;
     private bool _flowFrontEndOnly;
     private SteppedGameRun? _flowRun;
+    private FlowInputBridge? _flowInput;
+    private Window? _flowInputWindow;
     private StreamWriter? _flowTrace;
     private FlowSnapshot? _flowLast;
     private long? _flowEnd;
@@ -175,6 +177,7 @@ public partial class Host
         }
 
         _flowRun = new SteppedGameRun(run);
+        BindFlowInput();
         _flowStatus = new Label { Name = "FlowStatus", Position = new Vector2(8, 6), MouseFilter = Control.MouseFilterEnum.Ignore };
         AddChild(_flowStatus);
         GD.Print($"HOST_FLOW_READY replay={_flowReplay} drawing={_flowDraw} full_boot={fullBoot} silent=true sound_profile={(soundProfile is null ? "legacy-unconfigured" : "recorded-reference")}");
@@ -319,17 +322,41 @@ public partial class Host
 
     private void InputFlow(InputEvent input)
     {
-        if (_flowReplay || _flowRun is null || _flowStop is not null || input is not InputEventKey key || key.Echo)
+        if (_flowReplay || _flowRun is null || _flowInput is not { } bridge || _flowStop is not null
+            || input is not InputEventKey key || key.Echo)
         {
             return;
         }
 
         if (HostKeyMap.TryMap(key.PhysicalKeycode, key.Location, out HostKeyMap.PcKey pc))
         {
-            bool down = key.Pressed;
-            _flowRun.Post(run => run.Input.PostTapeKey(pc.VirtualKey, pc.ScanCode, down));
-            GetViewport().SetInputAsHandled();
+            if (bridge.QueueKey(pc.VirtualKey, pc.ScanCode, key.Pressed)) GetViewport().SetInputAsHandled();
         }
+    }
+
+    private void BindFlowInput()
+    {
+        if (_flowReplay || _flowRun is not { } run) return;
+        _flowInput = new FlowInputBridge(action => run.Post(state => action(state.Input)));
+        _flowInputWindow = GetWindow();
+        _flowInputWindow.FocusEntered += FlowFocusEntered;
+        _flowInputWindow.FocusExited += FlowFocusExited;
+        _flowInput.SetFocused(_flowInputWindow.HasFocus());
+    }
+
+    private void FlowFocusEntered() => _flowInput?.SetFocused(true);
+    private void FlowFocusExited() => _flowInput?.SetFocused(false);
+
+    private void UnbindFlowInput()
+    {
+        if (_flowInputWindow is { } window)
+        {
+            window.FocusEntered -= FlowFocusEntered;
+            window.FocusExited -= FlowFocusExited;
+        }
+        _flowInput?.SetFocused(false);
+        _flowInput = null;
+        _flowInputWindow = null;
     }
 
     private void SaveRasterShot(long present, string kind = "raster")
@@ -537,6 +564,7 @@ public partial class Host
 
     private void FinishFlow()
     {
+        UnbindFlowInput();
         _flowParticles?.Dispose();
         _flowParticles = null;
         _flowTrace?.Dispose();
