@@ -46,15 +46,16 @@ def _i32(data: bytes, off: int) -> int:
 
 
 def _read_utf16z(data: bytes, off_bytes: int, max_chars: int = 8192) -> str:
-    out: list[str] = []
+    out = bytearray()
     for i in range(max_chars):
         if off_bytes + i * 2 + 1 >= len(data):
             break
         ch = struct.unpack_from("<H", data, off_bytes + i * 2)[0]
         if ch == 0:
             break
-        out.append(chr(ch))
-    return "".join(out)
+        out.extend(data[off_bytes + i * 2 : off_bytes + i * 2 + 2])
+    # Combine valid surrogate pairs while preserving the reader's existing unpaired code units.
+    return out.decode("utf-16le", errors="surrogatepass")
 
 
 def _read_asciiz(data: bytes, off_bytes: int, max_len: int = 512) -> str:
