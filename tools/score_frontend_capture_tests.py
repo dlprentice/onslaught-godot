@@ -205,6 +205,18 @@ def test_capture_plan_with_no_page_is_unscored(root: Path) -> None:
     assert code == 0, code
 
 
+def test_page_with_no_requested_samples_is_an_error(root: Path) -> None:
+    plan, capture = build_fixture(root, chrome=CHROME)
+    body = json.loads(plan.read_text(encoding="utf-8"))
+    body["pages"][0]["samples"] = []
+    plan.write_text(json.dumps(body), encoding="utf-8")
+    code, report = run(plan, capture, root / "out.json")
+    assert report["verdict"] == "ERROR", report["verdict"]
+    assert code == 1, code
+    assert report["pages"][0]["samples"] == [], report
+    assert any("no requested sample" in e for e in report["pages"][0]["errors"]), report
+
+
 def test_pairing_outside_tolerance_is_an_error(root: Path) -> None:
     """A frame far from its retail counterpart must be an ERROR, never a
     quietly-used approximation."""

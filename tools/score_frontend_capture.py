@@ -128,6 +128,10 @@ def score_page(
         "errors": [],
         "samples": [],
     }
+    if not page["samples"]:
+        result["verdict"] = "ERROR"
+        result["errors"].append("no requested sample offsets")
+        return result
 
     regions_path = REPO_ROOT / page["regions"]
     if not regions_path.is_file():
