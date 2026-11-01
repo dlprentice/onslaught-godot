@@ -106,7 +106,7 @@ public sealed class TrainerRouteTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// The port's probe set at a Present (bea-decomp port/platform/common/replay.cpp, Probe): a deleted random stream or
+    /// The port's probe set at a Present (Onslaught CE@cdc077aa port/platform/common/replay.cpp, Probe): a deleted random stream or
     /// player reads as zero bytes, as the port's probe of a null pointer does.
     /// </summary>
     internal static Dictionary<string, string> Probe(LevelSession session)

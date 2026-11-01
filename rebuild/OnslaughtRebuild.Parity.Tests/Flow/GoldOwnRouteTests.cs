@@ -141,7 +141,7 @@ public sealed class GoldOwnRouteTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// The port's probe set (bea-decomp port/platform/common/replay.cpp, Probe) on the whole run: the front end's line
+    /// The port's probe set (Onslaught CE@cdc077aa port/platform/common/replay.cpp, Probe) on the whole run: the front end's line
     /// while CFrontEnd::Run runs; GAME's fields from the level that ran last; a missing random stream or player reads as
     /// zeros.
     /// </summary>

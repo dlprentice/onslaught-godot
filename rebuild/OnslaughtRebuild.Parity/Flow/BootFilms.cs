@@ -41,7 +41,7 @@ public interface IFilmPacing
 /// polls the input again without presenting), and a later look finds it due: one frame per Present, and a skip seen in
 /// the poll after a Present ends the film without another frame. Measured on pristine 74154bfa under the shim (code
 /// breakpoints, a maintainer's 0.1.1 session tape: the skips after Presents 41 and 85 close the films at 42 and 86), and the
-/// native port's patch 0053 (bea-decomp port/PARITY.md). The waits themselves (Sleep(1)) are not modelled. Limit: just
+/// native port's patch 0053 (retained private port timing record). The waits themselves (Sleep(1)) are not modelled. Limit: just
 /// after a film opens, retail's first frames can already be due at the first look (a catch-up that depends on how
 /// long the open took); this model always waits once.
 /// </summary>
