@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-31
+Last updated: 2026-11-01
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -39,6 +39,12 @@ and device mouse state across level replacement (unread motion is consumed once;
 The new player recording parses without dropping any of its 3,083 events; parsing and authored controls alone do not
 establish a completed port/rebuild replay, a player's original session, or parity. The port reference, starting files,
 film settings and device/sound assumptions must be admitted separately before comparing the route.
+
+Host keyboard focus (2026-11-01): the [frontend bridge](OnslaughtRebuild.Host/FlowInputBridge.cs) queues
+releases for held keys when the window loses focus and ignores physical keyboard events while it is unfocused.
+Six [authored tests](OnslaughtRebuild.Parity.Tests/Host/FlowInputBridgeTests.cs) and the Host build passed.
+The Parity run reported 926 passes and 205 reference-dependent cases not executed, with none newly unexecuted.
+Physical focus and gameplay were not observed; this is not full-reference acceptance.
 
 Weapon-driven zoom (2026-10-28): `CBattleEngine::Move` selects a charge-dependent or normal target, keeps the
 previous zoom for camera interpolation, and moves the current value by at most `0.1f` per update. The pristine

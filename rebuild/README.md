@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
-Last updated: 2026-10-29 (floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Last updated: 2026-11-01 (frontend focus input; floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the floating-point parity core and its bounded comparisons, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
@@ -111,7 +111,9 @@ export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # if `godot` on PATH
 npm run run:host                                            # builds the Host, then runs the whole game (HOST_LIVE=flow)
 ```
 
-`run:host` opens the experimental whole-game preview with keyboard input. That `HOST_LIVE=flow` route does not
+`run:host` opens the experimental whole-game preview with keyboard input. When its window loses focus, held keys are
+released and physical keyboard events are ignored while the window is unfocused. Authored tests cover this;
+physical focus and gameplay have not been observed. That `HOST_LIVE=flow` route does not
 use the opt-in live audio adapter: a level can stop at an unsupported sound operation (the incoming-missile warning
 is one reproduced case).
 The whole-game preview does not yet admit physical mouse input; its career and options writes stay in memory and
