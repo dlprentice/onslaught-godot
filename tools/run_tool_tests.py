@@ -35,6 +35,7 @@ SUITES: tuple[tuple[str, ...], ...] = (
     ("tools/check_installed_game_claims.py", "--self-test"),
     ("tools/check_installed_game_claims.py", "--check"),
     ("tools/aya_archive_inventory_tests.py",),
+    ("tools/language_dat_decode_tests.py",),
     ("rebuild/tools/materialize_retail_assets_tests.py",),
     ("rebuild/tools/cmsh_static_preview_tests.py",),
     ("tools/score_frontend_capture_tests.py",),
@@ -159,6 +160,9 @@ class RunToolTestsSelfTest(unittest.TestCase):
             with self.subTest(suite=command[0]):
                 self.assertTrue((ROOT / command[0]).is_file(), command[0])
         self.assertTrue(set(WINDOWS_ONLY) <= {command[0] for command in SUITES})
+
+    def test_the_language_decoder_suite_runs_once_in_the_normal_gate(self) -> None:
+        self.assertEqual(1, SUITES.count(("tools/language_dat_decode_tests.py",)))
 
     @mock.patch.dict(WINDOWS_ONLY, {f"tools/windows_only_{n}.py": "synthetic" for n in range(4)})
     def test_windows_suites_are_reported_without_launching_on_linux(self) -> None:
