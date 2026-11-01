@@ -164,7 +164,7 @@ public sealed class ProbeTrace
             string[] f = line.Split(' ');
             if (f.Length != 4 || f[0] != "P"
                 || !long.TryParse(f[1], NumberStyles.None, CultureInfo.InvariantCulture, out long frame)
-                || f[3].Length % 2 != 0)
+                || f[3].Length == 0 || f[3].Length % 2 != 0)
             {
                 throw new FormatException($"Probe trace line {n + 1}: expected 'P <frame> <NAME> <hex>': '{line}'.");
             }
