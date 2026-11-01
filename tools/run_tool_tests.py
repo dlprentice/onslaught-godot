@@ -41,6 +41,7 @@ SUITES: tuple[tuple[str, ...], ...] = (
     ("tools/check_region_overlap_tests.py",),
     ("tools/check_region_overlap.py",),
     # Name-align plates (Gen34–38): keep regression guards in the sweep (Opus).
+    ("rebuild/tools/host_flow_check_tests.py",),
 )
 
 # Suites that need a Windows host, by path, with the reason. None remain since the

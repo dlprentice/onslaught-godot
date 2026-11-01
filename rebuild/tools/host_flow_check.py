@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import filecmp
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -83,7 +84,37 @@ def against_port(trace: Path, port: dict[tuple[int, str], str], known=None) -> t
     return compared, None
 
 
+def _resolve_child_command(command: str, env: dict[str, str]) -> str | None:
+    """Match executable search from the HOST working directory."""
+    entries = os.get_exec_path(env)
+    child_path = os.pathsep.join(
+        entry if os.path.isabs(entry) else os.fspath(HOST / entry) for entry in entries
+    )
+    if os.path.dirname(command) and not os.path.isabs(command):
+        command = os.fspath(HOST / command)
+    return shutil.which(command, path=child_path)
+
+
+def _reject_direct_recursion(env: dict[str, str]) -> None:
+    """Reject a wrapper pointing directly to itself; this does not verify provenance.
+
+    Indirect cycles and copies with different file identities are outside the check.
+    """
+    engine = env.get("GODOT")
+    if not isinstance(engine, str) or not engine:
+        return
+    try:
+        wrapper_path = _resolve_child_command("godot-headless", env)
+        engine_path = _resolve_child_command(engine, env)
+        recursive = bool(wrapper_path and engine_path and os.path.samefile(wrapper_path, engine_path))
+    except (OSError, TypeError, ValueError):
+        return
+    if recursive:
+        raise SystemExit("GODOT points to godot-headless; set it to the engine executable.")
+
+
 def run_host(env: dict[str, str], log: Path) -> int:
+    _reject_direct_recursion(env)
     with log.open("w") as out:
         return subprocess.run(["godot-headless"], cwd=HOST, env=env, stdout=out, stderr=subprocess.STDOUT).returncode
 
