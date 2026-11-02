@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
+import importlib.util
 import io
 import json
 import os
@@ -20,6 +21,7 @@ import zipfile
 import rebuild_toolchain as tool
 
 REAL_DOWNLOAD = tool.download
+REAL_PRINT = print
 
 
 def sha(data: bytes) -> str:
@@ -197,6 +199,27 @@ class PublicToolchainTests(unittest.TestCase):
             with self.assertRaisesRegex(tool.ToolchainError, "Python 3.11"):
                 tool.setup(self.root)
         self.assertEqual(self.downloads, [])
+
+    def test_without_fcntl_native_windows_gets_wsl_guidance_before_git_or_setup(self) -> None:
+        spec = importlib.util.spec_from_file_location("rebuild_toolchain_without_fcntl", tool.__file__)
+        module = importlib.util.module_from_spec(spec)
+        real_import = __import__
+        def without_fcntl(name, *args, **kwargs):
+            if name == "fcntl":
+                raise ImportError("unavailable on native Windows")
+            return real_import(name, *args, **kwargs)
+        with mock.patch("builtins.__import__", side_effect=without_fcntl):
+            spec.loader.exec_module(module)
+        self.assertIsNone(module.fcntl)
+        stderr = io.StringIO()
+        with mock.patch.object(module.sys, "platform", "win32"), \
+                mock.patch.object(module, "default_root", side_effect=AssertionError("Git before platform check")), \
+                mock.patch.object(module, "setup", side_effect=AssertionError("setup on native Windows")), \
+                mock.patch("builtins.print", REAL_PRINT), \
+                contextlib.redirect_stderr(stderr):
+            self.assertEqual(2, module.main(["setup"]))
+        self.assertIn("Linux x86_64", stderr.getvalue())
+        self.assertIn("WSL2", stderr.getvalue())
 
     def test_unsafe_zip_names_and_duplicate_members_are_refused(self) -> None:
         path = self.inputs / "hostile.zip"
