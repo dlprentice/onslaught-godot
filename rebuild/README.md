@@ -1,24 +1,28 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
-Last updated: 2026-10-29 (floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Last updated: 2026-11-02 (public contributor and film setup; 2026-10-29: floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the floating-point parity core and its bounded comparisons, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
-[`DETERMINISM.md`](DETERMINISM.md) is the determinism contract (the first
-thing a contributor to Core breaks). [`PARITY.md`](PARITY.md) defines what
+[`DETERMINISM.md`](DETERMINISM.md) states the Parity core's determinism contract.
+[`PARITY.md`](PARITY.md) defines what
 "1:1 parity" means operationally and what is currently graded.
 
 ## Working lane
 
 - The rebuild is developed in this repository (onslaught-godot) since 2026-10-22: work goes on a branch and merges into
-  `main` when its gate passes. The copy that stayed in Onslaught-Career-Editor's `rebuild/` is frozen (no new commits)
-  until it is removed there.
+  `main` when its gate passes. The copy in Onslaught-Career-Editor's `rebuild/` is retained as a frozen reference.
+  Build, test and develop the live Parity core and Host in this repository.
 - Builds, test runs and captures happen in a clone on an internal disk (or a worktree of it), never in a checkout on
   slow or removable storage. Which clone and folders this machine uses is kept in an ignored local file
   (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.
+- Public source setup and an authored-test example are in the [root README](../README.md#building-and-testing).
+  Contributors can prepare changes without the maintainer's private reference inputs. The
+  [contribution gate](../CONTRIBUTING.md#the-gate) requires a maintainer to validate the proposed commit against those
+  references before a simulation or Host change merges; authored tests alone do not establish parity.
 - The Parity suite compares the simulation with recorded retail and native-port references, which live outside the
-  repository. Set these variables (for example in `local-data/rebuild-env.sh`, then `source` it), then run the suite and
-  build the Host from the clone root:
+  repository. For that reference-bearing gate, set these variables to your actual datasets (for example in your own
+  `local-data/rebuild-env.sh`, then `source` it), then run the suite and build the Host from the clone root:
 
 | Variable | Names | Used by |
 | --- | --- | --- |
@@ -41,9 +45,9 @@ dotnet build rebuild/OnslaughtRebuild.Host
 npm run -s test:docs && npm run -s test:safety
 ```
 
-A missing reference, an empty selection or a new skip is not a pass; plain `npm test` is not this suite. The
-references are not in the repository; [PARITY.md](PARITY.md) records what each
-measurement covers and what remains open.
+`npm test` runs the same Parity test project. Tests whose game or recorded-reference inputs are absent report skips;
+a missing reference, an empty selection or a new skip is not a pass for the required comparison. The references are
+not in the repository; [PARITY.md](PARITY.md) records what each measurement covers and what remains open.
 
 ## Proof of concept (2026-10-15)
 
@@ -100,16 +104,25 @@ You need Godot 4.8 beta1 .NET (the "Godot Engine - .NET" download of 4.8 beta1 f
 [godotengine.org](https://godotengine.org/download/archive/), identity `4.8.beta1.mono.official.4d10419ca`), the
 .NET 10 SDK, and your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
-(`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The films are drawn from a library you decode from
-your installation with `python3 rebuild/tools/materialize_films.py <folder>` (FFmpeg required), named by
-`ONSLAUGHT_FILMS`. Those game data and film assets are not included in the repository; its one tracked game-generated
-career fixture is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
+(`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host draws decoded films from a library at
+`ONSLAUGHT_FILMS`. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
+Those game data and film assets are not included in the repository; its one tracked game-generated career fixture
+is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
+
+From the repository root, with the Python environment from the [source setup](../README.md#building-and-testing)
+active, prepare films into ignored local data and run the Host:
 
 ```bash
-export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"   # if it is not in the Steam default
+export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"
+export ONSLAUGHT_FILMS="$PWD/local-data/films"
+python -m pip install numpy
+python rebuild/tools/materialize_films.py "$ONSLAUGHT_FILMS" --game-dir "$ONSLAUGHT_GAME_DIR"
 export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # if `godot` on PATH is not that engine
-npm run run:host                                            # builds the Host, then runs the whole game (HOST_LIVE=flow)
+npm run run:host                                        # builds and runs the whole game (HOST_LIVE=flow)
 ```
+
+The materializer's first argument is the output folder. It uses `--game-dir` for the installation and does not read
+`ONSLAUGHT_GAME_DIR`; passing it explicitly also works for installations outside Steam's default library.
 
 `run:host` opens the experimental whole-game preview with keyboard input. That `HOST_LIVE=flow` route does not
 use the opt-in live audio adapter: a level can stop at an unsupported sound operation (the incoming-missile warning

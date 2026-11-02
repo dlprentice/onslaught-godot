@@ -11,7 +11,7 @@ a suite test; it admits a sound-pool seed and a goodie-load completion observed 
 references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
 match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
 Present bounds. These comparisons do not establish audio, picture or whole-campaign parity.
-Last updated: 2026-10-29 (the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+Last updated: 2026-11-02 (public contributor setup and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
 Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
 bounds, and on one recorded win with the original's own process to the end (PARITY M5).
@@ -53,18 +53,41 @@ dozens of paths for no gain.
 
 ## Building and testing
 
-You need the .NET 10 SDK (`global.json` pins 10.0.402) and Godot 4.8 beta1 .NET (the host pins `Godot.NET.Sdk/4.8.0-beta.1`). Clone with the
-submodule (`git clone --recurse-submodules`), then:
+For source checks, install the .NET 10 SDK (`global.json` pins 10.0.402), Node 26 with npm 11.19 or later in the
+11.x series (`package.json`), and Python 3 with `venv` and pip. The Python tools suite needs Pillow. Host work also
+uses Godot 4.8 beta1 .NET (the host pins `Godot.NET.Sdk/4.8.0-beta.1`).
+
+The repository and its pinned submodule use public HTTPS URLs. A contributor can clone them and work on authored
+tests, tools, documentation and source without access to the maintainer's computer, private repositories or lab:
 
 ```sh
-dotnet test rebuild/OnslaughtRebuild.Parity.Tests       # the parity suite; set the reference variables first
-dotnet build rebuild/OnslaughtRebuild.Host              # the host
-npm run run:host                                        # build and run the host: the whole game, with your own game data
+git clone --recurse-submodules https://github.com/dlprentice/onslaught-godot.git
+cd onslaught-godot
+python3 -m venv local-data/venv
+. local-data/venv/bin/activate
+python -m pip install Pillow
+dotnet build rebuild/OnslaughtRebuild.Parity
+dotnet test rebuild/OnslaughtRebuild.Parity.Tests --filter FullyQualifiedName~OnslaughtRebuild.Parity.Tests.CrtRandTests
 npm run test:tools && npm run test:docs && npm run test:safety
 ```
 
-[rebuild/README.md](rebuild/README.md#running-the-host) says what the host needs (the engine, `ONSLAUGHT_GAME_DIR`)
-and lists the reference variables, the host's run modes and the tools.
+`CrtRandTests` is an authored test example that needs no game data; choose the affected authored tests for your
+change. The tools suite also has retail-corpus checks that report skips when those corpora are absent. Running
+`npm test` executes the full Parity test project; comparisons whose game or reference inputs are missing report
+skips. Report those separately from passing authored tests. Before a simulation or Host change merges, a maintainer
+must run the required reference-bearing gate on the proposed commit, as [CONTRIBUTING.md](CONTRIBUTING.md#the-gate)
+describes. Missing references, an empty selection and new skips do not satisfy that gate.
+
+With the Godot .NET engine installed, build the Host:
+
+```sh
+dotnet build rebuild/OnslaughtRebuild.Host
+```
+
+Running the Host requires your own game installation. Optional film preparation additionally needs NumPy in the
+Python environment (`python -m pip install numpy`) and FFmpeg with `ffprobe` on `PATH`.
+[rebuild/README.md](rebuild/README.md#running-the-host) gives the game and film paths, preparation commands and run
+modes; its [working lane](rebuild/README.md#working-lane) lists the maintainer's reference inputs.
 
 ## Licence and credits
 
