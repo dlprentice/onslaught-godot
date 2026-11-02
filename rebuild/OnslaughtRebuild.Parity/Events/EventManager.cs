@@ -164,6 +164,14 @@ public sealed class EventManager
         }
 
         _overflow.Clear();
+        // Deleting the native CScheduledEvent pool destroys both member active readers, including those in
+        // checked-out events that were never queued. Dropping managed references alone does not unlink them.
+        foreach (ScheduledEvent e in _pool)
+        {
+            e.SetData(null);
+            e.SetToCall(null);
+        }
+
         _pool = [];
         _freeList = null;
     }

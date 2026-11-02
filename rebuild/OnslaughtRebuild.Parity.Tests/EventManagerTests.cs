@@ -132,6 +132,77 @@ public sealed class EventManagerTests
     }
 
     [Fact]
+    public void ShutdownReleasesBufferedAndOverflowReadersWithoutDestroyingTheirMonitors()
+    {
+        // The pinned released eventmanager.cpp deletes the scheduled-event pool in Shutdown. Its CEvent
+        // target and CScheduledEvent data members are active readers; activereader.h unlinks them on destruction.
+        EventManager events = Started();
+        var log = new List<string>();
+        var target = new Recorder(log, "target");
+        var data = new Monitor();
+        var survivingTargetReader = new ActiveReader<Monitor>();
+        var survivingDataReader = new ActiveReader<Monitor>();
+        survivingTargetReader.SetReader(target);
+        survivingDataReader.SetReader(data);
+        events.AddEvent(1, target, 0.0f, EventPriority.StartOfFrame, data);
+        events.AddEvent(2, target, 4.0f, EventPriority.MiddleOfFrame, data);
+        events.AddEvent(3, target, 7.0f, EventPriority.EndOfFrame, data);
+        events.AddEvent(4, target, 20.0f, data: data);
+        Assert.Equal(5, target.DeletionCount);
+        Assert.Equal(5, data.DeletionCount);
+
+        events.Shutdown();
+
+        Assert.False(events.IsValid);
+        Assert.Equal(1, target.DeletionCount);
+        Assert.Equal(1, data.DeletionCount);
+        Assert.Same(target, survivingTargetReader.ToRead);
+        Assert.Same(data, survivingDataReader.ToRead);
+        events.Shutdown();
+        events.Init();
+        events.AddEvent(5, target, EventManager.NextFrame, data: data);
+        events.Update();
+        Assert.Equal(new[] { "target:5" }, log);
+        Assert.Equal(1u, events.TotalEventsProcessed);
+        Assert.Equal(1, target.DeletionCount);
+        Assert.Equal(1, data.DeletionCount);
+    }
+
+    [Fact]
+    public void ShutdownReleasesCheckedOutPoolReadersAndPreservesAnotherSchedulersEvents()
+    {
+        EventManager events = Started();
+        EventManager otherEvents = Started();
+        var log = new List<string>();
+        var target = new Recorder(log, "target");
+        var otherTarget = new Recorder(log, "other");
+        var data = new Monitor();
+        // Pool destruction also owns a checked-out event that has not yet been put in a scheduling buffer.
+        ScheduledEvent checkedOut = Assert.IsType<ScheduledEvent>(events.GetNextFreeEvent());
+        checkedOut.SetToCall(target);
+        checkedOut.SetData(data);
+        otherEvents.AddEvent(6, target, EventManager.NextFrame, data: data);
+        otherEvents.AddEvent(7, otherTarget, EventManager.NextFrame, data: data);
+        Assert.Equal(2, target.DeletionCount);
+        Assert.Equal(1, otherTarget.DeletionCount);
+        Assert.Equal(3, data.DeletionCount);
+
+        events.Shutdown();
+
+        Assert.Null(checkedOut.ToCall);
+        Assert.Null(checkedOut.Data);
+        Assert.Equal(1, target.DeletionCount);
+        Assert.Equal(1, otherTarget.DeletionCount);
+        Assert.Equal(2, data.DeletionCount);
+        otherEvents.Update();
+        Assert.Equal(new[] { "target:6", "other:7" }, log);
+        Assert.Equal(2u, otherEvents.TotalEventsProcessed);
+        Assert.Equal(0, target.DeletionCount);
+        Assert.Equal(0, otherTarget.DeletionCount);
+        Assert.Equal(0, data.DeletionCount);
+    }
+
+    [Fact]
     public void AHandlerThatReusesItsEventKeepsItAliveAndKeepsItsTarget()
     {
         var log = new List<string>();
