@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-10-31
+Last updated: 2026-11-02
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -14,6 +14,17 @@ pristine specimen; do not infer another executable's identity from its folder na
 Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
+
+**2026-11-02 — flow Host keyboard focus boundary.** The [flow Host](OnslaughtRebuild.Host/Host.Flow.cs)
+connects window focus callbacks to the [keyboard owner](OnslaughtRebuild.Host/FlowKeyboardInput.cs), which
+releases forwarded held keys on focus loss and ignores native keys while unfocused. Shutdown detaches the
+callbacks before disposing the run. The [nine authored tests](OnslaughtRebuild.Parity.Tests/HostFlowKeyboardTests.cs)
+passed, including a held-focus causal control, queued presses, replay exclusion and shutdown; the live Host and
+its Parity dependency compiled. One unfiltered Parity run on
+[699b513](https://github.com/dlprentice/onslaught-godot/commit/699b5136555c11cb5b40920be21eed247bfd9c54)
+reported **1,143 passed, 0 failed, 7 skipped**: four legacy replay-view checks, two occupancy-reference checks
+and one sample decoder/converter oracle check. The required reference gate is **INCOMPLETE** while those inputs
+are unavailable. These checks do not establish native focus-event delivery or gameplay acceptance.
 
 ## Where it stands (2026-10-29)
 
