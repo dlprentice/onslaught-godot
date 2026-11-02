@@ -192,6 +192,12 @@ class PublicToolchainTests(unittest.TestCase):
             tool.verified_install(self.root, self.pins, ["other"])
         self.assertEqual(self.downloads, [])
 
+    def test_python_before_file_digest_support_fails_before_download(self) -> None:
+        with mock.patch.object(tool.sys, "version_info", (3, 10, 12)):
+            with self.assertRaisesRegex(tool.ToolchainError, "Python 3.11"):
+                tool.setup(self.root)
+        self.assertEqual(self.downloads, [])
+
     def test_unsafe_zip_names_and_duplicate_members_are_refused(self) -> None:
         path = self.inputs / "hostile.zip"
         spec = {**self.manifest["engine"], "sourceSubdirectory": ""}

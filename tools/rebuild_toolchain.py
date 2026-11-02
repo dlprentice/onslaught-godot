@@ -62,6 +62,8 @@ def default_root() -> Path:
 
 
 def check_host() -> None:
+    if sys.version_info < (3, 11):
+        raise ToolchainError("the standalone toolchain requires Python 3.11 or newer")
     if sys.platform != "linux" or platform.machine().lower() not in ("x86_64", "amd64"):
         raise ToolchainError("the standalone toolchain supports Linux x86_64 only")
 

@@ -53,9 +53,11 @@ dozens of paths for no gain.
 
 ## Building and testing
 
-The public setup route targets Linux x86_64. Start with Python 3 with `venv` and pip; the Python tools suite needs
+The public setup route targets Linux x86_64. Start with Python 3.11 or newer with `venv` and pip; the Python tools suite needs
 Pillow. The npm shortcuts also need Node 26 and npm 11.19 or later in the 11.x series (`package.json`). The setup
 command installs the pinned .NET 10.0.402 SDK and Godot 4.8 beta1 .NET into this checkout's ignored `local-data/`.
+Your distribution must provide the native dependencies described in Microsoft's
+[Linux installation guidance](https://learn.microsoft.com/en-us/dotnet/core/install/linux#manual-installation).
 
 The repository and its pinned submodule use public HTTPS URLs. A contributor can clone them and work on authored
 tests, tools, documentation and source without access to the maintainer's computer, private repositories or lab:
@@ -77,6 +79,9 @@ Setup downloads only the official public archives pinned by URL, licence and has
 Godot bundle and `https://api.nuget.org/v3/index.json`. Their .NET, NuGet, XDG and temporary state stays inside this
 checkout; they do not use the maintainer's profiles, private scripts or local reference paths. Setup is explicit:
 build and test fail if the pinned tools are unavailable instead of installing them automatically.
+
+MSBuild's directory resolver prints `MSB4241` with an empty SDK version label on this build route. The installer
+checks the exact pinned engine archive and SDK-package hashes before the runner uses that directory.
 
 The default authored selection covers `CrtRandTests`, `LiveAudioOutputStartupTests` and `Flow.SaveGameTests` with no
 game data or recorded references. It is a starter check; choose the affected authored tests for your change:
