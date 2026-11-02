@@ -84,7 +84,7 @@ def _link_directory(link: Path, target: Path) -> None:
         return
     if link.exists() or link.is_symlink():
         raise ValueError(f"SDK directory already has a different owner: {link}")
-    link.symlink_to(target, target_is_directory=True)
+    link.symlink_to(target, target_is_directory=target.is_dir())
 
 
 def sdk_directory(root: Path, dotnet: Path, engine: Path, sdk_version: str, godot_version: str) -> Path:
@@ -118,9 +118,15 @@ def sdk_directory(root: Path, dotnet: Path, engine: Path, sdk_version: str, godo
                 destination.write_bytes(content)
     if not (extracted / "Sdk/Sdk.props").is_file():
         raise ValueError("the bundled Godot SDK has no Sdk/Sdk.props")
-    combined = cache / "sdks" / f"{sdk_version}-{godot_version}"
+    combined_root = cache / "sdks" / f"{sdk_version}-{godot_version}"
+    combined = combined_root / "Sdks"
     _ordinary_path(combined)
     combined.mkdir(parents=True, exist_ok=True)
+    # The .NET SDK imports version/target metadata relative to its Sdks parent.
+    # Preserve that layout without changing the verified .NET installation.
+    for item in standard.parent.iterdir():
+        if item.name != "Sdks":
+            _link_directory(combined_root / item.name, item)
     for item in standard.iterdir():
         if item.is_dir():
             _link_directory(combined / item.name, item)

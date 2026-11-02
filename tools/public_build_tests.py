@@ -57,6 +57,7 @@ class SdkBundleTests(unittest.TestCase):
     def make_bundle(self, root: Path, entry: str = "Sdk/Sdk.props"):
         dotnet = root / "dotnet/dotnet"
         (dotnet.parent / "sdk/10.0.402/Sdks/Microsoft.NET.Sdk/Sdk").mkdir(parents=True)
+        (dotnet.parent / "sdk/10.0.402/Microsoft.NETCoreSdk.BundledVersions.props").write_text("version metadata")
         engine = root / "godot/godot"
         packages = engine.parent / "GodotSharp/Tools/nupkgs"
         packages.mkdir(parents=True)
@@ -72,6 +73,7 @@ class SdkBundleTests(unittest.TestCase):
             self.assertEqual(dotnet.parent / "sdk/10.0.402/Sdks/Microsoft.NET.Sdk",
                              (combined / "Microsoft.NET.Sdk").resolve())
             self.assertEqual("<Project />", (combined / "Godot.NET.Sdk/Sdk/Sdk.props").read_text())
+            self.assertEqual("version metadata", (combined.parent / "Microsoft.NETCoreSdk.BundledVersions.props").read_text())
             self.assertFalse((dotnet.parent / "sdk/10.0.402/Sdks/Godot.NET.Sdk").exists())
             self.assertEqual(combined, runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.1"))
             (combined / "Godot.NET.Sdk/Sdk/Sdk.props").write_text("changed")
