@@ -89,7 +89,7 @@ applications require their own native Windows acceptance; a WSL2 result does not
 
 Setup downloads only the official public archives pinned by URL, licence and hash in
 [`tools/rebuild_toolchain.json`](tools/rebuild_toolchain.json). Build and test restore packages from the installed
-Godot bundle and `https://api.nuget.org/v3/index.json`. Their .NET, NuGet, XDG and temporary state stays inside this
+Godot bundle and `https://api.nuget.org/v3/index.json`. Their child-process home, .NET, NuGet, XDG and temporary state stays inside this
 checkout; they do not use the maintainer's profiles, private scripts or local reference paths. Setup is explicit:
 build and test fail if the pinned tools are unavailable instead of installing them automatically.
 

@@ -41,11 +41,12 @@ def child_environment(root: Path, run: Path, dotnet: Path, sdk_directory: Path,
                       inherited: dict[str, str] | None = None) -> dict[str, str]:
     """Keep host/network essentials; use checkout-local .NET/NuGet and XDG state."""
     inherited = os.environ if inherited is None else inherited
-    allowed = ("PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "SSL_CERT_FILE", "SSL_CERT_DIR",
+    allowed = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "SSL_CERT_FILE", "SSL_CERT_DIR",
                "http_proxy", "https_proxy", "no_proxy", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY")
     env = {key: inherited[key] for key in allowed if key in inherited}
     cache = root / "local-data/public-build/cache"
     paths = {
+        "HOME": run / "home",
         "DOTNET_CLI_HOME": cache / "dotnet-home",
         "NUGET_PACKAGES": cache / "packages",
         "NUGET_HTTP_CACHE_PATH": cache / "http",

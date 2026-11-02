@@ -24,7 +24,9 @@ class PublicEnvironmentTests(unittest.TestCase):
                 "ONSLAUGHT_GAME_DIR": "/unrelated-install", "ONSLAUGHT_PORT_REFS": "/unrelated-recordings",
             }
             env = runner.child_environment(root, root / "run", root / "dotnet/dotnet", root / "sdks", inherited)
-            self.assertEqual(inherited["HOME"], env["HOME"])
+            self.assertEqual(str(root / "run/home"), env["HOME"])
+            self.assertTrue(Path(env["HOME"]).is_dir())
+            self.assertEqual("/unchanged-user-home", inherited["HOME"])
             self.assertNotIn("NuGetPackageSourceCredentials_Private", env)
             self.assertNotIn("NUGET_PLUGIN_PATHS", env)
             self.assertNotIn("HOST_LIVE", env)
