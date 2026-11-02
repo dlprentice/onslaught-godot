@@ -44,12 +44,20 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
 
 ```bash
 source local-data/rebuild-env.sh          # the variables above, with this machine's folders
+export DOTNET_ROOT="$PWD/local-data/toolchains/rebuild/dotnet"
+export DOTNET_ROOT_X64="$DOTNET_ROOT"
+export PATH="$DOTNET_ROOT:$PATH"
+dotnet --version                         # the pinned 10.0.402 SDK installed by public setup
 dotnet test rebuild/OnslaughtRebuild.Parity.Tests --logger 'console;verbosity=normal'
-dotnet build rebuild/OnslaughtRebuild.Host
+npm run build
 npm run -s test:docs && npm run -s test:safety
 ```
 
-`npm test` runs the same Parity test project. Tests whose game or recorded-reference inputs are absent report skips;
+Create `local-data/rebuild-env.sh` yourself with the paths of your reference datasets if you use that example; it
+is not supplied by setup. The SDK exports select the public local installation. The full Parity command still uses
+the caller's configured reference, MSBuild and NuGet environment; the public runner's isolated environment is
+scoped to its own build/authored-test subprocesses. `npm test` runs that same full Parity project through `dotnet`
+on the configured `PATH`. Tests whose game or recorded-reference inputs are absent report skips;
 a missing reference, an empty selection or a new skip is not a pass for the required comparison. The references are
 not in the repository; [PARITY.md](PARITY.md) records what each measurement covers and what remains open.
 
@@ -114,16 +122,23 @@ Those game data and film assets are not included in the repository; its one trac
 is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
 
 From the repository root, with the Python environment from the [source setup](../README.md#building-and-testing)
-active, prepare films into ignored local data and run the Host:
+active and its toolchain installed, select the local .NET SDK/runtime and engine, prepare films into ignored local
+data and run the Host manually:
 
 ```bash
+export DOTNET_ROOT="$PWD/local-data/toolchains/rebuild/dotnet"
+export DOTNET_ROOT_X64="$DOTNET_ROOT"
+export PATH="$DOTNET_ROOT:$PATH"
+export GODOT="$PWD/local-data/toolchains/rebuild/engine/Godot_v4.8-beta1_mono_linux.x86_64"
 export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"
 export ONSLAUGHT_FILMS="$PWD/local-data/films"
 python -m pip install numpy
 python rebuild/tools/materialize_films.py "$ONSLAUGHT_FILMS" --game-dir "$ONSLAUGHT_GAME_DIR"
-export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # the pinned engine path printed by setup
 npm run run:host                                        # builds and runs the whole game (HOST_LIVE=flow)
 ```
+
+`DOTNET_ROOT` and `DOTNET_ROOT_X64` make the local runtime available to the Godot .NET engine; `PATH` also selects
+that SDK for direct `dotnet` commands in this terminal. These exports apply to the current terminal session.
 
 The materializer's first argument is the output folder. It uses `--game-dir` for the installation and does not read
 `ONSLAUGHT_GAME_DIR`; passing it explicitly also works for installations outside Steam's default library.

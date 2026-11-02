@@ -105,16 +105,31 @@ python tools/public_build.py test --filter FullyQualifiedName~OnslaughtRebuild.P
 
 The runner rejects empty selections, skipped selected tests and failures, and prints its local log/report folder.
 `npm run build`, `npm run test:authored` and `npm run setup:toolchain` are shortcuts for these Python commands.
-The tools suite also has retail-corpus checks that report skips when those corpora are absent. Running
-`npm test` executes the full Parity test project; comparisons whose game or reference inputs are missing report
-skips. Report those separately from passing authored tests. Before a simulation or Host change merges, a maintainer
+The tools suite also has retail-corpus checks that report skips when those corpora are absent.
+
+`npm test` is the separate full Parity project, run through the terminal's `dotnet` command. Setup leaves the
+terminal's environment unchanged. When you have configured the [reference inputs](rebuild/README.md#working-lane),
+the public local SDK can supply that command from the repository root:
+
+```sh
+export DOTNET_ROOT="$PWD/local-data/toolchains/rebuild/dotnet"
+export DOTNET_ROOT_X64="$DOTNET_ROOT"
+export PATH="$DOTNET_ROOT:$PATH"
+dotnet --version                         # the pinned 10.0.402 SDK
+npm test
+```
+
+This full suite uses your configured reference, MSBuild and NuGet environment; it does not inherit the public
+runner's isolated settings. Comparisons whose game or reference inputs are missing report skips. Report those
+separately from passing authored tests. Before a simulation or Host change merges, a maintainer
 must run the required reference-bearing gate on the proposed commit, as [CONTRIBUTING.md](CONTRIBUTING.md#the-gate)
 describes. Missing references, an empty selection and new skips do not satisfy that gate.
 
 Running the Host requires your own game installation. Optional film preparation additionally needs NumPy in the
 Python environment (`python -m pip install numpy`) and FFmpeg with `ffprobe` on `PATH`.
-[rebuild/README.md](rebuild/README.md#running-the-host) gives the game and film paths, preparation commands and run
-modes; its [working lane](rebuild/README.md#working-lane) lists the maintainer's reference inputs.
+[rebuild/README.md](rebuild/README.md#running-the-host) gives the local SDK/runtime environment, game and film paths,
+preparation commands and run modes. Its [working lane](rebuild/README.md#working-lane) lists the maintainer's
+reference inputs.
 
 ## Licence and credits
 
