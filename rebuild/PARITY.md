@@ -1772,3 +1772,18 @@ is what distinguishes the two.
 
 No claim of parity may be published from this file's existence. Parity is
 per-dimension, measured, and gated — or it is not parity.
+
+## 2026-11-02: deterministic vector hashing
+
+`FVector.GetHashCode` now combines the same component bit patterns used by equality
+with fixed unchecked integer arithmetic. It no longer depends on a process-specific
+hash seed. Signed zero and NaN payload distinctions remain consistent with the
+existing bitwise equality; vector layout and simulation arithmetic are unchanged.
+
+The two authored hash checks pass within the candidate full Parity suite: 1,175
+discovered, 1,168 passed, the same seven reference-dependent skips as the preceding
+source, and no failures. The Host build passed. The retained six-process comparison
+used identical before/after source: the preceding hash varied between processes;
+the corrected hash stayed equal. This establishes the bounded hash contract, not
+new gameplay or cross-platform retail parity. The complete reference gate remains
+open while those seven existing cases lack their required inputs.
