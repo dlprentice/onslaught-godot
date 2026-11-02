@@ -11,7 +11,7 @@ a suite test; it admits a sound-pool seed and a goodie-load completion observed 
 references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
 match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
 Present bounds. These comparisons do not establish audio, picture or whole-campaign parity.
-Last updated: 2026-11-02 (public contributor setup and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+Last updated: 2026-11-02 (public contributor setup, Windows WSL2 route and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
 Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
 bounds, and on one recorded win with the original's own process to the end (PARITY M5).
@@ -53,6 +53,14 @@ dozens of paths for no gain.
 
 ## Building and testing
 
+**On Windows (x64), use WSL2 for these contributor checks.** Follow Microsoft's
+[WSL installation guidance](https://learn.microsoft.com/en-us/windows/wsl/install). Enabling WSL, changing Windows
+features or installing a distribution requires the machine owner's approval. In a Windows terminal, run
+`wsl.exe --list --verbose` and confirm that your Linux distribution shows `VERSION` 2, then open that distribution's
+Linux terminal. Keep the checkout under its Linux home directory, such as `~/src/onslaught-godot`, following
+[Microsoft's file-storage guidance](https://learn.microsoft.com/en-us/windows/wsl/filesystems#file-storage-and-performance-across-file-systems).
+Run the setup, build and authored-test commands below inside that Linux terminal.
+
 The public setup route targets Linux x86_64. Start with Python 3.11 or newer with `venv` and pip; the Python tools suite needs
 Pillow. The npm shortcuts also need Node 26 and npm 11.19 or later in the 11.x series (`package.json`). The setup
 command installs the pinned .NET 10.0.402 SDK and Godot 4.8 beta1 .NET into this checkout's ignored `local-data/`.
@@ -63,6 +71,8 @@ The repository and its pinned submodule use public HTTPS URLs. A contributor can
 tests, tools, documentation and source without access to the maintainer's computer, private repositories or lab:
 
 ```sh
+mkdir -p ~/src
+cd ~/src
 git clone --recurse-submodules https://github.com/dlprentice/onslaught-godot.git
 cd onslaught-godot
 python3 -m venv local-data/venv
@@ -73,6 +83,9 @@ python tools/public_build.py build
 python tools/public_build.py test
 npm run test:tools && npm run test:docs && npm run test:safety
 ```
+
+These produce Linux build and authored-test results, including when run under WSL2. Native Windows builds and
+applications require their own native Windows acceptance; a WSL2 result does not establish that acceptance.
 
 Setup downloads only the official public archives pinned by URL, licence and hash in
 [`tools/rebuild_toolchain.json`](tools/rebuild_toolchain.json). Build and test restore packages from the installed

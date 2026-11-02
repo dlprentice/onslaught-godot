@@ -20,6 +20,8 @@ git switch -c my-change
 Follow the [public source setup](README.md#building-and-testing), commit only the files for your change, push the
 branch to your fork, and open the pull request. People and automated agents use the same workflow; upstream write
 access, private repositories, the maintainer's computer and its local lab are not needed to prepare a contribution.
+Windows contributors use the documented WSL2 route and keep the checkout inside its Linux filesystem. Host changes
+needed to enable or install WSL require the machine owner's approval; WSL2 checks do not establish native Windows acceptance.
 Work on this repository's Parity core and Host; the Toolkit repository's `rebuild/` remains a frozen reference copy.
 
 Keep a pull request to one subject, say what it changes in behaviour, and name the evidence: the Present where the

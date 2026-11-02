@@ -17,6 +17,8 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
   slow or removable storage. Which clone and folders this machine uses is kept in an ignored local file
   (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.
 - Public source setup and an authored-test example are in the [root README](../README.md#building-and-testing).
+  Windows contributors follow its WSL2 route, with the checkout inside the distribution's Linux filesystem;
+  enabling or installing WSL requires the host owner's approval. Those checks do not establish native Windows acceptance.
   `python tools/public_build.py setup`, `build` and `test` use a pinned public toolchain inside this checkout and
   require no machine wrapper, private profile or retail inputs. Contributors can prepare changes without the
   maintainer's private reference inputs. The

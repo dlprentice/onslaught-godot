@@ -26,6 +26,8 @@ Summary: the rules for working in this repository, for people and automated agen
   this checkout; `build` and `test` use them with local .NET/NuGet state. They require no game data, private lab,
   machine wrapper or reference environment script. Setup and restore contacts are documented in the
   [README](README.md#building-and-testing); the application itself still sends nothing.
+  The runner targets Linux x86_64; Windows contributors use that README's WSL2 route. Enabling or installing WSL
+  requires the host owner's approval. WSL2 checks are Linux evidence; native Windows acceptance stays separate.
 - The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until David explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
 - **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
   open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
