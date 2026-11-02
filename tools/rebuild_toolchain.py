@@ -11,6 +11,7 @@ import argparse
 import base64
 import ctypes
 import fcntl
+import gzip
 import hashlib
 import json
 import os
@@ -214,6 +215,19 @@ def payload_hash(records: list[tuple[str, int, bool, str]]) -> str:
     return digest.hexdigest()
 
 
+class BoundedReader:
+    """Bound tar metadata as well as file contents before tarfile allocates a read."""
+    def __init__(self, source: BinaryIO, limit: int):
+        self.source, self.remaining = source, limit
+
+    def read(self, size: int) -> bytes:
+        if size < 0 or size > self.remaining:
+            raise ToolchainError("expanded tar stream exceeds bound")
+        result = self.source.read(size)
+        self.remaining -= len(result)
+        return result
+
+
 def archive_payload(archive: Path, spec: dict[str, Any], destination: Path | None = None) -> str:
     """Bound every member; optionally extract files into a newly owned empty directory."""
     if destination is not None:
@@ -244,6 +258,8 @@ def archive_payload(archive: Path, spec: dict[str, Any], destination: Path | Non
             raise ToolchainError("archive file replaces a directory")
         seen[relative] = directory
         if directory:
+            if size != 0:
+                raise ToolchainError("archive directory declares file contents")
             if destination is not None:
                 (destination / relative).mkdir(parents=True, exist_ok=True, mode=0o700)
             return
@@ -288,7 +304,8 @@ def archive_payload(archive: Path, spec: dict[str, Any], destination: Path | Non
                 with container.open(item) as stream:
                     consume(item.filename, item.file_size, mode, item.is_dir(), stream)
     elif spec["archiveType"] == "tar.gz":
-        with tarfile.open(archive, mode="r|gz") as container:
+        with gzip.open(archive, "rb") as expanded, tarfile.open(fileobj=BoundedReader(
+                expanded, spec["maxExpandedBytes"] + spec["maxFiles"] * 10240), mode="r|") as container:
             for item in container:
                 if not (item.isfile() or item.isdir()) or item.mode & 0o7000:
                     raise ToolchainError("archive links and special files are refused")

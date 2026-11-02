@@ -294,6 +294,19 @@ class PublicToolchainTests(unittest.TestCase):
         with self.assertRaises(tool.ToolchainError):
             tool.verify_archive(hardlink, self.manifest["engine"])
 
+    def test_tar_metadata_reads_and_directory_contents_are_bounded(self) -> None:
+        reader = tool.BoundedReader(io.BytesIO(b"1234"), 3)
+        with self.assertRaises(tool.ToolchainError):
+            reader.read(4)
+        self.assertEqual(reader.read(3), b"123")
+        path = self.inputs / "bad-directory.zip"
+        entry = zipfile.ZipInfo("dir/")
+        entry.external_attr = (stat.S_IFDIR | 0o755) << 16
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr(entry, b"not directory metadata")
+        with self.assertRaises(tool.ToolchainError):
+            tool.archive_payload(path, {**self.manifest["engine"], "sourceSubdirectory": ""})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -31,6 +31,7 @@ class PublicEnvironmentTests(unittest.TestCase):
             self.assertNotIn("DISPLAY", env)
             self.assertEqual(str(root / "dotnet"), env["DOTNET_ROOT"])
             self.assertEqual("1", env["MSBUILDDISABLENUGETSDKRESOLVER"])
+            self.assertEqual("false", env["DOTNET_GENERATE_ASPNET_CERTIFICATE"])
             for name in runner.REFERENCE_VARIABLES:
                 self.assertEqual(str(root / "run/unavailable-reference-inputs"), env[name])
                 self.assertFalse(Path(env[name]).exists())
