@@ -32,6 +32,8 @@ public partial class Host
     private bool _flowReplay;
     private bool _flowFrontEndOnly;
     private SteppedGameRun? _flowRun;
+    private FlowKeyboardInput? _flowKeyboard;
+    private Window? _flowInputWindow;
     private StreamWriter? _flowTrace;
     private FlowSnapshot? _flowLast;
     private long? _flowEnd;
@@ -174,7 +176,14 @@ public partial class Host
             }
         }
 
-        _flowRun = new SteppedGameRun(run);
+        var flowRun = new SteppedGameRun(run);
+        _flowRun = flowRun;
+        _flowInputWindow = GetWindow();
+        _flowKeyboard = new FlowKeyboardInput(
+            (virtualKey, scanCode, down) => flowRun.Post(game => game.Input.PostTapeKey(virtualKey, scanCode, down)),
+            replay: _flowReplay, focused: _flowInputWindow.HasFocus());
+        _flowInputWindow.FocusEntered += FlowFocusEntered;
+        _flowInputWindow.FocusExited += FlowFocusExited;
         _flowStatus = new Label { Name = "FlowStatus", Position = new Vector2(8, 6), MouseFilter = Control.MouseFilterEnum.Ignore };
         AddChild(_flowStatus);
         GD.Print($"HOST_FLOW_READY replay={_flowReplay} drawing={_flowDraw} full_boot={fullBoot} silent=true sound_profile={(soundProfile is null ? "legacy-unconfigured" : "recorded-reference")}");
@@ -319,18 +328,21 @@ public partial class Host
 
     private void InputFlow(InputEvent input)
     {
-        if (_flowReplay || _flowRun is null || _flowStop is not null || input is not InputEventKey key || key.Echo)
+        if (_flowReplay || _flowKeyboard is null || _flowStop is not null || input is not InputEventKey key || key.Echo)
         {
             return;
         }
 
-        if (HostKeyMap.TryMap(key.PhysicalKeycode, key.Location, out HostKeyMap.PcKey pc))
+        if (HostKeyMap.TryMap(key.PhysicalKeycode, key.Location, out HostKeyMap.PcKey pc)
+            && _flowKeyboard.Observe(pc.VirtualKey, pc.ScanCode, key.Pressed))
         {
-            bool down = key.Pressed;
-            _flowRun.Post(run => run.Input.PostTapeKey(pc.VirtualKey, pc.ScanCode, down));
             GetViewport().SetInputAsHandled();
         }
     }
+
+    private void FlowFocusEntered() => _flowKeyboard?.SetFocused(true);
+
+    private void FlowFocusExited() => _flowKeyboard?.SetFocused(false);
 
     private void SaveRasterShot(long present, string kind = "raster")
     {
@@ -537,6 +549,14 @@ public partial class Host
 
     private void FinishFlow()
     {
+        if (_flowInputWindow is not null)
+        {
+            _flowInputWindow.FocusEntered -= FlowFocusEntered;
+            _flowInputWindow.FocusExited -= FlowFocusExited;
+            _flowInputWindow = null;
+        }
+        _flowKeyboard?.Stop();
+        _flowKeyboard = null;
         _flowParticles?.Dispose();
         _flowParticles = null;
         _flowTrace?.Dispose();
