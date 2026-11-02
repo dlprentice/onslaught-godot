@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import re
 import subprocess
 import sys
@@ -298,6 +299,15 @@ def normalize(path: str) -> str:
     return path.replace("\\", "/")
 
 
+def git_scan_env() -> dict[str, str]:
+    # Repository-selection overrides could make a subdirectory's Git commands
+    # inspect a different checkout. Preserve ordinary Git configuration and
+    # discovery ceilings, but select each repository by its actual directory.
+    excluded = {"GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
+                "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES"}
+    return {key: value for key, value in os.environ.items() if key not in excluded}
+
+
 def public_candidate_files(root: Path, *, include_submodules: bool = False) -> list[str]:
     try:
         result = subprocess.run(
@@ -306,6 +316,7 @@ def public_candidate_files(root: Path, *, include_submodules: bool = False) -> l
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=git_scan_env(),
         )
     except FileNotFoundError as exc:
         raise RuntimeError("git executable was not found for public candidate enumeration") from exc
@@ -352,6 +363,7 @@ def submodule_paths(root: Path) -> list[str]:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            env=git_scan_env(),
         )
     except FileNotFoundError as exc:
         raise RuntimeError("git executable was not found for .gitmodules parsing") from exc
@@ -365,12 +377,62 @@ def submodule_paths(root: Path) -> list[str]:
     return sorted(paths)
 
 
+class SubmoduleCheckoutError(RuntimeError):
+    def __init__(self, path: str, label: str, detail: str) -> None:
+        super().__init__(detail)
+        self.path = path
+        self.label = label
+
+
+def require_submodule_checkout(root: Path, submodule_path: str) -> None:
+    """Require the exact initialized checkout selected by the parent index."""
+    full_path = root / submodule_path
+    if full_path.is_symlink():
+        raise SubmoduleCheckoutError(submodule_path, "deny-uninitialized-submodule-scan",
+                                     "declared submodule path is a symlink")
+    try:
+        top = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"], cwd=full_path, check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=git_scan_env(),
+        ).stdout
+        actual_root = Path(os.fsdecode(top).removesuffix("\n"))
+        if not actual_root.is_absolute() or not actual_root.samefile(full_path):
+            raise SubmoduleCheckoutError(submodule_path, "deny-uninitialized-submodule-scan",
+                                         "directory does not resolve to its own Git worktree")
+        index = subprocess.run(
+            ["git", "ls-files", "--stage", "-z", "--", submodule_path], cwd=root, check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=git_scan_env(),
+        ).stdout.split(b"\0")
+        records = [item for item in index if item]
+        if len(records) != 1:
+            raise SubmoduleCheckoutError(submodule_path, "deny-submodule-pin-mismatch",
+                                         "parent index does not contain exactly one gitlink")
+        metadata, separator, name = records[0].partition(b"\t")
+        fields = metadata.split(b" ")
+        if (separator != b"\t" or name != os.fsencode(submodule_path) or len(fields) != 3 or
+                fields[0] != b"160000" or fields[2] != b"0" or
+                re.fullmatch(rb"(?:[0-9a-f]{40}|[0-9a-f]{64})", fields[1]) is None):
+            raise SubmoduleCheckoutError(submodule_path, "deny-submodule-pin-mismatch",
+                                         "parent index entry is not a resolved gitlink")
+        head = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD^{commit}"], cwd=full_path, check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=git_scan_env(),
+        ).stdout.strip()
+        if head != fields[1]:
+            raise SubmoduleCheckoutError(submodule_path, "deny-submodule-pin-mismatch",
+                                         "checkout HEAD differs from the parent index gitlink")
+    except (FileNotFoundError, subprocess.CalledProcessError, OSError, ValueError) as exc:
+        raise SubmoduleCheckoutError(submodule_path, "deny-unreadable-submodule-scan",
+                                     "could not verify the declared submodule checkout") from exc
+
+
 def submodule_candidate_files(root: Path) -> list[str]:
     paths: list[str] = []
     for submodule_path in submodule_paths(root):
         full_path = root / submodule_path
         if not full_path.is_dir():
             continue
+        require_submodule_checkout(root, submodule_path)
         try:
             result = subprocess.run(
                 ["git", "ls-files", "-z"],
@@ -378,6 +440,7 @@ def submodule_candidate_files(root: Path) -> list[str]:
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                env=git_scan_env(),
             )
         except FileNotFoundError as exc:
             raise RuntimeError(f"git executable was not found while scanning submodule {submodule_path}") from exc
@@ -403,13 +466,17 @@ def submodule_scan_findings(root: Path) -> list[Finding]:
             findings.append(Finding(submodule_path, "deny-missing-submodule-scan", "declared submodule directory is absent"))
             continue
         try:
+            require_submodule_checkout(root, submodule_path)
             subprocess.run(
                 ["git", "ls-files", "-z"],
                 cwd=full_path,
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                env=git_scan_env(),
             )
+        except SubmoduleCheckoutError as exc:
+            findings.append(Finding(exc.path, exc.label, str(exc)))
         except (FileNotFoundError, subprocess.CalledProcessError) as exc:
             findings.append(Finding(submodule_path, "deny-unreadable-submodule-scan", str(exc)))
     return findings
@@ -647,6 +714,8 @@ def check_repo(root: Path, *, include_submodules: bool = False) -> list[Finding]
     findings: list[Finding] = []
     try:
         paths = public_candidate_files(root, include_submodules=include_submodules)
+    except SubmoduleCheckoutError as exc:
+        return [Finding(exc.path, exc.label, str(exc))]
     except RuntimeError as exc:
         return [Finding(".", "deny-public-candidate-enumeration-failed", str(exc))]
     if not paths:
@@ -1128,6 +1197,98 @@ def run_self_test() -> int:
         ):
             print("Public payload safety self-test: FAIL")
             print("- missing declared submodule did not fail closed")
+            print(f"- findings: {findings!r}")
+            return 1
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        (root / ".gitmodules").write_text(
+            '[submodule "empty"]\n\tpath = references/empty\n\turl = ../empty.git\n', encoding="utf-8")
+        (root / "README.MD").write_text("# OK\n", encoding="utf-8")
+        (root / "references" / "empty").mkdir(parents=True)
+        subprocess.run(["git", "add", ".gitmodules", "README.MD"], cwd=root, check=True)
+        subprocess.run(["git", "update-index", "--add", "--cacheinfo",
+                        "160000," + "1" * 40 + ",references/empty"], cwd=root, check=True)
+        findings = check_repo(root, include_submodules=True)
+        if not any(f.label == "deny-uninitialized-submodule-scan" and f.path == "references/empty" for f in findings):
+            print("Public payload safety self-test: FAIL")
+            print("- an empty submodule directory was mistaken for its parent checkout")
+            print(f"- findings: {findings!r}")
+            return 1
+        from unittest.mock import patch
+        with patch.dict(os.environ, {"GIT_DIR": str(root / ".git"), "GIT_WORK_TREE": str(root / "references" / "empty")}):
+            findings = check_repo(root, include_submodules=True)
+        if not any(f.label == "deny-uninitialized-submodule-scan" and f.path == "references/empty" for f in findings):
+            print("Public payload safety self-test: FAIL")
+            print("- inherited Git repository overrides changed submodule selection")
+            print(f"- findings: {findings!r}")
+            return 1
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        submodule = root / "references" / "wrong-pin"
+        submodule.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q"], cwd=submodule, check=True)
+        (submodule / "README.MD").write_text("# Authored fixture\n", encoding="utf-8")
+        subprocess.run(["git", "add", "README.MD"], cwd=submodule, check=True)
+        subprocess.run(["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                        "commit", "-q", "-m", "fixture"], cwd=submodule, check=True)
+        (root / ".gitmodules").write_text(
+            '[submodule "wrong-pin"]\n\tpath = references/wrong-pin\n\turl = ../fixture.git\n', encoding="utf-8")
+        (root / "README.MD").write_text("# OK\n", encoding="utf-8")
+        subprocess.run(["git", "add", ".gitmodules", "README.MD"], cwd=root, check=True)
+        subprocess.run(["git", "update-index", "--add", "--cacheinfo",
+                        "160000," + "1" * 40 + ",references/wrong-pin"], cwd=root, check=True)
+        findings = check_repo(root, include_submodules=True)
+        if not any(f.label == "deny-submodule-pin-mismatch" and f.path == "references/wrong-pin" for f in findings):
+            print("Public payload safety self-test: FAIL")
+            print("- the submodule checkout did not match the staged gitlink")
+            print(f"- findings: {findings!r}")
+            return 1
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        (root / "README.MD").write_text("# Authored fixture\n", encoding="utf-8")
+        subprocess.run(["git", "add", "README.MD"], cwd=root, check=True)
+        subprocess.run(["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                        "commit", "-q", "-m", "fixture"], cwd=root, check=True)
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True,
+                              stdout=subprocess.PIPE, text=True).stdout.strip()
+        (root / ".gitmodules").write_text(
+            '[submodule "link"]\n\tpath = references/link\n\turl = ../fixture.git\n', encoding="utf-8")
+        (root / "references").mkdir()
+        (root / "references" / "link").symlink_to(root, target_is_directory=True)
+        subprocess.run(["git", "add", ".gitmodules"], cwd=root, check=True)
+        subprocess.run(["git", "update-index", "--add", "--cacheinfo",
+                        "160000," + head + ",references/link"], cwd=root, check=True)
+        findings = check_repo(root, include_submodules=True)
+        if not any(f.label == "deny-uninitialized-submodule-scan" and f.path == "references/link" for f in findings):
+            print("Public payload safety self-test: FAIL")
+            print("- a submodule symlink to its parent was treated as its own checkout")
+            print(f"- findings: {findings!r}")
+            return 1
+    with tempfile.TemporaryDirectory() as tmp:
+        fixture = Path(tmp)
+        root, source = fixture / "parent", fixture / "source"
+        root.mkdir()
+        source.mkdir()
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        subprocess.run(["git", "init", "-q"], cwd=source, check=True)
+        (source / "README.MD").write_text("# Authored fixture\n", encoding="utf-8")
+        subprocess.run(["git", "add", "README.MD"], cwd=source, check=True)
+        subprocess.run(["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                        "commit", "-q", "-m", "fixture"], cwd=source, check=True)
+        linked = root / "references" / "linked"
+        subprocess.run(["git", "worktree", "add", "-q", "--detach", str(linked), "HEAD"], cwd=source, check=True)
+        (root / ".gitmodules").write_text(
+            '[submodule "linked"]\n\tpath = references/linked\n\turl = ../fixture.git\n', encoding="utf-8")
+        (root / "README.MD").write_text("# OK\n", encoding="utf-8")
+        subprocess.run(["git", "-c", "advice.addEmbeddedRepo=false", "add", ".gitmodules", "README.MD", "references/linked"],
+                       cwd=root, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        findings = check_repo(root, include_submodules=True)
+        if not (linked / ".git").is_file() or findings:
+            print("Public payload safety self-test: FAIL")
+            print("- a clean linked submodule at the staged gitlink was not scanned")
             print(f"- findings: {findings!r}")
             return 1
     with tempfile.TemporaryDirectory() as tmp:
