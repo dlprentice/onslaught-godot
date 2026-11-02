@@ -1782,8 +1782,7 @@ existing bitwise equality; vector layout and simulation arithmetic are unchanged
 
 The two authored hash checks pass within the candidate full Parity suite: 1,175
 discovered, 1,168 passed, the same seven reference-dependent skips as the preceding
-source, and no failures. The Host build passed. The retained six-process comparison
-used identical before/after source: the preceding hash varied between processes;
-the corrected hash stayed equal. This establishes the bounded hash contract, not
+source, and no failures. The Host build passed. The retained comparison ran six processes per source revision: the preceding hash
+varied between processes; the corrected hash stayed equal. This establishes the bounded hash contract, not
 new gameplay or cross-platform retail parity. The complete reference gate remains
-open while those seven existing cases lack their required inputs.
+open while those seven existing cases have missing or stale reference inputs.
