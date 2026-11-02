@@ -36,6 +36,8 @@ SUITES: tuple[tuple[str, ...], ...] = (
     ("tools/check_installed_game_claims.py", "--check"),
     ("tools/aya_archive_inventory_tests.py",),
     ("tools/language_dat_decode_tests.py",),
+    ("tools/public_build_tests.py",),
+    ("tools/rebuild_toolchain_tests.py",),
     ("rebuild/tools/materialize_retail_assets_tests.py",),
     ("rebuild/tools/cmsh_static_preview_tests.py",),
     ("tools/score_frontend_capture_tests.py",),

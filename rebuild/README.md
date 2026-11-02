@@ -17,7 +17,9 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
   slow or removable storage. Which clone and folders this machine uses is kept in an ignored local file
   (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.
 - Public source setup and an authored-test example are in the [root README](../README.md#building-and-testing).
-  Contributors can prepare changes without the maintainer's private reference inputs. The
+  `python tools/public_build.py setup`, `build` and `test` use a pinned public toolchain inside this checkout and
+  require no machine wrapper, private profile or retail inputs. Contributors can prepare changes without the
+  maintainer's private reference inputs. The
   [contribution gate](../CONTRIBUTING.md#the-gate) requires a maintainer to validate the proposed commit against those
   references before a simulation or Host change merges; authored tests alone do not establish parity.
 - The Parity suite compares the simulation with recorded retail and native-port references, which live outside the
@@ -117,7 +119,7 @@ export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"
 export ONSLAUGHT_FILMS="$PWD/local-data/films"
 python -m pip install numpy
 python rebuild/tools/materialize_films.py "$ONSLAUGHT_FILMS" --game-dir "$ONSLAUGHT_GAME_DIR"
-export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # if `godot` on PATH is not that engine
+export GODOT=/path/to/Godot_v4.8-beta1_mono_linux.x86_64    # the pinned engine path printed by setup
 npm run run:host                                        # builds and runs the whole game (HOST_LIVE=flow)
 ```
 

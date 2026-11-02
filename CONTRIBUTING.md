@@ -34,6 +34,9 @@ report problems with it there.
 ## The gate
 
 Contributors run the affected authored tests and the applicable build, documentation, tools and safety checks below.
+The public [setup and runner](README.md#building-and-testing) build the live Host and run an authored selection
+without private inputs. Use `python tools/public_build.py test --filter ...` for the affected authored tests; its
+default selection is a starter check, not the full suite.
 If you lack game or recorded-reference inputs, list the checks and test names that could not run in the pull request.
 A maintainer must run the required reference-bearing checks on the proposed commit and record the results before
 merge. Reference validation remains pending until then; passing authored tests does not replace it.
@@ -43,7 +46,7 @@ merge. Reference validation remains pending until then; passing authored tests d
   [rebuild/README.md](rebuild/README.md) describes. A missing reference, an empty test selection or a new skip is not a
   pass. The parity core stays deterministic given its inputs ([rebuild/DETERMINISM.md](rebuild/DETERMINISM.md)): no
   wall time, locale, environment, threads, presentation, network or GPU.
-- **Host changes** (`rebuild/OnslaughtRebuild.Host`) must build (`dotnet build rebuild/OnslaughtRebuild.Host`) and keep the
+- **Host changes** (`rebuild/OnslaughtRebuild.Host`) must build (`npm run build`) and keep the
   Parity suite passing.
 - **Documentation and tools** pass `npm run test:docs`, and `npm run test:tools` for tool changes.
 - **New files** pass `npm run test:safety`, which checks that no game material is tracked.

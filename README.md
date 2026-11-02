@@ -53,9 +53,9 @@ dozens of paths for no gain.
 
 ## Building and testing
 
-For source checks, install the .NET 10 SDK (`global.json` pins 10.0.402), Node 26 with npm 11.19 or later in the
-11.x series (`package.json`), and Python 3 with `venv` and pip. The Python tools suite needs Pillow. Host work also
-uses Godot 4.8 beta1 .NET (the host pins `Godot.NET.Sdk/4.8.0-beta.1`).
+The public setup route targets Linux x86_64. Start with Python 3 with `venv` and pip; the Python tools suite needs
+Pillow. The npm shortcuts also need Node 26 and npm 11.19 or later in the 11.x series (`package.json`). The setup
+command installs the pinned .NET 10.0.402 SDK and Godot 4.8 beta1 .NET into this checkout's ignored `local-data/`.
 
 The repository and its pinned submodule use public HTTPS URLs. A contributor can clone them and work on authored
 tests, tools, documentation and source without access to the maintainer's computer, private repositories or lab:
@@ -66,23 +66,32 @@ cd onslaught-godot
 python3 -m venv local-data/venv
 . local-data/venv/bin/activate
 python -m pip install Pillow
-dotnet build rebuild/OnslaughtRebuild.Parity
-dotnet test rebuild/OnslaughtRebuild.Parity.Tests --filter FullyQualifiedName~OnslaughtRebuild.Parity.Tests.CrtRandTests
+python tools/public_build.py setup
+python tools/public_build.py build
+python tools/public_build.py test
 npm run test:tools && npm run test:docs && npm run test:safety
 ```
 
-`CrtRandTests` is an authored test example that needs no game data; choose the affected authored tests for your
-change. The tools suite also has retail-corpus checks that report skips when those corpora are absent. Running
+Setup downloads only the official public archives pinned by URL, licence and hash in
+[`tools/rebuild_toolchain.json`](tools/rebuild_toolchain.json). Build and test restore packages from the installed
+Godot bundle and `https://api.nuget.org/v3/index.json`. Their .NET, NuGet, XDG and temporary state stays inside this
+checkout; they do not use the maintainer's profiles, private scripts or local reference paths. Setup is explicit:
+build and test fail if the pinned tools are unavailable instead of installing them automatically.
+
+The default authored selection covers `CrtRandTests`, `LiveAudioOutputStartupTests` and `Flow.SaveGameTests` with no
+game data or recorded references. It is a starter check; choose the affected authored tests for your change:
+
+```sh
+python tools/public_build.py test --filter FullyQualifiedName~OnslaughtRebuild.Parity.Tests.CrtRandTests
+```
+
+The runner rejects empty selections, skipped selected tests and failures, and prints its local log/report folder.
+`npm run build`, `npm run test:authored` and `npm run setup:toolchain` are shortcuts for these Python commands.
+The tools suite also has retail-corpus checks that report skips when those corpora are absent. Running
 `npm test` executes the full Parity test project; comparisons whose game or reference inputs are missing report
 skips. Report those separately from passing authored tests. Before a simulation or Host change merges, a maintainer
 must run the required reference-bearing gate on the proposed commit, as [CONTRIBUTING.md](CONTRIBUTING.md#the-gate)
 describes. Missing references, an empty selection and new skips do not satisfy that gate.
-
-With the Godot .NET engine installed, build the Host:
-
-```sh
-dotnet build rebuild/OnslaughtRebuild.Host
-```
 
 Running the Host requires your own game installation. Optional film preparation additionally needs NumPy in the
 Python environment (`python -m pip install numpy`) and FFmpeg with `ffprobe` on `PATH`.

@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-10-31 (commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
+Last updated: 2026-11-02 (public setup and contributor completion; commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -22,8 +22,12 @@ Summary: the rules for working in this repository, for people and automated agen
   recorded in [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md).
 - **Machine-specific paths** (reference folders, clones) live in an ignored `local-data/rebuild-env.sh`, never in a
   tracked file. The program sends nothing over the network.
+- **Public builds and authored tests:** `python tools/public_build.py setup` installs the pinned public tools inside
+  this checkout; `build` and `test` use them with local .NET/NuGet state. They require no game data, private lab,
+  machine wrapper or reference environment script. Setup and restore contacts are documented in the
+  [README](README.md#building-and-testing); the application itself still sends nothing.
 - The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until David explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
-- **Windowed runs:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
+- **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
   open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
   headless mode. The wrapper, its flags, the engine build and the capture folders are the machine's own and are set in the
   ignored `local-data/rebuild-env.sh`; for example
@@ -31,11 +35,16 @@ Summary: the rules for working in this repository, for people and automated agen
   --qa local-data/qa/run --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 -- --audio-driver Dummy`.
   The earlier launcher's retail inputs come from an ignored lab folder named by `BEA_LOCAL_LAB`; worktrees reuse it,
   never a copy.
+  Contributors elsewhere use their own headless or offscreen setup for automated runtime checks; a manual preview
+  can use their own display. Public builds and authored tests need none of these desktop wrappers.
 - **Sandboxed builds:** MSBuild's worker nodes open named pipes in the temporary folder. In a sandbox whose `/tmp` is
   read-only every worker aborts (SIGABRT, one core dump each). Give a sandboxed build a writable private `/tmp` (or
   `TMPDIR`), or build with `-m:1 -nodeReuse:false -p:UseSharedCompilation=false`.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).
+  For a public contribution, run the available authored/build checks and list unavailable reference gates in the
+  pull request as [CONTRIBUTING.md](CONTRIBUTING.md#the-gate) describes. Preparing that pull request does not require
+  private access; maintainers complete the required reference gates on its proposed commit before merge.
 - **Commit messages:** Commits here are public: keep the Co-Authored-By line, add no Claude-Session line, and describe the change itself, not which agent or role made it.
 
 ## Cross-project progress
