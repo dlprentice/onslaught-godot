@@ -30,6 +30,7 @@ class PublicEnvironmentTests(unittest.TestCase):
             self.assertNotIn("HOST_LIVE", env)
             self.assertNotIn("DISPLAY", env)
             self.assertEqual(str(root / "dotnet"), env["DOTNET_ROOT"])
+            self.assertEqual(str(root / "dotnet") + "/", env["NetCoreRoot"])
             self.assertEqual("1", env["MSBUILDDISABLENUGETSDKRESOLVER"])
             self.assertEqual("false", env["DOTNET_GENERATE_ASPNET_CERTIFICATE"])
             for name in runner.REFERENCE_VARIABLES:
