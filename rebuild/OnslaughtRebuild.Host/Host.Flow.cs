@@ -181,6 +181,7 @@ public partial class Host
         _flowInputWindow = GetWindow();
         _flowKeyboard = new FlowKeyboardInput(
             (virtualKey, scanCode, down) => flowRun.Post(game => game.Input.PostTapeKey(virtualKey, scanCode, down)),
+            (character, scanCode) => flowRun.Post(game => game.Input.PostTapeMessage(new RetailCharacterEvent(0, character, scanCode))),
             replay: _flowReplay, focused: _flowInputWindow.HasFocus());
         _flowInputWindow.FocusEntered += FlowFocusEntered;
         _flowInputWindow.FocusExited += FlowFocusExited;
@@ -328,13 +329,13 @@ public partial class Host
 
     private void InputFlow(InputEvent input)
     {
-        if (_flowReplay || _flowKeyboard is null || _flowStop is not null || input is not InputEventKey key || key.Echo)
+        if (_flowReplay || _flowKeyboard is null || _flowStop is not null || input is not InputEventKey key)
         {
             return;
         }
 
         if (HostKeyMap.TryMap(key.PhysicalKeycode, key.Location, out HostKeyMap.PcKey pc)
-            && _flowKeyboard.Observe(pc.VirtualKey, pc.ScanCode, key.Pressed))
+            && _flowKeyboard.Observe(pc.VirtualKey, pc.ScanCode, key.Pressed, key.Unicode, key.Echo))
         {
             GetViewport().SetInputAsHandled();
         }

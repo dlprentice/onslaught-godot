@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
+using OnslaughtRebuild.Host;
 using OnslaughtRebuild.Parity.Clock;
 using OnslaughtRebuild.Parity.Flow;
 using OnslaughtRebuild.Parity.Flow.Pages;
@@ -29,6 +30,78 @@ public sealed class VirtualKeyboardTests
         frontEnd[FrontEndPage.Directory] = directory;
         frontEnd.Directory = directory;
         return (frontEnd, keyboard);
+    }
+
+    private static FlowKeyboardInput NativeInput(FrontEnd frontEnd, bool replay = false, bool focused = true) =>
+        new(frontEnd.Platform.PostTapeKey,
+            (character, scanCode) => frontEnd.Platform.PostTapeMessage(new RetailCharacterEvent(0, character, scanCode)),
+            replay, focused);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FlowHostTypesTheProvidedCharacterWithPhysicalOnlyInputAsCausalControl(bool withCharacter)
+    {
+        (FrontEnd frontEnd, VirtualKeyboardPage keyboard) = NewKeyboard();
+        keyboard.SetDefaultName();
+        string originalName = keyboard.Name;
+        keyboard.Process(FrontEndPageState.Active);
+        FlowKeyboardInput native = NativeInput(frontEnd);
+
+        // The authored text differs from the physical key: layout text is not
+        // reconstructed from the scan code or virtual key.
+        native.Observe('A', Dik.A, true, withCharacter ? (long)'q' : 0);
+        frontEnd.Platform.Process(0);
+
+        Assert.Equal(withCharacter ? "q" : originalName, keyboard.Name);
+        Assert.Equal(!withCharacter, keyboard.Fresh);
+    }
+
+    [Fact]
+    public void FlowHostRepeatsTextThroughTheActiveKeyboard()
+    {
+        (FrontEnd frontEnd, VirtualKeyboardPage keyboard) = NewKeyboard();
+        keyboard.SetDefaultName();
+        keyboard.Process(FrontEndPageState.Active);
+        FlowKeyboardInput native = NativeInput(frontEnd);
+        native.Observe('A', Dik.A, true, 'q');
+        native.Observe('A', Dik.A, true, 'q', echo: true);
+        native.Observe('A', Dik.A, false, 'q');
+        frontEnd.Platform.Process(0);
+
+        Assert.Equal("qq", keyboard.Name);
+    }
+
+    [Fact]
+    public void FlowHostBackspaceUsesThePhysicalPathWithoutInsertingAControlCharacter()
+    {
+        (FrontEnd frontEnd, VirtualKeyboardPage keyboard) = NewKeyboard();
+        keyboard.SetDefaultName();
+        keyboard.HandleKey('a');
+        keyboard.HandleKey('b');
+        keyboard.Process(FrontEndPageState.Active);
+        FlowKeyboardInput native = NativeInput(frontEnd);
+        native.Observe('\b', Dik.Back, true, '\b');
+        frontEnd.Platform.Process(0);
+
+        Assert.Equal("a", keyboard.Name);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void FlowHostCannotEditTheNameDuringReplayOrWithoutFocus(bool replay, bool focused)
+    {
+        (FrontEnd frontEnd, VirtualKeyboardPage keyboard) = NewKeyboard();
+        keyboard.SetDefaultName();
+        string originalName = keyboard.Name;
+        keyboard.Process(FrontEndPageState.Active);
+        FlowKeyboardInput native = NativeInput(frontEnd, replay, focused);
+        Assert.False(native.Observe('A', Dik.A, true, 'q'));
+        frontEnd.Platform.Process(0);
+
+        Assert.Equal(originalName, keyboard.Name);
+        Assert.True(keyboard.Fresh);
     }
 
     [Fact]
