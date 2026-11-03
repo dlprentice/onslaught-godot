@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-11-02
+Last updated: 2026-11-03
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -14,6 +14,14 @@ pristine specimen; do not infer another executable's identity from its folder na
 Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
+
+**2026-11-03 — legacy replay-view cases.** The four cases that read the legacy replay-harness view (three `ClockTests`
+comparisons and `HarnessTests.RetailLevel100TapeAndGoldenParse`, the M0 parse) ran and passed on
+[888eb05](https://github.com/dlprentice/onslaught-godot/commit/888eb05d2ceb44bd43a9a1e24c17ae9d25abec3f) with
+`ONSLAUGHT_PARITY_DATA` set. One unfiltered Parity run reported **1,172 passed, 0 failed, 3 skipped** of 1,175 found.
+The required reference gate stays **INCOMPLETE**, now with three open cases instead of seven: two occupancy-reference
+checks and one sample decoder/converter oracle check. Conditions, a control and limits are in the
+[2026-11-03 entry](#2026-11-03-legacy-replay-view-cases).
 
 **2026-11-02 — flow Host keyboard focus boundary.** The [flow Host](OnslaughtRebuild.Host/Host.Flow.cs)
 connects window focus callbacks to the [keyboard owner](OnslaughtRebuild.Host/FlowKeyboardInput.cs), which
@@ -1786,3 +1794,32 @@ source, and no failures. The Host build passed. The retained comparison ran six 
 varied between processes; the corrected hash stayed equal. This establishes the bounded hash contract, not
 new gameplay or cross-platform retail parity. The complete reference gate remains
 open while those seven existing cases have missing or stale reference inputs.
+
+## 2026-11-03: legacy replay-view cases
+
+Four cases read the legacy replay-harness view: `ClockTests.Level100GoldenEventTimeFrameTimeAndLevelMatchEverySample`
+(EVT, FT and LVL at every 50th Present to 10,000), the two per-Present clock cases
+`ClockTests.Level100PerPresentEventTimeFrameTimeAndLevelMatchEveryPresent` and
+`ClockTests.Level100OldSettingsEventTimeFrameTimeAndLevelMatchEveryPresent` (the same probes at every Present to
+3,400, for the two recorded start-up settings), and `HarnessTests.RetailLevel100TapeAndGoldenParse`, the M0 parse.
+The 2026-11-02 vector-hash run skipped them with `ONSLAUGHT_PARITY_DATA` unset (the recorded reason is that the retail
+parity data was not found). The view's four files were there (they date from 2026-10-15), so the "missing or stale
+reference inputs" wording above is wrong for these four.
+
+With the variable naming that view (read only; the four files hashed the same before and after) and every other
+reference variable as on 2026-11-02, a fresh build of
+[888eb05](https://github.com/dlprentice/onslaught-godot/commit/888eb05d2ceb44bd43a9a1e24c17ae9d25abec3f) (no warnings)
+ran the four cases alone: all four executed and passed. The unfiltered Parity run then reported **1,172 passed,
+0 failed, 3 skipped** of 1,175 found. As a control, a view whose two per-Present goldens were swapped (links to the
+same files, nothing copied) made both per-Present cases fail their exact-match assertion and left the other two
+passing, so these passes depend on the view's content. The Host was not rebuilt: the only commits since the
+2026-11-02 vector-hash run on
+[ba98155](https://github.com/dlprentice/onslaught-godot/commit/ba98155af2a673c33439ee356b8179e87cc92aa0) changed this
+document.
+
+The three remaining skips are not input problems of this kind: two occupancy-reference checks are disabled in the
+source until the native port's dumps are regenerated, and the sample decoder/converter oracle check finds no
+`sample-pcm` results in the oracle view. The required reference gate therefore remains **INCOMPLETE**. What the four
+cases add is bounded: at this source the harness parses the recorded level-100 tape and golden trace and reproduces
+their change counts (M0), and the clock model's EVT, FT and LVL probes equal the recorded retail runs at every sampled
+Present to 10,000 and at every Present to 3,400. They say nothing about gameplay beyond those probes.
