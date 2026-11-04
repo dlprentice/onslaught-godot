@@ -20,37 +20,39 @@ public static class MatrixOps
     public static FMatrix Scale(FMatrix a, float f) => new(a.Row0 * f, a.Row1 * f, a.Row2 * f);
 
     // Cached GetWorldTransforms' product: the nine inlined PC24 cell orders at 004b1402..004b153a, also in port
-    // patch 0027. A generic FMatrix product has a different order at several cells. Managed float intermediates do not
-    // retain x87's wider exponent, so underflow or subnormal cases can differ; see the example in PARITY.md.
+    // patch 0027. A generic FMatrix product has a different order at several cells. Keep each cell in PC24
+    // arithmetic until its final float store, including terms outside the float exponent range.
     internal static FMatrix CachedFrameWorldOrientation(FMatrix world, FMatrix local)
     {
+        bool allBounded = FMatrix.HasBoundedComponents(world) && FMatrix.HasBoundedComponents(local);
         FVector a = world.Row0, b = world.Row1, c = world.Row2;
         return new FMatrix(
-            new FVector(((a.Z * local.Row2.X) + (a.Y * local.Row1.X)) + (a.X * local.Row0.X),
-                ((a.Y * local.Row1.Y) + (a.Z * local.Row2.Y)) + (a.X * local.Row0.Y),
-                ((a.X * local.Row0.Z) + (a.Z * local.Row2.Z)) + (a.Y * local.Row1.Z)),
-            new FVector(((b.X * local.Row0.X) + (b.Z * local.Row2.X)) + (b.Y * local.Row1.X),
-                ((b.X * local.Row0.Y) + (b.Y * local.Row1.Y)) + (b.Z * local.Row2.Y),
-                ((b.Z * local.Row2.Z) + (b.X * local.Row0.Z)) + (b.Y * local.Row1.Z)),
-            new FVector(((c.X * local.Row0.X) + (c.Z * local.Row2.X)) + (c.Y * local.Row1.X),
-                ((c.X * local.Row0.Y) + (c.Y * local.Row1.Y)) + (c.Z * local.Row2.Y),
-                ((c.Z * local.Row2.Z) + (c.X * local.Row0.Z)) + (c.Y * local.Row1.Z)));
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, a.Z, local.Row2.X, a.Y, local.Row1.X, a.X, local.Row0.X),
+                FMatrix.StoredPc24ProductSum(allBounded, a.Y, local.Row1.Y, a.Z, local.Row2.Y, a.X, local.Row0.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, a.X, local.Row0.Z, a.Z, local.Row2.Z, a.Y, local.Row1.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, b.X, local.Row0.X, b.Z, local.Row2.X, b.Y, local.Row1.X),
+                FMatrix.StoredPc24ProductSum(allBounded, b.X, local.Row0.Y, b.Y, local.Row1.Y, b.Z, local.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, b.Z, local.Row2.Z, b.X, local.Row0.Z, b.Y, local.Row1.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, c.X, local.Row0.X, c.Z, local.Row2.X, c.Y, local.Row1.X),
+                FMatrix.StoredPc24ProductSum(allBounded, c.X, local.Row0.Y, c.Y, local.Row1.Y, c.Z, local.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, c.Z, local.Row2.Z, c.X, local.Row0.Z, c.Y, local.Row1.Z)));
     }
 
     // Cached EvaluatePose's separate product at 004b4f7b..004b50b9. It does not share the cached-frame orders.
     internal static FMatrix CachedPoseWorldOrientation(FMatrix world, FMatrix local)
     {
+        bool allBounded = FMatrix.HasBoundedComponents(world) && FMatrix.HasBoundedComponents(local);
         FVector a = world.Row0, b = world.Row1, c = world.Row2;
         return new FMatrix(
-            new FVector(((a.X * local.Row0.X) + (a.Y * local.Row1.X)) + (a.Z * local.Row2.X),
-                ((a.Y * local.Row1.Y) + (a.X * local.Row0.Y)) + (a.Z * local.Row2.Y),
-                ((a.Z * local.Row2.Z) + (a.Y * local.Row1.Z)) + (a.X * local.Row0.Z)),
-            new FVector(((b.X * local.Row0.X) + (b.Y * local.Row1.X)) + (b.Z * local.Row2.X),
-                ((b.X * local.Row0.Y) + (b.Y * local.Row1.Y)) + (b.Z * local.Row2.Y),
-                ((b.Z * local.Row2.Z) + (b.X * local.Row0.Z)) + (b.Y * local.Row1.Z)),
-            new FVector(((c.X * local.Row0.X) + (c.Y * local.Row1.X)) + (c.Z * local.Row2.X),
-                ((c.X * local.Row0.Y) + (c.Y * local.Row1.Y)) + (c.Z * local.Row2.Y),
-                ((c.Z * local.Row2.Z) + (c.X * local.Row0.Z)) + (c.Y * local.Row1.Z)));
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, a.X, local.Row0.X, a.Y, local.Row1.X, a.Z, local.Row2.X),
+                FMatrix.StoredPc24ProductSum(allBounded, a.Y, local.Row1.Y, a.X, local.Row0.Y, a.Z, local.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, a.Z, local.Row2.Z, a.Y, local.Row1.Z, a.X, local.Row0.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, b.X, local.Row0.X, b.Y, local.Row1.X, b.Z, local.Row2.X),
+                FMatrix.StoredPc24ProductSum(allBounded, b.X, local.Row0.Y, b.Y, local.Row1.Y, b.Z, local.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, b.Z, local.Row2.Z, b.X, local.Row0.Z, b.Y, local.Row1.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, c.X, local.Row0.X, c.Y, local.Row1.X, c.Z, local.Row2.X),
+                FMatrix.StoredPc24ProductSum(allBounded, c.X, local.Row0.Y, c.Y, local.Row1.Y, c.Z, local.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, c.Z, local.Row2.Z, c.X, local.Row0.Z, c.Y, local.Row1.Z)));
     }
 
     // EvaluatePose's position product at 004b4ef2..004b4f3f, before adding the subject's world position.

@@ -81,36 +81,38 @@ public sealed class MCBattleEngine : Monitor
         ((m.Row2.Z * p.Z) + (m.Row2.X * p.X)) + (m.Row2.Y * p.Y));
 
     // CMCMech::UpdateBone inlines two distinct products. These follow the PC24 sum orders at 0049ae63..0049afbb
-    // and 0049b02e..0049b18e, respectively, on pristine 74154bfa. Managed float intermediates do not retain x87's
-    // wider exponent, so underflow or subnormal results can differ; see the bounded control in PARITY.md.
+    // and 0049b02e..0049b18e, respectively, on pristine 74154bfa. Each cell retains the PC24
+    // register exponent range until the final float store; see the authored range controls in PARITY.md.
     internal static FMatrix MechFirstLegProduct(FMatrix left, FMatrix right)
     {
+        bool allBounded = FMatrix.HasBoundedComponents(left) && FMatrix.HasBoundedComponents(right);
         FVector a = left.Row0, b = left.Row1, c = left.Row2;
         return new FMatrix(
-            new FVector(((a.X * right.Row0.X) + (a.Y * right.Row1.X)) + (a.Z * right.Row2.X),
-                ((a.Z * right.Row2.Y) + (a.Y * right.Row1.Y)) + (a.X * right.Row0.Y),
-                ((a.Z * right.Row2.Z) + (a.Y * right.Row1.Z)) + (a.X * right.Row0.Z)),
-            new FVector(((b.Z * right.Row2.X) + (b.Y * right.Row1.X)) + (b.X * right.Row0.X),
-                ((b.Y * right.Row1.Y) + (b.X * right.Row0.Y)) + (b.Z * right.Row2.Y),
-                ((b.X * right.Row0.Z) + (b.Y * right.Row1.Z)) + (b.Z * right.Row2.Z)),
-            new FVector(((c.Y * right.Row1.X) + (c.X * right.Row0.X)) + (c.Z * right.Row2.X),
-                ((c.Z * right.Row2.Y) + (c.Y * right.Row1.Y)) + (c.X * right.Row0.Y),
-                ((c.X * right.Row0.Z) + (c.Z * right.Row2.Z)) + (c.Y * right.Row1.Z)));
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, a.X, right.Row0.X, a.Y, right.Row1.X, a.Z, right.Row2.X),
+                FMatrix.StoredPc24ProductSum(allBounded, a.Z, right.Row2.Y, a.Y, right.Row1.Y, a.X, right.Row0.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, a.Z, right.Row2.Z, a.Y, right.Row1.Z, a.X, right.Row0.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, b.Z, right.Row2.X, b.Y, right.Row1.X, b.X, right.Row0.X),
+                FMatrix.StoredPc24ProductSum(allBounded, b.Y, right.Row1.Y, b.X, right.Row0.Y, b.Z, right.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, b.X, right.Row0.Z, b.Y, right.Row1.Z, b.Z, right.Row2.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, c.Y, right.Row1.X, c.X, right.Row0.X, c.Z, right.Row2.X),
+                FMatrix.StoredPc24ProductSum(allBounded, c.Z, right.Row2.Y, c.Y, right.Row1.Y, c.X, right.Row0.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, c.X, right.Row0.Z, c.Z, right.Row2.Z, c.Y, right.Row1.Z)));
     }
 
     internal static FMatrix MechSecondLegProduct(FMatrix left, FMatrix right)
     {
+        bool allBounded = FMatrix.HasBoundedComponents(left) && FMatrix.HasBoundedComponents(right);
         FVector a = left.Row0, b = left.Row1, c = left.Row2;
         return new FMatrix(
-            new FVector(((a.Z * right.Row2.X) + (a.Y * right.Row1.X)) + (a.X * right.Row0.X),
-                ((a.X * right.Row0.Y) + (a.Z * right.Row2.Y)) + (a.Y * right.Row1.Y),
-                ((a.X * right.Row0.Z) + (a.Z * right.Row2.Z)) + (a.Y * right.Row1.Z)),
-            new FVector(((b.Y * right.Row1.X) + (b.X * right.Row0.X)) + (b.Z * right.Row2.X),
-                ((b.X * right.Row0.Y) + (b.Y * right.Row1.Y)) + (b.Z * right.Row2.Y),
-                ((b.X * right.Row0.Z) + (b.Y * right.Row1.Z)) + (b.Z * right.Row2.Z)),
-            new FVector(((c.X * right.Row0.X) + (c.Z * right.Row2.X)) + (c.Y * right.Row1.X),
-                ((c.X * right.Row0.Y) + (c.Z * right.Row2.Y)) + (c.Y * right.Row1.Y),
-                ((c.X * right.Row0.Z) + (c.Z * right.Row2.Z)) + (c.Y * right.Row1.Z)));
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, a.Z, right.Row2.X, a.Y, right.Row1.X, a.X, right.Row0.X),
+                FMatrix.StoredPc24ProductSum(allBounded, a.X, right.Row0.Y, a.Z, right.Row2.Y, a.Y, right.Row1.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, a.X, right.Row0.Z, a.Z, right.Row2.Z, a.Y, right.Row1.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, b.Y, right.Row1.X, b.X, right.Row0.X, b.Z, right.Row2.X),
+                FMatrix.StoredPc24ProductSum(allBounded, b.X, right.Row0.Y, b.Y, right.Row1.Y, b.Z, right.Row2.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, b.X, right.Row0.Z, b.Y, right.Row1.Z, b.Z, right.Row2.Z)),
+            new FVector(FMatrix.StoredPc24ProductSum(allBounded, c.X, right.Row0.X, c.Z, right.Row2.X, c.Y, right.Row1.X),
+                FMatrix.StoredPc24ProductSum(allBounded, c.X, right.Row0.Y, c.Z, right.Row2.Y, c.Y, right.Row1.Y),
+                FMatrix.StoredPc24ProductSum(allBounded, c.X, right.Row0.Z, c.Z, right.Row2.Z, c.Y, right.Row1.Z)));
     }
 
     public MCBattleEngine(ThingContext context, BattleEngine thing)

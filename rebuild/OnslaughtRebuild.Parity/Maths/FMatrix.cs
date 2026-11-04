@@ -185,6 +185,21 @@ public struct FMatrix
         return new FMatrix(c0, c1, c2);
     }
 
+    // Hoist admission over an entire orientation. A mixed-range matrix retains the per-cell fallback below.
+    internal static bool HasBoundedComponents(FMatrix matrix) =>
+        BoundedRow(matrix.Row0) && BoundedRow(matrix.Row1) && BoundedRow(matrix.Row2);
+
+    internal static float StoredPc24ProductSum(bool allBounded, float a0, float b0, float a1, float b1, float a2, float b2) =>
+        allBounded ? BoundedCell(a0, b0, a1, b1, a2, b2) : StoredPc24ProductSum(a0, b0, a1, b1, a2, b2);
+
+    // Inline call sites supply their own term order. Keep the PC24 significand and wide exponent until the store.
+    internal static float StoredPc24ProductSum(float a0, float b0, float a1, float b1, float a2, float b2) =>
+        BoundedPc24.Admitted(a0) && BoundedPc24.Admitted(b0) &&
+        BoundedPc24.Admitted(a1) && BoundedPc24.Admitted(b1) &&
+        BoundedPc24.Admitted(a2) && BoundedPc24.Admitted(b2)
+            ? BoundedCell(a0, b0, a1, b1, a2, b2)
+            : OutOfLineCell(a0, b0, a1, b1, a2, b2);
+
     private static float OutOfLineCell(float a0, float b0, float a1, float b1, float a2, float b2) =>
         (float)X87.Add(X87.Add(X87.Mul(a0, b0), X87.Mul(a1, b1)), X87.Mul(a2, b2));
 

@@ -1,7 +1,7 @@
 # Rebuild parity contract
 
 Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-11-03
+Last updated: 2026-11-04
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
@@ -14,6 +14,27 @@ pristine specimen; do not infer another executable's identity from its folder na
 Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
+
+**2026-11-04 — inline orientation register range.** The two walker-leg products and the cached-frame and
+cached-pose orientation products now use the existing PC24 arithmetic owners until each cell's final float store.
+Their per-cell operand orders are unchanged. [InlineMatrixRangeTests](OnslaughtRebuild.Parity.Tests/InlineMatrixRangeTests.cs)
+adds twelve authored checks covering subnormal terms that accumulate or cancel and oversized finite terms that
+cancel before storage. All twelve fail on the former code and pass with the correction; the twenty-six existing
+focused matrix and bounded-arithmetic checks still pass. A separate authored native x87 PC24 control checks all six
+term permutations for each of four exact-power cases: all twenty-four agree, while premature float stores disagree.
+That control contains no original-game code or recorded inputs; it validates arithmetic, not an observed gameplay pose.
+
+One unfiltered Parity run reports **1,184 passed, 0 failed, 3 skipped** of 1,187 found, with the existing reference
+views configured, and the Host build passes. The same two occupancy references and one sample-decoder oracle remain
+unavailable, so the required reference gate is still **INCOMPLETE**. An earlier attempt reached its 6 GiB memory cap
+without producing a final test result; the completed run used the established 10 GiB suite allowance. The failed
+attempt is retained, not counted as a pass. Whole-matrix admission avoids repeating the same range checks for each
+cell, while mixed-range matrices retain their per-cell fallback. An authored Release microbenchmark with tiered
+compilation disabled measures about 134–145 ns per corrected matrix product, versus about 7–8 ns for the former
+plain-float calculation, with equal normal-input checksums. This is arithmetic overhead, not measured frame cost;
+actual call volume and gameplay performance have not been measured here. Original NaN/infinity behavior,
+body-roll and animated-hierarchy orientation sites, the separate inline point products, and whole-game visual
+parity retain their own unresolved boundaries.
 
 **2026-11-03 — legacy replay-view cases.** The four cases that read the legacy replay-harness view (three `ClockTests`
 comparisons and `HarnessTests.RetailLevel100TapeAndGoldenParse`, the M0 parse) ran and passed on
@@ -229,12 +250,11 @@ have their own orders (`004b1402..004b153a` and `004b4f7b..004b50b9`); the latte
 out-of-line order on every caller. `MatrixOrderTests` drives both cached paths, checks all cells of these four products
 with finite cancellation inputs, and rejects the former models on selected cells. A pinned-Clang source-derived
 control of the native port's second-leg helper differs from the pristine grouping on two cells for one authored input;
-an actual game pose and the port's inlined machine code at those cells remain to be compared. Matching the order does
-not reproduce x87's wider exponent: in an isolated PC24 control, two products of normal `2^-75` inputs sum to the
-smallest float32 subnormal (`00000001`), while rounding each managed float product first gives zero. This was not a
-captured game pose. Underflow, subnormal intermediates, exceptional values and complete visual or gameplay parity
-remain open. Other inline sites, including the body-roll and animated-hierarchy orientation products, still need
-site-specific review.
+an actual game pose and the port's inlined machine code at those cells remain to be compared. The grouping correction alone did not preserve x87's wider exponent: an isolated PC24 control with authored small
+operands showed terms being lost before the final float store. The 2026-11-04 entry above extends these four
+orientation products to the register arithmetic model and closes the measured finite range cases. Original
+nonfinite behavior, full visual or gameplay parity and other inline sites, including the body-roll and
+animated-hierarchy orientation products, still need separate review.
 
 The `CMCMech::UpdateBone` animated-hierarchy **point** product now uses the grouping in pristine
 `0049b719..0049b775` (specimen SHA-256 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`):
