@@ -1,10 +1,11 @@
 # Rebuild parity contract
 
-Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-11-04
+Status: active — the milestones table and the dated entries are current (the parity core and the Host); from [The earlier rebuild's
+grades](#the-earlier-rebuilds-grades) on, the tables grade the [earlier fixed-point rebuild](README.md#the-earlier-rebuild-history)
+Last updated: 2026-11-05 (the status names its sections; the terms are glossed; the whole-game wording is scoped to the level-100 route; fused figures repaired; earlier: 2026-11-04)
 Evidence: SOURCE — authority order and the known divergences are
-recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
-tracked harnesses named in the table. Every row of *Carried retail contracts*
+recorded in `PROVENANCE.md` plus the Lost-countdown row of [Known divergences (measured)](#known-divergences-measured); gate capabilities are MEASURED claims of the
+tracked harnesses named in [Parity dimensions and their gates](#parity-dimensions-and-their-gates-earlier-fixed-point-lane). Every row of *Carried retail contracts*
 is MEASURED: its anchor re-derived from the pristine specimen and its mutation
 kill observed.
 Specimen: `BEA.exe.original.backup`, SHA-256
@@ -14,6 +15,11 @@ pristine specimen; do not infer another executable's identity from its folder na
 Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
+
+Terms: CE is Onslaught CE; the native port is the CE build pinned by SHA-256 in the entry that cites it; patch NNNN is
+`port/patches/NNNN-*.patch` in [onslaught-ce](https://github.com/dlprentice/onslaught-ce); PC24 is the x87 24-bit-significand
+precision mode; the required reference gate is [CONTRIBUTING.md](../CONTRIBUTING.md#the-gate); the specimen is held outside the
+repository in the lab folder named by `BEA_LOCAL_LAB`. Core, Client, Godot and Headless are reference only ([AGENTS.md](../AGENTS.md)).
 
 **2026-11-04 — inline orientation register range.** The two walker-leg products and the cached-frame and
 cached-pose orientation products now use the existing PC24 arithmetic owners until each cell's final float store.
@@ -55,7 +61,11 @@ reported **1,143 passed, 0 failed, 7 skipped**: four legacy replay-view checks, 
 and one sample decoder/converter oracle check. The required reference gate is **INCOMPLETE** while those inputs
 are unavailable. These checks do not establish native focus-event delivery or gameplay acceptance.
 
-## Where it stands (2026-10-29)
+## Where it stands (2026-10-29, gate status 2026-11-04)
+
+The required reference gate is **INCOMPLETE** (see the dated entries at the top; 3 skipped cases of 1,187 found), and a missing
+reference is reported as a skip, which is not a pass: the rows marked Met on the keyboard-and-mouse tape or the native port
+rest on references kept outside the repository ([CONTRIBUTING.md](../CONTRIBUTING.md#the-gate)).
 
 The milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones-2026-10-15);
 the dated entries below record each measurement.
@@ -67,7 +77,7 @@ the dated entries below record each measurement.
 | M2-M4 | Met on the keyboard-and-mouse tape: the sampled probes (EVT, FT, RNG, SC, LVL, POS, LIFE) equal retail's virtual-DirectSound golden through Present 10000 (`RetailGoldenTests.Level100RunMatchesTheVirtualDsGolden`). |
 | M5 | Win route met against the original game's fl2a process (one of the two debriefing outcomes the original takes; 2 of the 8 original processes that reach the debriefing, the pristine game under the replay shim in Wine) on one separately recorded level-100 win (measured 2026-10-29; a private harness run, not a suite test); two recorded loss routes now match both original music-clock processes on the bounded measurements below; otherwise met against the native port on two win routes (2026-10-23). The gate below asks for retail's career after the win. On the recorded win (a player's own game from boot, recorded 2026-10-28) the rebuild equals that original process on EVT, EVN, FT, SC, LVL, RNG, POS and LIFE at all 12,312 of its Presents, on the front end's line, on both END_LEVEL_DATA records, and on the saved careers and the options file byte for byte; it also equals the native port with its patch 0111 on every field the port records (the 2026-10-29 entry below). The original is not repeatable on this tape: its debriefing reads an uninitialised slot, so the first Enter is accepted in 6 of 8 original processes and ignored in the other 2, and the rebuild equals the ignored path only. The diagnostic run uses that replay's separately observed sound-pool seed and one instrumented process's goodie-load completion, both observed in port processes, not in the original. Selected battle-engine and walker fields were also compared on the win; its other object words, audio and pictures remain unverified against the original game. A player's own game from boot (`GoldOwnRouteTests`: the boot films skipped, a new career, the goodies page, level 100 from the front end with its intro skipped, the win, the outro, the debriefing, the main menu's Quit) equals the port on every probe field every Present to the tape's end, and the saved career and the options file equal the port's byte for byte. The tutorial pilot's -level win route equals the port through the level's end, its end-level data and the outro (`PilotFinalDronesRouteTests`). |
 | M6 | In progress: the boot films and the front end's page changes land on retail's Presents (M6 entries below); the front end's float expressions still need a per-function oracle. |
-| M7 | In progress: the Host runs the whole game from boot to quit (`HOST_LIVE=flow`), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
+| M7 | In progress: the Host runs the level-100 route from boot to quit (`HOST_LIVE=flow`; no live audio, no physical mouse input), and its drawing is compared with the port's back buffers part by part (the dated entries below). |
 
 CE version-2 tapes (2026-10-28): the parser and the `GameRun`/level input paths retain ordered window-mouse and
 character events, the recorded back-buffer size and replay-owned cursor as in the 0.1.9 recorder. A mismatched size,
@@ -220,7 +230,7 @@ the dated entries below are the counts on their dates.
 
 Pilot-win projectile contact (2026-10-28): the pristine specimen's `CCylinder::CollideWithLine`
 instructions at `00440801..0044083d` sum the Y and Z squares before the X square for the two lengths.
-On the frozen native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
+On the frozen native port build with SHA-256 `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5` (a different build from the `e55cb2d8` one cited below),
 the pilot-win tape's projectile 4034 hit the player cylinder with contact Z `c12dac0d`; the previous
 X-first reconstruction returned `c12dac0e` and differed in LIFE starting at Present 26368. A fresh native
 observer recorded the input positions, motions and cylinder/line dimensions used in
@@ -290,15 +300,15 @@ captured inputs, separate three causes:
 
 - Launch: `CWeapon::Unknown509140`'s straight aim (`005093c6..00509434`) stores the magnitude
   sqrt((Y² + X²) + Z²), the CRT asin pitch and the fpatan yaw, then calls the out-of-line
-  `FMatrix(yaw, pitch, 0)` at `004062d0`. The Core used the inline-model constructor and a double asin
+  `FMatrix(yaw, pitch, 0)` at `004062d0`. The parity core used the inline-model constructor and a double asin
   (row 1's Y one unit off at the Present 16144 launch). Corrected; `StraightAimTests` holds nine cases
   whose yaw, pitch and matrix come from retail's block and constructor. The native port already agreed.
 - Wiggle: `CRound::Move` builds both wiggle matrices with `004062d0` and sums the wiggle product
   (X + Y) + Z (`004d90d6..004d916a`) and the unwiggle (Y + Z) + X (`004d921e..004d929a`). On 92 captured
-  frames retail's blocks agree with the corrected Core in all 92 and with the former Core in 65 and 84.
+  frames retail's blocks agree with the corrected parity core in all 92 and with the former parity core in 65 and 84.
   Corrected; `RoundWiggleTests` holds 39 retail cases. The native port differs here too (a port
   correction, separate from this rebuild change).
-- Seek turn: the Core already follows retail's direction and product orders; the native port's differ
+- Seek turn: the parity core already follows retail's direction and product orders; the native port's differ
   (port patch 0029). With 0029 and the launch fix the first missile's hit is equal through Present 16628.
 
 Both rebuild corrections leave every existing Parity test's outcome and output unchanged. The trainer
@@ -327,7 +337,7 @@ targets**. A Parity replay ran it through Present 15,130 and observed all 18 rea
 at the same completed Present; the observer forwards each original call once and leaves the whole
 trace unchanged. After the stopped-round query correction below, **all nine probes agree at
 every Present 3..15,130**, across all 136,152 comparisons. This is selected-state agreement with
-frozen native port `e55cb2d8`,
+the frozen native port build with SHA-256 prefix `e55cb2d8` (a binary hash, not a commit, and a different build from the `48738e88…` one cited above),
 not a fresh retail whole-route comparison. The tape SHA-256 is
 `b083d308cc29bb108d2d4a15bc8ee7a1c17d7086ae386682fb2f9425b9d69919`.
 The native route starts with `-level100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
@@ -388,18 +398,18 @@ magnitude store. The previous generic vector norm used a different order and flo
 An independent reproduction ran 5,347 isolated original Hit cases; 521 distinguish the former order. Eight managed
 counterexamples cover summation order and intermediate overflow/underflow, and all eight fail with
 the former implementation. The configured trainer trace remains byte-identical after this correction.
-Its first explosion still gives `3ecf1334` in both Core and original code on the captured Core inputs,
+Its first explosion still gives `3ecf1334` in both the parity core and original code on the captured parity-core inputs,
 so this correction does not explain the first LIFE divergence. Original-code execution uses an authored
 radius callback and Damage sink; it establishes bounded arithmetic, not the collision trajectory.
 Receipts: `explosion-hit-root/`, `explosion-order-full.trx` and
 `explosion-order-regression-admission.json` in the same private death-integration owner.
 
-A subsequent noninterfering native first-hit observer preserves all145854 ordinary probe fields
-through Present16206 and captures eight paired callbacks without errors. Original Explosion.Hit
+A subsequent noninterfering native first-hit observer preserves all 145,854 ordinary probe fields
+through Present 16,206 and captures eight paired callbacks without errors. Original Explosion.Hit
 returns native damage `3ecf1286` on the native inputs and managed damage `3ecf1334` on the
 managed inputs. Player position, radius and configuration agree; projectile position already differs
 at the direct Round.Damage boundary, before explosion placement. A separate managed collector
-preserves its entire16204-record trace and confirms unchanged position/velocity from Round.Hit
+preserves its entire 16,204-record trace and confirms unchanged position/velocity from Round.Hit
 through GoOff. Original placement on those managed inputs reproduces the managed explosion.
 Native velocity at that boundary was not observed, so it is not assumed equal. The next collision
 observer is a private, unexecuted draft, not another accepted fix. Receipts are in the maintainers' private evidence
@@ -844,7 +854,7 @@ went at the close, `:1516`), and CGame::Shutdown's RunOutroFMV (`:1104`) marks t
 Under -skipfmv the film never ends, and the port's P28307-P28600 (294 Presents, 2,646 fields) equal ours: the game's
 time, frame time, score, level and rand() standing, no random stream and no player.
 
-Measured (a player's whole game, 2026-10-23): the `gold-own-20261023` tape (a maintainer's own keyboard and mouse
+Measured (one recorded whole game, 2026-10-23): the `gold-own-20261023` tape (a maintainer's own keyboard and mouse
 input from boot to the main menu's Quit, moved onto Onslaught CE 0.1.2's timing) against the published 0.1.2 package's
 replay of it (`fe-gold-own-port-20261023`: shim clock, every Present, no game arguments, the tape's start files) on one
 clock (`GameRun`, `GoldOwnRouteTests`): every probe field the port records (EVT, EVN, the front end's FE line, FT, SC,
@@ -1760,12 +1770,15 @@ its released leaf type-mask projection, setup/teleport pose reset, and existing
 full-stop behavior. Render/audio virtual defaults and a generic gameplay
 framework remain open.
 
-## Parity dimensions and their gates
+## Parity dimensions and their gates (earlier fixed-point lane)
+
+This table and the two sections after it were written for the earlier fixed-point lane, before the recorded comparisons of M2 to M5
+above; where they overlap, the milestones table is current, and the Parity suite and the Host's comparisons are the current gates.
 
 | Dimension | What it means | Current gate | What the gate does / does not prove |
 |---|---|---|---|
 | **Deterministic sim state** | Identical tick-by-tick simulation given identical inputs | Core cold-start + full-chain tests, `--expect` trace hashes | Proves determinism and self-consistency. Does NOT prove retail equality — retail has no tape to replay against |
-| **Visual frame** | Rendered output matches retail within tolerance | `npm run ref:godot-capture -- --plan mainmenu` (through `godot-offscreen`) + `score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
+| **Visual frame** | Rendered output matches retail within tolerance | `npm run ref:godot-capture -- --plan mainmenu` (through an offscreen wrapper, see AGENTS.md) + `score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
 | **Audio** | Playback behavior matches retail | Shared sound-process and adapter tests; bounded production-device V12 fixture ([scope](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27)) | Checks the stated source contracts and isolated Godot output/lifecycle. Ordinary Host gameplay, physical/audible acceptance and retail audio equivalence remain ungraded. |
 | **Timing / feel** | Response latency, animation cadence feel equivalent | None dedicated | Not gradeable today; 20 Hz step + floor semantics are the strongest proxy |
 | **Content completeness** | All retail content reachable/present | Materializer hash checks (200+ pinned inputs), level-100 slice | Proves the retail inputs consumed are byte-exact. Does NOT prove every level plays |
