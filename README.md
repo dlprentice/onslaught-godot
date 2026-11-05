@@ -37,7 +37,7 @@ dozens of paths for no gain.
 | --- | --- |
 | `rebuild/OnslaughtRebuild.Parity`, `.Parity.Tests` | the parity core and its suite |
 | `rebuild/OnslaughtRebuild.Host` | the Godot host |
-| `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` | the earlier fixed-point rebuild, kept as reference only (Core and Client have test projects; Godot has in-scene checks; Headless has none) |
+| `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` | the earlier fixed-point rebuild, kept as reference only (Core and Client have test projects; Godot has in-scene checks; Headless has no test project of its own, and Core.Tests covers its application) |
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
 | `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to build and test, what is measured, where code comes from, the determinism contract |
 | `references/Onslaught` | Stuart Gillam's GPL Onslaught project, pinned as a submodule |

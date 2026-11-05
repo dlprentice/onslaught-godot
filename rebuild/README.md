@@ -477,7 +477,7 @@ materialized static world (`Assets/Level110/level110-static-world.json`) in the
 retail load order: the shared base world, then the level rows with their
 squads, landing craft and turret children, fighters and scripts, then the
 pre-run and the start state, where the player is activated on frame 140. It
-follows the RE lane's construction contract. the Toolkit's [VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md#world-110-construction-and-start-state--september-26)
+follows the RE lane's construction contract. The Toolkit's [VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md#world-110-construction-and-start-state--september-26)
 section "World 110 construction and start state" lists what is carried and what is open:
 landing-craft flight, landing and cargo, and squad formation. Level 100's U-17
 flies its path, retreats to its side's nearest safe side and leaves

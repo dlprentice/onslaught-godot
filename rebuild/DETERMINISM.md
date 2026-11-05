@@ -21,7 +21,7 @@ wall time or thread scheduling; without one the diagnostic goodie viewer remains
 
 This is the determinism contract, not a proof of bit-identical results on every runtime or architecture. The bounded
 integer PC24 matrix path has explicit rounding-mode controls, while portability of the general `X87` model,
-trigonometry and other arithmetic remains unestablished; see [PARITY.md](PARITY.md#where-it-stands-2026-10-29) for the
+trigonometry and other arithmetic remains unestablished; see [PARITY.md](PARITY.md#where-it-stands-2026-10-29-gate-status-2026-11-04) for the
 measured scope. Cross-host comparisons need their own evidence.
 
 - It never reads wall time, locale, environment variables or thread scheduling, and has no presentation, process,
