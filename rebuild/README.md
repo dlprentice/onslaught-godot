@@ -383,8 +383,8 @@ npm run ref:godot-build
 npm run ref:godot-run
 ```
 
-`npm run ref:gate` (`rebuild/tools/rebuild_gate.py`) runs the lane's whole
-gate (of the earlier lane): the build, the Parity suite (`npm run test:rebuild-parity`), the Core suite (the cold-start test writes its won tape), the
+`npm run ref:gate` (`rebuild/tools/rebuild_gate.py`) runs the whole gate of the
+earlier rebuild: the build, the Parity suite (`npm run test:rebuild-parity`), the Core suite (the cold-start test writes its won tape), the
 Core ferry-landing sweep, the Client suite, the pause and AYA checks in headless Godot, the headless smoke with its
 recorded tape, and two C# replays of each tape. Its summary prints the suite
 counts and the tapes' trace and state hashes; logs go to a fresh
@@ -910,7 +910,7 @@ the shipped objective marker without adding world-space beacons.
 ### Verifying the earlier rebuild (history)
 
 Current gates are in [Working lane](#working-lane) (the Parity suite, `npm run build`, `npm run test:docs` and
-`npm run test:safety`). The `ref:*` scripts below belong to the earlier lane: they run `prepare:rebuild-assets` and need a local retail
+`npm run test:safety`). The `ref:*` scripts below belong to the earlier rebuild: they run `prepare:rebuild-assets` and need a local retail
 installation.
 
 On Linux, choose the smallest native command:

@@ -5,16 +5,18 @@ grades](#the-earlier-rebuilds-grades) on, the tables grade the [earlier fixed-po
 Last updated: 2026-11-05 (the status names its sections; the terms are glossed; the whole-game wording is scoped to the level-100 route; fused figures repaired; earlier: 2026-11-04)
 Evidence: SOURCE — authority order and the known divergences are
 recorded in `PROVENANCE.md` plus the Lost-countdown row of [Known divergences (measured)](#known-divergences-measured); gate capabilities are MEASURED claims of the
-tracked harnesses named in [Parity dimensions and their gates](#parity-dimensions-and-their-gates-earlier-fixed-point-lane). Every row of *Carried retail contracts*
+tracked harnesses named in [Parity dimensions and their gates](#parity-dimensions-and-their-gates-earlier-fixed-point-rebuild). Every row of *Carried retail contracts*
 is MEASURED: its anchor re-derived from the pristine specimen and its mutation
 kill observed.
 Specimen: `BEA.exe.original.backup`, SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`
 (the retail addresses cited in the divergences table are from the preserved
 pristine specimen; do not infer another executable's identity from its folder name).
-Summary: the gradeable dimensions of parity, the gate each currently has (or
-lacks), and the standing exceptions. This document names the gap; it does not
-claim the gap is closed.
+Summary: where parity stands for the parity core and the Host (the milestones
+table and the dated entries), then the gradeable dimensions of parity, the gate
+each had or lacked when the earlier fixed-point rebuild was graded, and the
+standing exceptions. This document names the gap; it does not claim the gap is
+closed.
 
 Terms: CE is Onslaught CE; the native port is the CE build pinned by SHA-256 in the entry that cites it; patch NNNN is
 `port/patches/NNNN-*.patch` in [onslaught-ce](https://github.com/dlprentice/onslaught-ce); PC24 is the x87 24-bit-significand
@@ -1770,9 +1772,9 @@ its released leaf type-mask projection, setup/teleport pose reset, and existing
 full-stop behavior. Render/audio virtual defaults and a generic gameplay
 framework remain open.
 
-## Parity dimensions and their gates (earlier fixed-point lane)
+## Parity dimensions and their gates (earlier fixed-point rebuild)
 
-This table and the two sections after it were written for the earlier fixed-point lane, before the recorded comparisons of M2 to M5
+This table and the two sections after it were written for the earlier fixed-point rebuild, before the recorded comparisons of M2 to M5
 above; where they overlap, the milestones table is current, and the Parity suite and the Host's comparisons are the current gates.
 
 | Dimension | What it means | Current gate | What the gate does / does not prove |
