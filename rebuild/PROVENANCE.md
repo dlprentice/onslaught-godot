@@ -427,8 +427,9 @@ read, runtime capture, or Ghidra mutation was created.
 World 110 is constructed by the same owners as Level 100 since September 26:
 the materializer writes its static world from the pinned
 `data/resources/110_res_PC.aya` (SHA-256 `4e041c75…3c2b`), the Client decodes
-it, and `Simulation` builds it in the retail load order (VALIDATION.md, "World
-110 construction and start state"). The earlier, separate World 110 stage was
+it, and `Simulation` builds it in the retail load order (the Toolkit's
+[VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md#world-110-construction-and-start-state--september-26),
+"World 110 construction and start state"). The earlier, separate World 110 stage was
 retired then, because it duplicated that construction without ever running in
 the product: the definition, seed and player-start admissions, the tree,
 Building, SAT and Feature prefix, the player-start list resolution and

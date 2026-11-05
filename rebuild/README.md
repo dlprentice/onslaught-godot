@@ -1,16 +1,21 @@
 # Onslaught Rebuild
 
-Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
-Last updated: 2026-11-02 (public contributor and film setup; 2026-10-29: floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 playable to completion. Measured: one recorded whole-game win route (a maintainer's own keyboard-and-mouse tape, replayed against the published Onslaught CE 0.1.2 package, 2026-10-23) from boot through the outro, debriefing and quit equals the native port on every probe field every Present, with the saved career byte for byte; [PARITY.md](PARITY.md) (M5, M7) records scope, the original-game comparison and the open gaps.
+Last updated: 2026-11-05 (the status points to the parity record; Onslaught CE and the terms are named; the earlier rebuild is marked as history; wording corrections)
 Summary: the Godot/C# reconstruction: the floating-point parity core and its bounded comparisons, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) states the Parity core's determinism contract.
 [`PARITY.md`](PARITY.md) defines what
 "1:1 parity" means operationally and what is currently graded.
 
+Not a playable release: to play the game, use [Onslaught CE](https://github.com/dlprentice/onslaught-ce), the native port (called
+"the port" below). A *Present* is one frame of the game loop, a *tape* is recorded input, a *probe* is a sampled state field, and
+*M5* and *M7* are [PARITY.md](PARITY.md) milestones. `OnslaughtRebuild.Parity` owns the simulation and `OnslaughtRebuild.Host` the
+presentation; Core, Client, Godot and Headless are reference only ([AGENTS.md](../AGENTS.md)).
+
 ## Working lane
 
-- The rebuild is developed in this repository (onslaught-godot) since 2026-10-22: work goes on a branch and merges into
+- The rebuild is developed in this repository (onslaught-godot) since 2026-10-21: work goes on a branch and merges into
   `main` when its gate passes. The copy in Onslaught-Career-Editor's `rebuild/` is retained as a frozen reference.
   Build, test and develop the live Parity core and Host in this repository.
 - Builds, test runs and captures happen in a clone on an internal disk (or a worktree of it), never in a checkout on
@@ -18,7 +23,7 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
   (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.
 - Public source setup and an authored-test example are in the [root README](../README.md#building-and-testing).
   Windows contributors follow its WSL2 route, with the checkout inside the distribution's Linux filesystem;
-  enabling or installing WSL requires the host owner's approval. Those checks do not establish native Windows acceptance.
+  enabling WSL needs administrator rights and a restart. Those checks do not establish native Windows acceptance.
   `python tools/public_build.py setup`, `build` and `test` use a pinned public toolchain inside this checkout and
   require no machine wrapper, private profile or retail inputs. Contributors can prepare changes without the
   maintainer's private reference inputs. The
@@ -102,13 +107,14 @@ box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
 ### The Godot host (M7)
 
 `OnslaughtRebuild.Host` is the successor host: a Godot 4.8 .NET project, built in code, that runs the parity core and
-draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which is **reference only**: it is not built,
-gated or extended, and it stays (with Core and Client's earlier simulation) because the asset materializer, the
+draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which is **reference only**: not a parity or product gate and not extended,
+though `ref:gate` still builds and smoke-checks it. It stays (with Core and Client's earlier simulation) because the asset materializer, the
 first-flight launcher, the static-mesh preview and several measurement probes still read its sources and recipes;
 pieces are copied into the Host only as needed, noting their origin. By default it renders one level-100
 Present; an experimental live mode (`HOST_LIVE=1`) runs level 100 from the parity core with ordinary input, or
 replays `HOST_TAPE` using its virtual sound device. `HOST_TRACE` records the live trace. The whole-game mode
-(`HOST_LIVE=flow`) runs the game from boot to quit, front end and level, as [PARITY.md](PARITY.md) records (M7).
+(`HOST_LIVE=flow`) runs the level-100 route from boot to quit, front end and level (no live audio, no physical mouse input), as
+[PARITY.md](PARITY.md) records (M7).
 
 #### Running the Host
 
@@ -141,9 +147,9 @@ npm run run:host                                        # builds and runs the wh
 that SDK for direct `dotnet` commands in this terminal. These exports apply to the current terminal session.
 
 The materializer's first argument is the output folder. It uses `--game-dir` for the installation and does not read
-`ONSLAUGHT_GAME_DIR`; passing it explicitly also works for installations outside Steam's default library.
+`ONSLAUGHT_GAME_DIR`; passing `--game-dir` explicitly also works for installations outside Steam's default library.
 
-`run:host` opens the experimental whole-game preview with keyboard input. That `HOST_LIVE=flow` route does not
+`run:host` opens the experimental level-100 route preview with keyboard input. That `HOST_LIVE=flow` route does not
 use the opt-in live audio adapter: a level can stop at an unsupported sound operation (the incoming-missile warning
 is one reproduced case).
 The whole-game preview does not yet admit physical mouse input; its career and options writes stay in memory and
@@ -203,11 +209,11 @@ History: on 2026-10-15 David first parked the fixed-point rebuild in favour of t
 byte-matching decompilation (now [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp)), then reactivated the lane the same day as the parity-core proof of
 concept above. The fixed-point code described from here on is the state
 at the old tag archive/godot-rebuild-20260926 (kept in the private RE archive since the history flatten): C# only and built in code, Level 100 winnable through the player-input
-surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in the Godot
-host). Its retail-data decoders, determinism notes and RE contract citations remain useful reference; the sections
+surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in
+`OnslaughtRebuild.Godot`). Its retail-data decoders, determinism notes and RE contract citations remain useful reference; the sections
 below describe that state, not current work.
 
-## Ownership
+### Ownership (the earlier rebuild, 2026-09)
 
 - `OnslaughtRebuild.Core` owns deterministic simulation state and fixed 20 Hz
   stepping - retail's own rate, `GAME_FR 20.0` / `CLOCK_TICK 0.05`. It has no presentation, filesystem, clock, process, network, or GPU
@@ -220,8 +226,9 @@ below describe that state, not current work.
 
 The rebuild is C# only and built in code (David, 2026-09-25; see the repository
 `AGENTS.md`): no GDScript, no editor-authored scenes or resources, shader source
-inside C#. Its scene files are one-node entry wrappers (`Main.tscn` and the
-check scenes). From September 19 to 25 much of the Godot side was ported to
+inside C#. Its scene files are one-node entry wrappers; the four tracked ones are `rebuild/OnslaughtRebuild.Godot/Main.tscn`,
+`rebuild/OnslaughtRebuild.Godot/Scenes/Pause/Tests/PauseSceneChecks.tscn`,
+`rebuild/OnslaughtRebuild.Godot/Scenes/Shared/Tests/AyaTextureChecks.tscn` and `rebuild/OnslaughtRebuild.Host/Main.tscn`. From September 19 to 25 much of the Godot side was ported to
 typed GDScript and editor scenes. On September 25 it returned to the last
 all-code C# rebuild (`b0b9c5e7`), with the pause menu's tree built in code again
 and the later C# changes that carry evidence: the strict AYA texture admission
@@ -252,7 +259,7 @@ loader short read; `--aya-expect=REPORT` also compares every case, including
 the decoded bytes of the actual textures, with a prior report. These rules
 change malformed input only.
 
-The current Godot app is the **Level 100 Opening Slice**. With locally
+The last state of the reference-only `OnslaughtRebuild.Godot` (2026-09) is the **Level 100 Opening Slice**. With locally
 materialized media, a plain launch plays the released Lost Toys logo, opening
 montage, and splash before click-to-start, v3 main-menu language, retail's
 career-name/load page, the bounded Godot level selector, the mission-briefing
@@ -267,7 +274,7 @@ intro produced native audio on Linux; playback of the newly added logo/montage
 tracks still needs a live check.
 (*Extended 2026-07-28: this read "click-to-start page, v3 main-menu language, a
 Level 100-only level selector, and the released loading-screen language". The
-three pages added had already shipped; see* `## Current truth` *below for the
+three pages added had already shipped; see* `### Final state of the earlier rebuild (2026-09)` *below for the
 full list and its authority.*) It renders the locally
 materialized released Federation Aquila; all 33 visible static objects
 serialized by Level 100; exact close meshes for the 1,481 pine placements
@@ -363,7 +370,7 @@ live with the [`Frontend`](OnslaughtRebuild.Godot/Assets/Frontend/README.md),
 [`Aquila`](OnslaughtRebuild.Godot/Assets/Aquila/README.md), and
 [`Level 100`](OnslaughtRebuild.Godot/Assets/Level100/README.md) recipes.
 
-## Running the earlier rebuild (history)
+### Running the earlier rebuild (history)
 
 This section describes the earlier fixed-point rebuild's launcher (`rebuild/tools/first_flight.py`, which runs
 `OnslaughtRebuild.Godot`), kept for reference; to run the current rebuild, see
@@ -377,7 +384,7 @@ npm run ref:godot-run
 ```
 
 `npm run ref:gate` (`rebuild/tools/rebuild_gate.py`) runs the lane's whole
-gate: the build, the Core suite (the cold-start test writes its won tape), the
+gate (of the earlier lane): the build, the Parity suite (`npm run test:rebuild-parity`), the Core suite (the cold-start test writes its won tape), the
 Core ferry-landing sweep, the Client suite, the pause and AYA checks in headless Godot, the headless smoke with its
 recorded tape, and two C# replays of each tape. Its summary prints the suite
 counts and the tapes' trace and state hashes; logs go to a fresh
@@ -424,12 +431,12 @@ smoke and live startup into Level 100 establish Linux runtime execution; complet
 controls/audio/tutorial parity remains unverified.
 
 The Windows PowerShell launchers, their toolchain manifests and the Windows
-capture scripts were retired on 2026-09-26 (David: no PowerShell); Git keeps them.
+capture scripts were retired on 2026-09-26 (David: no PowerShell); they are not in this repository's history.
 The smoke's report contract and the capture's provenance stamp, health checks and
 scoring now live in the Linux launcher. There is no Windows launcher, so Windows
 acceptance needs a separately provided Windows environment and a launcher for it.
 
-### Engine updates and recovery
+#### Engine updates and recovery
 
 The engine pin is Godot 4.8 beta1 .NET (`4.8.beta1.mono.official.4d10419ca`, `Godot.NET.Sdk/4.8.0-beta.1`, .NET SDK
 10.0.402); 4.8 dev6, the previous pin, is retired, and it and the earlier 4.7.2 SDK/project pins remain recoverable
@@ -448,7 +455,7 @@ run); input/audio or GPU claims still require their
 actual environment. Do not defer a compatible update solely because it is a
 development build. No monitoring automation is implied.
 
-Controls:
+Controls (`OnslaughtRebuild.Godot`, reference):
 
 | Input | Action |
 | --- | --- |
@@ -463,15 +470,15 @@ Controls:
 | `Space` | Fire the selected implemented weapon after the tutorial enables it |
 | `R` | Reset the slice |
 
-## Current truth
+### Final state of the earlier rebuild (2026-09)
 
 World 110 constructs in Core (2026-09-26). `Simulation` builds it from the
 materialized static world (`Assets/Level110/level110-static-world.json`) in the
 retail load order: the shared base world, then the level rows with their
 squads, landing craft and turret children, fighters and scripts, then the
 pre-run and the start state, where the player is activated on frame 140. It
-follows the RE lane's construction contract. VALIDATION.md's "World 110
-construction and start state" lists what is carried and what is open:
+follows the RE lane's construction contract. the Toolkit's [VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md#world-110-construction-and-start-state--september-26)
+section "World 110 construction and start state" lists what is carried and what is open:
 landing-craft flight, landing and cargo, and squad formation. Level 100's U-17
 flies its path, retreats to its side's nearest safe side and leaves
 (`Level100ActorDropshipRuntime`, from the RE lane's dropship contracts), and the
@@ -530,7 +537,7 @@ completed incoming link points at it. The launch edge was renamed
 `LevelLaunchRequested` and carries `ConsumeLaunchWorldNumber`. What a launch
 *constructs* is still Level 100 only. Core builds World 110 from retail data
 through its start state, with the career's carry-over from Level 100 (below),
-and the Client session can launch it, but the Godot host has no World 110
+and the Client session can launch it, but `OnslaughtRebuild.Godot` (reference) has no World 110
 lifecycle or presentation yet. The old relabeled-Level100 Simulation route is
 explicitly unsupported. After a Level 100 Won
 reaches `FrontEndHandoffReady`, Client applies
@@ -696,7 +703,7 @@ definitions as native-call instruments. The level-world table is measured (40
 RLWD serialized rows, header `(2, 0, 40)`; types 19 and 28 have tails Level 100
 does not use) and the BSWD island is byte-identical to Level 100
 (`04c5a383…10f4`). `Simulation` builds World 110 from the materialized static
-world (see "Current truth" above).
+world (see "Final state of the earlier rebuild (2026-09)" above).
 
 World 200 (2026-08-22) generalizes that pattern and measures three places the
 shared law needed refining: `data/resources/200_res_PC.aya` (SHA-256
@@ -743,7 +750,7 @@ shield-bypassing damage and whole-velocity retention, plus the low-speed jet's
 `0.90` retention. Core evaluates that contact against its deterministic Level
 100 HFLD normal. Runtime outcome/quantization parity, object-supported contact,
 and the separate generic vertical bounce remain open; see
-[`PROVENANCE.md`](PROVENANCE.md) and delta D20 rather than treating the source
+[`PROVENANCE.md`](PROVENANCE.md) rather than treating the source
 port or static identity as runtime proof.
 
 Repeated Level 100 retail observations now inform walker acceleration, equal
@@ -900,7 +907,11 @@ Core and Godot now share the observed retail targets by canonical actor ID and
 definition/mesh binding, including dynamically spawned training trucks, plus
 the shipped objective marker without adding world-space beacons.
 
-## Verify
+### Verifying the earlier rebuild (history)
+
+Current gates are in [Working lane](#working-lane) (the Parity suite, `npm run build`, `npm run test:docs` and
+`npm run test:safety`). The `ref:*` scripts below belong to the earlier lane: they run `prepare:rebuild-assets` and need a local retail
+installation.
 
 On Linux, choose the smallest native command:
 
@@ -931,7 +942,7 @@ only; it has no screenshot or visual-parity machinery.
 
 Visual regression is a separate gate. `npm run ref:godot-capture -- --plan
 PLAN` (`startup`, `gameplay`, `mainmenu` or `options`; `--size`, default
-640x480, retail's frontend) draws the rig's shots through `godot-offscreen`,
+640x480, retail's frontend) draws the rig's shots through an offscreen wrapper (see [AGENTS.md](../AGENTS.md)),
 stamps the manifest's provenance (`--purpose production` holds only for committed
 Godot source; dirty or unknown source is a `probe`), refuses shots on the wrong
 screen, unsaved, resized or missing, and scores the run with
