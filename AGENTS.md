@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-11-02 (public setup and contributor completion; commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
+Last updated: 2026-11-05 (public setup and contributor completion; the .tscn wrapper exception and the C and shell oracle harnesses named; the earlier launcher defined)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -14,10 +14,16 @@ Summary: the rules for working in this repository, for people and automated agen
   skip is not a pass. The contract is the intended behavior; passing tests establish only the exercised inputs and environments. For measured scope and open differences see [Parity](rebuild/PARITY.md); for audio evidence see [Audio](rebuild/OnslaughtRebuild.Host/AUDIO.md).
 - **Evidence:** every behaviour claim cites a capture, a byte comparison, a focused test, or a pinned source file and
   line. Static evidence establishes identities and structures; only controlled runtime evidence establishes values.
+- **Document headers:** every new or edited tracked `.md` starts, after its title, with `Status:`, `Last updated:` (or `Date:`)
+  and `Summary:` (or `Verdict:`) lines; `Last updated:` is the date of the last substantive change, not of mechanical edits, and
+  headers carry no volatile counts. `npm run test:doc-headers` (`tools/doc_header_check.py`) enforces this; the fuller standard it was
+  written from is the Toolkit's
+  [DOCUMENTATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/DOCUMENTATION.md).
 - **No game files, ever:** never commit the game's executables, data, saves (beyond the one tracked fixture),
   captures, byte dumps, decompiler output or instruction listings. `npm run test:safety` checks the boundary.
-- **Code:** C# only, built in code: no `.gd` files, no editor-authored scenes or resources, shader source in C#
-  strings. Tooling is Python.
+- **Code:** C# only, built in code: no `.gd` files, no editor-authored scenes or resources (a `.tscn` only as a one-node entry
+  wrapper), shader source in C# strings. Tooling is Python, plus the C oracle harnesses and shell wrappers under
+  `rebuild/tools/retail-oracle` and `rebuild/tools/x87_oracle`.
 - **Licence:** GPL-3.0-only ([LICENSE](LICENSE), [REUSE.toml](REUSE.toml)); units adapting Stuart Gillam's source are
   recorded in [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md).
 - **Machine-specific paths** (reference folders, clones) live in an ignored `local-data/rebuild-env.sh`, never in a
@@ -26,16 +32,16 @@ Summary: the rules for working in this repository, for people and automated agen
   this checkout; `build` and `test` use them with local .NET/NuGet state. They require no game data, private lab,
   machine wrapper or reference environment script. Setup and restore contacts are documented in the
   [README](README.md#building-and-testing); the application itself still sends nothing.
-  The runner targets Linux x86_64; Windows contributors use that README's WSL2 route. Enabling or installing WSL
-  requires the host owner's approval. WSL2 checks are Linux evidence; native Windows acceptance stays separate.
+  The runner targets Linux x86_64; Windows contributors use that README's WSL2 route. Ask the user before
+  enabling or installing WSL (it needs administrator rights and a restart). WSL2 checks are Linux evidence; native Windows acceptance stays separate.
 - The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until David explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
-- **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
+- **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`: `rebuild/tools/first_flight.py`, `npm run ref:godot-capture` and `npm run ref:godot-run`) never
   open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
   headless mode. The wrapper, its flags, the engine build and the capture folders are the machine's own and are set in the
   ignored `local-data/rebuild-env.sh`; for example
   `cd rebuild/OnslaughtRebuild.Host && HOST_PRESENT=150 HOST_CAPTURE=<capture file> <offscreen wrapper> --path .
   --qa local-data/qa/run --pass HOST_ --timeout 600 --done-marker '^HOST_CAPTURED' --done-grace 20 -- --audio-driver Dummy`.
-  The earlier launcher's retail inputs come from an ignored lab folder named by `BEA_LOCAL_LAB`; worktrees reuse it,
+  The earlier launcher's (`rebuild/tools/first_flight.py`) retail inputs come from an ignored lab folder named by `BEA_LOCAL_LAB`; worktrees reuse it,
   never a copy.
   Contributors elsewhere use their own headless or offscreen setup for automated runtime checks; a manual preview
   can use their own display. Public builds and authored tests need none of these desktop wrappers.

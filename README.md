@@ -1,17 +1,9 @@
 # onslaught-godot
 
-Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a whole-game
-win route from boot through the outro, debriefing and quit equals the native port on every probe field every Present;
-the saved career and options file match the port's byte for byte. Against the original game itself, one separately
-recorded level-100 win (2026-10-28) equals one of the original's two debriefing outcomes (its process fl2a; 2 of the 8
-original processes that reach the debriefing take that path) on every probe at all 12,312 Presents (on 2,477 of them,
-frames with no player, the original's probes record POS and LIFE as null, which the comparison counts as all-zero), with
-the saved careers and the options file byte for byte. That is a private harness run with the pristine game under the replay shim in Wine, not
-a suite test; it admits a sound-pool seed and a goodie-load completion observed in port processes. The suite's own retail
-references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
-match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
-Present bounds. These comparisons do not establish audio, picture or whole-campaign parity.
-Last updated: 2026-11-02 (public contributor setup, Windows WSL2 route and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 playable to completion. Measured status, Present
+bounds, the comparisons with the native port and with the original game, and the open gaps are in [rebuild/PARITY.md](rebuild/PARITY.md),
+which records its required reference gate as incomplete. These comparisons do not establish audio, picture or whole-campaign parity.
+Last updated: 2026-11-05 (the status points to the parity record; the Companion's move into Onslaught CE is named; wording corrections)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
 Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
 bounds, and on one recorded win with the original's own process to the end (PARITY M5).
@@ -31,7 +23,8 @@ To play the game, use [Onslaught CE](https://github.com/dlprentice/onslaught-ce)
 ## You need your own copy of the game
 
 The repository contains no game executable or game assets. It carries one [game-generated career fixture](tests_shared/fixtures/README.md)
-for regression tests. The parity core and the host read the game's data from your own installation of *Battle Engine
+for regression tests; the fixture carries no project licence (`REUSE.toml`: `LicenseRef-retail-save-fixture`) and is not to be reused
+outside this repository's tests. The parity core and the host read the game's data from your own installation of *Battle Engine
 Aquila* for PC; the comparison references (recorded runs) are kept outside the repository and named by environment variables.
 
 ## Layout
@@ -44,7 +37,7 @@ dozens of paths for no gain.
 | --- | --- |
 | `rebuild/OnslaughtRebuild.Parity`, `.Parity.Tests` | the parity core and its suite |
 | `rebuild/OnslaughtRebuild.Host` | the Godot host |
-| `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` (and their tests) | the earlier fixed-point rebuild, kept as reference only |
+| `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` | the earlier fixed-point rebuild, kept as reference only (Core and Client have test projects; Godot has in-scene checks; Headless has none) |
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
 | `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to build and test, what is measured, where code comes from, the determinism contract |
 | `references/Onslaught` | Stuart Gillam's GPL Onslaught project, pinned as a submodule |
@@ -55,7 +48,8 @@ dozens of paths for no gain.
 
 **On Windows (x64), use WSL2 for these contributor checks.** Follow Microsoft's
 [WSL installation guidance](https://learn.microsoft.com/en-us/windows/wsl/install). Enabling WSL, changing Windows
-features or installing a distribution requires the machine owner's approval. In a Windows terminal, run
+features or installing a distribution needs administrator rights and a restart; if the PC is not yours, get its
+administrator's approval first. In a Windows terminal, run
 `wsl.exe --list --verbose` and confirm that your Linux distribution shows `VERSION` 2, then open that distribution's
 Linux terminal. Keep the checkout under its Linux home directory, such as `~/src/onslaught-godot`, following
 [Microsoft's file-storage guidance](https://learn.microsoft.com/en-us/windows/wsl/filesystems#file-storage-and-performance-across-file-systems).
@@ -151,12 +145,14 @@ the game's developer, publisher or rights holders.
   ported from.
 - [onslaught-preservation](https://github.com/dlprentice/onslaught-preservation): the game's documentation (formats,
   mechanics, levels).
-- [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor): the companion app for saves,
-  settings and lore (to be renamed onslaught-companion).
+- [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor): the Toolkit and Companion app
+  (careers, saves and backups, settings, lore, content exploration and the catalogue, the editors, installation
+  management); every Companion capability is moving into native Onslaught CE, and the separate Companion stays supported
+  until each replacement is verified (see its PROGRAM.md).
 - [Stuart Gillam’s GPL Onslaught project](https://github.com/stuart73/Onslaught).
 
 ## Long-term direction
 
-The shared [project goals](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md) and [program](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md) cover later HD assets, level and mission creation, modding and multiplayer. These are longer-term aims across the project; they do not establish that those features work in this rebuild.
+The shared [project goals](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md) and [program](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md) cover later HD assets, level and mission creation, modding and multiplayer. In Onslaught CE, usable 3D map and mission authoring, mods and multiplayer are required work with their own status (the same goals and program); in this rebuild they follow a faithful baseline, and nothing here establishes that those features work in this rebuild.
 
 For this rebuild's measured status and open gaps, see [Parity](rebuild/PARITY.md). The [audio notes](rebuild/OnslaughtRebuild.Host/AUDIO.md) describe the sound evidence and its limits, and [Determinism](rebuild/DETERMINISM.md) describes the simulation contract.
