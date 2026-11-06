@@ -12,7 +12,8 @@ This repository takes work on the Godot rebuild: the parity core, the Host, thei
 by fork and pull request; no invitation, collaborator access or private repository is needed, and the maintainer
 reviews and merges pull requests here (no response time is promised). The short map:
 
-- Playing Onslaught CE, its bugs, Linux and Windows issues, network play, the launcher and updates:
+- Playing Onslaught CE, its bugs, Linux and Windows issues, the launcher and updates (Internet multiplayer is planned,
+  not in this version yet):
   [onslaught-ce](https://github.com/dlprentice/onslaught-ce) (generated; open issues and pull requests there as usual).
 - The byte-matching decompilation (functions, tools, matching notes):
   [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp) (generated; matching work needs your own copy of the
@@ -28,6 +29,7 @@ reviews and merges pull requests here (no response time is promised). The short 
 
 The full map, with how each repository takes pull requests, is
 [Where to contribute](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CONTRIBUTING.md#where-to-contribute).
+Questions and ideas: https://github.com/dlprentice/onslaught-ce/discussions.
 Security problems go through [SECURITY.md](SECURITY.md); [REUSE.toml](REUSE.toml) says which licence covers which files.
 
 ## Your first hour
