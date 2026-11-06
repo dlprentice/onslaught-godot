@@ -119,8 +119,9 @@ this checkout's ignored `local-data/`. If you install the engine yourself instea
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
 (`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host draws decoded films from a library at
 `ONSLAUGHT_FILMS`. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
-On Linux, `npm run prepare:rebuild-assets` (and the scripts that call it) writes the materialised game data under this
-checkout's ignored `local-lab/rebuild-godot/`, the checkout's canonical lab, not under `local-data/`.
+On Linux, `npm run prepare:rebuild-assets` (and the scripts that call it) writes the materialised game data under the
+ignored `rebuild-godot` folder of this checkout's `local-lab` directory (the checkout's canonical lab), not under
+`local-data`.
 Those game data and film assets are not included in the repository; its one tracked game-generated career fixture
 is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
 
