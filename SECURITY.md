@@ -1,7 +1,7 @@
 # Security
 
 Status: active
-Last updated: 2026-10-22
+Last updated: 2026-11-06 (the setup downloads named)
 Summary: how to report a security problem in the rebuild or its tools, and what they read and write.
 
 ## Reporting a problem
@@ -12,7 +12,9 @@ Describe what you found, how to reproduce it, and which commit and system you us
 
 ## What the rebuild touches
 
-The parity core and the host run on your machine and send nothing over the network. They read your own installation
+The parity core and the host run on your machine and send nothing over the network. (Setting up and building the
+toolchain does contact the hosts that serve the pinned archives and `api.nuget.org`; see the
+[README](README.md#building-and-testing).) They read your own installation
 of the game (read only) and the reference recordings you name by environment variable, and write only the files you
 name (traces, pictures, recorded tapes), the build output folders and this checkout's ignored `local-data/`
 ([rebuild/README.md](rebuild/README.md)). Problems that matter most here: a tool or the host writing outside those

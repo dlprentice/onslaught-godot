@@ -1,10 +1,67 @@
 # Contributing
 
 Status: active
-Last updated: 2026-11-02
-Summary: how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
+Last updated: 2026-11-06 (where to contribute, first-hour checks and terms)
+Summary: where each kind of work belongs, how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
 Thank you for your interest. Please read this before opening an issue or a pull request.
+
+## Where to contribute
+
+This repository takes work on the Godot rebuild: the parity core, the Host, their tests and tools. Everyone contributes
+by fork and pull request; no invitation, collaborator access or private repository is needed, and the maintainer
+reviews and merges pull requests here (no response time is promised). The short map:
+
+- Playing Onslaught CE, its bugs, Linux and Windows issues, network play, the launcher and updates:
+  [onslaught-ce](https://github.com/dlprentice/onslaught-ce) (generated; open issues and pull requests there as usual).
+- The byte-matching decompilation (functions, tools, matching notes):
+  [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp) (generated; matching work needs your own copy of the
+  game plus the compiler and SDK inputs its guide names).
+- How the game works (file formats, saves, mechanics, levels, engine):
+  [onslaught-preservation](https://github.com/dlprentice/onslaught-preservation).
+- The Companion (saves, backups, settings, lore, music) and the program's goals and plan:
+  [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor). Its `rebuild/` tree is a frozen copy
+  of this repository's `rebuild/`: rebuild work comes here.
+- The [Onslaught](https://github.com/dlprentice/Onslaught) and
+  [AYAResourceExtractor](https://github.com/dlprentice/AYAResourceExtractor) forks are pinned references, not
+  contribution targets.
+
+The full map, with how each repository takes pull requests, is
+[Where to contribute](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CONTRIBUTING.md#where-to-contribute).
+Security problems go through [SECURITY.md](SECURITY.md); [REUSE.toml](REUSE.toml) says which licence covers which files.
+
+## Your first hour
+
+There is no hosted CI, so the checks below are yours to run and report. What you need depends on what you change:
+
+| You are changing | You need | Run before the pull request |
+| --- | --- | --- |
+| Text or links (Markdown) | Git and Python 3.11 or newer; no game, Godot or .NET | `git diff --check`, `python3 tools/md_link_check.py --check-only`, `python3 tools/doc_header_check.py` |
+| Python tools (`tools/`, `rebuild/tools/`) | The above plus Pillow (`python -m pip install Pillow`) | `npm run test:tools`, or the affected `*_tests.py` directly |
+| Parity core or Host (C#) | Linux x86_64 or WSL2, then `python tools/public_build.py setup`; no game for the authored tests | `python tools/public_build.py build` and `python tools/public_build.py test --filter ...` for the affected tests |
+| Anything that runs the game or compares with recordings | Your own copy of *Battle Engine Aquila*; the recorded references stay with the maintainers | List the checks you could not run in the pull request |
+| Any new file | Nothing more | `python3 tools/public_allowlist_safety_check.py --include-submodules` |
+
+The `npm run` forms of the documentation and safety checks (`npm run test:docs`, `npm run test:safety`) need Node 26
+and are equivalent; the [README](README.md#building-and-testing) has the full setup.
+
+A new or edited Markdown file starts, after its title, with `Status:`, `Last updated:` (or `Date:`) and `Summary:` lines;
+a finding that quotes a retail address also carries `Evidence:` and a `Specimen:` line naming the file and the start of
+its SHA-256. `tools/doc_header_check.py` enforces this. Commit messages describe the change itself; leave out session or
+chat links, private paths and anything copied from the game.
+
+### Terms you will meet
+
+- **Present**: the point at which the game hands a finished frame to the display. The parity core is compared with
+  recorded runs at every Present.
+- **Tape**: a recorded sequence of player input that the parity core replays ([determinism contract](rebuild/DETERMINISM.md)).
+- **Probe**: a field of game state sampled at each Present and compared between runs; **golden**: a recorded reference
+  run (tape plus probes) that a test compares against.
+- **Parity core** (`OnslaughtRebuild.Parity`): the simulation. **Host** (`OnslaughtRebuild.Host`): the Godot project that
+  runs it and draws the game.
+- **Reference-bearing check**: a check that needs recorded runs kept outside this repository; only a maintainer can run it.
+- **The Toolkit**: the Onslaught-Career-Editor repository (the Companion app, its tools and the project's goal and plan),
+  also called Onslaught Companion.
 
 ## How changes are made
 
@@ -54,6 +111,20 @@ merge. Reference validation remains pending until then; passing authored tests d
 - **New files** pass `npm run test:safety`, which checks that no game material is tracked.
 - C# only, built in code: no `.gd` files and no editor-authored scenes or resources. Units that adapt Stuart Gillam's
   source are recorded in [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md).
+
+### What you can and cannot reproduce
+
+- **Anyone**: the authored Parity tests, the Host build, and the documentation, tools and safety checks. They need no game
+  and no recordings.
+- **With your own copy of the game**: running the Host, preparing its assets and films, and any check that reads the
+  game's data files.
+- **Maintainers only**: the reference-bearing checks. The recorded runs they compare with are kept outside this
+  repository and are not available to contributors; some claims in [PARITY.md](rebuild/PARITY.md) and
+  [PROVENANCE.md](rebuild/PROVENANCE.md) rest on private evidence, and each says so where it does. A maintainer runs
+  those checks on the proposed commit before a simulation or Host change merges.
+
+When you report a difference from the original game without recordings, give the commit, command, level and what you saw;
+the Present where it first differs is welcome if you can measure it, and not required.
 
 ## Licence of contributions
 

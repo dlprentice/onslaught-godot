@@ -51,32 +51,9 @@ public sealed class InteractiveSession
     // 20 Hz update, and Core now RUNS at 20 Hz, so that ratio is used verbatim.
     // It read 702049/1000000 - (10/17)^(2/3) - while Core ran at 30 Hz.
     //
-    // The scalar is exactly 13/3000. Verified in the PRISTINE specimen
-    // (a private pristine copy, sha256
-    // 74154bfa...) at VA 0x005d97c8 -> file 0x001d97c8, float32
-    // 0.004333333112299442. Read it from that file. The installed Steam
-    // executable on this Linux host hashed 74154bfa... (pristine) on 2026-09-26;
-    // the Windows-era Steam copy was e7881829... with four local patches - see
-    // reverse-engineering/binary-analysis/retail-specimen-baseline.md. Measure
-    // the exact file before relying on either.
-    //
-    // "Four" was queried in review 2026-07-27 and is CONFIRMED, but only for
-    // that Windows-era STEAM executable - do not carry the number across
-    // specimens. Measured by byte diff against its own neighbouring pristine
-    // backup: 28 differing bytes in exactly four contiguous runs -
-    //     0x06416F..0x064171   3 bytes   version-string pointer
-    //     0x129696             1 byte
-    //     0x12A644..0x12A647   4 bytes   force_windowed
-    //     0x1AA444..0x1AA457  20 bytes   "V%1d.%02d - PATCHED" into padding
-    // The maintainer applied these deliberately for his own testing; CLAUDE.md
-    // says so and they are not drift.
-    //
-    // The CAPTURE TARGET is a different specimen and carries only ONE of them:
-    // a private patched copy (e1436ef7...) differs from
-    // pristine in 4 bytes at 0x12A644 alone, the same force_windowed site. A
-    // reviewer diffing the safe-copy pair therefore finds one patch and can
-    // conclude "four" is wrong; it is not, it is a statement about the Steam
-    // install.
+    // The scalar is exactly 13/3000, as float32 0.004333333112299442, read from the pristine
+    // retail specimen (rebuild/PROVENANCE.md names the specimens). Measure the exact file
+    // before relying on it; another copy of the executable may differ.
     //
     // SENSITIVITY WAS 1.5 HERE, AND THAT IS NOT A RETAIL VALUE. The old
     // 13/2000 is exactly 1.5 x 13/3000. Retail's slider is

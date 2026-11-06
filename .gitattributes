@@ -53,23 +53,6 @@ LICENSES/*.txt text eol=lf -whitespace
 *.psm1 text eol=crlf
 *.psd1 text eol=crlf
 
-# The native companion's Godot solution is authored on Linux.
-companion/OnslaughtToolkit.Godot/OnslaughtToolkit.Godot.sln text eol=lf
-
-# Runtime/reference game text: keep Windows line endings in working trees
-game/**/*.msl text eol=crlf
-game/**/*.txt text eol=crlf
-game/**/*.stf text eol=crlf
-game/**/*.par text eol=crlf
-game/**/*.sfx text eol=crlf
-game/**/*.htm text eol=crlf
-game/**/*.xml text eol=crlf
-game/**/*.h text eol=crlf
-game/**/*.log text eol=crlf
-game/**/*.LOG text eol=crlf
-game/cardid.txt text eol=crlf
-game/steam_appid.txt -text
-
 # Binary and game/runtime artifacts: never line-ending convert
 *.aya -text
 *.bea -text

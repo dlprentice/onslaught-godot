@@ -116,7 +116,7 @@ public sealed partial class RetailFrontendFlow
 
     // ---- Dropdown popup -------------------------------------------------
     //
-    // The panel is OPAQUE (proved by the subagent pass: 570 distinct background
+    // The panel is OPAQUE (measured: 570 distinct background
     // colours, luma 0..255, all mapping to the single value (40,56,104) - no
     // blend can do that). Entries run on a 16px pitch that is unrelated to the
     // page's 20. Dest and width are RetailOptionsDropdownPanelDest, not the

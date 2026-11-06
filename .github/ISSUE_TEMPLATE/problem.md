@@ -10,7 +10,7 @@ title: ""
 
 
 
-**How to reproduce** (commit, command, level, the Present where it first differs if you know it)
+**How to reproduce** (commit, command, level; the Present where it first differs, only if you can measure it)
 
 
 

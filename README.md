@@ -10,8 +10,8 @@ the saved careers and the options file byte for byte. That is a private harness 
 a suite test; it admits a sound-pool seed and a goodie-load completion observed in port processes. The suite's own retail
 references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
 match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
-Present bounds. These comparisons do not establish audio, picture or whole-campaign parity.
-Last updated: 2026-11-02 (public contributor setup, Windows WSL2 route and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
+Present bounds. These comparisons do not establish audio, picture or whole-campaign parity. The required reference gate is still incomplete; [rebuild/PARITY.md](rebuild/PARITY.md) lists the open cases.
+Last updated: 2026-11-06 (contribution routing and the open reference gate stated; 2026-11-02: public contributor setup, Windows WSL2 route and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
 Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
 bounds, and on one recorded win with the original's own process to the end (PARITY M5).
@@ -47,7 +47,7 @@ dozens of paths for no gain.
 | `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` (and their tests) | the earlier fixed-point rebuild, kept as reference only |
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
 | `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to build and test, what is measured, where code comes from, the determinism contract |
-| `references/Onslaught` | Stuart Gillam's GPL Onslaught project, pinned as a submodule |
+| `references/Onslaught` | Stuart Gillam's GPL Onslaught project ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)), pinned as a submodule through David's public fork [dlprentice/Onslaught](https://github.com/dlprentice/Onslaught) |
 | `tools/` | measurement and documentation tools the rebuild uses |
 | `tests_shared/fixtures/` | the one tracked career save, a test baseline |
 
@@ -141,7 +141,9 @@ the game's developer, publisher or rights holders.
 
 ## Contributing and security
 
-[CONTRIBUTING.md](CONTRIBUTING.md) gives the gate a change has to pass and the licence of contributions;
+[CONTRIBUTING.md](CONTRIBUTING.md) says [where each kind of work belongs](CONTRIBUTING.md#where-to-contribute) across the
+project's public repositories, what to run in your [first hour](CONTRIBUTING.md#your-first-hour), the gate a change has
+to pass and the licence of contributions;
 [SECURITY.md](SECURITY.md) says how to report a security problem privately.
 
 ## Related projects
@@ -151,8 +153,8 @@ the game's developer, publisher or rights holders.
   ported from.
 - [onslaught-preservation](https://github.com/dlprentice/onslaught-preservation): the game's documentation (formats,
   mechanics, levels).
-- [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor): the companion app for saves,
-  settings and lore (to be renamed onslaught-companion).
+- [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor) (the Toolkit): Onslaught Companion,
+  the app for saves, settings and lore, and the project's goal and plan (to be renamed onslaught-companion).
 - [Stuart Gillam’s GPL Onslaught project](https://github.com/stuart73/Onslaught).
 
 ## Long-term direction

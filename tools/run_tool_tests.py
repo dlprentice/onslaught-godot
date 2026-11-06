@@ -43,7 +43,7 @@ SUITES: tuple[tuple[str, ...], ...] = (
     ("tools/score_frontend_capture_tests.py",),
     ("tools/check_region_overlap_tests.py",),
     ("tools/check_region_overlap.py",),
-    # Name-align plates (Gen34–38): keep regression guards in the sweep (Opus).
+    # Name-align plate regression guards stay in the sweep.
     ("rebuild/tools/host_flow_check_tests.py",),
 )
 

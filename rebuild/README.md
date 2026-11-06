@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
-Last updated: 2026-11-02 (public contributor and film setup; 2026-10-29: floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Last updated: 2026-11-06 (Verify section marked as the reference-only rebuild's and pointed to the live gate; engine download and lab folder stated; 2026-11-02: public contributor and film setup; 2026-10-29: floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the floating-point parity core and its bounded comparisons, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) states the Parity core's determinism contract.
@@ -112,12 +112,15 @@ replays `HOST_TAPE` using its virtual sound device. `HOST_TRACE` records the liv
 
 #### Running the Host
 
-You need Godot 4.8 beta1 .NET (the "Godot Engine - .NET" download of 4.8 beta1 from
-[godotengine.org](https://godotengine.org/download/archive/), identity `4.8.beta1.mono.official.4d10419ca`), the
-.NET 10 SDK, and your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
+You need Godot 4.8 beta1 .NET and the .NET 10 SDK; `python tools/public_build.py setup` installs the pinned versions into
+this checkout's ignored `local-data/`. If you install the engine yourself instead (the "Godot Engine - .NET" download of
+4.8 beta1 from [godotengine.org](https://godotengine.org/download/archive/)), its identity must be
+`4.8.beta1.mono.official.4d10419ca`, as pinned in [`tools/rebuild_toolchain.json`](../tools/rebuild_toolchain.json). You also need your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
 (`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host draws decoded films from a library at
 `ONSLAUGHT_FILMS`. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
+On Linux, `npm run prepare:rebuild-assets` (and the scripts that call it) writes the materialised game data under this
+checkout's ignored `local-lab/rebuild-godot/`, the checkout's canonical lab, not under `local-data/`.
 Those game data and film assets are not included in the repository; its one tracked game-generated career fixture
 is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
 
@@ -441,8 +444,7 @@ Subsequent official 4.8 development and beta releases are eligible after reviewi
 the cumulative [official changelog](https://godotengine.github.io/godot-interactive-changelog/)
 from the current pin, including intermediate releases and known regressions.
 Keep the previous installed version and a recoverable source commit, verify the
-new engine/templates, then update the resolver, SDK lock, feature version and
-retained Windows manifest together. Run the affected launcher, build, headless
+new engine/templates, then update the resolver, SDK lock and feature version together. Run the affected launcher, build, headless
 scene, deterministic replay and presentation checks (for the current rebuild: the Parity suite and the Host build and
 run); input/audio or GPU claims still require their
 actual environment. Do not defer a compatible update solely because it is a
@@ -902,7 +904,13 @@ the shipped objective marker without adding world-space beacons.
 
 ## Verify
 
-On Linux, choose the smallest native command:
+This section verifies the earlier, reference-only rebuild (`OnslaughtRebuild.Core`, `Client`, `Godot` and `Headless`). The
+`ref:*` scripts below belong to it and are not part of the contribution gate; `ref:core-tests`, `ref:client-tests` and
+`ref:headless` first run `prepare:rebuild-assets`, which materialises retail data from your own installation of the game. To check the live Parity core and Host, use the
+[contribution gate](../CONTRIBUTING.md#the-gate): `python tools/public_build.py test --filter ...` for the affected authored
+tests, `npm run build`, and the documentation, tools and safety checks.
+
+For the earlier rebuild, on Linux, choose the smallest native command:
 
 ```bash
 npm run ref:core-tests
