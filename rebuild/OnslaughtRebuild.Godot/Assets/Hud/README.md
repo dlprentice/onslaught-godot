@@ -1,8 +1,14 @@
 # First-person HUD assets
 
+Status: active
+Last updated: 2026-11-06 (header fields added; the 2026-07-27 and 2026-07-28 notes moved to git history; capabilities and setup links added; commit identifier removed)
+Summary: the local HUD textures and the dial source that the Level 100 first-person slice consumes, and their identities.
+
+Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).
+
 This directory owns the ignored local PC HUD textures consumed by the current
 Level 100 first-person slice. Run `npm run prepare:rebuild-assets` to
-materialize the exact supported files from a user-provided retail installation.
+materialize the exact supported files from a user-provided [retail installation](../../../README.md#running-the-host).
 The payloads are not tracked in the current source tree or included in release
 packages and remain copyright of their respective rights holders;
 `rebuild/LICENSE` covers reconstruction code only.
@@ -18,19 +24,8 @@ message treatment. Fifty-five exact textures plus the exact dial byte-sprite
 source are **retained** here; the executable manifest in
 `rebuild/tools/materialize_retail_assets.py` is authoritative.
 **Retained is not the same as composed**: the client loads and composes
-**twenty-nine** of these, which is the count `CURRENT_CAPABILITIES.md` and
+**twenty-nine** of these, which is the count [`CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) and
 `rebuild/README.md` quote. Neither figure is wrong; they count different sets.
-*(Updated 2026-07-27: was "Fifty-four exact textures"; `cdf8979d` added
-`Hud/forseti-icon.texture.aya`.)*
-*(Corrected 2026-07-28: the 2026-07-27 update above bumped this prose count but
-never added the row it names, so the table below listed 54 textures plus
-`dial.raw` while the directory and the manifest held 55 plus `dial.raw`. The
-`forseti-icon.texture.aya` row has now been added and the 2026-07-27 note is
-left standing, because it correctly records the change — it was the table that
-was wrong, not the note. MEASURED: differencing the table's rows against the
-directory listing and against the tracked `GODOT_ASSETS` entries for `Hud/` at
-HEAD returns exactly that one file in both directions, and the other 55 rows
-were recomputed against disk in the same pass and all match.)*
 
 | Curated file | Released source name | SHA-256 |
 | --- | --- | --- |
@@ -50,7 +45,7 @@ were recomputed against disk in the same pass and all match.)*
 | `crosshair-secondary.texture.aya` | `hud%v3%hud_crosshair_secondary.tga(0)A8R8G8B8.aya` | `7B078344E64D1E78EF64A8E21BDD3787E059B628C6A442634E9D13BA7D3A0487` |
 | `damage-flash.texture.aya` | `hud%v2%DamageFlash.tga(0)X8R8G8B8.aya` | `8A25EC2E0BA8E66D86217684125D2E245DAE3EDDEB327EE2A7B144E2B45391C0` |
 | `dial.raw` | `data/Dial.raw` | `2C57B657B92CD8BD73CA8C8986E8CE60AAFFB065FDDE09940053A2DD6D59671C` |
-| `forseti-icon.texture.aya` | `hud%ForsetiIcon.tga(0)A8R8G8B8.aya` *(row added 2026-07-28 — see the note above the table)* | `0093B1A1A1E89327B90CEF93F06882DDED060A3023510CA0F49E6EBBF3666DA1` |
+| `forseti-icon.texture.aya` | `hud%ForsetiIcon.tga(0)A8R8G8B8.aya` | `0093B1A1A1E89327B90CEF93F06882DDED060A3023510CA0F49E6EBBF3666DA1` |
 | `message-noise.texture.aya` | `MessageBox%noisebig.tga(0)X8R8G8B8.aya` | `F5C43C330394DB9EB7C1E782F3F30FE847DE01D7CE9335D2C7F9FD24BABB1825` |
 | `radio-view.texture.aya` | `hud%v2%RadioView.tga(0)A8R8G8B8.aya` | `888D5A70AB812E23F75DB76AB2ED71CD2CCE04191EE282D525C86E337CC01778` |
 | `radio-north.texture.aya` | `hud%v2%RadioNorth.tga(0)A8R8G8B8.aya` | `E5DFD8DB4DD73E9AEEFFBB009FCA68D889572C996987BCE365B0B5B4D0A7ED85` |
@@ -124,10 +119,10 @@ marker projection remains unavailable. The compass uses the
 released 50/40-segment geometry and 31/27-percent thickness inputs. Its rotating north treatment consumes frame
 zero of the exact `Dial.raw` byte-sprite source; threat, damage, gauge-needle,
 and objective sprites use the released 111.5, 96, 110, and 98-unit radii. The
-gauges consume Core-owned hull and energy, but the exact released dynamic-ring
+gauges consume hull and energy owned by the reference Core project, but the exact released dynamic-ring
 pixels and hull mapping remain incomplete and charge is unavailable. The
 consumer also retains and
-exposes Core-owned shield without inventing a separate meter that the released
+exposes shield owned by the reference Core project without inventing a separate meter that the released
 compass owner does not draw. The client does not claim byte-identical palette
 interpolation for Steam's dynamically written 16-bit ring texture.
 
@@ -138,7 +133,7 @@ three four-frame portrait sets above. Message text, signed ID, and audio identit
 come only from the hash-verified manifest derived from the locally materialized
 MSL and native language tables. Speaker and highlight remain arguments of the
 matching ordered mission events. The Godot presentation projection consumes
-those events without feeding any HUD timing or state back into Core; the
+those events without feeding any HUD timing or state back into the reference Core project; the
 renderer has no authored fallback message catalog.
 The same manifest supplies the exact native `Mission Complete`, `Retry`, `Back`,
 and three Level 100 failure-reason strings for the separate frontend/result

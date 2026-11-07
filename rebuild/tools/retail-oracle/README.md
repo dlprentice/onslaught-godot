@@ -1,15 +1,25 @@
 # Retail oracle
 
 Status: active
-Last updated: 2026-10-21 (float-consts.py takes the image and executable as inputs)
+Last updated: 2026-11-06 (Prerequisites section; the ignored folder for the image and dumps named); 2026-10-21: float-consts.py takes the image and executable as inputs
 Summary: runs the retail game's own maths functions natively, as a bit-exact oracle for the parity core's float code.
 
 The parity core must compute every float exactly as retail does: 24-bit precision, and each sum in the order compiled
 at its site. Reading those orders from the instructions by hand is slow and error-prone. This tool asks the retail
 code itself.
 
+## Prerequisites
+
+- Python 3 with the `pefile` package (`python -m pip install pefile`): `mkimage.py` imports it.
+- `objdump` from binutils: `fp.sh` and `float-consts.py` read the executable with it.
+- gcc with 32-bit support: the build line below uses `-m32`.
+- Your own copy of `BEA.exe`: `mkimage.py` makes the image from it.
+- One ignored folder for the image and the dumps, for example `local-data/retail-oracle/`. Git ignores `local-data/`.
+
+## Tools
+
 - `mkimage.py BEA.exe OUT` flattens the player's `BEA.exe` (sections at their virtual addresses) into a memory
-  image. The image is retail-derived: keep it in an ignored directory, never commit it.
+  image. The image is retail-derived: keep it in the ignored folder named under Prerequisites, never commit it.
 - `retail-oracle.c` is a 32-bit Linux program. It maps the image at the image base 0x400000, so no relocation is
   needed. It sets the x87 control word to 0x007F (the game's: 24-bit precision) around each call, and calls retail
   functions by address. It reads input lines `<function> <hex words...>` and writes `<function> <hex words...>`, with
@@ -19,7 +29,7 @@ code itself.
   random cases.
 - `gen-buckets.py DIR SEED N` writes poly bucket search cases. DIR holds level 100's buckets as dumped by
   `RetailOracleTests.DumpLevel100PolyBucketsForTheOracle` (set `ONSLAUGHT_RETAIL_ORACLE_DUMP`; retail-derived, keep
-  in scratch). Per bucket, N line walks and N sphere searches: a third of the endpoints on cell borders, with
+  in the ignored folder). Per bucket, N line walks and N sphere searches: a third of the endpoints on cell borders, with
   axis-aligned, exact-diagonal and zero-length lines. `pbload PATH` rebuilds a bucket in retail's layout; `pbline` and
   `pbsphere` list the triangles retail's search hands out, then the search stamp.
 - `gen-volume.py DIR SEED N` and `gen-collide.py DIR SEED N` write cases for `Collision/MeshCollisionVolume.cs`.

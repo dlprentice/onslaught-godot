@@ -1,20 +1,24 @@
 # Level 100 opening assets
 
 Status: active
-Last updated: 2026-10-29 (retail byte dumps, instruction quotes and private paths removed; 2026-10-22: a link to another repository's goal document stated inline; content otherwise as of 2026-09-08)
+Last updated: 2026-11-06 (text corrections: contact-owner pin claim, sun limits, Pulse PCM source, counts, task references and private-comparison wording; terms link; 'lane' replaced; commit identifiers removed; reference projects named in the ownership sentences; 2026-10-29: retail byte dumps, instruction quotes and private paths removed; 2026-10-22: a link to another repository's goal document stated inline; content otherwise as of 2026-09-08)
 Summary: locally materialized training assets, their identities and provenance.
+
+Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).
 
 This directory owns the ignored local released heightfield,
 macro/detail/cloud-shadow terrain inputs, cube-25 sky, four close-pine meshes,
 three training target meshes, the two ambient aircraft meshes,
-eleven player-projectile/target-destruction
+twelve player-projectile/target-destruction
 effect textures, 26 exact mission effects, the tutorial music selection, and all
 51 English character messages in the accepted Level 100 mission table. The
-three shared front-end effects retain the startup lane's `Assets/Frontend` paths. Run
+three shared front-end effects keep the `Assets/Frontend` paths from the startup work. Run
 `npm run prepare:rebuild-assets` to materialize the exact supported files from a
 user-provided retail installation. The payloads are not tracked in the current
 source tree or included in release packages and remain copyright of their
 respective rights holders; `rebuild/LICENSE` covers reconstruction code only.
+
+In this file, Core means the reference `OnslaughtRebuild.Core` project, the earlier fixed-point simulation. The live simulation is `OnslaughtRebuild.Parity`, and the live presentation is `OnslaughtRebuild.Host`.
 
 `StaticWorld/level100-static-world.json` is a deterministic ignored manifest
 derived from the exact released Level 100 archive. It owns all 33 visible
@@ -25,7 +29,7 @@ and verifies a 62-file retail source set; those generated payloads are not
 mirrored in this document.
 
 `../../../OnslaughtRebuild.Core/Assets/Level100/level100-contact-owners.json`
-is a separate ignored Core input derived from the supported physics definitions,
+is a separate ignored input of the reference Core project, derived from the supported physics definitions,
 mesh archives and Level 100 placements. It retains hash-verified definitions
 and deterministic millimetre-quantized projected topology for contact. It is a
 locally materialized derivative, remains ignored, and is not a claim of
@@ -51,7 +55,7 @@ bit-identical retail collision geometry.
 | `level100-target-truck.obj` | Target Truck geometry and exact material group consumed by Godot *(hash corrected 2026-07-28 — see below)* | `39EB4F7723725422EE348CA6052C437BE2E59AAC38DDAC0CA4559213FC4E0113` |
 | `Source/m_m_warehouse.msh.aya` | Released Firing Range Warehouse CMSH archive | `61FE5465BD7AFFEDF749AD784209BE02B2E4DD28631E70386C3810302B5F6F15` |
 | `level100-target-warehouse.obj` | Static intact Warehouse geometry and exact material groups consumed by Godot *(hash corrected 2026-07-28 — see below)* | `DD605F3778D465A5E25A99B43C7721DEC37D509732E65DB3E6C71534F6B4A9AC` |
-| `Source/m_FA_F24_training.msh.aya` | Released Air Trainer / Target Drone CMSH archive — one retention serves both definitions *(row added 2026-07-31, task #114 — see below)* | `48876552AE836750221241719F333FB9B5221F78F1AB8BC03D5950CDBF4E6EC5` |
+| `Source/m_FA_F24_training.msh.aya` | Released Air Trainer / Target Drone CMSH archive — one retention serves both definitions *(row added 2026-07-31 — see below)* | `48876552AE836750221241719F333FB9B5221F78F1AB8BC03D5950CDBF4E6EC5` |
 | `level100-air-trainer.obj` | Air Trainer and Target Drone geometry and its single material group, the Target Tank's verbatim *(row added 2026-07-31)* | `1D8EE300E9349DF27A889AF85E597778A2422634D73CED5D284C7140DD9B885F` |
 | `Source/m_f_lifter.msh.aya` | Released U-17 Highside Transporter CMSH archive *(row added 2026-07-31)* | `CED8FDD223E6592B37586395197D86843AFEC68456EFDE4C8211B8CD75593DF3` |
 | `level100-transporter.obj` | U-17 Highside Transporter geometry and its two material groups *(row added 2026-07-31)* | `A6A39EA17E811B4D6F18FCC02B8EB753E6FD29643E8359ED068BB26FD76DE787` |
@@ -156,7 +160,7 @@ bit-identical retail collision geometry.
 | `SoundEffects/repair-idle.wav` | Exact repair-pad idle loop | `EC3F2AF86C5281D42923C3AE00FB66222E4E358A5F986FD26C7A43C34406F7D4` |
 | `SoundEffects/pulse-cannon-fire.wav` | Exact 44.1 kHz mono PCM decode of `Battle Engine\N_BE_pulse_cannon_fire` | `710FF06DB55BC694EFB8FF7D3A5AB658125E7CA0FE6B4733A805DA98B22B0277` |
 | `SoundEffects/target-tank-explosion-medium.wav` | Exact 44.1 kHz mono PCM decode of `Impact\N_I_explosion_medium` | `7228AE049CB0A9877E63671A65E51829443017B2C4981DF90A9C64D2F38B6D9C` |
-| `SoundEffects/pulse-impact-small.wav` | Exact 44.1 kHz mono PCM decode of `Impact\N_I_explosion_small`, `sounds.sfx` record 105 *(row added 2026-07-28 — see below)* | `3296B13938928F54847A29E17307E7875E9933F8FD6381BF0DFCD260CD6FC131` |
+| `SoundEffects/pulse-impact-small.wav` | Exact 44.1 kHz mono PCM decode of `Impact\N_I_explosion_small`, `sounds_english_pc.xap` record 105 *(row added 2026-07-28 — see below)* | `3296B13938928F54847A29E17307E7875E9933F8FD6381BF0DFCD260CD6FC131` |
 
 ### Corrections to the table above, 2026-07-28
 
@@ -172,16 +176,16 @@ hash can tell it was corrected rather than lost:
 | `level100-target-warehouse.obj` | `3883B651…D8EB5CE` | `DD605F37…F6B4A9AC` |
 
 MEASURED: SHA-256 recomputed over the four files as materialized on this
-machine. Each new value is independently pinned by the tracked producer — the
-three OBJ hashes at `../../../tools/materialize_retail_assets.py` beside their
-`.msh.aya` sources, and the contact-owners hash both there and at
-`../../../OnslaughtRebuild.Core/Level100ContactMap.cs`. The three OBJ hashes
-moved together in commit `dd325044`, which made the OBJ conversion carry
-per-vertex `DIFFUSE`; the contact-owners hash and its Role moved in commit
-`9688ee0b`, the same schema bump described under [Dependency-inverted contact
+machine. The three OBJ hashes are each pinned by the tracked producer at
+`../../../tools/materialize_retail_assets.py`, beside their `.msh.aya` sources.
+The contact-owners hash has no tracked pin: the producer does not contain it, and
+`../../../OnslaughtRebuild.Core/Level100ContactMap.cs` pins a different SHA-256
+(`SourceSha256`) for the same asset. The three OBJ hashes
+moved together in one commit, which made the OBJ conversion carry
+per-vertex `DIFFUSE`; the contact-owners hash and its Role moved in a separate commit, the same schema bump described under [Dependency-inverted contact
 and destruction payload](#dependency-inverted-contact-and-destruction-payload).
-In each case the table was not carried along. **The other 109 hashes in the
-table were recomputed in the same pass and all match**, so these four were the
+In each case the table was not carried along. **Every other hash the pass covered
+was recomputed in the same pass and all match**, so these four were the
 only stale values.
 
 **Two rows were added.** `Textures/material-overlay-a8trust5.texture.aya` and
@@ -193,7 +197,7 @@ the "25 exact mission effects" count in the opening paragraph was corrected to
 `GODOT_ASSETS` entries for `Level100/SoundEffects/` and `Level100/Textures/`
 returns exactly these two and nothing else, in both directions.
 
-### Rows added 2026-07-31 — the two ambient aircraft (task #114)
+### Rows added 2026-07-31 — the two ambient aircraft
 
 Six rows: `Source/m_FA_F24_training.msh.aya`, `Source/m_f_lifter.msh.aya`, their
 two converted OBJs, and `Textures/transporter-lifter0{1,2}.texture.aya`.
@@ -243,7 +247,7 @@ identifiers. The retained English Ogg files are exactly that set, including both
 dodge outcomes, success/aborted and failure branches, friendly-fire/help lines,
 `HUD_08`, technician 02/03, and the movement, weapon, overheat, ammunition, and
 water callouts; unused alternate tutorial takes are not materialized. The
-mission lane's typed `Level100MessageRequested` events own identity, ordering
+mission path's typed `Level100MessageRequested` events own identity, ordering
 gates, expected playback ticks, branch selection, and objective progression.
 `InteractiveSession` delivers the initial batch and every fixed-step batch once,
 in order, through `FrameAdvanceResult`. The audio adapter queues every numeric
@@ -253,7 +257,7 @@ advances a mission continuation. `CharacterMessagePlayback` exposes only active
 message identity and presentation playback position/length for HUD lip and page
 synchronization.
 
-Level 100 selects `MUS_TUTORIAL`. Stuart's alphabetically sorted playlist and
+Level 100 selects `MUS_TUTORIAL`. Stuart Gillam's alphabetically sorted playlist (in the pinned GPL source at `references/Onslaught`) and
 zero-based `GetSong` resolve its track index `3` to the fourth entry,
 `BEA_04(Master).ogg`. Selection playback repeats the same track at completion.
 It uses the separate released music-option curve, continues while sound samples
@@ -267,7 +271,7 @@ Stuart's sound manager independently establishes the `0.70` ordinary-effect,
 plus the PC nonlinear master-option curve and externally supplied game-sound
 mix. The owner of a fade or duck supplies its current value; the adapter does
 not schedule it. Exact DirectSound attenuation remains outside the
-reconstruction. The three front-end effects use the startup/menu lane's
+reconstruction. The three front-end effects use the startup/menu work's
 canonical ignored paths and hashes rather than a second Level 100 copy.
 
 The released front end exposes only Back, Move, and Select effects. Select is
@@ -310,11 +314,11 @@ silent until their canonical source events are integrated.
 
 ## Heightfield consumed by the slice
 
-The retained `HFLD` is the smallest exact terrain input used by Core and the client. It
+The retained `HFLD` is the smallest exact terrain input used by the reference Core project and the reference Godot project. It
 comes from `100_res_PC.aya` → `ERES` → `ENGN` → `MAP!` and contains a
 5,084-byte `CHFD` metadata block followed by 663,552 bytes of signed 16-bit
 `HFDT` samples. The released loader at `0x0047F750` reads 64×64 tiles of 9×9
-samples. The Godot client uses the released 65×65 eight-step lattice for coarse
+samples. The reference Godot project uses the released 65×65 eight-step lattice for coarse
 selections and camera-selected 4/2/1-step tile grids at the `CHFD` scale
 `0.0009155832231044769`. It uses the recovered midpoint-error score, projected
 distance thresholds, released triangle diagonal, and all 16 edge-stitch index
@@ -325,8 +329,8 @@ The terrain mesh is translated so the authored player-one start
 `(288.6875, 243.25, -10)` is the reconstruction origin. BEA's
 `(X, Y, Z-down)` coordinates map to Godot `(X, -Z, -Y)`. Steam's sampler at
 `0x0047EB80` converts coordinates to 24.8 fixed point and truncates signed
-bilinear interpolation after each axis. Core now owns that exact sampler and a
-hashed player-ground elevation; Godot consumes the snapshot instead of
+bilinear interpolation after each axis. The reference Core project now owns that exact sampler and a
+hashed player-ground elevation; the reference Godot project consumes the snapshot instead of
 independently lifting the player. At the start it produces HFLD unit `-11153`,
 ground `-10.211499`, and the copied-retail Battle Engine center
 `Z=-12.111499` after the released 1.9-unit center-of-gravity offset. Two later
@@ -386,8 +390,11 @@ distant terrain.
 
 This establishes the authored macro material layout, repeating terrain detail,
 moving cloud-shadow stage, and environment inputs, not whole-scene pixel parity.
-Terrain-damage and other post-load overlay updates, and the separate visible-sun
-particle, are not implemented; initial structure and pine shadow stamps are.
+Terrain-damage and other post-load overlay updates are not implemented. The
+in-level sun is drawn, but its presentation does not yet consult the level's
+`VisibleSun` flag, and its line-of-sight test ignores world objects
+(`../../../OnslaughtRebuild.Godot/Level100SunAsset.cs`); initial structure and pine
+shadow stamps are.
 
 ## Authored placement consumed by the slice
 
@@ -406,9 +413,10 @@ all-distance billboard owner. The static ownership trace is:
   at `0x004DD960` submits the full mesh when squared horizontal camera distance
   is at or below `g_MeshQualityDistance²`, or while the tree is falling. The
   image initializes that option-backed global to **`30.0`** (`.data`
-  `0x006321A0`, file `0x2321A0` = `0x41F00000`), and that is the value manifest
-  v7 now selects — **corrected from `70.0` on 2026-07-27 under GOAL.md's
-  defaults rule.** The "Geometry detail" setter at `0x004DD6B0` has exactly
+  `0x006321A0`, file `0x2321A0` = `0x41F00000`), and that is the value the static-world manifest
+  (schema `onslaught.level100-static-world.v15`) now selects — **corrected from `70.0` on
+  2026-07-27 under the project's defaults rule (no lab-derived value becomes an
+  authored default).** The "Geometry detail" setter at `0x004DD6B0` has exactly
   three arms writing `10.0` / `30.0` / `70.0` to that global, and the image's
   companion initializers (LOD bias `0x00631E88`, file `0x231E88` = `1.0`;
   quality scale `0x00630E0C`, file `0x230E0C` = `1.0`) pick out the middle arm
@@ -503,7 +511,7 @@ meshes at or inside the manifest's selected **30-unit** cutoff and all six fixed
 imposter faces outside it, then adds the camera-facing fast standing card for
 every placement and the `VIEW`-4 horizontal card only above the strict 20-unit
 camera/ground delta. The static-world manifest (schema
-`onslaught.level100-static-world.v14`) explicitly pins fast-standing-view
+`onslaught.level100-static-world.v15`) explicitly pins fast-standing-view
 reconstruction phase `0`; the client maps placement ordinal plus that phase
 across `VIEW` 0..3 and checks all 1,481 assignments and their
 `371/370/370/370` counts. This is a deterministic reconstruction choice, not a
@@ -549,7 +557,7 @@ four iceberg types. Every instance is placed through the common retail
 `(X, Y, Z-down)` to Godot mapping. Existing collision remains intentionally
 limited to the separately observed Control Tower and Tank Factory envelopes.
 
-The Federation base turret in the supplied comparison is the WRES object named
+The Federation base turret in a private comparison capture (not published here) is the WRES object named
 `Turret 03`, not a Firing Range Target Tank. Its object ordinal is `3`, WRES
 thing type is `8` (`CUnitInitThing`), definition is exactly `SAT Turret`, and
 its zero-based `default physics.dat` Unit-statement index is `58`. The serialized
@@ -615,8 +623,10 @@ inherited and both fire: vtable `+0xB0` `ClipToGround` → `0x004014A0`
 > (a private pristine copy), sha256
 > `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`, and every
 > address was re-disassembled with `tools/disasm_va.py` when this correction was
-> written. Never read these bytes from the installed Steam `BEA.exe`, which is
-> deliberately patched.
+> written. That tool is not tracked in this repository, so this step cannot be
+> rerun from the public sources; these byte claims rest on private evidence. Never
+> read these bytes from the installed Steam `BEA.exe`, which is deliberately
+> patched.
 
 Level 100's `HFLD` selects water level `-8.84000015258789`, color `#21213D`,
 and texture index zero. The active Steam path renders a 25×25 camera-following
@@ -689,7 +699,7 @@ records carry offset `(0,0)`; all carry scale `(1,1)` except `FB_Docks` texture
 1, whose `(0,0)` scale reaches only slot 2, where mode 2 replaces the texture
 transform with its own fixed reflection matrix.
 
-The nearby compared facility is base-world ordinal 1, `Tank Factory`, backed by
+The nearby facility in that private comparison is base-world ordinal 1, `Tank Factory`, backed by
 `m_fb_tank_factory.msh.aya`. Its four material assignments are exactly
 `(0,-,1,-,-,-)`, `(2,-,1,-,-,-)`, `(4,-,3,-,-,-)`, and
 `(6,-,5,-,-,-)`: the ordinary base texture is in slot 0, the matching
@@ -707,7 +717,7 @@ the base draw. It retains stage 0 `COLOROP=MODULATE2X` with
 `TEXTURE,DIFFUSE`, stage 0 `ALPHAOP=MODULATE` with `TEXTURE,DIFFUSE`, and then
 uses stage 1 `MODULATE` with `CURRENT,TFACTOR`; the white texture-factor RGB
 leaves color unchanged while its byte alpha scales source alpha. The framebuffer
-blend is `SRCALPHA,INVSRCALPHA`. In normalized notation, the compared facility
+blend is `SRCALPHA,INVSRCALPHA`. In normalized notation, that facility
 therefore uses `Cr=saturate(2*Tchrome.rgb*Dlit.rgb)`,
 `Ar=Tchrome.a*Dlit.a*(51/255)`, and
 `C=Ar*Cr+(1-Ar)*Cbase`. Texture-stage results saturate to `[0,1]`; the
@@ -814,7 +824,10 @@ of `0.4`; the last outside/first inside samples were `5.44/5.29` and
 `5.54/5.39` world units. Both runs then atomically cleared Target Zone 1,
 marked the Firing Range, and installed message ID `4458134` (`TUTORIAL_02`)
 after the same 11 released 20 Hz updates. Core maps that observed dispatch to
-10 ticks at 20 Hz. The client uses the exact 5.393900-second English voice,
+10 ticks at 20 Hz, the released 0.5-second `Pause` that `TargetZone1.msl` requests
+before it posts its event (`../../../OnslaughtRebuild.Core.Tests/SimulationTests.cs`,
+`Level100Triggers_UsePhysicalActorsAndReleasedSideScriptDispatch`, asserts the ten-tick
+due time). The client uses the exact 5.393900-second English voice,
 subtitle, and shipped 16x16 objective marker with the released radar transform.
 One clean control and three fresh uninterrupted Firing Range runs then used a
 predeclared read-only observer over Steam's objective list, HUD weapon state,
@@ -890,8 +903,9 @@ constants transcribed from the same file rather than on resolved plans; moving
 them over is separate work. Tank smoke's mode-1 blend cannot yet be reproduced
 without an opaque card and is omitted, along with descriptor color ranges,
 debris, wreck geometry, and the other subordinate emitters. The three PCM files
-currently presented by the Pulse exercise were
-decoded from exact `data/sounds/sounds_english_pc.xap` (SHA-256
+currently presented by the Pulse exercise
+(`pulse-cannon-fire.wav`, `explosion-small.wav` and
+`target-tank-explosion-medium.wav`) were decoded from exact `data/sounds/sounds_english_pc.xap` (SHA-256
 `658C15E3BAB844D65DD3C07C4AC880F16F741C0EA116F48C603449BBD4DDA8B7`)
 records 35, 106, and 102 respectively. Their `PSMP` names, declared decoded
 sizes, high-nibble-first IMA-ADPCM framing, and resulting WAV hashes were
@@ -916,7 +930,7 @@ strips.
 > `Warehouse` and `Target Drone`. The producer agrees at
 > `../../../tools/materialize_retail_assets.py`, which emits
 > `"schema": "onslaught.level100-contact-owners.v4"`. The schema bump and the
-> two extra targets landed together in commit `9688ee0b` and this paragraph was
+> two extra targets landed together in one commit, and this paragraph was
 > not carried along. The de-duplication claim is **unchanged and still exact**:
 > `instanceCount = 33` into `definitionCount = 24`. This file is regenerated by
 > the materializer, so re-read it rather than trusting these numbers. BBOX is broadphase metadata only; Core reports actor hits from the

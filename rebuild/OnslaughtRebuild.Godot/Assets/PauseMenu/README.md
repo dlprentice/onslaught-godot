@@ -1,7 +1,15 @@
 # Level 100 pause assets
 
+Status: active
+Last updated: 2026-11-06 (materialize command added; header fields added; the 2026-07-28 correction moved to git history and its present reasons stated; commit identifiers removed)
+Summary: the four hash-gated pause-menu textures that the local materializer copies, and the state of the Level 100 pause menu.
+
+Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).
+
 This directory retains no retail payload. The local materializer copies four
 hash-gated inputs from a user-provided Steam installation to ignored paths.
+Run `npm run prepare:rebuild-assets` (see the [Aquila README](../Aquila/README.md))
+to materialize these four inputs.
 
 | Local file | Released source | SHA-256 |
 | --- | --- | --- |
@@ -47,44 +55,11 @@ circle motion, colors, and row hit regions are bounded reconstruction choices;
 the tracked evidence does not establish pixel or runtime presentation parity.
 Only the evidenced root and Retry/Quit confirmation flow belong to this
 renderer. Message Log and Briefing remain visibly disabled because the current
-rebuild has no canonical integrated panel for them. Controller Options, Sound
-Options and Video Options are also still disabled **here**, but for a different
-reason than they were: a panel and a live settings-mutation owner for all three
-now exist elsewhere in the reconstruction. Continue
+rebuild has no canonical integrated panel for them. Controller Options, Sound Options and Video Options are also still disabled **here**, although a panel and a live settings-mutation owner for all three exist elsewhere in the reconstruction (see below). Continue
 resumes the same deterministic session; Retry replaces it through the existing
 frontend Loading seam; Quit returns to the existing Main Menu. No pause subpage
 or parallel mission/frontend state is inferred.
 
-> **Corrected 2026-07-28 — the state is unchanged, the stated reason is
-> superseded.** The paragraph above previously read "Message Log, Briefing,
-> Controller Options, Sound Options, and Video Options remain visibly disabled
-> because the current rebuild has no canonical integrated panel **or live
-> settings-mutation owner** for those rows." That was written before commit
-> `5e82ae42` (2026-07-28); this file was last touched by `432cb025` on
-> 2026-07-26.
->
-> **Unchanged:** all five rows are still constructed disabled.
-> `../../../OnslaughtRebuild.Client/Level100PauseMenu.cs` builds `MessageLog`,
-> `Briefing`, `ControllerOptions`, `SoundOptions` and `VideoOptions` each with
-> the third positional argument `false`, against the record struct's
-> `bool IsEnabled = true` default.
->
-> **Superseded:** both nouns in the reason. Evidence: SOURCE (this
-> reconstruction's own code at HEAD, plus the pinned GPL source it cites — not a
-> capture). The panel is
-> `../../../OnslaughtRebuild.Client/RetailOptionsMenu.cs`, which dispatches
-> `Root`, `Controller`, `Video` and `Sound` and builds the root's three page
-> links citing `PauseMenu.cpp:1346/1347/1348`. The mutation owner is that file's
-> `ApplyPage()`, which commits changed rows through `ApplyRow` into
-> `RetailOptionsSettings`; the Godot side then acts on it in
-> `../../RetailFrontendFlow.Options.cs`, which calls
-> `DisplayServer.WindowSetVsyncMode` and raises `OptionsSettingsChanged`, and
-> `../../FirstFlightGame.cs` subscribes to that and applies the sound, music and
-> mouse-sensitivity values. The frontend Options page and in-game pause menu use
-> the same pause-menu initializer/widget implementation, but controlled runtime
-> evidence shows distinct instances: frontend Options retains its own context
-> and resets that context's root session on each entry.
->
-> **What is NOT claimed:** how much work remains to wire these three pause rows
-> to that owner. Nothing here has been measured against retail's in-game Options
-> presentation, and no estimate of the remaining job is made.
+The three option rows are constructed disabled: `../../../OnslaughtRebuild.Client/Level100PauseMenu.cs` passes `false` for each, against the record struct's `IsEnabled = true` default. A panel and a live settings-mutation owner for all three exist elsewhere in the reconstruction. `../../../OnslaughtRebuild.Client/RetailOptionsMenu.cs` dispatches `Root`, `Controller`, `Video` and `Sound`, builds the root's three page links citing `PauseMenu.cpp:1346/1347/1348`, and commits changed rows through `ApplyPage()` and `ApplyRow` into `RetailOptionsSettings`. `../../RetailFrontendFlow.Options.cs` acts on them, calling `DisplayServer.WindowSetVsyncMode` and raising `OptionsSettingsChanged`, which `../../FirstFlightGame.cs` applies to the sound, music and mouse-sensitivity values. The frontend Options page and the in-game pause menu use the same pause-menu initializer and widget implementation, but controlled runtime evidence shows distinct instances: frontend Options keeps its own context and resets that context's root session on each entry. Evidence: SOURCE (this reconstruction's own code at HEAD and the pinned GPL source it cites; not a capture).
+
+**What is NOT claimed:** how much work remains to wire these three pause rows to that owner. Nothing here has been measured against retail's in-game Options presentation, and no estimate of the remaining job is made.

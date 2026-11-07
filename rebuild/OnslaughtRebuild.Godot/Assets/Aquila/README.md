@@ -1,8 +1,14 @@
 # Aquila render and cockpit meshes
 
+Status: active
+Last updated: 2026-11-06 (header fields added; setup link and glossary link added)
+Summary: the Federation Aquila meshes that the local materializer copies from a user-provided installation for the Level 100 slice, and their identities.
+
+Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).
+
 This directory owns the ignored local Federation Aquila inputs consumed by the
 Level 100 slice. Run `npm run prepare:rebuild-assets` to materialize the exact
-supported files from a user-provided retail installation. These payloads are
+supported files from a user-provided [retail installation](../../../README.md#running-the-host). These payloads are
 not tracked or packaged; `rebuild/LICENSE` covers reconstruction code only.
 
 The three source meshes come from the released PC game's
@@ -77,9 +83,9 @@ played.
 The released `LegMotion` table supplies 100 usable per-leg extension poses, not
 one shared movement-driven gait. Steam `CMCMech` identifies four exact five-part
 chains and selects the closest frame independently for each planted-foot
-distance. Core owns the four deterministic contacts and released diagonal
-swing subset over the Level 100 HFLD; Godot only adapts those contacts to the
-retained hierarchy.
+distance. The reference Core project owns the four deterministic contacts and
+released diagonal swing subset over the Level 100 HFLD; the reference Godot project
+only adapts those contacts to the retained hierarchy.
 
 This is bounded support for the walker pose and walker-to-jet presentation. It
 does not establish exact toe-normal alignment, CMC body sway, non-heightfield

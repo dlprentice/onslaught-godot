@@ -11,7 +11,3 @@
 #
 # Generated 2026-07-28 with 512 entries; it has only shrunk since.
 #   `python3 tools/doc_header_check.py --show-backlog` prints the current count.
-rebuild/OnslaughtRebuild.Godot/Assets/Aquila/README.md
-rebuild/OnslaughtRebuild.Godot/Assets/Frontend/README.md
-rebuild/OnslaughtRebuild.Godot/Assets/Hud/README.md
-rebuild/OnslaughtRebuild.Godot/Assets/PauseMenu/README.md
