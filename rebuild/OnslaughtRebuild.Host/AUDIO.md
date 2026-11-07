@@ -1,9 +1,11 @@
 # Live audio adapter
 
 Status: experimental; direct production-device fixture measured, ordinary Host gameplay and audible acceptance unverified
-Last updated: 2026-10-27
+Last updated: 2026-11-06 (terms link; the TutorialAudio source tool is named; an internal owner label is removed; 2026-10-27)
 Summary: opt-in main-thread effects and prepared PCM voices, using Parity's single sound-event owner.
 Evidence: SOURCE — native MessageBox/PC sound-manager contracts and the buffer adapter; MEASURED — V12 production-device fixture and isolated nonzero PCM capture; UNKNOWN — ordinary Host gameplay, physical output and audio fidelity.
+
+Terms used in this file are defined in the [glossary](../README.md#terms-used-in-these-documents).
 
 `HOST_LIVE=1 HOST_AUDIO=1 ONSLAUGHT_VOICE_PCM=/path/to/voices.json` selects this adapter. It requires a real
 Godot audio driver. A Dummy driver refuses admission. `HOST_TAPE` keeps the existing virtual reference device and
@@ -23,8 +25,8 @@ Hardware sound is refused because its pitch-variance configuration and extra RNG
 DirectSound device indices and HRTF methods are unsupported. Device/rate/speaker changes during the preview stop
 it with a reinitialization requirement. The existing volume slider updates the shared manager's gain.
 
-Effects use `SampleBankPcmCatalog` and the installed English XAP. Voices need actual decoded data: the old asset
-materializer's TutorialAudio files are copied Ogg streams, not PCM. Prepare selected voices with
+Effects use `SampleBankPcmCatalog` and the installed English XAP. Voices need actual decoded data: the TutorialAudio files that
+`rebuild/tools/materialize_retail_assets.py` materializes are copied Ogg streams, not PCM. Prepare selected voices with
 `rebuild/tools/materialize_voice_pcm.py`, supplying a local native decoder executable and its SHA-256, the decoder
 library SHA-256 and reader source SHA-256. Run `--help` for the arguments. The supplied decoder must implement
 exactly one native `COggFileRead::Read(1048576)` under worker control word `027f`, with retail x87 FIST quantization,
@@ -63,9 +65,8 @@ V12 directly exercised the production `GodotSoundPlayers`, `LiveSoundDevice` and
 - Nonzero PCM captured from only the owned sink monitor, with no change to the host's default sink or source;
   the fixture's owned audio module was removed during cleanup.
 
-The retained receipt is in the maintainers' private evidence store, owner
-`live-audio-production-runtime-v12-20261027`, `result.json` SHA-256
-`f030ff08eddf3718f262a0c626c93e50dc7063376f814dc7fa6bf7d8301df64a`.
+The retained receipt is in the maintainers' private evidence store (`result.json`,
+SHA-256 `f030ff08eddf3718f262a0c626c93e50dc7063376f814dc7fa6bf7d8301df64a`).
 The fixture calls the production audio device directly. It does **not** exercise ordinary `Host.Live` gameplay,
 the tutorial's full audio schedule, the whole-game flow, a physical playback device or a listening test. Nonzero
 captured PCM establishes output on that isolated route, not correct mixing, spatial fidelity or retail waveform

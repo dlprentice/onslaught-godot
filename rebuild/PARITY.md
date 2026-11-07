@@ -1,9 +1,9 @@
 # Rebuild parity contract
 
-Status: active — proof-of-concept milestones (2026-10-15); the tables after them grade the earlier fixed-point rebuild
-Last updated: 2026-11-04
+Status: active — proof-of-concept milestones (2026-10-15); the milestone and status tables grade the Parity core, and the Carried retail contracts table grades the earlier fixed-point rebuild
+Last updated: 2026-11-06 (wording and reference corrections; no measurement changed; terms link; commit identifiers removed; 'lane' replaced; an internal owner label is removed from the private-evidence note; 2026-11-04)
 Evidence: SOURCE — authority order and the known divergences are
-recorded in `PROVENANCE.md` plus the Lost-countdown row of this table; gate capabilities are MEASURED claims of the
+recorded in `PROVENANCE.md` plus the DeclareLevelLost countdown row of this table; gate capabilities are MEASURED claims of the
 tracked harnesses named in the table. Every row of *Carried retail contracts*
 is MEASURED: its anchor re-derived from the pristine specimen and its mutation
 kill observed.
@@ -15,6 +15,10 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
+Terms used in this file are defined in the [glossary](README.md#terms-used-in-these-documents).
+
+**Terms used below.** Present, tape, probe, golden, parity core and Host are defined in [CONTRIBUTING.md](../CONTRIBUTING.md#terms-you-will-meet). Here, *frame* is one fixed 20 Hz simulation step ([rebuild/README.md](README.md)); *falsifier* is the check that would disprove a stated claim; *RED, restored, GREEN* means a mutation made the named test fail, the owner was restored byte-identical, and the test passed again; *Stuart* is Stuart Gillam's GPL Onslaught project, pinned in `references/Onslaught`; bare source names such as `game.cpp:371-373` cite that pinned tree, and `src/` paths cite [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp); *the Toolkit* is the Onslaught-Career-Editor repository; *worktree* is a second git checkout of this repository; *god-mode-only* means a policy call that runs only when the player's god-mode word (`PlayerGodWord`) is nonzero; *V12 fixture* is the measured production-device audio fixture in [AUDIO.md](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27). Claims that cite *private evidence* or the maintainers' receipts cannot be re-run from a clone; tests named in the tables run from a clone only when they need no reference data ([CONTRIBUTING.md](../CONTRIBUTING.md#what-you-can-and-cannot-reproduce)).
+
 **2026-11-04 — inline orientation register range.** The two walker-leg products and the cached-frame and
 cached-pose orientation products now use the existing PC24 arithmetic owners until each cell's final float store.
 Their per-cell operand orders are unchanged. [InlineMatrixRangeTests](OnslaughtRebuild.Parity.Tests/InlineMatrixRangeTests.cs)
@@ -24,7 +28,7 @@ focused matrix and bounded-arithmetic checks still pass. A separate authored nat
 term permutations for each of four exact-power cases: all twenty-four agree, while premature float stores disagree.
 That control contains no original-game code or recorded inputs; it validates arithmetic, not an observed gameplay pose.
 
-One unfiltered Parity run reports **1,184 passed, 0 failed, 3 skipped** of 1,187 found, with the existing reference
+The latest unfiltered Parity run reports **1,184 passed, 0 failed, 3 skipped** of 1,187 found, with the existing reference
 views configured, and the Host build passes. The same two occupancy references and one sample-decoder oracle remain
 unavailable, so the required reference gate is still **INCOMPLETE**. An earlier attempt reached its 6 GiB memory cap
 without producing a final test result; the completed run used the established 10 GiB suite allowance. The failed
@@ -56,6 +60,8 @@ and one sample decoder/converter oracle check. The required reference gate is **
 are unavailable. These checks do not establish native focus-event delivery or gameplay acceptance.
 
 ## Where it stands (2026-10-29)
+
+This status is dated 2026-10-29; the dated entries above it are newer.
 
 The milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones-2026-10-15);
 the dated entries below record each measurement.
@@ -220,7 +226,7 @@ the dated entries below are the counts on their dates.
 
 Pilot-win projectile contact (2026-10-28): the pristine specimen's `CCylinder::CollideWithLine`
 instructions at `00440801..0044083d` sum the Y and Z squares before the X square for the two lengths.
-On the frozen native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
+On the fixed native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
 the pilot-win tape's projectile 4034 hit the player cylinder with contact Z `c12dac0d`; the previous
 X-first reconstruction returned `c12dac0e` and differed in LIFE starting at Present 26368. A fresh native
 observer recorded the input positions, motions and cylinder/line dimensions used in
@@ -238,7 +244,7 @@ overflow and other exceptional intermediates, and the remaining collision arithm
 
 Launch-hit orientation (2026-10-28): pristine `74154bfa…` at `0040d090..0040d0b0` calls the x87 elevation at
 `0040d1a0` and the Euler constructor at `0040d1f0`; its floating-point instruction sequence matches `004062d0`, which
-the managed `StraightAimOrientation` models. On the frozen level-100 pilot-win **port** replay, two captured adjusted
+the managed `StraightAimOrientation` models. On the fixed level-100 pilot-win **port** replay, two captured adjusted
 hit vectors now produce the same orientation as the port, including cases where the former `Math.Asin` or inline
 constructor model was one ULP off. The route and all ordinary controls still require their own gates; these observations
 do not establish real-player or full-game parity.
@@ -285,7 +291,7 @@ message log and the briefing.
 
 Trainer missile launch and flight (2026-10-21): the level 100 trainer's first LIFE difference
 (Present 16206) came from the Forseti Missile's state before its collision, not from the collision.
-Per-frame traces of each missile against the frozen native port, with retail's own code run on the
+Per-frame traces of each missile against the fixed native port, with retail's own code run on the
 captured inputs, separate three causes:
 
 - Launch: `CWeapon::Unknown509140`'s straight aim (`005093c6..00509434`) stores the magnitude
@@ -322,20 +328,20 @@ constructor leaves two timestamp words uninitialized: four heap-seed controls sh
 first-use cache. The reconstruction explicitly starts with an invalid cache, not an invented claim
 of universal retail heap equality. Device rumble, visible damage-flash pixels and audible fade remain open.
 
-The frozen native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
+The fixed native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
 targets**. A Parity replay ran it through Present 15,130 and observed all 18 real script posts
 at the same completed Present; the observer forwards each original call once and leaves the whole
 trace unchanged. After the stopped-round query correction below, **all nine probes agree at
 every Present 3..15,130**, across all 136,152 comparisons. This is selected-state agreement with
-frozen native port `e55cb2d8`,
+fixed native port build `e55cb2d8` (not a commit in the public Onslaught repositories),
 not a fresh retail whole-route comparison. The tape SHA-256 is
 `b083d308cc29bb108d2d4a15bc8ee7a1c17d7086ae386682fb2f9425b9d69919`.
-The native route starts with `-level100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
+The native route starts with `-level 100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
 flight/refuelling/later combat/win/save remain separate. Its later evasion attempt takes hits;
 it is not a perfect-score or no-hit run. Receipts (focused tests, independently executed original code, full ground
 probe comparison and 18-post admission) are in the maintainers' private evidence store.
 
-The frozen native route subsequently reaches the first flight zone and genuinely destroys its first
+The fixed native route subsequently reaches the first flight zone and genuinely destroys its first
 airborne target at Present 19,821. At 20,800 it has landed on the island and is recharging, with health
 19.8097916 and energy 4.4644375. Its required target groups stand at **4/4, 3/3, 6/6, 1/3 and 0/6**;
 all 26 recorded script posts and the ordinary-input prefix are preserved. The maintainers inspected the fresh
@@ -376,7 +382,7 @@ exactly on the captured inputs; the explosion's incoming damage/trajectory needs
 than an adjustment to Damage. This does not yet establish full trainer parity or tutorial completion.
 The complete integrated suite passed **748 tests, 9 unchanged optional-reference skips, 0 failures**;
 all 749 outcomes from the spoken-warning integration are unchanged and eight new cases execute.
-Private evidence remains in the existing death-integration owner, including
+Private evidence remains outside this repository, including
 `trainer-reach-fixed-admission.json`, `weapon-reach-root/`, `weapon-reach-full.trx` and
 `weapon-reach-suite-admission.json`, `round-seeking-root/`, `trainer-seeking-fixed-admission.json`,
 `sound-integrated-full.trx`, `trainer-incoming-fixed-admission.json`, `incoming-voice-root/`,
@@ -394,12 +400,12 @@ radius callback and Damage sink; it establishes bounded arithmetic, not the coll
 Receipts: `explosion-hit-root/`, `explosion-order-full.trx` and
 `explosion-order-regression-admission.json` in the same private death-integration owner.
 
-A subsequent noninterfering native first-hit observer preserves all145854 ordinary probe fields
-through Present16206 and captures eight paired callbacks without errors. Original Explosion.Hit
+A subsequent noninterfering native first-hit observer preserves all 145,854 ordinary probe fields
+through Present 16,206 and captures eight paired callbacks without errors. Original Explosion.Hit
 returns native damage `3ecf1286` on the native inputs and managed damage `3ecf1334` on the
 managed inputs. Player position, radius and configuration agree; projectile position already differs
 at the direct Round.Damage boundary, before explosion placement. A separate managed collector
-preserves its entire16204-record trace and confirms unchanged position/velocity from Round.Hit
+preserves its entire 16,204-record trace and confirms unchanged position/velocity from Round.Hit
 through GoOff. Original placement on those managed inputs reproduces the managed explosion.
 Native velocity at that boundary was not observed, so it is not assumed equal. The next collision
 observer is a private, unexecuted draft, not another accepted fix. Receipts are in the maintainers' private evidence
@@ -465,7 +471,7 @@ active-count guard, selection/ammunition distinction, movement reset, change tim
 sound's shared random draw. Four focused tests execute, including ordinary right-mouse release,
 held-button non-repetition and the empty-secondary case. The old prefix through 11,612 is unchanged.
 
-A Parity replay compared all seven primary probes for every Present 3..13,000 with the frozen native port:
+A Parity replay compared all seven primary probes for every Present 3..13,000 with the fixed native port:
 all 90,986 values equal. CRT count/state also equals from Present 4 through 13,000; its first
 recorded sample differs. The additional EVN event-count probe differs on 12,997 records and is
 under investigation. These limits are explicit: this is not nine-probe parity or complete tutorial
@@ -530,7 +536,7 @@ under that clock. A comparison that matches only under a non-zero frame offset i
 | M6 | Flow from boot to quit, Present-exact | Per screen, the same Present count as retail; captures at the same frame and resolution compared with retail's, every difference listed with its cause |
 | M7 | The Godot host on the parity core | The same probes through the host as headless; capture comparison as in M6 |
 
-Observed and modelled Present schedules (M6 and M7). The boot films (`Flow/BootFilms.cs`, from CSystem::Init and
+Observed and modelled Present schedules (M6 and M7). The boot films (`rebuild/OnslaughtRebuild.Parity/Flow/BootFilms.cs`, from CSystem::Init and
 CDXFMV::Play) follow retail's default PAL path: logo then opening film; the vendor tweak is off and the PC release
 has no NTSC films. A film makes one Present before its loop, one for each frame but the last, and one after. The
 logo's 229 frames cost 230 Presents; the opening's 2,054 cost 2,055. Waiting for the next video frame never presents.
@@ -548,7 +554,7 @@ previous model placed the device Present after the films and initialized the clo
 Present count was right, it gave the wrong filtered front-end step from Present 2289. `GameRun` now establishes the
 origin after the device Present, before either film; no clock offset or numerical formula was changed.
 
-Evidence: two offscreen processes of port commit `89a8b037` (binary SHA-256
+Evidence: two offscreen processes of a native-port build (binary SHA-256
 `e42adf1f30770d9254bdc52a2605c7a7333646e6acfee71615c25e89690f27a8`), private runs in the maintainers' private
 evidence store, showed `first_seen = gQpcBase + 333333` and identical
 clock/step values at every front-end Process observed from completed Present 2287 to 2300, with no spin escapes or
@@ -724,7 +730,7 @@ Whole-game host, slices 1 and 2 (2026-10-21, M7 in progress):
 - Slice 1: `HOST_LIVE=flow` runs the whole game (`GameRun`, boot to quit) on its own thread through `SteppedGameRun`. Godot's
   thread reads only the immutable `FlowSnapshot` each Present hands back, and keys reach the run through its input queue.
   `rebuild/tools/host_flow_check.py` holds each route's stepped trace equal to its straight one and to the port's fields.
-- Slice 2 draws the front end. `Parity/Flow/Draw` forms the quads as the game forms its vertices (`DrawSprite`,
+- Slice 2 draws the front end. `rebuild/OnslaughtRebuild.Parity/Flow/Draw` forms the quads as the game forms its vertices (`DrawSprite`,
   `DrawTextScaled`/`DrawTextDynamic`, `DrawLine`/`DrawPanel`/`DrawBox`, `RenderMouseCursor`, and the video quad with no film
   open, which is every -skipfmv run) and hands them to a pure canvas (`IFrontEndCanvas`: no Godot types, called only from
   the render path). It covers the main page, the common page's lines, the message box and the cursor.
@@ -736,7 +742,7 @@ Whole-game host, slices 1 and 2 (2026-10-21, M7 in progress):
 - `FrontEndRaster` is a software rasterizer of the same frames: a repeatable oracle that runs headless.
 - Long frame names are cut as LoadFrame cuts them (61 characters past the folder), which is how the install stores two
   of the title's symbols.
-- Measured against the port's back buffer (ae04185f, fe-r1, every 10th Present from 160 to 680; main page, quit box,
+- Measured against the port's back buffer (port build `ae04185f`, which is not a commit in the public Onslaught repositories; fe-r1, every 10th Present from 160 to 680; main page, quit box,
   cursor): mean absolute difference per channel 0.12–0.13 for the oracle and 0.39–0.49 for Godot. 0.10–0.11% of pixels
   differ by more than 16 in either; the remaining differences are along anti-aliased glyph and sprite edges.
 - Not drawn yet: the intro page (Present 150 differs throughout), the other pages, particles and the level.
@@ -759,7 +765,7 @@ Slice 3 (2026-10-21): the front end's other pages draw.
   The front-end route tests are unchanged by all of them.
 - text.stf's negative ids now parse.
 - The flow Host puts the installation's own saves on the card, as the game run from its folder (and the port) sees them.
-- Measured against the port's back buffer (ae04185f), as mean per-channel difference from the software oracle on
+- Measured against the port's back buffer (port build `ae04185f`, not a commit in the public Onslaught repositories), as mean per-channel difference from the software oracle on
   settled frames:
 
 | Page | Mean difference |
@@ -818,7 +824,7 @@ observer was not rerun for those new references.
 
 Measured (the repair pad route, 2026-10-22): on the tutorial pilot's p22-fire tape (c17-fire's input to P22150, then
 the return to the Forseti repair pad and the flight out), against the native port's every-Present probes
-(`l100-p22-port-20261022`, the frozen 0029+0030 build), the Core matches every probe field through P26720, the
+(`l100-p22-port-20261022`, the fixed 0029+0030 build), the Core matches every probe field through P26720, the
 reference's end, past the earlier floor at P22150 (`PilotP22RouteTests`). The pad takes the landed battle engine as its target at P23333
 (`CRepairPadAI::Unknown11`: within 3 across and up to 5 below), creates its weapon's charge effects at the Charge
 emitters (`CUnit::Unknown86`, the port's 18 extra C runtime draws there), fires once `CBuilding::Move`'s shot timer
@@ -832,7 +838,7 @@ P27341, then the jet transform) through P27650, with the sixth and last at P2751
 
 Measured (the win, 2026-10-23): the pilot's winning tape (`pilot-win`: j4's input to P27569, then Target Zone 4 and the
 walk in) under `-level 100 -skipfmv` against the native port's every-Present probes (`l100-pilotwin-port-20261022`, the
-frozen 0029+0030 build, to P28600): every probe field matches every Present through P28306, the level's last. The level
+fixed 0029+0030 build, to P28600): every probe field matches every Present through P28306, the level's last. The level
 is won at P28157; the Victory screen's countdown quits to the front end; the last MainLoop renders twice (P28305 and
 P28306, both at mFrameTime = mBaseTime while paused) and the next one's update sees the quit and returns before
 rendering (onslaught-decomp `src/game.cpp:2222`), so RunLevel's close follows with no Present. The "extra Present at
@@ -857,7 +863,7 @@ patch 0053), the goodies page (`CFEPGoodies`: the cursor, its sounds and Back's 
 ported), the level's intro film from the front end (RunIntroFMV after the 100% loading screen, `src/game.cpp:1259`),
 the tape's mouse outside a level adding up for the next level's first device read (the harness's DirectInput, as the
 port's `PortReplayMouse`), and the cloak button (`CBattleEngine::HandleCloak`, 0040d4d0; the tutorial's engine has no
-stealth, so it never cloaks). The run uses the level-100 routes' measured sound-pool profile (the frozen e55 -level
+stealth, so it never cloaks). The run uses the level-100 routes' measured sound-pool profile (the fixed e55 -level
 process's 256 seeds), not this process's; every field still matches. Retail is not the reference here: in each of the four
 recorded retail pairs (pristine 74154bfa under the shim) the two runs of the same tape differ from each other, first
 between P3918 and P5003.
@@ -897,7 +903,7 @@ retail frame comparison or GPU performance result. The enabled candidate also dr
 disabled and motion captures selected frontend-only drawing; this was not a single-switch whole-renderer
 comparison. The unchanged traces cover the fields emitted by Host; the separate GoldOwn test compares the
 larger reference set, end-level bytes and complete save/options files. These Host runs stop at the selected
-P12817 preview boundary, not a demonstrated natural game quit. The captures use Intel Compatibility rendering.
+P12817 preview boundary, not a demonstrated natural game quit. The captures use Godot's Compatibility renderer on the Intel GPU.
 Completed-campaign fireworks still need a visible comparison.
 
 The full Host replay needs the explicitly selected `HOST_REPLAY_SOUND_PROFILE`, with a tape, the pinned measured
@@ -953,7 +959,7 @@ shows a weapon name (no weapon change on the route) or an ammunition count (an e
 warning's place, colour and quads.
 The ammunition count was compared on the tutorial pilot's c17 route (the Core equals the port on every probe field there
 through P22150), where the walker's current weapon becomes the twin vulcan cannon, a store weapon, at P8533. Against
-the frozen port's back buffers (ae04185f, every 25 Presents, P8500 to P9500), the count appears at the same Presents
+the fixed port's back buffers (port build `ae04185f`, not a commit in the public Onslaught repositories; every 25 Presents, P8500 to P9500), the count appears at the same Presents
 (none at P8500 and P8525) and reads the same at every one (2000 to 1854 while firing). Its left edge matches to the
 pixel, including the one-pixel shifts as the digits' widths change, and its colour is the plain one, not doubled
 (`HudTextTests`). No tape presses the weapon-change button, so the weapon's name (shown only after a change) has no
@@ -1003,7 +1009,7 @@ Measured so far (M0, 2026-10-15): the harness parses retail's level-100 tape and
 missing at the first sample.
 
 Measured (M1, 2026-10-15): `X87` against oracle tables from a VC6 SP5 `/O2 /QIfist` harness run under Wine at
-`_PC_24` on this host (Intel i7-13700HX), 10^6 inputs per operation including specials. Add, subtract, multiply,
+`_PC_24` on the maintainer's machine (Intel i7-13700HX), 10^6 inputs per operation including specials. Add, subtract, multiply,
 divide and square root on double operands, float square root and atan2, double-to-float conversion, `/QIfist`'s
 64-bit fistp and `_ftol` match every result. Float operators match on float operands. `fsin`, `fcos` and `fpatan`
 match every result once stored to a float; stored to a double they differ in the last bits for about 0.13% of
@@ -1019,16 +1025,16 @@ golden from seed 123456: 1,537 draws by Present 50, 2,470 by Present 3300 and 22
 Porting notes for the parity core:
 
 - The world's Z axis points down: heights are negative upward (actor.cpp's altitude is `MAP.Collide(pos) -
-  COfGHeight()`, AirGuide.cpp's ground is `-MAP.GetHeight(x, y)`), so a ground normal pointing up has negative Z
+  COfGHeight()`, src/AirGuide.cpp in onslaught-decomp has the ground as `-MAP.GetHeight(x, y)`), so a ground normal pointing up has negative Z
   (`HeightField.Normal`; off the map it returns retail's (0, 0, 1)).
 - Float expressions keep the decompilation's association order. With float operands at 24-bit precision control,
   C# float arithmetic in the same order gives retail's bits; double operands go through `X87`.
 - The C runtime's `rand()` does not reach the probes in level 100: retail's callers over the 10,000-Present
-  golden-640 run (a detour on `rand`, 348,459 calls) are the particle descriptors (render-paced, about 342,000),
+  golden-640 run (a detour on `rand`, 348,459 calls) are the particle descriptors (render-paced, about 342,000; roughly 2,300 of the calls have no caller named here),
   `CSnow::Init` at load (4,100) and `CSoundManager::PlayEffect` (26, sound parameters only). `CrtRand` must still be
   exact, in per-Present order, for render captures and sound. This holds per level: rerun the detour on each new
   level before relying on it.
-- The mesh port (`Mesh/`) covers the resource-file reader (`CMesh::Deserialize`, the level's packed `m_*.aya` mesh
+- The mesh port (`rebuild/OnslaughtRebuild.Parity/Mesh/`) covers the resource-file reader (`CMesh::Deserialize`, the level's packed `m_*.aya` mesh
   files), not `CMesh::InitFromMem` (loose `.msh` files, versions 2.01-2.07, with its inline quaternion helper). A
   complete level resource file never takes that path; if a later milestone needs it, check its quaternion helper's
   compiled evaluation on the real FPU first.
@@ -1042,9 +1048,11 @@ Porting notes for the parity core:
 
 ## The earlier rebuild's grades
 
-These grades describe the earlier fixed-point rebuild at its parking point (the old tag archive/godot-rebuild-20260926, now in the private RE archive).
+The grades of the earlier fixed-point rebuild are not reproduced in this file. They describe its parking point (the old tag archive/godot-rebuild-20260926), which is in the private RE archive.
 
-## Authority order (from PROVENANCE.md)
+## Authority order
+
+This section is this file's own summary. The quoted working rule is from PROVENANCE.md, whose Authority section introduces an ordered list that is not in that file.
 
 > **Port Stuart's shape first. Cite the file and line. Override from bytes
 > only where measurement proves divergence.**
@@ -1062,10 +1070,10 @@ was retired that day in favour of that one owner; its retail evidence stays in
 and
 [`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md).
 
-RE commit `d34f565d` (now in this branch) supplies the September 19
-projectile-readiness queue and maximum-speed-provider contracts in
+The reverse-engineering notes supply the September 19
+projectile-readiness queue and maximum-speed-provider contracts in the Toolkit repository's frozen copy,
 `reverse-engineering/binary-analysis/functions/CEventManager.cpp.md` and
-`collisionseekingthing.cpp.md`. The existing explicit PC53 scheduler path agrees
+`collisionseekingthing.cpp.md` (neither is in this repository). The existing explicit PC53 scheduler path agrees
 with the controlled PC64 result for those bounded operands; it is not a general
 PC64 implementation. **Open question:** which x87 precision context applies at
 the live scheduler entry for each relevant retail caller? The cheapest direct
@@ -1084,8 +1092,8 @@ monitor allocation or collision-pair delivery.
 | Divergence | Stuart source | Shipped bytes | Where recorded |
 |---|---|---|---|
 | `InJetMode` | 0.3 s | 0.5 s | PROVENANCE.md |
-| `CGame::DeclareLevelLost` countdown | 5.0 s | 2.0 s | this table (`0x0046F4A8`) |
-| `CGame::FillOutEndLevelData` score below D | `game.cpp:1011-1024` stores −1 then clamps to 0 then 0.001 | `0x0046d772` stores 0 and jumps to `0x0046d79b`, skipping `0x3a83126f` | this table |
+| `CGame::DeclareLevelLost` countdown | 5.0 s | 2.0 s | the Carried retail contracts table, `RetailGameEndCountdownTests.TutorialBroken_StartsTheTwoSecondLostCountdown` (`0x0046F4A8`) |
+| `CGame::FillOutEndLevelData` score below D | `game.cpp:1011-1024` stores −1 then clamps to 0 then 0.001 | `0x0046d772` stores 0 and jumps to `0x0046d79b`, skipping `0x3a83126f` | the Carried retail contracts table, `RetailFillOutEndLevelDataTests.Level100Won_ScoreTimeArmRewritesAZeroScoreToZeroBecauseRlwdDeltaIsPositive` |
 | `CPanCamera` length | Stuart value | 6.0 | PROVENANCE.md (VA 0x004198D0, vtable 0x005D92A8) |
 | Weapon resource path | pinned path | differing path | PROVENANCE.md |
 
@@ -1119,16 +1127,14 @@ file offset = VA − 0x400000 for `.text`/`.rdata`/`.data`, whose raw ends are
 bss). Every row's mutation kill was **measured**: the named implementation was
 changed to the plausible wrong value, the named test was observed to fail, the
 owner was restored and verified byte-identical by SHA-256, and the test was
-observed to pass. `Cases` is the number of test cases
-`--filter FullyQualifiedName=<test>` selects, measured — it is the
-`expectedTests` a rebuild-parity gate needs.
+observed to pass. `Cases` is the number of test cases `--filter FullyQualifiedName=<test>` selects, measured. A row that names several tests gives one count per test, in the order the tests are named; a name with no method is a whole class. The rebuild-parity gate in the RE campaign machinery (private RE archive) needs this count; the gate in the public tree is `rebuild/tools/rebuild_gate.py` (`npm run ref:gate`).
 
 Owner paths are relative to the repository root; test names are relative to
 `rebuild/OnslaughtRebuild.Core.Tests/` and the
-`OnslaughtRebuild.Core.Tests` namespace.
+`OnslaughtRebuild.Core.Tests` namespace. The one exception is `RetailCampaignFlowTests`, in `rebuild/OnslaughtRebuild.Client.Tests/`.
 
-> **Receipts.** The 17 mutation records behind this table — one per row plus the
-> one deliberate `SURVIVED` control — live at
+> **Receipts.** The 17 mutation records — plus the one deliberate `SURVIVED`
+> control — live at
 > a private mutation-kill folder (rebuild-parity-mutation-kills-2026-08-17), with
 > `mutation-results.json` (per row: target test, mutation meaning, every failing
 > test observed, and `ownerSha256Before`/`After`), the `mutate.py` harness that
@@ -1140,11 +1146,11 @@ Owner paths are relative to the repository root; test names are relative to
 > than to trust the table.
 >
 > The world-110 player-start row has its separate measured receipt in the
-> ignored repo-local lab at
+> ignored local-data folder on the maintainer's machine, at
 > a private mutation-kill receipt (rebuild-world110-player-start-mutation-kill-20260830),
 > SHA-256
 > `900f22187dea14262846d968a229e7a324ec1a292302c3214ddf656ec7e56b3d`.
-> It is machine-local evidence inside the canonical checkout but excluded from
+> It is machine-local evidence in the maintainer's ignored local-data folder, excluded from
 > Git and absent from fresh clones and child worktrees.
 >
 > The adjacent bounded `CStart::Init` height row has its own receipt at
@@ -1187,9 +1193,9 @@ Owner paths are relative to the repository root; test names are relative to
 | `CCareerNode::SetBaseThingExistTo` | `0x0041B777`: a load of constant 1 into edx; `0x0041B77E`: an arithmetic right shift of eax by 5; `0x0041B781`: a mask of ecx with 0x1f; `0x0041B786`: a left shift of edx by cl — bit 0 is the low bit | `rebuild/OnslaughtRebuild.Core/RetailCareerNodes.cs` | `RetailCareerNode.SetBaseThingExistTo` | `RetailCareerNodesTests.SetBaseThingExistTo_AddressesTheWordAndBitRetailDoes` | 5 | bits numbered from the top of the word |
 | `CCareer::Load` kill-counter clamp | `0x00421245`/`0x0042124B` read `[ebx+0x23f4]` and `[ebx+0x23f8]` — **two** words only; `0x0042126A`: a compare of eax with -0x40, `0x0042126F`: a compare of eax with 0x40, else (a zeroing of eax) | `rebuild/OnslaughtRebuild.Core/RetailCareerKillCounters.cs` | `RetailCareerKillCounters.NormaliseOnLoad` | `RetailCareerKillCountersTests.NormaliseOnLoad_LeavesTheOtherThreeCountersAlone` | 1 | normalise all five counter words |
 | `CEventManager::AddEvent(CScheduledEvent*)` | `0x0044B32E`: a sign-extending load of 16-bit word field +4 of esi into eax — the event number is int16 | `rebuild/OnslaughtRebuild.Core/RetailEventScheduler.cs` | `RetailEventScheduler.AddEvent` | `RetailEventSchedulerTests.AddEvent_StoresTheEventNumberAsSignedSixteenBits` | 1 | store the `int` the source signature advertises |
-| `CPCController::GetAnalogueLeftX` | `0x0051465E`: an integer-to-float load of value pointed to by eax then `0x00514660`: a float multiply by the value at 0x005DC6E4, that dword is `0.001f`; `0x3EB851EC` (`0.36f`) occurs **zero** times in the image, so `PCController.cpp`'s dead-zone stage never shipped | `rebuild/OnslaughtRebuild.Core/RetailAnalogueControls.cs` | `RetailAnalogueControls.NormalizeLeftX` | `RetailAnalogueControlsTests.NormalizeLeftX_MultipliesByTheRoundedReciprocalNotDividesByAThousand` | 5 | implement `PCController.cpp:155`'s `/1000.0f` |
+| `CPCController::GetJoyAnalogueLeftX` | `0x0051465E`: an integer-to-float load of value pointed to by eax then `0x00514660`: a float multiply by the value at 0x005DC6E4, that dword is `0.001f`; `0x3EB851EC` (`0.36f`) occurs **zero** times in the image, so `PCController.cpp`'s dead-zone stage never shipped | `rebuild/OnslaughtRebuild.Core/RetailAnalogueControls.cs` | `RetailAnalogueControls.NormalizeLeftX` | `RetailAnalogueControlsTests.NormalizeLeftX_MultipliesByTheRoundedReciprocalNotDividesByAThousand` | 5 | implement `PCController.cpp:155`'s `/1000.0f` |
 | `CBattleEngine::GetInterpolatedEulerOrientation` seam wrap | `0x0040D660`; `0x005D85E4`=+1.5707963705062866, `0x005D85C8`=−1.5707963705062866, `0x005D85E0`=6.2831854820251465; no store between the wrap and its use | `rebuild/OnslaughtRebuild.Core/RetailBattleEngineInterpolation.cs` | `RetailBattleEngineInterpolation.AdjustedOldAngle` | `RetailBattleEngineInterpolationTests.AdjustedOldAngle_StaysWideAndThatIsObservable` | 1 | round the wrapped angle back to float |
-| `CBattleEngine::HandleHostileEnvironment` | `0x0040DCE0`: a float load of the value at 0x00672FD0, `0x0040DCEF`: a float subtract of field +0x510 of esi, `0x0040DCF5`: a float compare against the value at 0x005D85D8, popping the result = 5.0f, a bit test of ah against 0x41 — strictly greater, on the **unrounded** difference | `rebuild/OnslaughtRebuild.Core/RetailBattleEngineAugment.cs` | `RetailHostileEnvironment.ShouldWarn` | `RetailBattleEngineAugmentTests.ShouldWarn_ComparesTheUnroundedDifference` | 1 | narrow the elapsed difference to float |
+| `CBattleEngine::HostileEnvironment` | `0x0040DCE0`: a float load of the value at 0x00672FD0, `0x0040DCEF`: a float subtract of field +0x510 of esi, `0x0040DCF5`: a float compare against the value at 0x005D85D8, popping the result = 5.0f, a bit test of ah against 0x41 — strictly greater, on the **unrounded** difference | `rebuild/OnslaughtRebuild.Core/RetailBattleEngineAugment.cs` | `RetailHostileEnvironment.ShouldWarn` | `RetailBattleEngineAugmentTests.ShouldWarn_ComparesTheUnroundedDifference` | 1 | narrow the elapsed difference to float |
 | `CBattleEngineWalkerPart::GetWeaponAmmoCount` | `0x00414470`; `0x0041449D` `df7c2404` = bare float-to-integer store to 64-bit stack local +4 under `/QIfist`, so it **rounds to nearest even** where `BattleEngineWalkerPart.cpp:854` casts | `rebuild/OnslaughtRebuild.Core/RetailWeaponStores.cs` | `RetailWeaponStoreReadouts.AmmoCount` | `RetailWeaponStoresTests.AmmoCount_RoundsToNearestEvenWhereTheSourceTextTruncates` | 6 | implement the source's truncating `(SINT)` cast |
 | `CMovieCamera::GetZoom` | `0x0041A681`: a float multiply by the value at 0x005D9338, that dword is `float(1/90)` and occurs **once** in the whole image, then `0x0041A687`: a float multiply by the value at 0x005D85EC = 0.5f — two multiplies where `Camera.cpp:650` writes two divides | `rebuild/OnslaughtRebuild.Core/RetailCameraLaws.cs` | `RetailMovieCameraZoom.GetZoom` | `RetailCameraLawsTests.MovieCameraZoom_MultipliesByTheRoundedReciprocalOfNinety` | 4 | implement `(fov/90)/2` |
 | `CBattleEngine::Gravity` | `0x004074D0`; jump table `0x00407520` = {`0x004074FF`,`0x004074FF`,`0x004074FF`,`0x004074E8`} and `0x00407530` = {`0x00407506`,`0x004074FF`,`0x004074FF`,`0x0040750D`}, so **index 0** takes `0x005D8BAC` = 0.002f. Index 0 is `MORPHING_INTO_WALKER` (`BattleEngine.h:32`), not the walker | `rebuild/OnslaughtRebuild.Core/RetailBattleEngineGravity.cs` | `RetailBattleEngineGravity.Gravity` | `RetailBattleEngineGravityTests.Gravity_WalksBothJumpTables` | 6 | read the header as walker-first |
@@ -1203,7 +1209,7 @@ Owner paths are relative to the repository root; test names are relative to
 | `CGame::FillOutEndLevelData` Level 100 Won snapshot | `0x0046D470`; `mWorldFinished=100`, `mFinalState=5`, ten unset secondary statuses. `game.cpp:1028` `if (GetNumSecondaryObjectives())` is false, so the 0.4/0.6 ranking clamp is skipped even though `0x004496E0` would return FALSE | `rebuild/OnslaughtRebuild.Core/RetailFillOutEndLevelData.cs` | `RetailFillOutEndLevelData.AfterSecondaryRankingClamp` | `RetailFillOutEndLevelDataTests.Level100Won_DoesNotClampRankingBecauseThereAreNoSecondaries` | 3 | apply the failed-secondary `0.6` cap when the authored count is 0 |
 | `CGame::FillOutEndLevelData` Level 100 Won primary statuses | `0x0046D470` copies ten primary `GetStatus()` words: four `MOS_COMPLETE=1` then six unset — not the rebuild mission enum `Level100PrimaryObjectiveStatus.Complete=2`. Secondaries stay unset | `rebuild/OnslaughtRebuild.Core/RetailFillOutEndLevelData.cs` | `RetailFillOutEndLevelData.ForLevel100Won` | `RetailFillOutEndLevelDataTests.Level100Won_SnapshotCarriesFourMosCompletePrimariesNotTheMissionEnumTwo` | 1 | write mission-enum `Complete=2` into the primary table |
 | `CGame::FillOutEndLevelData` then `CCareer::Update` from Level 100 `FrontEndHandoffReady` | After the already-pinned Won 5.0 f countdown, `RestartLoopRunLevel` calls FillOut `0x0046D470` then Update `0x0041BD00`. Mission `FrontEndHandoffReady` is that seam: `ForLevel100Won()` then `ApplyUpdate`. No new secondaries | `rebuild/OnslaughtRebuild.Core/Level100WonCareerHandoff.cs` | `Level100WonCareerHandoff.TryApply` | `Level100WonCareerHandoffTests.FrontEndHandoffReadyAfterWon_AppliesFillOutAndUnlocksWorld110` | 1 | skip `ApplyUpdate` on the handoff |
-| Level 100 player-input Won to `FrontEndHandoffReady` | GOAL.md: one `Level100ChainRunFixture` reaches `Won` by `SimInput` alone. After `SuccessCountdown`, `Step(SimInput.Idle)` for `RetailGameEndCountdown.WonTicks` lands `FrontEndHandoffReady` and `ApplyUpdate` unlocks world 110. Never `QueueExternalEvent`. First-play elapsed / iceberg-kill store-0 / secondaries / ChargeWeapon stay unclaimed | `rebuild/OnslaughtRebuild.Core/Level100Mission.cs` | `Level100Mission.AdvanceTick` | `Level100PlayerInputWonHandoffTests.SimInputOnlyWon_AfterSuccessCountdown_ReachesFrontEndHandoffAndUnlocksWorld110` | 1 | stop the idle steps before the overlay elapses |
+| Level 100 player-input Won to `FrontEndHandoffReady` | One `Level100ChainRunFixture` (rebuild/OnslaughtRebuild.Core.Tests/Level100PlayerInputWonHandoffTests.cs and Level100FullChainTests.cs) reaches `Won` by `SimInput` alone. After `SuccessCountdown`, `Step(SimInput.Idle)` for `RetailGameEndCountdown.WonTicks` lands `FrontEndHandoffReady` and `ApplyUpdate` unlocks world 110. Never `QueueExternalEvent`. First-play elapsed / iceberg-kill store-0 / secondaries / ChargeWeapon stay unclaimed | `rebuild/OnslaughtRebuild.Core/Level100Mission.cs` | `Level100Mission.AdvanceTick` | `Level100PlayerInputWonHandoffTests.SimInputOnlyWon_AfterSuccessCountdown_ReachesFrontEndHandoffAndUnlocksWorld110` | 1 | stop the idle steps before the overlay elapses |
 | `CCareer::Update` Lost skip at Level 100 handoff | Lost is 4; a compare of eax with 5 at `0x0041BD06` skips the 32-dword copy. `TryApply` returns false even if `FrontEndHandoffReady` is claimed. Broke-Tutorial never leaves `FailureMenuReady`. No new secondaries | `rebuild/OnslaughtRebuild.Core/Level100WonCareerHandoff.cs` | `Level100WonCareerHandoff.TryApply` | `Level100WonCareerHandoffTests.LostDoesNotApplyFillOutEvenIfFrontEndHandoffReadyIsClaimed` | 1 | drop the Won check on `TryApply` |
 | `CGame::FillOutEndLevelData` then `CCareer::Update` Level 100 first-play slots | First-play `SetSlotSave` writes `SLOT_TUTORIAL_1..4` (63..66). FillOut copies those 32 words; `ApplyUpdate` assigns them over career `mSlots`, so a leftover bit dies. No new secondaries | `rebuild/OnslaughtRebuild.Core/RetailFillOutEndLevelData.cs` | `RetailFillOutEndLevelData.FirstPlayTutorialSlotWords` | `Level100WonCareerHandoffTests.FrontEndHandoffReadyAfterWon_OverwritesCareerSlotsFromFillOutTutorialBits` | 1 | `ForLevel100Won` carries empty slot words |
 | `CGame::FillOutEndLevelData` Level 100 Won ranking | `game.cpp:967` stores `mRanking=1.0f` before the score-time arm. Level 100's secondary count is 0, so the 0.4/0.6 clamp never rewrites it. First-play elapsed and score stay unclaimed | `rebuild/OnslaughtRebuild.Core/RetailFillOutEndLevelData.cs` | `RetailFillOutEndLevelData.ForLevel100Won` | `RetailFillOutEndLevelDataTests.Level100Won_SnapshotRankingIsThePreClampOnePointZero` | 1 | default ranking written as the failed-secondary `0.6` cap |
@@ -1283,7 +1289,7 @@ Owner paths are relative to the repository root; test names are relative to
 | `CCareer::IsWorldLater` | `Career.cpp:324-374`: walk the `diesOn` node's subtree through lower then higher child links and answer whether the `current` node is inside it; the caller's own `currentNode != diesOnNode` guard makes equal worlds FALSE, and disjoint subtrees are FALSE because the walk never reaches them | `rebuild/OnslaughtRebuild.Core/RetailWorldCatalog.cs` | `RetailWorldCatalog.IsWorldLater` | `RetailWorldCatalogTests.IsWorldLater_MatchesSubtreeSemantics` | 1 | swap the arguments so the walk starts at `currentNode` (ancestor/descendant inverted) |
 | World-110 script-object admission (second career node, version-50 layout) | `data/resources/110_res_PC.aya` measured 2026-08-22, whole-archive SHA-256 `4e041c758b9d41ba18311b1fadeacb95fc31af51320861480b97033bc24e3c2b`; RLWD header `(3, 41, 110)`; 13 hash-pinned objects — LevelScript 5110 B `f5c157ba…22aa` with 181 instructions, 92 symbols, `builtin[0]=11`, five named events (`Enemy Engaged` 100, `Vital Building Destroyed` 134, `Lander Escaped` 145, `Lander Destroyed` 159, `Lander Withdraws` 170) | `rebuild/OnslaughtRebuild.Core/Level100MissionProgram.cs` | `Level100MissionProgram.LoadEmbedded(world, name)` | `RetailWorld110AdmissionTests.AllThirteenScriptObjects_AdmitWithTheirPinnedIdentities` | 1 | re-pin `beacon` to `Lander`'s payload hash (cross-object admission accepted) |
 | World-110 HFLD admission | Same archive; extracted envelope (tag + CHFD + HFDT) is 668660 B, SHA-256 `fd4d076a2926fbc473b7d364703bdbc0c8a0f7a638b0ab71b6f319374da033c2`; same CHFD format law as Level 100 (grid `0x89/0x94/0x1a8/0x168`, same scales) with height data differing from the first sample word — a distinct measured world under the shared envelope law, recorded via `PayloadSha256` | `rebuild/OnslaughtRebuild.Core/Level100Terrain.cs` | `Level100Terrain.World110` (per-world `LoadEmbedded(name, sha)`) | `RetailWorld110AdmissionTests.World110Heightfield_IsItsOwnHashPinnedEnvelope` | 1 | re-pin `World110SourceSha256` to Level 100's envelope hash (also failed `World110AndLevel100Terrains_AreDistinctMeasuredWorlds`) |
-| `CPlayer::AssignBattleEngine` ordered two-reader assignment | Pristine `[0x004d3080,0x004d30c5)` is 69 B / `17f1f2e2…593a10`. It calls `SetReader(player+0x1c, engine)` then `SetReader(engine+0x574, player)`, tests the full player `+0x20` dword, and on any nonzero value dispatches vtable `+0xe0` with raw 0 then `+0x154` with raw 1. Pinned `Player.cpp:254-266` names the two reader binds and God-only policies. Same-target calls retain their outer boundaries; reassignment does not clear either stale reciprocal side. Preflight rejects missing or duplicate required reader-cell roles before mutation; it is not retail rollback, and the policy entries are call intents rather than virtual execution | `rebuild/OnslaughtRebuild.Core/RetailPlayerBattleEngineAssignment.cs` | `RetailPlayerBattleEngineAssignment.Assign` over `RetailActiveReaderGraph` | `RetailPlayerBattleEngineAssignmentTests.FreshNonGodBindPreservesCallOrderAndTargets` | 1 | omit the reciprocal engine-player `SetReader` while retaining its transcript label: the exact fact fails on the empty nested actions; restore byte-for-byte and it passes 1/1, adjacent gate 54/54 |
+| `CPlayer::AssignBattleEngine` ordered two-reader assignment | Pristine `[0x004d3080,0x004d30c5)` is 69 B / `17f1f2e2…593a10`. It calls `SetReader(player+0x1c, engine)` then `SetReader(engine+0x574, player)`, tests the full player `+0x20` dword, and on any nonzero value dispatches vtable `+0xe0` with raw 0 then `+0x154` with raw 1. Pinned `Player.cpp:254-266` names the two reader binds and god-mode-only policies. Same-target calls retain their outer boundaries; reassignment does not clear either stale reciprocal side. Preflight rejects missing or duplicate required reader-cell roles before mutation; it is not retail rollback, and the policy entries are call intents rather than virtual execution | `rebuild/OnslaughtRebuild.Core/RetailPlayerBattleEngineAssignment.cs` | `RetailPlayerBattleEngineAssignment.Assign` over `RetailActiveReaderGraph` | `RetailPlayerBattleEngineAssignmentTests.FreshNonGodBindPreservesCallOrderAndTargets` | 1 | omit the reciprocal engine-player `SetReader` while retaining its transcript label: the exact fact fails on the empty nested actions; restore byte-for-byte and it passes 1/1, adjacent gate 54/54 |
 | `IScript::SecondaryObjectiveFailed` native 88 | Stuart `game.h:22-24,179-187` owns ten zero-based secondary slots and `SetSecondaryObjectiveFailed(int num, int string_id)`. Pristine `0x00534470` unboxes two integers, writes text at `[0x008A9B2C + num*8 + 4]`, then stores `MOS_FAILED=2` at `[0x008A9B2C + num*8]`; the exact world-110 LevelScript has one native-88 instruction at index 22, attribute `0x00000258`, fed by slot `1` and `_110_SECONDARY_1=114309509` | `rebuild/OnslaughtRebuild.Core/Level100MissionTypes.cs` and `rebuild/OnslaughtRebuild.Core/Level100Mission.cs` | `RetailSecondaryObjectiveState.SetFailed`; `Level100Mission.InvokeNative` case 88 | `Level100MissionTests.SecondaryObjectiveFailed_WritesTheIndexedRetailSlotAndRejectsSwappedOrOutOfRangeArguments` | 1 | write `Complete=1` instead of `Failed=2` (observed Expected Failed / Actual Complete); swapped text/index and both range edges are also rejected without mutation |
 | `IScript::SecondaryObjectiveComplete` native 84 | Same source owns `SetSecondaryObjectiveComplete(int num, int string_id)`. Pristine `0x00534410..0x0053443b` is 44 bytes, SHA-256 `b39a3c58214a8efc7eff0ca11c1407764983888c3a7d249643376162740cd197`; `0x00534432` stores `MOS_COMPLETE=1` at `[0x008A9B2C + num*8]` after writing the text dword at `+4`. The admitted `f5c157ba…22aa` world-110 LevelScript has one exact native-84 instruction at index 66, attribute `0x00000254`, fed by slot `1` and text id `114309509`; the ordinary opening is still suspended at its earlier instruction-34 Pause | `rebuild/OnslaughtRebuild.Core/Level100MissionTypes.cs` and `rebuild/OnslaughtRebuild.Core/Level100Mission.cs` | `RetailSecondaryObjectiveState.SetComplete`; `Level100Mission.InvokeNative` case 84; exact-instruction `RunWorld110SecondaryObjectiveCompleteInstrument` | `Level100MissionTests.SecondaryObjectiveComplete_WritesOnlyTheIndexedRetailSlotAndRejectsSwappedOrOutOfRangeArguments`; `RetailWorld110AdmissionTests.AuthoredWorld110Native84Branch_CompletesTheFailedSlotAndChangesTheCanonicalHash` | 2 | route native 84 to `SetFailed` (Expected Complete / Actual Failed); the adverse failed neighbor, swapped arguments, range edges, authored argument/void shape, and complete-vs-failed schema-43 hashes also falsify drift |
 | World-110 direct mission initialization | Exact `f5c157ba…22aa` program: native 88 at instruction 22, first `Pause` at instruction 34. The intervening non-waiting `_110_PROTECT` message id 8444036 maps to exact retail `110_protect.ogg`, SHA-256 `03f1fc8e…35d3`, 172,496 samples at 44.1 kHz; the retained duration law gives 90 ticks. Definition/world mismatches fail in both directions. The stamped Level 100 fixture is a direct mission instrument, not a World110 Simulation or authored world-110 content | `rebuild/OnslaughtRebuild.Core/Level100Mission.cs` and `rebuild/OnslaughtRebuild.Core/Level100MissionTiming.cs` | direct world-110 mission constructor; `Level100MissionTiming.MessagePlaybackTicks` | `RetailWorld110AdmissionTests.MissionConstructor_World110CrossesNative88AndStopsAtItsFirstLegitimateWait` | 1 | change the measured `_110_PROTECT` duration from 90 to 91 ticks (observed Expected 90 / Actual 91) |
@@ -1295,17 +1301,17 @@ Owner paths are relative to the repository root; test names are relative to
 | Cockpit Gun emitters for player rounds | `GetLaunchPosition` (`0x0040c990`) starts from the Gun emitter's world pose, M·p + P, M the body orientation `+0x3c`; `cockpit2.msh` Gun table composed from HPOS/HORI (fly frame 0, walk 25); launch sequences Pulse (1, 1), Twin Vulcan (1..4 → 9..12), Mech Vulcan (1, 13) (2, 14), pod (1, 4) (2, 3) (3, 5) (4, 2) (5, 6) | `rebuild/OnslaughtRebuild.Core/Level100CockpitEmitters.cs`, `Simulation.cs` | `Level100CockpitEmitters.Gun`, `Simulation.LaunchGun`, `.CockpitEmitterWorldPosition` | `Level100CockpitEmitterTests`, `SimulationTests.MechVulcanRounds_LeaveGunsThirteenAndFourteenInSequence`, `SimulationTests.PulseCannonEmitter_ConvergesOnTheCameraReticleContact` | 9, 1, 1 | Gun 1 below the origin; model z taken as up; Twin Vulcan and Mech Vulcan sequences reordered — each RED, restored, GREEN |
 | Level 100 load order and construction draws | `CWorld::LoadWorld`: base world's 1,481 pines one draw each, then `CInfluenceMapManager::Load` (`0x0048b010`) → `0x0048b8e0` one draw (`0x0048bf0f`) and 1000; base rows 0-34, then level rows; after them `SpawnInitialThings` (`0x0050dcb0`) warms up each script-spawned type no row built (Target Truck: Actor and hover draws; Target Drone: Actor and `0x004d1bae` draws) and `0x0048b8e0(0)` takes a second draw and 1000; row 0's `CStart::SpawnBattleEngine` (`0x004eaf20`) builds the Battle Engine inline; per class: `CActor::Init` draw (`0x0040135d`), cannon fire control (`0x004f90ce`), ground hover (`0x0047c869`), squad 4000/4001/4002 draws (`0x004e8177`, `0x004e8486`, `0x004e709c`), `CPlane::Init` last draw (`0x004d1bae`) | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs` | `Level100ActorMechanics.ConstructLevel`, `.ConstructUnit` | `Level100BattleEngineRefreshTests.Construction_FilesTheCrosshairThenTheAutoAimRefreshWithOneDrawEach`, `Level100UnitCallbackTests` | 1, 8 | no pine draws; no construction fire-control draw; Battle Engine refresh before its Actor draw; no influence draw after the pines or at the tail; no warm-ups; warm-ups of types the rows built — each RED, restored, GREEN |
 | Unit 4003, UnitAI 3000/3001/3003, fire control 4001, squads 4000-4002 | 4003 `0x004f98a8-0x004f9972` (camera within 50 units, one draw, now + 3 + r/65536); `CUnitAI::HandleEvent` `0x004ff330` poll (one draw, 3003 at now + 2 + r·2⁻¹⁵) and `0x004fec60` → `Update` idle arm (1.5 + r·2⁻¹⁶ near, 3 + r·2⁻¹⁵ far); Warehouse 3001 `0x004feac0`; fire control `0x004fb280` (dying returns); squad `0x4e8100`, `0x4e83b0`, `0x4e7070`; influence 1000 `0x0048c120` → `0x0048b8e0(1)` (one draw, next 1000 at now + 1.0 + (r mod 65536) × 2⁻¹⁶) | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs`, `Level100ActorPlaneRuntime.cs` | `Level100ActorMechanics.DispatchUnitCallback`, `.FileInfluenceMapRefresh` | `Level100UnitCallbackTests` | 8 | 4003 delay 3→2; near/far swapped; poll 2→3; Warehouse without target; squad 4002 0.99→1.0; camera test inclusive; dying turret keeps refreshing; influence scale 2⁻¹⁶→2⁻¹⁵; the influence chain stops after one delivery — each RED, restored, GREEN |
-| Actor multiplier-4 Move phase | `CActor::Init` q = r mod 4: q − 1 &gt; 0 files LF_MOVE with that counter, else MOVE with the counter reset; first full Move one, two or three frames after construction | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs`, `Level100ActorMechanics.cs` | `Level100ActorMechanics.SeedGroundMovePhase`, `.ConstructedThisFrame` | `Level100UnitCallbackTests.TargetTank_TakesItsSquadDrawsAndSeedsItsMovePhase` | 1 | phase not seeded from the Actor draw — RED, restored, GREEN |
+| Actor multiplier-4 Move phase | `CActor::Init` q = r mod 4: q − 1 > 0 files LF_MOVE with that counter, else MOVE with the counter reset; first full Move one, two or three frames after construction | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs`, `Level100ActorMechanics.cs` | `Level100ActorMechanics.SeedGroundMovePhase`, `.ConstructedThisFrame` | `Level100UnitCallbackTests.TargetTank_TakesItsSquadDrawsAndSeedsItsMovePhase` | 1 | phase not seeded from the Actor draw — RED, restored, GREEN |
 | Launch basis and the default launch angle | Burst spawner basis = orientation × angle × jitter, each `FMatrix(yaw, pitch, 0)` (`0x00506ed1-0x005072d0`); with no `CWeaponLaunchAngle` slot the angle is `0x004f8140(0, 1, 0)` = pitch float(2π/4096) (Euler-constructor control, 36 cases); `Mech Pulse Cannon Charged` @`0x134e3` first node `CWeaponInaccuracy` = `00000000` | `rebuild/OnslaughtRebuild.Core/Level100ActorWeaponRuntime.cs`, `Simulation.cs` | `Level100ActorMechanics.ComposeLaunchDirection`, `.DefaultLaunchAngle`, `Simulation.LaunchWalkerRound`, `Level100ActorMechanics.LaunchActorRound` | `SimulationTests.PlayerProjectilesConsumeReleasedScatterInRetailDrawOrder`, `Level100ActorWeaponTests.AttackingTargetDrone_FiresItsVulcanAndReachesThePlayer` | 1, 1 | no default pitch; the Small bolt's 0.5° scatter restored; the drones' aim pitch and stored pitch each fed with the wrong sign — each RED, restored, GREEN |
 | Missile Pod charge and Fire | `Weapon "Missile Pod"` @`0x17746`: `CWeaponChargeRate` `0x41000000` (8.0), levels 0 and 1, store 3, consumption 1. `CWeapon::Fire` `0x00506010` writes the rounded level and mode (`0x00506952`) before its reload check and stamps `now + 0x3f4ccccd` from the burst's start | `rebuild/OnslaughtRebuild.Core/Level100PlayerWeaponRuntime.cs`, `Level100MissilePod.cs` | `Level100PlayerWeaponRuntime.AdvanceCharge`, `.TryPrepareFire`, `.StampReadyAt` | `Level100MissilePodTests.Charge_ReachesTheSalvoOnItsThirteenthCallAndStopsThere`, `.Fire_SetsTheModeBeforeItsReloadCheck` | 2 | charge rate 8→10; the level taken only after the reload check — each RED, restored, GREEN |
 | Missile Pod burst event and launch slots | `CWeapon__HandleFireBurstEvent` `0x00506930` re-files 5001 at now + `CWeaponBurstDelay` (`0x3dcccccd` launcher, `0x3d4ccccd` salvo) while the counter is below the burst size; the counters `+0x70`/`+0x74` start at −1 (`0x00505e7b`) and advance before each round; the basis is orientation × `FMatrix(a, b, 0)` × jitter (`0x00506ed1-0x005072d0`), with the five `CWeaponLaunchAngle` pairs from the mode records | `rebuild/OnslaughtRebuild.Core/SimulationBattleEngine.cs`, `Simulation.cs` | `Simulation.FireMissilePod`, `.HandleMissilePodBurst`, `.SpawnPodBurst`, `.ComposeLaunchDirection` | `SimulationTests.MissilePodLauncher_SpawnsFiveMissilesOnTheBurstEventsAlongTheirSlots`, `Level100MissilePodTests.LaunchCounters_StartAtTheFirstSlotAndWrapAfterFive` | 2 | burst delay 0.1→0.2; sequence counter starts at 0; angles added to the aim instead of composed — each RED, restored, GREEN |
 | Battle Engine locks for the pod | `HandleLocks` `BattleEngine.cpp:586-800` (lock loss `0x00406724`, direct acquisition `0x00406ce4`), `StartLock` `0x00406fc0`, `FireLock` `0x00407060` from the spawner at `0x005074c9`, `LockHit` `0x00407140`; parameters from the current charge level (`0x00506350`-`0x00506800`); `CWeaponLockUnit` `0x000e8400` | `rebuild/OnslaughtRebuild.Core/SimulationBattleEngine.cs`, `Level100PlayerLocks.cs` | `Simulation.HandleLocks`, `Level100PlayerLocks.StartLock`/`.FireLock`/`.LockHit` | `SimulationTests.MissilePod_LocksAStaticTargetAndItsMissilesSeekItThenReleaseTheLock`, `Level100MissilePodTests.LockUnitMask_TakesPlanesVehiclesAndCannonsButNotBuildings` | 2 | lock time ignored; `FireLock` skipped; `LockHit` skipped at shutdown; lock unit narrowed to planes — each RED, restored, GREEN |
 | Seeking Micro Missile flight and end of life | `CRound::Move` `0x004d8e40`: two wiggle draws (`0x004d8ffc`, `0x004d9036`), release on a dying target, steering after the seek delay inside the seek cone (`0x004d93cc-0x004d9838`); `CRound::Init` files 4000 at now + life (`0x004d86a6`), whose delivery bursts a `CRoundExplode` round in the air (`0x004d9a54` → `0x004d9f30`); `Micro Missile` @`0x8e74`, `Micro Missile Hit` @`0x3a59` | `rebuild/OnslaughtRebuild.Core/Simulation.cs`, `SimulationBattleEngine.cs`, `Level100Destruction.cs` | `Simulation.MovePlayerRound`, `.HandlePlayerRoundEvent`, `.SteerSeekingPlayerRound`, `Level100DestructionRuntime.ReportAirBurst` | `SimulationTests.MissilePod_LocksAStaticTargetAndItsMissilesSeekItThenReleaseTheLock`, `.MissilePodLauncher_SpawnsFiveMissilesOnTheBurstEventsAlongTheirSlots` | 2 | nose-down pitch fed to the nose-up steering law; no air burst at the end of life — each RED, restored, GREEN |
 | Scripts start on INIT_SCRIPT | `SetScript` binds the VM and files 2001 at −1 for the thing (`0x004f42b1-0x004f42da`); a constructed thing binds first in its sequence; a `CLevelScriptThing` (vtable `0x005dcfe8`, Init `0x004900d0`) files only that event, at its row; a scripted unit's AI constructor files 2003 (`ready()`, `0x005335a0`) before its AI; Setup's bindings run in frame 2 | `rebuild/OnslaughtRebuild.Core/Level100ScriptEvents.cs`, `Level100UnitCallbacks.cs`, `Level100ActorScriptRuntime.cs`, `Level100Mission.cs`, `SimulationBattleEngine.cs` | `Level100ActorMechanics.FileScriptInit`, `.FileCarrierScriptInits`, `Level100ActorScriptRuntime.AttachReleasedScripts`, `.RunScriptInit`, `Simulation.HandleScriptEvent` | `SimulationTests.Construction_StartsEveryScriptOnItsInitScriptEvent`, `Level100UnitCallbackTests.Warehouse_StartsWithItsTargetAndRefreshesThreeThousandOne`, `Level100FullChainTests.ChainAutopilot_ReachesWonByInputAlone` | 1, 1, 1 | no INIT_SCRIPT for a scripted row; carriers after every row; `SetScript` running at once; no `ready()` event; a spawned script starting at once — each RED, restored, GREEN |
-| Level pre-run before the pan | `CGame::InitRestartLoop` files FINISHED_PRE_RUN at now + 3.0 before the load (`game.cpp:371-373`, `0x0046c5f0`); `CGame::PreRun` loops whole updates, unrendered, while the state is 1 (`game.cpp:2063-2071`, `0x0046e040-0x0046e05d`); frame 60's flush starts the pan, and FINISHED_PANNING lands on frame 60 + the world's pan (180 for Level 100, 100 for World 110) | `rebuild/OnslaughtRebuild.Core/Simulation.cs`, `SimulationConstants.cs`, `Level100MissionTiming.cs` | `Simulation.RunPreRun`, `SimulationConstants.OpeningPanTicks`, `Level100MissionTiming.MessageBoxAllowedTickFor` | `SimulationTests.Construction_RunsTheThreeSecondPreRunBeforeThePan`, `Level100MissionTests.ReleasedMessageBox_ReproducesTheRetailOpeningDeliverySchedule`, `Level100SkipPanningTests` | 1, 1, 9 | no pre-run; a pre-run one frame short; no pan after it; its mission events dropped; a message gate without it — each RED, restored, GREEN |
+| Level pre-run before the pan | `CGame::InitRestartLoop` files FINISHED_PRE_RUN at now + 3.0 before the load (`game.cpp:371-373`, `0x0046c5f0`); `CGame::PreRun` loops whole updates, unrendered, while the state is 1 (`game.cpp:2063-2071`, `0x0046e040-0x0046e05d`); frame 60's flush starts the pan, and FINISHED_PANNING lands on frame 60 + the world's pan (120 ticks, 6.0 s, for Level 100, landing on frame 180; 40 ticks, 2.0 s, for World 110, landing on frame 100) | `rebuild/OnslaughtRebuild.Core/Simulation.cs`, `SimulationConstants.cs`, `Level100MissionTiming.cs` | `Simulation.RunPreRun`, `SimulationConstants.OpeningPanTicks`, `Level100MissionTiming.MessageBoxAllowedTickFor` | `SimulationTests.Construction_RunsTheThreeSecondPreRunBeforeThePan`, `Level100MissionTests.ReleasedMessageBox_ReproducesTheRetailOpeningDeliverySchedule`, `Level100SkipPanningTests` | 1, 1, 9 | no pre-run; a pre-run one frame short; no pan after it; its mission events dropped; a message gate without it — each RED, restored, GREEN |
 | Round MOVE and life events, insertion order and the dying step | `CRound::Init`: `CActor::Init` files MOVE at −1 (multiplier 1.0), then 4000 at now + life (`0x004d86a6`); each MOVE re-files itself on delivery (`0x00401b41`), so rounds move in insertion order; the 4000 comes before its frame's MOVE, which still steps (`0x00401ae6-0x00401af4`) and is not re-filed: k + 1 Moves; a dying round's slot 39 (`0x004d8ae0`) returns at `0x004d8af7` before damage, impact and death | `rebuild/OnslaughtRebuild.Core/Level100ActorWeaponRuntime.cs`, `Simulation.cs`, `Level100Destruction.cs`, `RetailEventScheduler.cs` | `Level100ActorMechanics.FileRoundEvents`, `.DispatchActorRoundEvent`, `Simulation.HandlePlayerRoundEvent`, `Level100DestructionRuntime.TryReportDyingRoundContact` | `SimulationTests.PitchedPulseRound_FollowsViewPitchWithoutInventingVerticalTargetHits`, `.ControllerRounds_MoveAheadOfRoundsAlreadyInFlight`, `.DyingRound_LastStepCrossesATargetWithoutDamagingIt`, `.MissilePodLauncher_SpawnsFiveMissilesOnTheBurstEventsAlongTheirSlots`, `Level100ActorWeaponTests.ActorRounds_MoveOnTheirOwnEventsUntilTheirLifeEnds`, `.ActorRound_LastStepMeetsThePlayerWithoutDamage`, `Level100DestructionContactTests.DyingRoundContact_ReportsTheHitButLeavesTheTargetUnharmed` | 2, 1, 1, 1, 2, 2, 1 | first Move two frames late; a new round queued behind the re-filed MOVEs; player and drone rounds that outlive their life event; the air burst where the last step ends; dying player and drone steps that damage; a dying contact the script never hears — each RED, restored, GREEN |
-| Waypoint walks: nearest start, node targets, load-time heights, walk ends | The loader keeps `CWaypoint` rows (bit `0x1000`, `0x00505a29-0x00505a35`) and prepends each (`0x004e5a80`); `0x00505c30` returns the listed node nearest the unit: dx, dy, dz (waypoint minus `+0x1c/+0x20/+0x24`), (dx² + dz²) + dy² at PC24, `fcom` C0 (strict `<`) against a float32 minimum from 9999999.0 (`0x4b18967f`), stored with `fstp`; on arrival the next node is the waypoint's `+0x3c` (`0x005384dc`), and a self-target logs `0x0064fe50` and ends the walk; `CThing::Init` raises a waypoint to the heightfield sample (`0x0047eb80`, `0x004f34fb-0x004f3534`) and then the water level (`0x006fbdfc`, `0x004f3549-0x004f3559`); slot 64 at a walk's end: `CDropship` `ret` (`0x00459990`), `CPlane` guide slot 8 (`0x00422750` → `0x0047e3d0`), ground Unit default (`0x004fcf00`) | `rebuild/OnslaughtRebuild.Core/Level100ActorRegistry.cs`, `Level100ActorMechanics.cs`, `Level100ActorPlaneRuntime.cs`, `rebuild/OnslaughtRebuild.Client/Level100ActorDefinitionManifest.cs` | `Level100WaypointPathDefinition.FromFileOrder`, `.NearestPoint`, `Level100ActorMechanics.SeatWaypoints`, `.BeginWaypoint`, `.ObserveWaypointArrival` | `Level100AirTrainerFlybyTests.AirTrainer_FliesFromItsNearestNodeAlongTheTargets`, `.Waypoints_TakeTheirLoadTimeGroundOrWaterHeight`, `.SelfTargetingWaypoint_EndsTheWalk`, `Level100ActorMechanicsTests.TransporterWalkEnd_KeepsItsVelocity`, `Level100WaypointFixtureTests.ManifestWaypointPaths_AreRetailListsWithTheirTargetChains`, `Level100ActorRegistryTests.NearestPoint_KeepsTheEarlierNodeOnATieAndStartsBelow9999999` | 1, 1, 1, 1, 1, 1 | a start at the list head; no load-time lift; a dropship stopped at the walk's end; a self-target that keeps walking; the file order kept; a tie that keeps the later node — each RED, restored, GREEN |
-| World 110 load and construction | The base world loads as Level 100's; the 40 level rows follow in file order (`world-110-construction-order.md`, "Level-world rows"). Squad members take `CGroundVehicle::Init`'s Actor draw (multiplier 4), fire control, 4003, hover (`0x0047c869`) and AI. Then the squad binds its own script (`0x004e61b4`) and takes its draws before 4000 (`0x004e8177`) and 4001 (`0x004e8486`), and before 4002 (`0x004e709c`) when `Process` returns 0 (rows 16 and 18 return 1 under the static target estimate). A landing craft builds its turret child (`CComponent` Init `0x00427b80`) after its own Actor draw; the child's MOVE draws once every frame (`0x00428110` → `0x004284a1`). Fighters end `CPlane::Init` with `0x004d1bae`; the inactive spawner files nothing that draws (`0x004e3322`); there are no warm-up units. Level rows 102 draws, tail 1 | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs`, `Level100ActorRegistry.cs`, `rebuild/tools/materialize_retail_assets.py` | `Level100ActorMechanics.ConstructSquad`, `.ConstructComponents`, `.DispatchComponentMove`, `.WarmUpCandidates` | `World110ConstructionTests.Load_TakesTheContractDraws`, `.Load_FilesEveryInitScriptAtItsRow`, `.PreRun_RunsEveryWorld110ScriptInit` | 1, 1, 1 | the member fire-control draw removed; `Process` never 1; the turret child's Actor draw removed; the squad's script before its members; Weather not attached — each RED, restored, GREEN |
+| Waypoint walks: nearest start, node targets, load-time heights, walk ends | The loader keeps `CWaypoint` rows (bit `0x1000`, `0x00505a29-0x00505a35`) and prepends each (`0x004e5a80`); `0x00505c30` returns the listed node nearest the unit: dx, dy, dz (waypoint minus `+0x1c/+0x20/+0x24`), (dx² + dz²) + dy² at PC24, `fcom` C0 (strict `<`) against a float32 minimum from 9999999.0 (`0x4b18967f`), stored with `fstp`; on arrival the next node is the waypoint's `+0x3c` (`0x005384dc`), and a self-target logs `0x0064fe50` and ends the walk; `CThing::Init` raises a waypoint to the heightfield sample (`0x0047eb80`, `0x004f34fb-0x004f3534`) and then the water level (`0x006fbdfc`, `0x004f3549-0x004f3559`); slot 64 at a walk's end: `CDropship` `ret` (`0x00459990`), `CPlane` guide slot 8 (`0x00422750` → `0x0047e3d0`), ground Unit default (`0x004fcf00`) | `rebuild/OnslaughtRebuild.Core/Level100ActorRegistry.cs`, `Level100ActorMechanics.cs`, `Level100ActorPlaneRuntime.cs`, `rebuild/OnslaughtRebuild.Client/Level100ActorDefinitionManifest.cs` | `Level100WaypointPathDefinition.FromFileOrder`, `.NearestPoint`, `Level100ActorMechanics.SeatWaypoints`, `.BeginWaypoint`, `.ObserveWaypointArrival` | `Level100AirTrainerFlybyTests.AirTrainer_FliesFromItsNearestNodeAlongTheTargets`, `.Waypoints_TakeTheirLoadTimeGroundOrWaterHeight`, `.SelfTargetingWaypoint_EndsTheWalk`, `Level100ActorMechanicsTests.TransporterWalkEnd_KeepsItsVelocity` (not in this tree), `Level100WaypointFixtureTests.ManifestWaypointPaths_AreRetailListsWithTheirTargetChains`, `Level100ActorRegistryTests.NearestPoint_KeepsTheEarlierNodeOnATieAndStartsBelow9999999` | 1, 1, 1, 1, 1, 1 | a start at the list head; no load-time lift; a dropship stopped at the walk's end; a self-target that keeps walking; the file order kept; a tie that keeps the later node — each RED, restored, GREEN |
+| World 110 load and construction | The base world loads as Level 100's; the 40 level rows follow in file order ([`world-110-construction-order.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-construction-order.md), "Level-world rows"). Squad members take `CGroundVehicle::Init`'s Actor draw (multiplier 4), fire control, 4003, hover (`0x0047c869`) and AI. Then the squad binds its own script (`0x004e61b4`) and takes its draws before 4000 (`0x004e8177`) and 4001 (`0x004e8486`), and before 4002 (`0x004e709c`) when `Process` returns 0 (rows 16 and 18 return 1 under the static target estimate). A landing craft builds its turret child (`CComponent` Init `0x00427b80`) after its own Actor draw; the child's MOVE draws once every frame (`0x00428110` → `0x004284a1`). Fighters end `CPlane::Init` with `0x004d1bae`; the inactive spawner files nothing that draws (`0x004e3322`); there are no warm-up units. Level rows 102 draws, tail 1 | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs`, `Level100ActorRegistry.cs`, `rebuild/tools/materialize_retail_assets.py` | `Level100ActorMechanics.ConstructSquad`, `.ConstructComponents`, `.DispatchComponentMove`, `.WarmUpCandidates` | `World110ConstructionTests.Load_TakesTheContractDraws`, `.Load_FilesEveryInitScriptAtItsRow`, `.PreRun_RunsEveryWorld110ScriptInit` | 1, 1, 1 | the member fire-control draw removed; `Process` never 1; the turret child's Actor draw removed; the squad's script before its members; Weather not attached — each RED, restored, GREEN |
 | Landing-craft and fighter AI thinks | `CUnitAI::HandleEvent` (`0x004ff330`) on a `CDropship` in AI_ONF runs `CDropshipAI::Update` (`0x004487e0`, draw `0x0044880f`), then polls (draw `0x004ff371`, 3003 at now + 2 + (r mod 65536)·2⁻¹⁵). `CDropshipAI` slot 9 (`0x00448580`) draws once (`0x00448763`) and files 3000 at ((r mod 65536)·2⁻¹⁶ + 1.0) + now. `CPlaneAI` slot 9 (`0x004d21c0`) takes the Update's arm draw and one more (`0x004d2434`), then 3000 at ((r mod 65536)·2⁻¹⁸ + 0.25) + now. `Land` (`0x005361d0` → slot 93) sets landing state 2. A fighter's air velocity and turn rate are unit fields 2 and 6 (`0x00431bb0` → `0x00432908`; apply bodies `0x00432af0` `+0xb4`, `0x00432b00` `+0xb8`) | `rebuild/OnslaughtRebuild.Core/Level100UnitCallbacks.cs`, `Level100ActorMechanics.cs`, `Level100ActorRegistry.cs` | `Level100ActorMechanics.HandleAiEvent`, `.RequeueAi`, `Level100ActorRegistry.PlaneAirVelocityFloatBits` | `World110ConstructionTests.LandingCraft_InAiOnf_RunsItsUpdateThenPolls`, `.LandedCraft_ThinksOnItsOwnOneToTwoSecondCadence`, `.Fighter_ThinksOnTheCPlaneAiCadence`, `.LandedCraft_RestoresItsLandingStateAndIsNotHashed` | 1, 1, 1, 1 | AI_ONF without its Update draw; a landed craft on the `CUnitAI` far cadence; the turret child's MOVE without its draw; `Land` ignored; the craft and the fighters thinking as `CUnitAI`; a fighter's think without the arm draw; the landing state dropped on restore — each RED, restored, GREEN |
 | World 110 script natives | `Rand` `0x00538230`: one draw on the shared stream (`0x008a9d9c`), then `idiv` boxes the remainder. `GetNumUnits` `0x00535590` reads per-side counts (`0x008551c0`, `0x00855228`) indexed by profile `+0xe0`, and 0 for any other side. `CUnit::Init` increments them (`0x004f90af`, `0x004f90c4`) and the start of a death (`0x004fd140`) decrements them. `SpawnersEmpty` `0x00535a90` → `0x004fd7e0` walks `+0x18c`: true with no spawners, false for a non-unit. `GetInitialHealth` `0x00535a30` is a unit's slot 78, else 0.0. VitalBuilding's compiled switch ends each case with JMP (opcode `0x14`, executor `0x0052e9b0`) | `rebuild/OnslaughtRebuild.Core/Level100ActorScriptRuntime.cs`, `Level100Mission.cs`, `Level100ActorRegistry.cs` | `Level100ActorScriptRuntime` natives 6, 28, 36, 72, 73, 92; `Level100Mission` natives 11, 40; `Level100ActorRegistry.CountUnits` | `World110ScriptNativeTests.VitalBuilding_TakesOneRandAndPlaysOneWarning`, `.Lander2_WithdrawsOnlyWhenItsCraftHasNoSpawners`, `.GetNumUnits_CountsLivingUnitsBySelectorAndSide` | 1, 1, 1 | `Rand` returning r; `Rand` without its draw; a loaded craft's spawners reported empty; `GetNumUnits` counting the dying, ignoring the side, or reading side 2 — each RED, restored, GREEN |
 | World 110 start state | FINISHED_PRE_RUN on frame 60 starts the 2.0 s pan; FINISHED_PANNING lands on frame 100, whose handler (`0x00470024`, an inlined `StartPlayingState`) sets game state 3 and posts "game playing". Scout answers with "Enemy Engaged", and LevelScript's handler waits two seconds, then activates the Airfield and the player (frame 140) | `rebuild/OnslaughtRebuild.Core/Simulation.cs` | `Simulation.PostGamePlaying` | `World110ConstructionTests.StartState_ActivatesThePlayerTwoSecondsAfterGamePlaying` | 1 | "game playing" before the mission tick; every side 0 — each RED, restored, GREEN |
@@ -1349,7 +1355,7 @@ Engine's orientation (`BattleEngine.cpp:1222-1224`), and the damage shake's
 draws come where Core applies the hit, after the actor rounds' Move, not inside
 the round's Move as in retail. Open questions they leave, each with its cheapest
 falsifier: the Battle Engine Init's place among the other constructors' draws
-(the RE lane's first-flush order); the view point, which Core takes as the
+(the reverse-engineering notes' first-flush order); the view point, which Core takes as the
 Battle Engine's position and facing because it has no camera (a copied-retail
 read of `CPlayer::GetCurrentViewPoint` in cockpit view); whether the line
 query skips inactive things, as every Core contact query does (a static read
@@ -1375,7 +1381,7 @@ The Missile Pod rows leave six more:
 The load-order and unit-callback rows leave five more:
 - Core runs every script's init at construction, so the Tank Factory's first
   `SpawnThing` takes its squad's five draws before frame 1, where retail runs
-  that init on frame 2 (Setup binds it into bucket 1). Falsifier: the RE lane's
+  that init on frame 2 (Setup binds it into bucket 1). Falsifier: the reverse-engineering notes'
   first-flush order, applied by scheduling script inits on the event manager.
 - Core has no pan camera, so `+0x110` uses the Battle Engine's position, which
   is only exact for the first-person camera. Falsifier: the Client's pan spline
@@ -1390,8 +1396,7 @@ The load-order and unit-callback rows leave five more:
 
 Two things this table deliberately does **not** claim. It does not claim these
 contracts are graded `REBUILD_READY`: that grade is a campaign artifact and
-needs the ceremony in `tools/re_campaign.py`
-(`_validate_rebuild_ready_gate`), which stamps owner/test/project SHA-256s, a
+needs the ceremony in the RE campaign machinery of the private RE archive (`_validate_rebuild_ready_gate`), which stamps owner/test/project SHA-256s, a
 `rebuildMapping`, and a re-run of the focused test. And it does not claim replay
 coverage. **Many carried implementations remain unreachable from the
 simulation and replay path** — measured by searching `Simulation.cs`,
@@ -1406,7 +1411,7 @@ FullyCharged selects `Mech Pulse Cannon Charged 2` @`0x135b3` /
 `Mech Pulse Bolt Large` @`0xacda` of `default physics.dat` (`e1fb3ded…ada14`);
 tap-fire at charge 0 stays Medium. The September 8 wiring uses
 `RetailEventScheduler.TimeAtFrameCount` for the level's stored clock, including
-reset and gameplay pause. Large now projects its authored speed 20, lifetime 7,
+reset and gameplay pause. The Mech Pulse Bolt Large now projects its authored speed 20, lifetime 7,
 radius 0.20 and direct damage 8 through the existing motion/contact owners.
 Its zero inaccuracy still consumes both scatter random draws, checked by
 `SimulationTests.PlayerProjectilesConsumeReleasedScatterInRetailDrawOrder`.
@@ -1419,16 +1424,16 @@ combined movement/fire uses the retained launch pose. Full axis/event dispatch,
 spatial blasts and float motion/expiry remain
 open in the [round owner](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/cround-hit-damage-path.md).
 ReadyToCharge is pinned by
-`SimulationTests.AfterPulseFire_ChargeWaitsUntilReloadStrictlyElapses`;
+`SimulationTests.AfterPulseFire_ChargeWaitsUntilReloadStrictlyElapses`.
 Charged-2 / Large fire is pinned by
 `SimulationTests.ChargedPulseRelease_ClearsChargeUsesItsReloadAndNextTapSelectsMedium` and
-`Level100PulseCannonChargeTests.FireAtFullyCharged_SelectsCharged2LargeBolt`,
+`Level100PulseCannonChargeTests.FireAtFullyCharged_SelectsCharged2LargeBolt`.
 `RetailIScriptInJetMode.Evaluate` and actor-script `RetailIScriptWaitStop.Stop`
 are reached from TargetZone2/3/4 `hit()` (Simulation no longer treats
-`TriggerEntered` as Reached), `RetailEnableFlightMode.Enable` is reached
+`TriggerEntered` as Reached). `RetailEnableFlightMode.Enable` is reached
 from Simulation takeoff after beat-6 Enable /
 `GrantFlightLegForMeasurement` (isolated `Level100FlightEnabled` still
-names the rebuild bool),
+names the rebuild bool).
 `RetailGameEndCountdown.LostTicks` is reached from
 `Level100Mission.DeclareLost` on the released Broke-Tutorial /
 `LevelLostString` path. `Level100WonCareerHandoff.TryApply` (which calls
@@ -1441,7 +1446,7 @@ longer keeps a career; its `SetSlotSave` reaches the career as a
 `Level100TutorialSlotSaved` event that the frontend stores at once. The world-admission
 rows, `IsWorldSelectable`, `IsWorldLater` and `Level100Terrain.World110`
 remain catalog/admission law. `RetailPlayerBattleEngineAssignment` separately
-carries the valid-object two-reader call transcript and God-only policy
+carries the valid-object two-reader call transcript and god-mode-only policy
 intents; no live owner invokes it. World 110's session is built by the same
 construction owner as Level 100 (the World 110 rows above), on Level 100's
 identical heights; the separate World 110 stage and its admission, start and
@@ -1450,7 +1455,7 @@ the first-Pause Core session; native 84 is later in the same exact authored
 program but is reached only by the explicitly named instructions-64..67
 instrument, not by that opening path. Schema 43 binds both states; the Godot
 host plays only world 100. The Lost-skip
-row names the same `TryApply` owner; it does not add a twenty-third
+row names the same `TryApply` owner; it does not add another
 implementation. The first-play slot row names
 `FirstPlayTutorialSlotWords` on the already-pinned FillOut owner.
 The ranking-target row names the same `ApplyUpdate` owner as the
@@ -1672,7 +1677,7 @@ Charge is not in
 `Kind` (FullyCharged fires Large). The career graph is not in
 `StateHasher` because it does not change fire, movement, or any other
 hashed field. So no cold-start or
-full-chain trace can reach the other twenty, and the focused test is the
+full-chain trace can reach the other rows listed above, and the focused test is the
 only falsifier they have. That is exactly
 the precedent the jet-friction row set: a green replay suite there was
 *vacuous* with respect to the constant it was supposed to guard, because the
@@ -1687,8 +1692,7 @@ under a private mutation-kill folder (rebuild-parity-mutation-kills-2026-08-17).
 A reviewed selector run exposed two reconstruction gaps: the SELECT LEVEL name
 band was pinned to world 100 after another node was selected, and MISSION
 BRIEFING composed world 100's Tatiana copy for world 110. Both shared one root:
-the reconstruction only ever decoded TEN strings out of the released English
-language table, so it had no per-world text to draw. The table itself
+the reconstruction only ever decoded TEN strings out of the released English language table (a retail install file, outside this repository), so it had no per-world text to draw. The table itself
 (`data/language/english.dat`, SHA-256 `789ecff6…`, v3, count 2571) carries far
 more:
 
@@ -1709,12 +1713,11 @@ more:
   empty. MEASURED 2026-08-22 from the pinned table by
   `materialize_retail_assets.py::_frontend_world_strings_bytes`; the whole
   document is exact-reproduced at SHA-256 `ffe3d3f8…5408`
-  (`Assets/Frontend/english-worlds.json`).
+  (`rebuild/OnslaughtRebuild.Godot/Assets/Frontend/english-worlds.json` (an ignored output of `rebuild/tools/materialize_retail_assets.py`)).
 
 What changed, by owner:
 
-- `materialize_retail_assets.py` — the decoder above. Latest-main
-  materialization reproduces 379 exact files, including the new pinned JSON.
+- `materialize_retail_assets.py` — the decoder above. A materialization from the latest main reproduces 379 exact files, including the new pinned JSON.
   The landed shared later-world owner still admits worlds 200 and 300 through
   their own `_WorldLevelHeader` rows; the selector merge neither duplicates nor
   weakens those header, script, HFLD, BSWD, actor, or hash assertions.
@@ -1738,7 +1741,7 @@ Honest boundaries of this closure:
 - **The selector-band law is measured-consistent, not source-proven.** The
   band following the selection is inferred from shipped data (a name row exists
   for every selectable node) because `FEPLevelSelect.cpp` remains absent from
-  the source drop and no retail capture of a selected non-root node exists here.
+  the pinned references/Onslaught source and no retail capture of a selected non-root node exists here.
   If a future capture shows retail pinning "1.00" while the ship marker sits
   elsewhere, this inference is falsified and reverts.
 - **World-100 pixels are unchanged by construction**: cold selection is world
@@ -1765,23 +1768,22 @@ framework remain open.
 | Dimension | What it means | Current gate | What the gate does / does not prove |
 |---|---|---|---|
 | **Deterministic sim state** | Identical tick-by-tick simulation given identical inputs | Core cold-start + full-chain tests, `--expect` trace hashes | Proves determinism and self-consistency. Does NOT prove retail equality — retail has no tape to replay against |
-| **Visual frame** | Rendered output matches retail within tolerance | `npm run ref:godot-capture -- --plan mainmenu` (through `godot-offscreen`) + `score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
+| **Visual frame** | Rendered output matches retail within tolerance | `npm run ref:godot-capture -- --plan mainmenu` (through the `godot-offscreen` wrapper, which is on the maintainer's machine and not in this repository) + `tools/score_frontend_capture.py` + `frontend-regions-*.json`, `gameplay-regions-level100.json` (the reference frames are retail-derived and live under ignored local paths, so a fresh clone scores nothing: see rebuild/README.md) | Proves region-level visual regression against captured retail references. The JSON thresholds are **regression ceilings, not parity claims** (rebuild README is explicit) |
 | **Audio** | Playback behavior matches retail | Shared sound-process and adapter tests; bounded production-device V12 fixture ([scope](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27)) | Checks the stated source contracts and isolated Godot output/lifecycle. Ordinary Host gameplay, physical/audible acceptance and retail audio equivalence remain ungraded. |
 | **Timing / feel** | Response latency, animation cadence feel equivalent | None dedicated | Not gradeable today; 20 Hz step + floor semantics are the strongest proxy |
 | **Content completeness** | All retail content reachable/present | Materializer hash checks (200+ pinned inputs), level-100 slice | Proves the retail inputs consumed are byte-exact. Does NOT prove every level plays |
 
 ## The honest reading
 
-The lane runs a scoring harness that is documented as *not* measuring the
-thing the lane exists to achieve. Visual parity gates are regression
+The visual-frame work runs a scoring harness that is documented as *not* measuring the
+thing that work exists to achieve. Visual parity gates are regression
 ceilings; there is no *whole-run* gate today that compares rebuild behavior to
 retail behavior directly, because retail is not automatable in the same
 harness. This gap is named here so it is not mistaken for closure.
 
 What the table above adds is narrower and real: **per-contract** gates that do
 compare rebuild behavior to retail behavior, because the expected value in each
-is read out of the pristine specimen rather than out of the rebuild. Twenty
-laws is not parity. It is the first set of rows where a wrong rebuild is
+is read out of the pristine specimen rather than out of the rebuild. These per-contract gates are not parity. It is the first set of rows where a wrong rebuild is
 mechanically detected instead of merely plausible-looking, and the mutation kill
 is what distinguishes the two.
 
@@ -1813,7 +1815,7 @@ discovered, 1,168 passed, the same seven reference-dependent skips as the preced
 source, and no failures. The Host build passed. The retained comparison ran six processes per source revision: the preceding hash
 varied between processes; the corrected hash stayed equal. This establishes the bounded hash contract, not
 new gameplay or cross-platform retail parity. The complete reference gate remains
-open while those seven existing cases have missing or stale reference inputs.
+open while those seven existing cases are skipped: four legacy replay-view cases were skipped because `ONSLAUGHT_PARITY_DATA` was unset, not for missing inputs (corrected in the 2026-11-03 entry), and three reference checks are disabled or lack reference results.
 
 ## 2026-11-03: legacy replay-view cases
 
