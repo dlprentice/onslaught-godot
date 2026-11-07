@@ -226,7 +226,7 @@ the dated entries below are the counts on their dates.
 
 Pilot-win projectile contact (2026-10-28): the pristine specimen's `CCylinder::CollideWithLine`
 instructions at `00440801..0044083d` sum the Y and Z squares before the X square for the two lengths.
-On the fixed native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
+On the pinned native port `48738e88ad216323682186a214a2ebd95cce30f213347326f200b5319a139ca5`,
 the pilot-win tape's projectile 4034 hit the player cylinder with contact Z `c12dac0d`; the previous
 X-first reconstruction returned `c12dac0e` and differed in LIFE starting at Present 26368. A fresh native
 observer recorded the input positions, motions and cylinder/line dimensions used in
@@ -291,7 +291,7 @@ message log and the briefing.
 
 Trainer missile launch and flight (2026-10-21): the level 100 trainer's first LIFE difference
 (Present 16206) came from the Forseti Missile's state before its collision, not from the collision.
-Per-frame traces of each missile against the fixed native port, with retail's own code run on the
+Per-frame traces of each missile against the pinned native port, with retail's own code run on the
 captured inputs, separate three causes:
 
 - Launch: `CWeapon::Unknown509140`'s straight aim (`005093c6..00509434`) stores the magnitude
@@ -328,12 +328,12 @@ constructor leaves two timestamp words uninitialized: four heap-seed controls sh
 first-use cache. The reconstruction explicitly starts with an invalid cache, not an invented claim
 of universal retail heap equality. Device rumble, visible damage-flash pixels and audible fade remain open.
 
-The fixed native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
+The pinned native port's ordinary-input diagnostic route now destroys **all 4 + 3 + 6 ground
 targets**. A Parity replay ran it through Present 15,130 and observed all 18 real script posts
 at the same completed Present; the observer forwards each original call once and leaves the whole
 trace unchanged. After the stopped-round query correction below, **all nine probes agree at
 every Present 3..15,130**, across all 136,152 comparisons. This is selected-state agreement with
-fixed native port build `e55cb2d8` (not a commit in the public Onslaught repositories),
+pinned native port build `e55cb2d8` (not a commit in the public Onslaught repositories),
 not a fresh retail whole-route comparison. The tape SHA-256 is
 `b083d308cc29bb108d2d4a15bc8ee7a1c17d7086ae386682fb2f9425b9d69919`.
 The native route starts with `-level 100 -skipfmv`; cold-start/menu/audio acceptance and full tutorial
@@ -471,7 +471,7 @@ active-count guard, selection/ammunition distinction, movement reset, change tim
 sound's shared random draw. Four focused tests execute, including ordinary right-mouse release,
 held-button non-repetition and the empty-secondary case. The old prefix through 11,612 is unchanged.
 
-A Parity replay compared all seven primary probes for every Present 3..13,000 with the fixed native port:
+A Parity replay compared all seven primary probes for every Present 3..13,000 with the pinned native port:
 all 90,986 values equal. CRT count/state also equals from Present 4 through 13,000; its first
 recorded sample differs. The additional EVN event-count probe differs on 12,997 records and is
 under investigation. These limits are explicit: this is not nine-probe parity or complete tutorial
@@ -1825,8 +1825,8 @@ Four cases read the legacy replay-harness view: `ClockTests.Level100GoldenEventT
 `ClockTests.Level100OldSettingsEventTimeFrameTimeAndLevelMatchEveryPresent` (the same probes at every Present to
 3,400, for the two recorded start-up settings), and `HarnessTests.RetailLevel100TapeAndGoldenParse`, the M0 parse.
 The 2026-11-02 vector-hash run skipped them with `ONSLAUGHT_PARITY_DATA` unset (the recorded reason is that the retail
-parity data was not found). The view's four files were there (they date from 2026-10-15), so the "missing or stale
-reference inputs" wording above is wrong for these four.
+parity data was not found). The view's four files were there (they date from 2026-10-15), so an earlier "missing or stale
+reference inputs" wording was wrong for these four.
 
 With the variable naming that view (read only; the four files hashed the same before and after) and every other
 reference variable as on 2026-11-02, a fresh build of

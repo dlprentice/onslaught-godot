@@ -302,7 +302,7 @@ for a Ghidra lane, which is now retired as an authority.)
 > `74154bfa…` — **not** the installed executable, which is patched). Its body computes three differences of two products each:
 > `a.x*b.y − a.y*b.x`, `a.z*b.x − a.x*b.z` and `a.y*b.z − a.z*b.y`.
 >
-> The three values are stored as x, y and z, which is the conventional right-handed cross product, **a × b, with no sign inversion.** Odd-application derivations, roll included, are no longer barred.
+> The three differences are stored in reverse order: the third to x, the second to y and the first to z, which is the conventional right-handed cross product, **a × b, with no sign inversion.** Odd-application derivations, roll included, are no longer barred.
 >
 > **This does not by itself settle the jet ground-effect roll sign.** That was
 > blocked by at least four independent things; this removes one. Retail's
@@ -447,10 +447,9 @@ Steam's
 the click page. That page's Steam handlers accept
 action `0x2C` and full-window mouse input; its render entry
 requests localized string index `0x77` (`Click to start`). Main-menu evidence is
-the vtable, input/action/render entries
-/, and Stuart's `FrontEnd.cpp` and
-`PCFrontend.cpp`. Level select uses Steam input/render entries
-. The reconstruction's Core/Client state applies the
+the page's vtable with its input, action and render entries, and Stuart's `FrontEnd.cpp` and
+`PCFrontend.cpp`. Level select uses Steam's own input and render entries.
+The reconstruction's Core/Client state applies the
 career unlock law and can carry any loaded `SuggestedWorldNumber`; its current
 Godot page neither renders that general selection nor traverses it by keyboard.
 The pointer path exposes only world 100 and unlocked world 110, and the host
@@ -513,7 +512,7 @@ transition/effect/message/glint phases, save persistence, broad campaign
 construction, and runtime pixel parity remain open.
 
 The deterministic Core and command-tape/hash format are reconstruction-owned
-infrastructure. The Host's Level 100 Opening Slice consumes the released
+infrastructure. The earlier Godot app's Level 100 Opening Slice consumes the released
 Federation walker, jet, and cockpit as exact 63-, 54-, and 21-part AYA
 hierarchies, plus bounded static conversions of 24 Level 100 static-world mesh
 types, four `pinesnow` variants, Target Tank, and Warehouse meshes. Static Steam
@@ -537,7 +536,7 @@ Two independent corroborations, neither needed for the result but both narrowing
 
 The mesh-quality distance global has exactly **five** writers and ten readers. The fifth writes `45.0` but is **dead in the shipped image**: its gate has two `.text` references and both are reads, and it lies past `.data`'s raw size, so it is BSS and zero at load.
 
-The previous `70.0` came from this machine's `defaultoptions.bea` at OptionsTail `+0x0C`, which is persisted run state. The decisive proof is in code, not in file comparison: the only writer of that file serialises the **live globals**, so the file is by construction a snapshot of current state, and no path writes it from authored constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence is meaningful rather than a category gap. A value read from that file is a **user setting**, not a default. The static-world manifest (schema `onslaught.level100-static-world.v14`) owns the corrected value.
+The previous `70.0` came from a saved `defaultoptions.bea` at OptionsTail `+0x0C`, which is persisted run state. The decisive proof is in code, not in file comparison: the only writer of that file serialises the **live globals**, so the file is by construction a snapshot of current state, and no path writes it from authored constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence is meaningful rather than a category gap. A value read from that file is a **user setting**, not a default. The static-world manifest (schema `onslaught.level100-static-world.v14`) owns the corrected value.
 
 > **Do not cite `proof_defaultoptions.bea` as a pristine specimen.** It is also run state — it holds `12.0` at OptionsTail `+0x04` where the image initialiser is `7.0`, so it is simply a run whose geometry detail happened to sit at Medium. It corroborates that the field is user state; it is not independent evidence of the authored value.
 After the world and global-imposter
@@ -812,7 +811,7 @@ establishes that this separate scalar does not index every leg through
 
 A pair of fresh, uninterrupted, no-input app-owned Level 100 runs repeated the
 same released opening-camera lifecycle. At event time `3.0`, Steam installed a
-`CPanCamera` (, vtable) with length `6.0`, not Stuart's
+`CPanCamera` with length `6.0`, not Stuart's
 in-house `3.0` default. Both runs began and ended at sampled camera positions around the stationary Battle Engine. Steam's `CPlayer__GotoPanView`
 uses the released orientation with local points `(0,10,-4.3)`, `(5,0,1.3)`,
 `(0,-9,-1.3)`, and `(0,-2.5,0)` through its order-three clamped quadratic

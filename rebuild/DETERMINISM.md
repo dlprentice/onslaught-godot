@@ -5,7 +5,7 @@ Last updated: 2026-11-06 (the Enforced-by list names the live Parity tests; the 
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
 Headless sources named in the Enforced-by list below; the retail 20 Hz step was MEASURED in
-the maintainers' private 20 Hz migration evidence, which this repository does not link. Precision setup is static byte evidence; the
+the maintainers' own 20 Hz migration evidence, which this repository does not link. Precision setup is static byte evidence; the
 September 8 Plane control-word sample below is a separate runtime observation.
 Specimen: `BEA.exe.original.backup` (a private pristine copy), SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`.
@@ -202,8 +202,8 @@ command tapes. `InteractiveSession` supplies the consumed input and resulting
 snapshot to `CommandTapeRecorder`; `BuildObserved` freezes hashes measured during
 that session without replaying it. The live parity core reads retail replay tapes
 with `RetailTape` (`OnslaughtRebuild.Parity`), and its golden tests replay them
-through `LevelSession`. The native Godot host writes a new tape at
-exit when `--record-tape=/absolute/path.json` is set. A mostly idle native session
+through `LevelSession`. The earlier launcher (`OnslaughtRebuild.Client`, reference only) writes a new tape at
+exit when `--record-tape=/absolute/path.json` is set; the live Host does not. A mostly idle native session
 replayed twice on September 6; a substantial player walkthrough remains open, and its
 queue item (player-input replay tapes) is paused in the Toolkit's
 [PROGRAM.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md#paused).
@@ -246,8 +246,8 @@ hash downstream. This is expected — but it must be deliberate and recorded:
 
 Live parity core (`OnslaughtRebuild.Parity` and its tests):
 
-- `FrontEndCanvasTests` (`OnslaughtRebuild.Parity.Tests/Flow`): a run drawing to a null canvas and one drawing to a recording canvas give byte-identical traces.
-- `SteppedGameRunTests` (`OnslaughtRebuild.Parity.Tests/Flow`): `InspectReadsTheRunOnlyWhileItIsParkedAndChangesNothing`.
+- `FrontEndCanvasTests` (`OnslaughtRebuild.Parity.Tests/Flow`; skips without the recorded tape, and a skip is not a pass): a run drawing to a null canvas and one drawing to a recording canvas give byte-identical traces.
+- `SteppedGameRunTests` (`OnslaughtRebuild.Parity.Tests/Flow`; its golden cases skip without the recorded tapes, and a skip is not a pass): `InspectReadsTheRunOnlyWhileItIsParkedAndChangesNothing`.
 - `RetailGoldenTests` (`OnslaughtRebuild.Parity.Tests`): replays the recorded tapes through `LevelSession` and `RetailTape`, Present by Present, against the recorded native-port and retail references. Where those references are absent, its comparisons skip, and a skip is not a pass.
 - `HarnessTests` (`OnslaughtRebuild.Parity.Tests`): the tape and probe-trace formats, and `ParityRunner`, the probe harness that the reference `OnslaughtRebuild.Headless parity` command also calls.
 

@@ -98,7 +98,7 @@ thing that should depend on that distinction. `fe-back-128x128x30.rgb` in
 `Backgrounds/` predates this work and IS exposed to that hazard; no export preset
 exists in the project today, so the risk is latent rather than active.
 
-The reconstruction plays them through `RetailStartupSequence`, gated by the Host's `--intro` and `--skipfmv` flags (retail's own switch is written `-skipfmv`). Capture and smoke runs suppress them, because every reference frame in the maintainer's private evidence was captured with `-skipfmv` on.
+The reconstruction plays them through `RetailStartupSequence`, gated by the earlier Godot app's `--intro` and `--skipfmv` flags (the Host plays the boot films only when `HOST_FULL_BOOT=1` is set) (retail's own switch is written `-skipfmv`). Capture and smoke runs suppress them, because every reference frame in the maintainer's private evidence was captured with `-skipfmv` on.
 
 ## Evidence boundary
 

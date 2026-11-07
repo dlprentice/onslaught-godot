@@ -13,7 +13,7 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
 | Term | Meaning |
 | --- | --- |
 | retail | The original 2003 PC release of *Battle Engine Aquila*, the game the rebuild is measured against. |
-| Steam install | The game's Steam installation on the user's machine. The Host reads it from `ONSLAUGHT_GAME_DIR`, else from the Linux Steam library's default folder; the materializer takes it as `--game-dir`. |
+| Steam install | The game's Steam installation on the user's machine. The Host reads it from `ONSLAUGHT_GAME_DIR`, else from the Linux Steam library's default folder; the film materializer takes it as `--game-dir`, the asset materializer as `--game-root`. |
 | pristine specimen | An unmodified copy of the game's executable, kept outside this repository as the byte baseline. Each byte claim names its specimen with a SHA-256 prefix. |
 | tape, probe, golden | A tape is a recorded sequence of player input that the parity core replays. A probe is a game-state field sampled at each Present. A golden is a recorded reference run (tape plus probes) that a test compares against. |
 | oracle | The results of retail's own code run on captured inputs, used as a reference. |
@@ -43,7 +43,7 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
   (`local-data/rebuild-env.sh`), not in the repository.
 - Public source setup and an authored-test example are in the [root README](../README.md#building-and-testing).
   Windows contributors follow its WSL2 route, with the checkout inside the distribution's Linux filesystem;
-  enabling WSL or installing a distribution needs administrator rights on your machine; that decision is yours. Those checks do not establish native Windows acceptance.
+  enabling WSL or installing a distribution requires the approval of the machine's owner (on your own computer, that is you). Those checks do not establish native Windows acceptance.
   `python tools/public_build.py setup`, `build` and `test` use a pinned public toolchain inside this checkout and
   require no machine wrapper, private profile or retail inputs. Contributors can prepare changes without the
   maintainer's private reference inputs. The
@@ -141,8 +141,8 @@ this checkout's ignored `local-data/`. If you install the engine yourself instea
 4.8 beta1 from [godotengine.org](https://godotengine.org/download/archive/)), its identity must be
 `4.8.beta1.mono.official.4d10419ca`, as pinned in [`tools/rebuild_toolchain.json`](../tools/rebuild_toolchain.json). You also need your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
-(`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host draws decoded films from a library at
-`ONSLAUGHT_FILMS`. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
+(`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host reads film headers from that installation. `FilmLibrary` can read a library of decoded films at
+`ONSLAUGHT_FILMS`, but no Host code calls `FilmLibrary.FromEnvironment`, so the film lines in the setup block below are optional preparation. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
 On Linux, `npm run prepare:rebuild-assets` (and the scripts that call it) writes the materialised game data under the
 ignored `rebuild-godot` folder of this checkout's `local-lab` directory (the checkout's canonical lab), not under
 `local-data`.
@@ -193,8 +193,7 @@ texture stages with retail's matrices and cloud drift; geometry at full resoluti
 ambient render state and the sun and anti-sun, no light ambient for meshes, `MODULATE2X`) and EXP table fog, all
 blended in gamma space as retail does. Water is retail's fixed-function path (the GeForce FX shader path needs a
 cardid.txt tweak retail never applies here): the camera-centred grid and the shores' surf strips from the level's SURF
-chunk, with retail's stages, texture matrices and drift. Retail-derived textures and films are read from the installed game and the
-local film archives (`ONSLAUGHT_FILMS`, `FilmLibrary`); nothing derived is committed. The battle engine is drawn part by part
+chunk, with retail's stages, texture matrices and drift. Retail-derived textures and film headers are read from the installed game (the `FilmLibrary` reader of local film archives, `ONSLAUGHT_FILMS`, has no caller in the Host); nothing derived is committed. The battle engine is drawn part by part
 at its motion controller's bones (CMCMech, in the parity core). Particles are the parity core's (the particle system is deterministic and shares the CRT rand stream with the simulation); the host draws their sprites as retail's RenderSprites builds them (the sun sprite among them). The HUD is drawn from the core's state: the compass ring and its bars, the
 radar, the weapon and ammunition panels, the battle line (its map, or the message box's portrait while a message plays),
 the objectives' screen markers, the eased crosshair, the guns panel and the target box (the target's mesh in its own
@@ -312,7 +311,7 @@ variants, and two target types retain bounded static conversions. The 1,481
 pine placements use their exact meshes inside the released out-of-box
 **Medium-detail 30-unit**
 mesh-quality boundary and their six-face imposters outside it.
-The image's own static initialiser is `30.0f` in the pristine specimen (a private pristine copy, SHA-256 `74154bfa…`), and the released out-of-box Geometry detail arm is Medium. `70.0` is the released High-detail arm, but not the out-of-box/current default; a saved options file (`defaultoptions.bea`, run state rather than an authored default) can select it. The offset table and the proof that the options file is run state are in [PROVENANCE.md](PROVENANCE.md). The
+The image's own static initialiser is `30.0f` in the pristine specimen (a private pristine copy, SHA-256 `74154bfa…`), and the released out-of-box Geometry detail arm is Medium. `70.0` is the released High-detail arm, but not the out-of-box/current default; a saved options file (`defaultoptions.bea`, run state rather than an authored default) can select it. The values table and the proof that the options file is run state are in [PROVENANCE.md](PROVENANCE.md). The
 reconstruction draws no third fast-tree path: no always-on camera-facing
 standing card and no height-gated horizontal card is rendered — the only pine
 representations are the gated close meshes and the six-face far imposters

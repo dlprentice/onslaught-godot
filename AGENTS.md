@@ -40,7 +40,7 @@ Summary: the rules for working in this repository, for people and automated agen
   Contributors elsewhere use their own headless or offscreen setup for automated runtime checks; a manual preview
   can use their own display. Public builds and authored tests need none of these desktop wrappers.
 - **Sandboxed builds:** MSBuild's worker nodes open named pipes in the temporary folder. In a sandbox whose `/tmp` is
-  read-only every worker aborts. Give a sandboxed build a writable private `/tmp` (or
+  read-only every worker aborts (SIGABRT, one core dump each). Give a sandboxed build a writable private `/tmp` (or
   `TMPDIR`), or build with `-m:1 -nodeReuse:false -p:UseSharedCompilation=false`.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).

@@ -179,8 +179,9 @@ MEASURED: SHA-256 recomputed over the four files as materialized on this
 machine. The three OBJ hashes are each pinned by the tracked producer at
 `../../../tools/materialize_retail_assets.py`, beside their `.msh.aya` sources.
 The contact-owners hash has no tracked pin: the producer does not contain it, and
-`../../../OnslaughtRebuild.Core/Level100ContactMap.cs` pins a different SHA-256
-(`SourceSha256`) for the same asset. The three OBJ hashes
+`../../../OnslaughtRebuild.Core/Level100ContactMap.cs` (`SourceSha256`) and the producer's
+`LEVEL100_CONTACT_ASSET_SHA256` both pin the same different SHA-256 for the same asset, so the table's
+value, here and in the "Is" column, is stale until the maintainer replaces it. The three OBJ hashes
 moved together in one commit, which made the OBJ conversion carry
 per-vertex `DIFFUSE`; the contact-owners hash and its Role moved in a separate commit, the same schema bump described under [Dependency-inverted contact
 and destruction payload](#dependency-inverted-contact-and-destruction-payload).
