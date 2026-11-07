@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-11-02 (public setup and contributor completion; commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
+Last updated: 2026-11-06 (WSL approval wording, the earlier launcher's commands and the maintainer named by role; 2026-11-02: public setup and contributor completion; commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -27,9 +27,9 @@ Summary: the rules for working in this repository, for people and automated agen
   machine wrapper or reference environment script. Setup and restore contacts are documented in the
   [README](README.md#building-and-testing); the application itself still sends nothing.
   The runner targets Linux x86_64; Windows contributors use that README's WSL2 route. Enabling or installing WSL
-  requires the host owner's approval. WSL2 checks are Linux evidence; native Windows acceptance stays separate.
-- The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until David explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
-- **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, the earlier launcher's `capture` and `run`) never
+  requires the approval of the machine's owner, which on a contributor's own computer is the contributor. WSL2 checks are Linux evidence; native Windows acceptance stays separate.
+- The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until the maintainer explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
+- **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, and the `capture` and `run` commands of the earlier launcher, `rebuild/tools/first_flight.py`) never
   open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
   headless mode. The wrapper, its flags, the engine build and the capture folders are the machine's own and are set in the
   ignored `local-data/rebuild-env.sh`; for example
@@ -40,7 +40,7 @@ Summary: the rules for working in this repository, for people and automated agen
   Contributors elsewhere use their own headless or offscreen setup for automated runtime checks; a manual preview
   can use their own display. Public builds and authored tests need none of these desktop wrappers.
 - **Sandboxed builds:** MSBuild's worker nodes open named pipes in the temporary folder. In a sandbox whose `/tmp` is
-  read-only every worker aborts (SIGABRT, one core dump each). Give a sandboxed build a writable private `/tmp` (or
+  read-only every worker aborts. Give a sandboxed build a writable private `/tmp` (or
   `TMPDIR`), or build with `-m:1 -nodeReuse:false -p:UseSharedCompilation=false`.
 - **Done means:** the smallest gate that could falsify the change passed (docs: `npm run test:docs`; tools: the
   affected `_tests.py`; rebuild code: the affected Parity tests, then the Parity suite and the Host build).
@@ -51,4 +51,4 @@ Summary: the rules for working in this repository, for people and automated agen
 
 ## Cross-project progress
 
-The Toolkit's [definition of progress](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md#how-progress-is-measured) and [dated cross-project chart](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md#cross-project-progress-and-priorities) provide shared context, subject to David's current direction. This repository's [parity record](rebuild/PARITY.md) owns the Godot rebuild's measured evidence and limitations.
+The Toolkit's [definition of progress](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/GOAL.md#how-progress-is-measured) and [dated cross-project chart](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md#cross-project-progress-and-priorities) provide shared context, subject to the maintainer's current direction. This repository's [parity record](rebuild/PARITY.md) owns the Godot rebuild's measured evidence and limitations.

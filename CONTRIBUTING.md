@@ -1,7 +1,7 @@
 # Contributing
 
 Status: active
-Last updated: 2026-11-06 (where to contribute, first-hour checks and terms)
+Last updated: 2026-11-06 (where to contribute, first-hour checks, terms and the WSL approval wording)
 Summary: where each kind of work belongs, how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
 Thank you for your interest. Please read this before opening an issue or a pull request.
@@ -79,8 +79,8 @@ git switch -c my-change
 Follow the [public source setup](README.md#building-and-testing), commit only the files for your change, push the
 branch to your fork, and open the pull request. People and automated agents use the same workflow; upstream write
 access, private repositories, the maintainer's computer and its local lab are not needed to prepare a contribution.
-Windows contributors use the documented WSL2 route and keep the checkout inside its Linux filesystem. Host changes
-needed to enable or install WSL require the machine owner's approval; WSL2 checks do not establish native Windows acceptance.
+Windows contributors use the documented WSL2 route and keep the checkout inside its Linux filesystem. Changes to your Windows machine
+needed to enable or install WSL require the approval of that machine's owner (on your own computer, that is you); WSL2 checks do not establish native Windows acceptance.
 Work on this repository's Parity core and Host; the Toolkit repository's `rebuild/` remains a frozen reference copy.
 
 Keep a pull request to one subject, say what it changes in behaviour, and name the evidence: the Present where the
