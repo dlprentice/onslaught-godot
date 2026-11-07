@@ -1,16 +1,18 @@
 # Rebuild determinism contract
 
-Status: reference — the earlier fixed-point Core's contract; the parity core's is the short section at the top
-Last updated: 2026-10-29 (the parity core's cross-host numerical evidence boundary; earlier: the specimen is cited without its private path; 2026-10-28: explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
+Status: active — the parity core's contract is the first section; the fixed-point Core sections below are reference only
+Last updated: 2026-11-06 (the Enforced-by list names the live Parity tests; the 20 Hz evidence and the queue link stated; terms link; 2026-10-29: the parity core's cross-host numerical evidence boundary; earlier: the specimen is cited without its private path; 2026-10-28: explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
-Headless sources named at the bottom; the retail 20 Hz step was MEASURED in
-the 20 Hz migration evidence. Precision setup is static byte evidence; the
+Headless sources named in the Enforced-by list below; the retail 20 Hz step was MEASURED in
+the maintainers' private 20 Hz migration evidence, which this repository does not link. Precision setup is static byte evidence; the
 September 8 Plane control-word sample below is a separate runtime observation.
 Specimen: `BEA.exe.original.backup` (a private pristine copy), SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`.
 Summary: what "deterministic" means in this rebuild, what is enforced, and
 what a contributor must do when a change legitimately moves the trace hash.
+
+Terms used in this file are defined in the [glossary](README.md#terms-used-in-these-documents).
 
 ## The parity core (`OnslaughtRebuild.Parity`)
 
@@ -195,13 +197,17 @@ comparable byte-for-byte across hosts.
 
 ## The tape and its bounds
 
-The headless runner (`OnslaughtRebuild.Headless`) reads and replays supplied
+The reference headless runner (`OnslaughtRebuild.Headless`) reads and replays supplied
 command tapes. `InteractiveSession` supplies the consumed input and resulting
 snapshot to `CommandTapeRecorder`; `BuildObserved` freezes hashes measured during
-that session without replaying it. The native Godot host writes a new tape at
+that session without replaying it. The live parity core reads retail replay tapes
+with `RetailTape` (`OnslaughtRebuild.Parity`), and its golden tests replay them
+through `LevelSession`. The native Godot host writes a new tape at
 exit when `--record-tape=/absolute/path.json` is set. A mostly idle native session
-replayed twice on September 6; a substantial player walkthrough remains open in
-`PROGRAM.md` P8. See [`README.md`](README.md) for recording commands.
+replayed twice on September 6; a substantial player walkthrough remains open, and its
+queue item (player-input replay tapes) is paused in the Toolkit's
+[PROGRAM.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/PROGRAM.md#paused).
+See [`README.md`](README.md) for recording commands.
 
 - `MaximumTapeBytes = 8 MiB`
 - `MaximumReplaySteps = 100 000`
@@ -238,13 +244,18 @@ hash downstream. This is expected — but it must be deliberate and recorded:
 
 ## Enforced by
 
-- `Level100ColdStartTests` and the deterministic run fixtures (cold start,
-  pointer-quantised, full-chain).
-- `InteractiveSessionTests` (100 000-step bounds).
-- `HeadlessApplicationTests` (8 MiB tape bound, replay determinism, `--expect`,
-  and the pinned first-flight trace/state fingerprint owner).
+Live parity core (`OnslaughtRebuild.Parity` and its tests):
+
+- `FrontEndCanvasTests` (`OnslaughtRebuild.Parity.Tests/Flow`): a run drawing to a null canvas and one drawing to a recording canvas give byte-identical traces.
+- `SteppedGameRunTests` (`OnslaughtRebuild.Parity.Tests/Flow`): `InspectReadsTheRunOnlyWhileItIsParkedAndChangesNothing`.
+- `RetailGoldenTests` (`OnslaughtRebuild.Parity.Tests`): replays the recorded tapes through `LevelSession` and `RetailTape`, Present by Present, against the recorded native-port and retail references. Where those references are absent, its comparisons skip, and a skip is not a pass.
+- `HarnessTests` (`OnslaughtRebuild.Parity.Tests`): the tape and probe-trace formats, and `ParityRunner`, the probe harness that the reference `OnslaughtRebuild.Headless parity` command also calls.
+
+Earlier fixed-point Core (reference only):
+
+- `Level100ColdStartTests` and the deterministic run fixtures (cold start, pointer-quantised, full-chain), in `OnslaughtRebuild.Core.Tests`.
+- `InteractiveSessionTests` (100 000-step bounds), in `OnslaughtRebuild.Client.Tests`.
+- `HeadlessApplicationTests` (8 MiB tape bound, replay determinism, `--expect`, and the pinned first-flight trace/state fingerprint owner), in `OnslaughtRebuild.Core.Tests`.
 - `StateHasher` canonical-format tests.
 
-A contributor who touches `Simulation.cs`, `SimulationConstants.cs`,
-`SimulationTypes.cs`, or anything in the tick/step path should expect the
-cold-start and full-chain suites to be the first (and most sensitive) signal.
+A contributor who touches the parity core (`rebuild/OnslaughtRebuild.Parity`) should expect the live tests in the first list to be the first signal, then the Parity suite (`dotnet test rebuild/OnslaughtRebuild.Parity.Tests`). Changes to the reference Core files `Simulation.cs`, `SimulationConstants.cs` and `SimulationTypes.cs` (in `OnslaughtRebuild.Core`) do not change the live simulation; for those files, the reference Core suites in the second list are the signal.

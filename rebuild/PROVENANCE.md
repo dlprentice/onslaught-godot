@@ -1,18 +1,21 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-11-06 (the decompilation named as public; 2026-11-04: four inline orientation products retain the register exponent range; authored arithmetic controls); 2026-10-29 (out-of-line matrix register range; the battle engine's decays stored from the x87 register; the lead-time sum orders of the auto-aim and the predicted aim; retail byte dumps, instruction quotes and private paths removed from the evidence text); 2026-10-28 (site-specific matrix products, collision volume adaptation and cylinder-line sum order); 2026-10-26 (native stuck-contact recovery and sample PCM catalog; 2026-10-24: Host frontend sprite projection and measured replay sound-profile admission; 2026-10-23: the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-11-06 (terms link; the decompilation named as public; retail addresses, offsets and dword values removed from the text, role labels replaced, file paths and links corrected; 2026-11-04: four inline orientation products retain the register exponent range; authored arithmetic controls); 2026-10-29 (out-of-line matrix register range; the battle engine's decays stored from the x87 register; the lead-time sum orders of the auto-aim and the predicted aim; retail byte dumps, instruction quotes and private paths removed from the evidence text); 2026-10-28 (site-specific matrix products, collision volume adaptation and cylinder-line sum order); 2026-10-26 (native stuck-contact recovery and sample PCM catalog; 2026-10-24: Host frontend sprite projection and measured replay sound-profile admission; 2026-10-23: the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Summary: the licence boundary, permitted evidence, and authority order for the
+`rebuild/` reconstruction lane, plus what the current slice actually covers.
+
 The 2026-08-31 world-110 admissions and the separate construction stage built
 on them were retired on 2026-09-26, when World 110 moved onto the one
 construction owner; the standalone ordered `CPlayer::AssignBattleEngine`
 mapping remains. The released Battle
 Engine finite-cylinder mode-1 round-contact and selected-position boundary,
-native-84 completion instrument, native-88 first-Pause mission execution, and current
+native-84 (`SecondaryObjectiveComplete`) completion instrument, native-88 (`SecondaryObjectiveFailed`) first-Pause mission execution, and current
 Thing/Actor base-state, career read/load,
 startup/frontend, partial-source inventory, frontend-asset, mouse-sensitivity,
 and retained-particle claims retain their narrower dated evidence boundaries.
-Summary: the licence boundary, permitted evidence, and authority order for the
-`rebuild/` reconstruction lane, plus what the current slice actually covers.
+
+Terms used in this file are defined in the [glossary](README.md#terms-used-in-these-documents).
 
 `rebuild/` is a GPL-3.0, source- and reverse-engineering-informed reconstruction, distributed as a whole under
 GPL-3.0-only because many of its files adapt Stuart's version-3-only release (see *Licence identifiers* below). It is
@@ -20,7 +23,7 @@ not a clean-room lane. The root licences do not relicense the pinned `references
 
 ## Permitted evidence and inputs
 
-- Stuart's release (GitHub `stuart73/Onslaught`, in `references/Onslaught`), pinned, may be read, ported, and adapted with its GPL licence and attribution
+- Stuart's release: `references/Onslaught` is the maintainer's fork `dlprentice/Onslaught` of Stuart Gillam's GPL release `stuart73/Onslaught`, pinned by the submodule gitlink; it may be read, ported, and adapted with its GPL licence and attribution
   preserved.
 - The pristine retail specimen and the byte-matching decompilation ([onslaught-decomp](https://github.com/dlprentice/onslaught-decomp)) establish released static identities and
   deltas from the reference source (Ghidra is retired as an authority).
@@ -44,9 +47,9 @@ Never describe synthetic or source-only behavior as observed Steam behavior.
 
 ## Host presentation and reference playback
 
-The Host's `ParticleView` uses `src/PDSimpleSprite.cpp` (RenderSprites 004c5d50 and BuildFrameUVs 004c5c50)
+The Host's `ParticleView` uses `src/PDSimpleSprite.cpp` (RenderSprites and BuildFrameUVs)
 and `src/DXParticleManager.cpp` for sprite geometry and blend state. Its frontend projection follows
-`src/FrontEnd.cpp` (RenderStart 004685f0, near/far 0.1/700 and the 4:3 camera frustum); `FrontEndView` inserts the
+`src/FrontEnd.cpp` (RenderStart, near/far 0.1/700 and the 4:3 camera frustum); `FrontEndView` inserts the
 sprites after the page and before the cursor, as `src/DXFrontend.cpp` does in RenderEnd. These GPL-3.0-only
 adaptations draw the parity core's existing particles; no asset or generated frame is embedded. Frontend particle
 meshes and the configuration model remain undrawn.
@@ -59,7 +62,7 @@ runs still need a real sound-event backend.
 
 ## Adapted from the decompilation
 
-Each row names a C# unit of `OnslaughtRebuild.Parity` and the decompilation source it adapts. Units built only from
+Each row names a C# unit of `OnslaughtRebuild.Parity` and the decompilation source it adapts. Every `src/` and `port/` path below is in onslaught-decomp or onslaught-ce, except `src/ViewPointCamera.cpp` and `src/GameMenu.cpp`, which are in neither public repository; the two rows that cite them rest on the private working decompilation. Units built only from
 the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed. Neither is
 `Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
 from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source. Nor is
@@ -97,7 +100,7 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `Flow/MemoryCard.cs` (the PC's save folder as the memory card: one device, its saves, create, write, read, delete) | `src/PCMemoryCard.cpp` (`CPCMemoryCard`), `src/MemoryCard.h` (return codes) | GPL-3.0-only (in Stuart's release) |
 | `Flow/Pages/IntroPage.cs` (the title page) | `src/FEPIntro.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Particles/FrontEndParticles.cs` (FED resource loading, camera/world adapter, render-side particle work) | `src/FrontEndData.cpp`, `src/DXFrontend.cpp` (`Init`, `Shutdown`, `RenderParticles`, `RenderEnd`); shared resource reader from `src/ResourceAccumulator.cpp` | GPL-3.0-only (new adapter; delegates resource parsing to its existing GPL-3.0-only owner) |
-| `Particles/ParticleProcessState.cs` (per-game-process frame/allocation/sprite counters and one-time noise) | `src/ParticleManager.cpp`, `src/ParticleDescriptor.cpp`, `src/PDSimpleSprite.cpp` (`InitNoiseTable` 004c7db0) | GPL-3.0-only (not in Stuart's release) |
+| `Particles/ParticleProcessState.cs` (per-game-process frame/allocation/sprite counters and one-time noise) | `src/ParticleManager.cpp`, `src/ParticleDescriptor.cpp`, `src/PDSimpleSprite.cpp` (`InitNoiseTable`) | GPL-3.0-only (not in Stuart's release) |
 | `Flow/Pages/MainPage.cs` (the main menu) | `src/FEPMain.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Flow/Pages/DevSelectPage.cs` (the storage-device page) | `src/FEPDevSelect.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Flow/Pages/VirtualKeyboardPage.cs` (the name keyboard) | `src/FEPVirtualKeyboard.cpp`, `src/FEPVirtualKeyboard.h` | GPL-3.0-only (not in Stuart's release) |
@@ -113,7 +116,7 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `Flow/SystemFlow.cs` (`CSystem::Run` without `-level`: the front end, the levels it starts and the attract films, in turn, until the front end quits) | `src/System.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Text/TextDatabase.cs` (the language file `data\LANGUAGE\*.DAT` by hashed id; the ids' names from `text.stf`, read from the installation) | `src/text.cpp`, `src/text.h` (`CText`) | GPL-3.0-only (not in Stuart's release) |
 | `Text/FrontEndText.cs` (`FET.GetText` for the texts the ported pages measure, with its X-key toggle) | `src/FrontEndText.cpp` | GPL-3.0-only (not in Stuart's release) |
-| `Text/BitmapFont.cs` (the bitmap font's cell widths measured from the font texture's alpha, the character map, text extents) | `src/DXFont.cpp`, `src/Font.cpp` (`CDXBitmapFont`) | GPL-3.0-only (not in Stuart's release) |
+| `Text/BitmapFont.cs` (the bitmap font's cell widths measured from the font texture's alpha, the character map, text extents) | `port/platform/public/DXFont.cpp` (onslaught-ce), `src/Font.cpp` (`CDXBitmapFont`) | GPL-3.0-only (not in Stuart's release) |
 | `Flow/WorldHeaders.cs` (the reader of `data\WorldHeaders.dat`: each level's configurations and wingmen) | `src/FEPBEConfig.cpp` (`Init`, `Load`, `GetCurrentLevel`), `src/FEPWingmen.cpp` (`GetNumWingmen`) | GPL-3.0-only (not in Stuart's release) |
 | `Platform/Mouse.cs` (the window mouse: messages, 640x480 front-end scaling, transient reset, rectangle tests) | `src/mouse.cpp`, `src/mouse.h` | GPL-3.0-only (not in Stuart's release) |
 | `RetailTape.cs`, tape dispatch in `Flow/GameRun.cs` and `Game/LevelInput.cs` | Onslaught CE v0.1.9 `port/platform/common/replay.cpp` (tape 2 parsing, delivery and cursor); original K/M retail replay format | GPL-3.0-only as combined. Authored cases check ordered dispatch and refusal paths; a full player-route comparison remains separate. |
@@ -125,48 +128,48 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `Data/MemBuffer.cs` (the read buffer, packed `.aya` blocks) | `src/DXMemBuffer.h`, `src/DXMemBuffer.cpp` (`CDXMemBuffer`) | GPL-3.0-only (in Stuart's release) |
 | `Data/ChunkReader.cs` | `src/chunker.h`, `src/chunker.cpp` (`CChunkReader`) | GPL-3.0-only (in Stuart's release) |
 | `Containers/SPtrSet.cs` (the shared node pool, SPtrSet, ListIterator) | `src/SPtrSet.h`, `src/SPtrSet.cpp` (`GenericSPtrSet`, `GenericListIterator`) | GPL-3.0-only (in Stuart's release) |
-| `Collision/Volumes.cs` (the base, sphere, cylinder, line and mesh collision-volume dispatch) | `src/GeneralVolume.h`, `src/Sphere.cpp`, `src/Cylinder.cpp`, `src/Line.cpp`; cylinder-line sums checked against pristine `0044062d..004406bf` and `00440801..0044083d`, a native-port replay and isolated original-code boundary controls | GPL-3.0-only as combined. The recorded contact and isolated controls do not establish complete collision parity or real-player acceptance. |
+| `Collision/Volumes.cs` (the base, sphere, cylinder, line and mesh collision-volume dispatch) | `src/GeneralVolume.h`, `src/Sphere.cpp`, `src/Cylinder.cpp`, `src/Line.cpp`; cylinder-line sums checked against pristine original-code ranges and a native-port replay and isolated original-code boundary controls | GPL-3.0-only as combined. The recorded contact and isolated controls do not establish complete collision parity or real-player acceptance. |
 | `Mesh/MeshData.cs`, `Mesh/MeshPart.cs` (mesh and part records, the emitter, part and animation-mode queries) | `src/mesh.cpp`, `src/mesh.h`, `src/MeshPart.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Mesh/MeshPose.cs` (the render thing's pose and its emitter lookup) | `src/MeshPose.cpp`, `src/meshpose.h`, `src/MeshRenderer.cpp`, `src/rtmesh.cpp` (`CRTMesh::GetRTEmitter`) | GPL-3.0-only (MeshPose and MeshRenderer are in Stuart's release) |
 | `Mesh/MeshVertexBuffer.cs` (the vertex buffer record as the mesh reader skips it) | `src/DXMeshVB.cpp`, `src/DXMeshVB.h` | GPL-3.0-only (in Stuart's release) |
 | `Mesh/MeshPolyBucket.cs` (the part's poly bucket as stored) | `src/PolyBucket.cpp` and its header | GPL-3.0-only (not in Stuart's release) |
 | `Mesh/MatrixOps.cs` (FMatrix sum, difference, scale and cached-world products; the 16/48-byte layouts) | `src/maths.h`, onslaught-ce `port/patches/0027-mesh-pose-products.patch`; selected product orders checked against pristine | GPL-3.0-only as combined. Authored finite cases check the cell orders. The cached frame/pose orientations also use the established PC24 arithmetic owners; exact-power underflow and overflow-cancellation controls are independently checked by authored native x87 code (PARITY.md, 2026-11-04). Inline point products, full visual parity and original nonfinite behavior remain outside that evidence. |
 | `Things/Thing.cs` (CThing, CComplexThing) | `src/thing.h`, `src/thing.cpp` | GPL-3.0-only (in Stuart's release) |
-| `Things/RadarWarningReceiver.cs`, ordered world round membership, BattleEngine receiver ownership and ComplexThing animation destruction | `src/RadarWarningReceiver.cpp` (Init 004d65a0, Update 004d66b0), `src/round.cpp`, `src/BattleEngine.cpp` (cockpit call 004055dc before receiver Init 00405710), `src/thing.cpp` (destructor 004f3f00) | GPL-3.0-only as combined; reconstructed receiver file GPL-3.0-only. Real ordered scans and monitored lifetimes; existing atan2, lock admission and nonloop sound limits remain explicit. |
+| `Things/RadarWarningReceiver.cs`, ordered world round membership, BattleEngine receiver ownership and ComplexThing animation destruction | `src/RadarWarningReceiver.cpp` (Init, Update), `src/Round.cpp`, `src/BattleEngine.cpp` (cockpit call before receiver Init), `src/thing.cpp` (destructor) | GPL-3.0-only as combined; reconstructed receiver file GPL-3.0-only. Real ordered scans and monitored lifetimes; existing atan2, lock admission and nonloop sound limits remain explicit. |
 | `Things/Actor.cs` (CActor) | `src/actor.h`, `src/actor.cpp` | GPL-3.0-only (in Stuart's release) |
 | `Things/InitThing.cs` (CInitCSThing, CInitThing's runtime fields, Copy) | `src/InitThing.h` | GPL-3.0-only (in Stuart's release) |
 | `Things/ThingType.cs` (THING_TYPE_ bits) | `src/ThingType.h`, `src/waypoint.h` | GPL-3.0-only (not in Stuart's release) |
 | `Things/RenderThing.cs` (CRTMesh's mesh, pose and emitter lookup) | `src/rtmesh.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/Unit.cs` (CUnit) | `src/unit.h`, `src/Unit.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/Units.cs` (CGroundUnit, CGroundVehicle, CCannon, CBuilding, CSimpleBuilding, CAirUnit, CPlane, CDropship) | `src/unit.h`, `src/GroundUnit.cpp`, `src/GroundVehicle.cpp`, `src/Cannon.cpp`, `src/Building.cpp`, `src/SimpleBuilding.cpp`, `src/AirUnit.cpp`, `src/Plane.cpp`, `src/Dropship.cpp` | GPL-3.0-only (not in Stuart's release) |
-| `Things/CannonMotionController.cs`, the Cannon construction in `Things/Units.cs` and dispatch in `Things/Actor.cs` | `src/MCCannon.cpp` (`CMCCannon::GetPartTransform` 004952a0, saved-angle comparison 00495770), `src/Cannon.cpp` | GPL-3.0-only (not in Stuart's release). Turret yaw, barrel pitch and root-height interpolation use the existing part-transform owner; same-frame and forced/throttled pose scheduling are preserved. |
+| `Things/CannonMotionController.cs`, the Cannon construction in `Things/Units.cs` and dispatch in `Things/Actor.cs` | `src/MCCannon.cpp` (`CMCCannon::GetPartTransform`, saved-angle comparison), `src/Cannon.cpp` | GPL-3.0-only (not in Stuart's release). Turret yaw, barrel pitch and root-height interpolation use the existing part-transform owner; same-frame and forced/throttled pose scheduling are preserved. |
 | `Things/MCBattleEngine.cs` (walker motion-controller bone hierarchy) | `src/MCMech.cpp`, `src/MCBattleEngine.cpp`; selected product groupings checked against pristine instructions | GPL-3.0-only as combined (not in Stuart's release). The hierarchy-point checks use authored finite inputs and isolated original instructions. Both leg-orientation products now retain the register exponent range under the authored controls in PARITY.md, 2026-11-04. This does not establish gameplay poses, the other product sites or original nonfinite behavior. |
-| `Things/DropshipMotionController.cs`, Dropship construction/dispatch, the controller hook in `Mesh/MeshPart.cs` and uncached caller in `Mesh/MeshPose.cs` | `src/MCDropship.cpp` (`AdjustFrame` 00496100, saved-state comparison 00496200), `src/Dropship.cpp`, `src/MeshPart.cpp` (`ResolveFrameNumber` 004b24d0), `src/MeshPose.cpp` | GPL-3.0-only as combined (MeshPart/MeshPose adapt Stuart's release; MCDropship/Dropship are reconstructed, GPL-3.0-only). Door animation frames only; landing, AI and thruster lifecycle are not added by this slice. |
+| `Things/DropshipMotionController.cs`, Dropship construction/dispatch, the controller hook in `Mesh/MeshPart.cs` and uncached caller in `Mesh/MeshPose.cs` | `src/MCDropship.cpp` (`AdjustFrame`, saved-state comparison), `src/Dropship.cpp`, `src/MeshPart.cpp` (`ResolveFrameNumber`), `src/MeshPose.cpp` | GPL-3.0-only as combined (MeshPart/MeshPose adapt Stuart's release; MCDropship/Dropship are reconstructed, GPL-3.0-only). Door animation frames only; landing, AI and thruster lifecycle are not added by this slice. |
 | `Things/Feature.cs` (CFeature) | `src/feature.h`, `src/feature.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/Tree.cs` (CTree) | `src/tree.h`, `src/tree.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/BattleEngine.cs` (CBattleEngine: Init, configuration, the targeting events' scheduling) | `src/BattleEngine.h`, `src/BattleEngine.cpp` | GPL-3.0-only (in Stuart's release) |
-| `Things/BattleEngine.cs` stuck-contact recovery | `src/BattleEngine.cpp` (`Hit` 00407350), selected pristine original-code controls | GPL-3.0-only as combined. Preserves two velocity reads, safe-position ownership and asymmetric x87 spills; native callbacks are controlled boundaries, not complete collision-route or player acceptance. |
-| `Things/BattleEngine.Weapons.cs` (active count, weapon-change admission, timestamp and HUD announcement; jet dispatch remains unsupported) | `src/BattleEngine.cpp` (`ChangeWeapon` 00409f70, `CountActiveWeapons` 0040dc90), `src/BattleEngineWalkerPart.cpp` (`CountActiveWeapons` 00414b70, `GetWeaponIconName` 004145f0) | GPL-3.0-only (BattleEngine.cpp in Stuart's release) |
-| `Things/BattleEngineWalkerPart.cs` (four directional dash paths and the movement inputs that admit them) | `src/BattleEngineWalkerPart.cpp`, `src/BattleEngine.cpp`, `src/maths.h`; pristine original-code fixture, 1,864 cases reproduced by the integrating lead | GPL-3.0-only as combined with the BattleEngine source; isolated arithmetic/order coverage, not complete player acceptance |
-| `Things/BattleEngine.Flight.cs`, `Things/BattleEngineJetPart.cs`, the transform dispatch in `BattleEngine.Move.cs`, and controller attachment in `MCBattleEngine.cs` | `src/BattleEngine.cpp`, `src/BattleEngineJetPart.cpp`, `src/MCBattleEngine.cpp`; pristine original-code controls, yaw and move/ground/friction fixtures: 22,000 cases reproduced by the integrating lead | GPL-3.0-only as combined; jet controls, movement, separate weapon owner and guarded transformations. Terrain, velocity and selected effect/Morph dependencies are explicit oracle boundaries; full tutorial flight and whole-engine teardown remain incomplete. |
-| `Things/BattleEngine.Damage.cs` and the scheduled flash-expiry call in `BattleEngine.Move.cs` | `src/BattleEngine.cpp`; pristine Damage0040a890, shake00407940/004247a0 and inlined flash arithmetic; 1,035 damage/shake and 1,006 flash cases independently rerun | GPL-3.0-only as combined. Native bodies execute on authored state with explicit death/TLS and flash position/allocation/list boundaries. Shared atan2 is bounded, not universally proven; lethal death and flash drawing remain open. |
-| `Things/BattleEngine.Death.cs`, death hooks in `BattleEngine.cs`/`Move.cs`, `Things/Thing.cs` controller deletion | `src/BattleEngine.cpp` (`StartDieProcess` 0040bfd0, `Explode` 0040dfb0, dying movement 0040842a, destructor 00405a40, `Shutdown` 00405f80), `src/thing.cpp` | GPL-3.0-only as combined. A separate check reproduced 1,024 original dying-movement cases; modeled part/reader/event teardown and single-player loss are tested, not a whole retail death playthrough. |
-| `Things/BattleEngine.Move.cs` hard landing | `src/BattleEngine.cpp` `DeclareOnGround` 0040c750; pristine full-body oracle, 1,028 cases at PC24/PC53 plus negative controls | GPL-3.0-only. Retained comparison precision, normalized component spills, zero/NaN rules, Damage-before-velocity ordering and shield bypass. Terrain/effect callbacks are explicit isolated-oracle boundaries. |
-| `Game/Game.Death.cs`, `Game/ViewPointCamera.cs`, corresponding game-event/service hooks | `src/game.cpp` (`DeclarePlayerDead`, `DeclareLevelLost`, fade/pause events), `src/ViewPointCamera.cpp` | GPL-3.0-only as combined. A separate check reproduced 1,036 original camera cases and four uninitialized-cache seed controls. Deterministic first-cache invalidation is an explicit reconstruction boundary; no physical voice/fade acceptance. |
-| `Things/Unit.Render.cs`, `Particles/WorldRender.cs`, generic render-owner deletion in `Thing.cs` | `src/Unit.cpp` `GetShouldDoHitEffect` 004fd5e0/`Unknown107` 004fe540, `src/MeshRenderer.cpp`, `src/rtmesh.cpp`, `src/thing.cpp` | GPL-3.0-only as combined. A separate check reproduced 569 original hit-countdown cases; actual part admission and queued event lifetime tested. Visible flash pixels and remaining EVN differences are not claimed. |
-| `Things/Unit.Move.cs` weapon/sound cleanup and `Sound/SoundEffects.cs` owner release | `src/Unit.cpp` `Shutdown` 004f95d0, `src/weapon.cpp` destructor, `src/SoundManager.cpp` `KillSamplesForThing` 004e1130 | GPL-3.0-only as combined. Releases modeled target/effect/owner references without RNG draws. Configured sounds use the shared event owner below; legacy fixtures retain their explicitly limited loop projection. |
+| `Things/BattleEngine.cs` stuck-contact recovery | `src/BattleEngine.cpp` (`Hit`), selected pristine original-code controls | GPL-3.0-only as combined. Preserves two velocity reads, safe-position ownership and asymmetric x87 spills; native callbacks are controlled boundaries, not complete collision-route or player acceptance. |
+| `Things/BattleEngine.Weapons.cs` (active count, weapon-change admission, timestamp and HUD announcement; jet dispatch remains unsupported) | `src/BattleEngine.cpp` (`ChangeWeapon`, `CountActiveWeapons`), `src/BattleEngineWalkerPart.cpp` (`CountActiveWeapons`, `GetWeaponIconName`) | GPL-3.0-only (BattleEngine.cpp in Stuart's release) |
+| `Things/BattleEngineWalkerPart.cs` (four directional dash paths and the movement inputs that admit them) | `src/BattleEngineWalkerPart.cpp`, `src/BattleEngine.cpp`, `src/maths.h`; pristine original-code fixture, 1,864 cases reproduced by a separate authored check | GPL-3.0-only as combined with the BattleEngine source; isolated arithmetic/order coverage, not complete player acceptance |
+| `Things/BattleEngine.Flight.cs`, `Things/BattleEngineJetPart.cs`, the transform dispatch in `BattleEngine.Move.cs`, and controller attachment in `MCBattleEngine.cs` | `src/BattleEngine.cpp`, `src/BattleEngineJetPart.cpp`, `src/MCBattleEngine.cpp`; pristine original-code controls, yaw and move/ground/friction fixtures: 22,000 cases reproduced by a separate authored check | GPL-3.0-only as combined; jet controls, movement, separate weapon owner and guarded transformations. Terrain, velocity and selected effect/Morph dependencies are explicit oracle boundaries; full tutorial flight and whole-engine teardown remain incomplete. |
+| `Things/BattleEngine.Damage.cs` and the scheduled flash-expiry call in `BattleEngine.Move.cs` | `src/BattleEngine.cpp`; pristine Damage and shake bodies and inlined flash arithmetic; 1,035 damage/shake and 1,006 flash cases independently rerun | GPL-3.0-only as combined. Native bodies execute on authored state with explicit death/TLS and flash position/allocation/list boundaries. Shared atan2 is bounded, not universally proven; lethal death and flash drawing remain open. |
+| `Things/BattleEngine.Death.cs`, death hooks in `BattleEngine.cs`/`Move.cs`, `Things/Thing.cs` controller deletion | `src/BattleEngine.cpp` (`StartDieProcess`, `Explode`, dying movement, destructor, `Shutdown`), `src/thing.cpp` | GPL-3.0-only as combined. A separate check reproduced 1,024 original dying-movement cases; modeled part/reader/event teardown and single-player loss are tested, not a whole retail death playthrough. |
+| `Things/BattleEngine.Move.cs` hard landing | `src/BattleEngine.cpp` `DeclareOnGround`; pristine full-body oracle, 1,028 cases at PC24/PC53 plus negative controls | GPL-3.0-only. Retained comparison precision, normalized component spills, zero/NaN rules, Damage-before-velocity ordering and shield bypass. Terrain/effect callbacks are explicit isolated-oracle boundaries. |
+| `Game/Game.Death.cs`, `Game/ViewPointCamera.cs`, corresponding game-event/service hooks | `src/game.cpp` (`DeclarePlayerDead`, `DeclareLevelLost`, fade/pause events), `src/ViewPointCamera.cpp` (private working decompilation only) | GPL-3.0-only as combined. A separate check reproduced 1,036 original camera cases and four uninitialized-cache seed controls. Deterministic first-cache invalidation is an explicit reconstruction boundary; no physical voice/fade acceptance. |
+| `Things/Unit.Render.cs`, `Render/WorldRender.cs`, generic render-owner deletion in `Thing.cs` | `src/Unit.cpp` `GetShouldDoHitEffect`/`Unknown107`, `src/MeshRenderer.cpp`, `src/rtmesh.cpp`, `src/thing.cpp` | GPL-3.0-only as combined. A separate check reproduced 569 original hit-countdown cases; actual part admission and queued event lifetime tested. Visible flash pixels and remaining EVN differences are not claimed. |
+| `Things/Unit.Move.cs` weapon/sound cleanup and `Sound/SoundEffects.cs` owner release | `src/Unit.cpp` `Shutdown`, `src/weapon.cpp` destructor, `src/SoundManager.cpp` `KillSamplesForThing` | GPL-3.0-only as combined. Releases modeled target/effect/owner references without RNG draws. Configured sounds use the shared event owner below; legacy fixtures retain their explicitly limited loop projection. |
 | `Sound/SampleBankMetadata.cs`, `Sound/VirtualSoundBuffer.cs` | `src/pcsoundmanager.cpp` format/length routines and the native port virtual mixer implementation | GPL-3.0-only as combined. A separate check reproduced 1,060 original format/length cases and 512 actual-port backend sequences. Admitted mono/nonspatial clock model only; not yet full event-manager or device integration. |
-| `Sound/SamplePcm.cs`, `Sound/SampleBankPcmCatalog.cs`, internal payload visitor in `Sound/SampleBankMetadata.cs` | `src/pcsoundmanager.cpp` (`DecodeADPCM` 00517fa0, `LoadSampleFromBuffer` 005172a0, `ConvertAudioFormat` 00517600); public IMA tables | GPL-3.0-only as combined. Owned lazy data decoding with explicit memory bounds and unwritten-tail reporting. Original-code controls and independent bank decoding establish initialized PCM data; playback, device ownership, arbitrary malformed banks and audible parity remain separate. |
+| `Sound/SamplePcm.cs`, `Sound/SampleBankPcmCatalog.cs`, internal payload visitor in `Sound/SampleBankMetadata.cs` | `src/pcsoundmanager.cpp` (`DecodeADPCM`, `LoadSampleFromBuffer`, `ConvertAudioFormat`); public IMA tables | GPL-3.0-only as combined. Owned lazy data decoding with explicit memory bounds and unwritten-tail reporting. Original-code controls and independent bank decoding establish initialized PCM data; playback, device ownership, arbitrary malformed banks and audible parity remain separate. |
 | `Things/BattleEngineJetPart.cs` water skimming | `src/BattleEngineJetPart.cpp` and pristine HandleSkimming00411500 through original Damage/Shake/RNG/HostileEnvironment; 4,151 cases independently rebuilt and rerun | GPL-3.0-only as combined. Preserves unstored speed precision and null/false/-1 damage arguments. Flat terrain, unavailable effect lookup, formatting/logging and authored objects are explicit boundaries; no lethal or full gameplay claim. |
-| `Sound/SoundEffects.cs`, `Sound/SoundEffects.Events.cs`, `Script/ScriptGameServices.cs` | `src/SoundManager.cpp` (event allocation, admission, channel selection, monitored owners, fade, stop and status), `src/game.cpp` (MainLoop call 0046eff6) | GPL-3.0-only as combined. A separate check reproduced 328 original kernel cases, 640 effect-admission cases and 64 platform playback controls. Explicitly configured events retain pool seeds, stopped nodes and native call ordering; unconfigured legacy fixtures remain separate. No audible acceptance. |
-| `Sound/VirtualSoundEventBackend.cs`, `Sound/SoundProcess.cs`, process hooks in `Flow/GameRun.cs`, `Game/LevelSession.cs` and menu hosts | `src/pcsoundmanager.cpp`, `src/SoundManager.cpp`, `src/System.cpp`, `src/game.cpp`, `src/FrontEnd.cpp`, `src/GameMenu.cpp`; port `dsound/dsound.cpp` | GPL-3.0-only as combined. A separate check reproduced 184,576 original gain outputs, bounded spatial/device cases and 512 actual-port buffer sequences. Requires an explicit device profile, all 256 measured pool seeds and proven owner spatial callbacks. Shared lifetime, initialization, mute, pause and restart tests pass; complete world/device teardown and audible output remain open. |
+| `Sound/SoundEffects.cs`, `Sound/SoundEffects.Events.cs`, `Script/ScriptGameServices.cs` | `src/SoundManager.cpp` (event allocation, admission, channel selection, monitored owners, fade, stop and status), `src/game.cpp` (MainLoop call) | GPL-3.0-only as combined. A separate check reproduced 328 original kernel cases, 640 effect-admission cases and 64 platform playback controls. Explicitly configured events retain pool seeds, stopped nodes and native call ordering; unconfigured legacy fixtures remain separate. No audible acceptance. |
+| `Sound/VirtualSoundEventBackend.cs`, `Sound/SoundProcess.cs`, process hooks in `Flow/GameRun.cs`, `Game/LevelSession.cs` and menu hosts | `src/pcsoundmanager.cpp`, `src/SoundManager.cpp`, `src/System.cpp`, `src/game.cpp`, `src/FrontEnd.cpp`, `src/GameMenu.cpp` (private working decompilation only); port `dsound/dsound.cpp` | GPL-3.0-only as combined. A separate check reproduced 184,576 original gain outputs, bounded spatial/device cases and 512 actual-port buffer sequences. Requires an explicit device profile, all 256 measured pool seeds and proven owner spatial callbacks. Shared lifetime, initialization, mute, pause and restart tests pass; complete world/device teardown and audible output remain open. |
 | `Script/VirtualVoice.cs`, sound-side `Script/MessageBox.cs` destruction | `src/MessageBox.cpp`, `src/pcsoundmanager.cpp`, `src/SoundManager.cpp`, port virtual mixer | GPL-3.0-only as combined. Configured voice uses shared events and monitored completion callbacks; it has no separate completion timer. Header-derived decoded length and the silent virtual device are explicit boundaries, not listening or arbitrary-device acceptance. |
 | Configured playback calls in BattleEngine movement/morph, walker dash, weapons, impacts, explosions, features and unit initialization/pre-/post-fire | Corresponding `src/BattleEngine.cpp`, `src/BattleEngineWalkerPart.cpp`, `src/weapon.cpp`, `src/thing.cpp`, `src/explosion.cpp`, `src/feature.cpp`, `src/Unit.cpp` call sites | GPL-3.0-only as combined. Native owner, gain, tracking, once/repeat, fade and RNG order are preserved; root reproduced integrated caller tests and original PlayEffect gain outputs. a separate check additionally reproduced 23 original feature/post-fire cases; component effects and static shadows remain explicit omissions. |
-| `Things/BattleEngine.cs` incoming spoken warning | `src/BattleEngine.cpp` HandleEvent 0040c180 / event 4002 and Init; pristine original handler | GPL-3.0-only as combined. A separate check reproduced 14 strict/unordered deadline and argument cases plus 19 managed checks. The actual HUD effect call closes the configured trainer CRT divergence; the isolated oracle intercepts three string/sound services and does not establish audible playback. |
-| `Things/Explosion.cs` inlined distance for falloff | `src/explosion.cpp`, pristine `CExplosion::Hit` 0044bf10 and its distance block 0044bf65..0044bf9b | GPL-3.0-only as combined. A separate check reproduced 5,347 isolated original Hit cases; 521 distinguish the old sum order. Eight managed counterexamples also cover retained exponent range. Radius and Damage are authored service boundaries; the current trainer's first-hit difference is upstream or in the native port, not resolved by this correction. |
-| `Things/BattleEngine.Move.cs` `UpdateAutoAim` lead time and `Things/Weapon.cs` `GetPredictedTargetPos` magnitudes | `src/BattleEngine.cpp` (`UpdateAutoAim` 0040b120), `src/weapon.cpp` (`GetPredictedTargetPos` 0050a0e0), `src/maths.h`; the grouping of the squares checked against pristine `0040b258..0040b293`, `0050a1ac..0050a1ca` and `0050a1d4..0050a1f0` | GPL-3.0-only as combined. Authored float32 cases in which the groupings differ (`LeadTimeSumOrderTests`); the recorded level-100 win replayed against the native port with its patch 0111 and against the original game's process fl2a (PARITY.md, 2026-10-29). The recording does not reach the predicted-aim branch, so `GetPredictedTargetPos`'s |vel| grouping rests on the pristine instructions and the authored case alone. |
-| `Things/BattleEngine.Move.cs` (`UpdateRotation`'s pitch limits and decays, `DecayVibration`, `DeclareOnGround`'s jet slowing), `Things/BattleEngineWalkerPart.cs` (`Move`'s friction and speed cap), `Things/BattleEngineJetPart.cs` (`Move`'s slowing without energy, `HandleGroundEffect`'s descent) | `src/BattleEngine.cpp` (`UpdateRotation` 00407a50, `Move` 004081c0, `DeclareOnGround`), `src/BattleEngineWalkerPart.cpp` (`Move` 00413760), `src/BattleEngineJetPart.cpp` (`Move` 00410c50, `HandleGroundEffect` 00411630); each product formed in the register and stored, checked against the pristine ranges listed in `SubnormalDecayTests` | GPL-3.0-only as combined. Authored subnormal cases, one per site, each failing if its site alone reverts (`SubnormalDecayTests`); the VC6 oracle's `mul_f_sub` table (`X87OracleTests`); the modelled battle-engine fields against the original game on the recorded win and the two loss routes (PARITY.md, 2026-10-29). |
-| `Things/Round.Seeking.cs`, `Things/BattleEngine.Locking.cs` | `src/round.cpp`, `src/BattleEngine.cpp`; pristine lock-loss and turn blocks | GPL-3.0-only as combined. A separate check reproduced 2,320 original cases (39,440 words); PC53 changes 1,056 cases. Target reacquisition, other missile classes and launcher lock behavior remain separate. |
+| `Things/BattleEngine.cs` incoming spoken warning | `src/BattleEngine.cpp` HandleEvent / event 4002 and Init; pristine original handler | GPL-3.0-only as combined. A separate check reproduced 14 strict/unordered deadline and argument cases plus 19 managed checks. The actual HUD effect call closes the configured trainer CRT divergence; the isolated oracle intercepts three string/sound services and does not establish audible playback. |
+| `Things/Explosion.cs` inlined distance for falloff | `src/explosion.cpp`, pristine `CExplosion::Hit` and its distance block | GPL-3.0-only as combined. A separate check reproduced 5,347 isolated original Hit cases; 521 distinguish the old sum order. Eight managed counterexamples also cover retained exponent range. Radius and Damage are authored service boundaries; the current trainer's first-hit difference is upstream or in the native port, not resolved by this correction. |
+| `Things/BattleEngine.Move.cs` `UpdateAutoAim` lead time and `Things/Weapon.cs` `GetPredictedTargetPos` magnitudes | `src/BattleEngine.cpp` (`UpdateAutoAim`), `src/weapon.cpp` (`GetPredictedTargetPos`), `src/maths.h`; the grouping of the squares checked against pristine bodies | GPL-3.0-only as combined. Authored float32 cases in which the groupings differ (`LeadTimeSumOrderTests`); the recorded level-100 win replayed against the native port with its patch 0111 and against the original game's process fl2a (PARITY.md, 2026-10-29). The recording does not reach the predicted-aim branch, so `GetPredictedTargetPos`'s |vel| grouping rests on the pristine instructions and the authored case alone. |
+| `Things/BattleEngine.Move.cs` (`UpdateRotation`'s pitch limits and decays, `DecayVibration`, `DeclareOnGround`'s jet slowing), `Things/BattleEngineWalkerPart.cs` (`Move`'s friction and speed cap), `Things/BattleEngineJetPart.cs` (`Move`'s slowing without energy, `HandleGroundEffect`'s descent) | `src/BattleEngine.cpp` (`UpdateRotation`, `Move`, `DeclareOnGround`), `src/BattleEngineWalkerPart.cpp` (`Move`), `src/BattleEngineJetPart.cpp` (`Move`, `HandleGroundEffect`); each product formed in the register and stored, checked against the pristine ranges listed in `SubnormalDecayTests` | GPL-3.0-only as combined. Authored subnormal cases, one per site, each failing if its site alone reverts (`SubnormalDecayTests`); the VC6 oracle's `mul_f_sub` table (`X87OracleTests`); the modelled battle-engine fields against the original game on the recorded win and the two loss routes (PARITY.md, 2026-10-29). |
+| `Things/Round.Seeking.cs`, `Things/BattleEngine.Locking.cs` | `src/Round.cpp`, `src/BattleEngine.cpp`; pristine lock-loss and turn blocks | GPL-3.0-only as combined. A separate check reproduced 2,320 original cases (39,440 words); PC53 changes 1,056 cases. Target reacquisition, other missile classes and launcher lock behavior remain separate. |
 | `Things/LevelResources.cs` (the resource file's MESH, ERES and WRES chunks) | `src/ResourceAccumulator.cpp` (`ReadResources`) | GPL-3.0-only (in Stuart's release) |
 | `Things/WorldLoader.cs` (CWorld::Load, LoadWorld, LoadHeader, LoadScripts in retail's order) | `src/world.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/UnitFactory.cs` (UPhysicsManager::SpawnThing) | `src/WorldPhysicsManager.cpp` | GPL-3.0-only (not in Stuart's release) |
@@ -182,16 +185,16 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 | `Game/FearGrid.cs` (CFearGrid) | `src/FearGrid.h`, `src/FearGrid.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Things/SimpleThings.cs` (CWaypoint, CLevelScriptThing, CSafeSide, CSphereTrigger, CStart, CWaypointManager/CWaypointPath, the loader's spawner) | `src/waypoint.h`, `src/Waypoint.cpp`, `src/LevelScriptThing.cpp`, `src/SafeSide.cpp`, `src/SphereTrigger.cpp`, `src/Start.cpp`, `src/WaypointManager.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Maths/FVector.cs` | `src/maths.h` (`FVector`) | GPL-3.0-only (not in Stuart's release) |
-| `Maths/FMatrix.cs` (FMatrix, CEulerAngles; inline and out-of-line rotation and matrix-product arithmetic) | `src/maths.h` (`FMatrix`, `CEulerAngles`); out-of-line `004062d0` and `0040d320` | GPL-3.0-only (not in Stuart's release). Authored PC24 underflow, overflow and rotation controls compare the out-of-line methods with original function executions (PARITY.md, 2026-10-29). The shared stored-product helper added for four inline orientation sites uses the same existing bounded-integer/register arithmetic owners; its range controls are authored arithmetic experiments, not new original-function executions (PARITY.md, 2026-11-04). |
+| `Maths/FMatrix.cs` (FMatrix, CEulerAngles; inline and out-of-line rotation and matrix-product arithmetic) | `src/maths.h` (`FMatrix`, `CEulerAngles`); out-of-line methods | GPL-3.0-only (not in Stuart's release). Authored PC24 underflow, overflow and rotation controls compare the out-of-line methods with original function executions (PARITY.md, 2026-10-29). The shared stored-product helper added for four inline orientation sites uses the same existing bounded-integer/register arithmetic owners; its range controls are authored arithmetic experiments, not new original-function executions (PARITY.md, 2026-11-04). |
 | `World/HeightField.cs` | `src/heightfield.h`, `src/HeightField.cpp` (`CHeightField`) | GPL-3.0-only (not in Stuart's release) |
 | `World/EngineResources.cs` | `src/engine.cpp` (`CEngine::Deserialize`), `src/maptex.cpp` (`CMapTex::Deserialize`), `src/Map.cpp` (`CMap::Deserialize`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `World/InitThingRecord.cs` (placement records, class ids, battle engine configuration names) | `src/InitThing.h`, `src/InitThing.cpp` (`CInitThing` and derived `Load`, `SpawnInitThing`), `src/oids.h`, `src/BattleEngineConfigurations.cpp` | GPL-3.0-only (in Stuart's release) |
 | `World/WorldFile.cs` (the world file's layout) | `src/world.cpp` (`CWorld::LoadWorld`, `LoadHeader`, `LoadScripts`, `Deserialize`), `src/engine.cpp` (`LoadAllNamedMeshes`), `src/InfluenceMap.cpp`, `src/WaypointManager.cpp`, `src/NavigationMap.cpp` (`COccupancyGrid`) | GPL-3.0-only (engine.cpp is in Stuart's release) |
 | `Script/ScriptObjectCode.cs` (compiled mission scripts as stored) | `src/MissionScript/ScriptObjectCode.cpp`, `AsmInstruction.cpp`, `Symtab.cpp`, `DataType.cpp`, `EventFunction.cpp` | GPL-3.0-only (not in Stuart's release) |
 | `Clock/PlatformClock.cs` (the replay shim's timers; GetSysTimeFloat) | `src/PCPlatform.cpp` (`CPCPlatform::GetSysTimeFloat`) | GPL-3.0-only (in Stuart's release) |
-| `Platform/DisplayReset.cs`, `Clock/PlatformClock.cs` (deferred reset after platform Flip; state 2 saves only after success), `Flow/Menus/MachineDisplay.cs` (Apply queues a reset; current mode key) | `src/Platform.cpp` (`CPlatform::Flip` 004d2580), `src/Career.cpp` (`ReadOptions` 00420d70, `CDisplayModeKey::Set` 00420d10), `src/PauseMenu.cpp` (`DisplaySettingChanged`) | GPL-3.0-only (Platform.cpp/Career.cpp adapt Stuart's release; retail additions reconstructed in the decompilation). Only the transaction is implemented: host device/resource/input reset and live ReadOptions integration remain unsupported. |
+| `Platform/DisplayReset.cs`, `Clock/PlatformClock.cs` (deferred reset after platform Flip; state 2 saves only after success), `Flow/Menus/MachineDisplay.cs` (Apply queues a reset; current mode key) | `src/Platform.cpp` (`CPlatform::Flip`), `src/Career.cpp` (`ReadOptions`, `CDisplayModeKey::Set`), `src/PauseMenu.cpp` (`DisplaySettingChanged`) | GPL-3.0-only (Platform.cpp/Career.cpp adapt Stuart's release; retail additions reconstructed in the decompilation). Only the transaction is implemented: host device/resource/input reset and live ReadOptions integration remain unsupported. |
 | `Events/EventManager.cs` (the scheduler: pool, buffers, overflow, AddEvent, AdvanceTime, Flush; CScheduledEvent) | `src/eventmanager.cpp`, `src/eventmanager.h`, `src/scheduledevent.cpp`, `src/scheduledevent.h` | GPL-3.0-only (in Stuart's release) |
-| `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only (in Stuart's release) |
+| `Events/Monitor.cs` (CMonitor, active readers, CEvent) | `src/Monitor.h`, `src/Monitor.cpp`, `src/activereader.h`, `src/activereader.cpp`, `src/Event.h` | GPL-3.0-only. `activereader.h`, `activereader.cpp` and `event.h` are in Stuart's release; `Monitor.h` and `Monitor.cpp` are not in it and come from the project's own decompilation. |
 | `Game/Game.cs` (CGame's state, level start, pre-run, pan and play states, HandleEvent; CFearGrid creation in InitRestartLoop, game.cpp:505; SFrontEndSettings fields) | `src/game.h`, `src/game.cpp` (`InitRestartLoop`, `RestartLoopRunLevel`, `PreRun`, `StartPanState`, `StartPlayingState`, `HandleEvent`) | GPL-3.0-only (in Stuart's release) |
 | `Game/GameUpdate.cs` (CGame::Update) | `src/game.cpp` (`CGame::Update`) | GPL-3.0-only (in Stuart's release) |
 | `Game/GameRandom.cs` (GAME.Random and FloatRandom, with draw-site logging) | `src/game.h` (`CGame::Random`, `CGame::FloatRandom`) | GPL-3.0-only (in Stuart's release) |
@@ -209,26 +212,26 @@ rebuild project's package licence expression is `GPL-3.0-only`.
 The cannon slice is grounded in pristine PC specimen SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`.
 `CannonMotionControllerTests` compares 1,200 complete isolated executions of the unchanged
-004952a0 function and its actual math/clock helpers against the C# controller: each case supplies
+ function and its actual math/clock helpers against the C# controller: each case supplies
 25 input words, with noncommuting matrices, case-sensitive name negatives, root/non-root parts,
 both world flags and interpolation/clamp cases. The x87 control word is 007f; global render
 fraction is zero and LastMoveTime varies. Position, all nine orientation cells, saved angles and
-the pure 00495770 comparison agree bit for bit. These are bounded original-code controls, not
+the pure comparison agree bit for bit. These are bounded original-code controls, not
 a live retail playthrough. The admitted Level 100 fixture separately exercises actual Cannon
-construction, cached pose and uncached emitter consumers. The retail pose caller at 004b4d6f
+construction, cached pose and uncached emitter consumers. The retail pose caller
 discards the comparison's return value; it does not invalidate a same-frame pose or bypass the
 existing 30-frame/force gates. Private inputs, original-code harness and outputs remain under
 the maintainers' private evidence store (`cannon-controller/`).
 
 The dropship slice uses the same pristine specimen. `DropshipMotionControllerTests` compares
-1,800 complete isolated executions of unchanged 00496100 and its actual ASCII comparison
+1,800 complete isolated executions of the unchanged function and its actual ASCII comparison
 helpers, with 19 input words per case. The cases cover door/non-door names, case variants,
 first/missing animation modes, states 5/7 versus others, global render fractions 0/0.25/0.5/1,
 old/current door values including subnormals, and large integer animation scalers/start frames.
-Final frame, saved state/open value and the pure 00496200 comparison agree bit for bit under
+Final frame, saved state/open value and the pure comparison agree bit for bit under
 x87 control word 007f. `ResolveFrameNumber` now invokes the existing controller hook in both
-branches, matching calls 004b2534 and 004b2591; the uncached caller still discards the fractional
-remainder, as 004b5103..004b511d does. Authored animated-door tests distinguish that path from
+branches, matching the two call sites; the uncached caller still discards the fractional
+remainder, as the neighbouring path does. Authored animated-door tests distinguish that path from
 interpolated cached poses and preserve same-frame refusal. The admitted Level 100 U-17 fixture
 confirms construction/dispatch and real emitter queries, but its `f_lifter.msh` has no
 Door-prefixed parts: it does not prove visible door movement. No live landing or graphics
@@ -259,7 +262,7 @@ slower and produces *worse* results, because the decompiler cannot recover
 intent, naming or control-flow shape the way the developers' own text can.
 
 **But the drop is PARTIAL, and this is the single most important fact about it.**
-A 2026-07-28 re-count found 106 tracked `.h`/`.cpp` source files. Most include
+A re-count at the pin of 2026-07-28 found 106 tracked `.h`/`.cpp` source files; the current pin (gitlink `c3d8ac46`, dated 2026-10-14) has 126 lower-case `.h`/`.cpp` files (127 with one `.H`). Most include
 project headers absent from the drop; the exact missing-header count depends on
 the system-header filter. No evidence supports a count of missing implementation
 files. Do not assume a file exists because the game obviously has that
@@ -294,16 +297,12 @@ for a Ghidra lane, which is now retired as an authority.)
 > double cross in the ground-pitch law) are immune and may be relied on; ones that
 > apply it once (such as roll) may not."
 >
-> The operator is at `0x00411a60`, read from the pristine specimen
+> The operator, read from the pristine specimen
 > (a private pristine copy, sha256
-> `74154bfa…` — **not** the installed executable, which is patched). Its whole
-> body computes three differences of two products each, in this order, then makes three stores:
+> `74154bfa…` — **not** the installed executable, which is patched). Its body computes three differences of two products each:
 > `a.x*b.y − a.y*b.x`, `a.z*b.x − a.x*b.z` and `a.y*b.z − a.z*b.y`.
 >
-> Popped in stack order that stores `a.y*b.z − a.z*b.y` to x, `a.z*b.x − a.x*b.z`
-> to y, `a.x*b.y − a.y*b.x` to z — **the conventional right-handed cross product,
-> a × b, with no sign inversion.** Odd-application derivations, roll included, are
-> no longer barred.
+> The three values are stored as x, y and z, which is the conventional right-handed cross product, **a × b, with no sign inversion.** Odd-application derivations, roll included, are no longer barred.
 >
 > **This does not by itself settle the jet ground-effect roll sign.** That was
 > blocked by at least four independent things; this removes one. Retail's
@@ -329,8 +328,7 @@ test. Add a row there when a contract is carried; do not start a second table.
 
 ## Current slice
 
-The normal Godot entry path now belongs to a presentation-only frontend state
-machine outside Core. With locally materialized media, a plain launch plays the
+The earlier OnslaughtRebuild.Godot entry path (reference only; the Host is the current entry point, see `rebuild/README.md`) belonged to a presentation-only frontend state machine outside Core. With locally materialized media, a plain launch plays the
 released Lost Toys logo, opening montage, and splash before click-to-start, then
 exposes the released main-menu entries, a quit confirmation, retail's
 `CHOOSE GAME NAME` career-name/load page (new-name entry plus caller-injected,
@@ -386,10 +384,9 @@ a definition set stamped world 110 and loads the exact 5,110-byte world-110
 `SecondaryObjectiveFailed` call, reaching the script's first `Pause`.
 Stuart's `game.h:22-24,179-187` owns the
 ten-entry, zero-based secondary array and `(num, string_id)` signature; the
-pristine `0x00534470` body writes the text dword and `MOS_FAILED=2` to the
-distinct secondary base at `0x008A9B2C`. Re-decoding the pinned object in this
-pass fixed the call at instruction 22 with slot `1` and text id `114309509`;
-instruction 34 is the first `Pause`. The intervening non-waiting
+pristine body writes the text dword and `MOS_FAILED=2` to the
+distinct secondary base. Re-decoding the pinned object in this
+pass fixed the call's slot `1` and text id `114309509`, and the first `Pause` follows it. The intervening non-waiting
 `_110_PROTECT` request uses exact retail `110_protect.ogg` (SHA-256
 `03f1fc8e…35d3`, 172,496 samples at 44.1 kHz), which yields 90 ticks under the
 already-retained message-duration law. This direct mission probe uses a stamped
@@ -404,20 +401,16 @@ mission stays on schema 42 and retains the independently measured 40-step hash
 `b8a1c8bc…11216`. No native human-play, full mission, result, client, or visual
 parity is claimed.
 
-The same admitted world-110 object contains one authored native-84
-`SecondaryObjectiveComplete` at instruction 66, attribute `0x00000254`, fed by
-the exact constants at instructions 64 and 65 (slot `1`, text id `114309509`)
-and followed by the void-result pop at 67. The ordinary opening above does
-**not** reach it: that mission remains suspended at the earlier instruction-34
-Pause. `RunWorld110SecondaryObjectiveCompleteInstrument` is therefore an
-explicit bounded Core instrument over only authored instructions 64..67. It
+The same admitted world-110 object contains one authored native-84 `SecondaryObjectiveComplete` call with attribute `0x00000254`, fed by its exact slot and text constants (slot `1`, text id `114309509`) and followed by its void-result pop. The ordinary opening above does
+**not** reach it: that mission remains suspended at the earlier first Pause. `RunWorld110SecondaryObjectiveCompleteInstrument` is therefore an
+explicit bounded Core instrument over only the authored constants and pop. It
 turns the already-failed slot into `MOS_COMPLETE=1`, leaves the first-Pause
 continuation and adjacent slots unchanged, and produces a deterministic
 schema-43 hash distinct from the failed state. The static retail authority is
 reused rather than remeasured: `game.h:22-24,179-187`, the 44-byte pristine
-`0x00534410..0x0053443b` body (SHA-256
+ body (SHA-256
 `b39a3c58214a8efc7eff0ca11c1407764983888c3a7d249643376162740cd197`),
-the literal-1 store at `0x00534432`, and the existing 42-authored / 7-observed
+the literal-1 store, and the existing 42-authored / 7-observed
 native-corpus row. Reuse preflight disposition: **REUSED** — those four
 authorities plus the merged native-88 state/schema owners; **EXTENDED** — the
 existing secondary-state owner, mission VM, and exact world-110 admission
@@ -433,7 +426,7 @@ retired then, because it duplicated that construction without ever running in
 the product: the definition, seed and player-start admissions, the tree,
 Building, SAT and Feature prefix, the player-start list resolution and
 assignment sequence, and the `CStart::Init` height prefix. Its retail
-evidence stays with the RE lane
+evidence is kept in the reverse-engineering record
 ([`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md),
 [`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md)),
 and its code, tests and mutation receipts stay in Git history and the ignored
@@ -450,37 +443,34 @@ timing/sound, and pixel parity remain open.
 
 Steam's
 `-skipfmv` flag at
-`CLIParams__ParseCommandLine` (`0x00423BC0`) skips that movie but still reaches
-the click page. That page's Steam handlers at `0x0051B660`/`0x0051B6B0` accept
-action `0x2C` and full-window mouse input; its render entry at `0x0051B840`
+`CLIParams__ParseCommandLine` skips that movie but still reaches
+the click page. That page's Steam handlers accept
+action `0x2C` and full-window mouse input; its render entry
 requests localized string index `0x77` (`Click to start`). Main-menu evidence is
-the vtable at `0x005DBAE4`, input/action/render entries
-`0x00462250`/`0x004623E0`/`0x00462D40`, and Stuart's `FrontEnd.cpp` and
+the vtable, input/action/render entries
+/, and Stuart's `FrontEnd.cpp` and
 `PCFrontend.cpp`. Level select uses Steam input/render entries
-`0x004606B0`/`0x00460B40`. The reconstruction's Core/Client state applies the
+. The reconstruction's Core/Client state applies the
 career unlock law and can carry any loaded `SuggestedWorldNumber`; its current
 Godot page neither renders that general selection nor traverses it by keyboard.
 The pointer path exposes only world 100 and unlocked world 110, and the host
 constructs only world 100. The loading page
 uses the exact image and `Loading...` text established by
-`CConsole__RenderLoadingScreen` (`0x0042C810`). The Options page is retail's
+`CConsole__RenderLoadingScreen`. The Options page is retail's
 own rather than a new surface: read from the pristine specimen
 (a private pristine copy, SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`,
-2,506,752 bytes) during this pass, the vtable at `0x005DB8A8` holds eight
-entries inside one `.text` cluster (`0x0051F4B0`–`0x0051F7E0`), and within that
-cluster at `0x0051F8A6` the image executes a push of constant 1, a copy of eax into ecx and a direct call to 0x004CDE60. That branch lazily creates the
+2,506,752 bytes) during this pass, the vtable holds eight
+entries inside one `.text` cluster, and within that cluster a branch lazily creates the
 frontend Options context with mode `1`; it is not taken on every entry. A replayable
 manual trace observed the same non-null frontend context reused across two
 entries. Static branch evidence shows that state takes the reuse path, and both
 observed transitions called `CPauseMenu__InitPauseSession`, which resets the
 session each time. The frontend and in-game menus therefore share
-initializer/widget behavior but are distinct runtime instances. **Those bytes
-and positive calls establish the branch/session shape;
+initializer/widget behavior but are distinct runtime instances. **That branch and the session calls establish the shape;
 the names `CFEPOptions`, `PauseMenu__Init`, and the FEP page id `0x11` come from
 the reviewed Ghidra/source mapping of the time (historical: Ghidra is retired
-as an authority; the decompilation now names them) rather than from this byte
-sequence alone.**
+as an authority; the decompilation now names them) rather than from this branch alone.**
 **Thirty-two** exact AYA textures —
 `rebuild/tools/materialize_retail_assets.py`'s `FRONTEND_ASSETS` is
 authoritative for that count and should be re-read rather than quoted from
@@ -493,21 +483,21 @@ the integrating audio owner remains singular.
 > above.**
 >
 > 1. **The page list was incomplete.** It read: "It begins at click-to-start,
->    then exposes the released main-menu entries, a world-100-only level
->    selector, the released loading image, and one lifecycle seam that
->    constructs, replaces, or disposes the existing Level 100 session/world."
->    Five further screens — quit confirmation, DevSelect, Options, mission
->    briefing and select configuration — were already declared and shipping.
->    Nothing was withdrawn; the list was simply short, and
->    Onslaught-Career-Editor's capability list already listed
->    briefing and configuration select on the run path, so the two governance
->    documents disagreed with each other.
+> then exposes the released main-menu entries, a world-100-only level
+> selector, the released loading image, and one lifecycle seam that
+> constructs, replaces, or disposes the existing Level 100 session/world."
+> Five further screens — quit confirmation, DevSelect, Options, mission
+> briefing and select configuration — were already declared and shipping.
+> Nothing was withdrawn; the list was simply short, and
+> Onslaught-Career-Editor's capability list already listed
+> briefing and configuration select on the run path, so the two governance
+> documents disagreed with each other.
 >
 > 2. **The exact frontend-asset count is no longer duplicated here.**
->    `materialize_retail_assets.py::FRONTEND_ASSETS` is the count owner and the
->    frontend asset README enumerates the materialized files and hashes. This
->    removes a repeatedly stale second copy of the number. **Unchanged:** the
->    three XAP PCM decodes and the bounded English projections remain exact.
+> `materialize_retail_assets.py::FRONTEND_ASSETS` is the count owner and the
+> frontend asset README enumerates the materialized files and hashes. This
+> removes a repeatedly stale second copy of the number. **Unchanged:** the
+> three XAP PCM decodes and the bounded English projections remain exact.
 
 Result ownership remains split. The in-game terminal overlay is owned by the
 HUD during the countdown. After `FrontEndHandoffReady`, Client applies the
@@ -523,7 +513,7 @@ transition/effect/message/glint phases, save persistence, broad campaign
 construction, and runtime pixel parity remain open.
 
 The deterministic Core and command-tape/hash format are reconstruction-owned
-infrastructure. The Godot Level 100 Opening Slice consumes the released
+infrastructure. The Host's Level 100 Opening Slice consumes the released
 Federation walker, jet, and cockpit as exact 63-, 54-, and 21-part AYA
 hierarchies, plus bounded static conversions of 24 Level 100 static-world mesh
 types, four `pinesnow` variants, Target Tank, and Warehouse meshes. Static Steam
@@ -533,58 +523,23 @@ its six-view imposter outside that boundary. **That distance is retail's
 authored default `30.0`, corrected from `70.0` on 2026-07-27 under GOAL.md's
 defaults rule.** The pristine specimen
 (a private pristine copy, sha256
-`74154bfa…`) dispatches "Geometry detail" at `0x004DD6B0` to three arms writing
-`10.0` / `30.0` / `70.0` to `0x006321A0`, and the image's own static
-initialisers are uniquely the middle arm, so the released out-of-box state is
-Medium. **File offset is `VA − 0x400000` uniformly** — the three section deltas
-(`.text` `0x401000`/`0x1000`, `.rdata` `0x5D8000`/`0x1D8000`, `.data`
-`0x622000`/`0x222000`) are all `0x400000`:
+`74154bfa…`) dispatches "Geometry detail" to three arms writing `10.0`, `30.0` and `70.0` to one global, and the image's own static initialisers are uniquely the middle arm, so the released out-of-box state is Medium. The three globals below hold the released out-of-box values:
 
-| global | VA | file | bytes | value |
-| --- | --- | --- | --- | --- |
-| mesh-quality distance | `0x006321A0` | `0x2321A0` | `0x41F00000` | `30.0` |
-| LOD bias | `0x00631E88` | `0x231E88` | `0x3F800000` | `1.0` |
-| quality scale | `0x00630E0C` | `0x230E0C` | `0x3F800000` | `1.0` |
+| global | value |
+| --- | --- |
+| mesh-quality distance | `30.0` |
+| LOD bias | `1.0` |
+| quality scale | `1.0` |
 
-> **Corrected 2026-07-27.** This table first shipped with the file offsets
-> `0x231CA0`, `0x231988` and `0x230F0C`. All three were wrong — `0x231CA0`
-> holds the ASCII `"ing "` — and they were not even a consistent alternative
-> convention (two implied a `0x400500` delta, one `0x3FFF00`). The **values**
-> were right; only the offsets were wrong. Recorded rather than silently
-> replaced because a reader who checks `0x231CA0`, finds a string fragment and
-> concludes the finding was fabricated is the exact failure this file exists to
-> prevent.
+> **Corrected 2026-07-27.** The first version of this table recorded file offsets that were wrong, and they were not a consistent alternative convention. The **values** were right; only the offsets were wrong, so the table now lists values only.
 
-Two independent corroborations, neither needed for the result but both
-narrowing it. The getter pair at `0x004DD770`/`0x004DD786` classifies the live
-value against `.rdata` `[0x005D85D4] = 15.0` and `[0x005D8610] = 40.0`
-(`<15 → 0`, `15..40 → 1`, `>40 → 2`), so `30.0` sits **mid-band** of index 1
-rather than merely equalling arm 1's immediate. And the only route to those
-arms is an options page: `0x004DD6B0` has one caller, the thunk `0x004CEF50`,
-which is slot 14 of the vtable at `0x005DE478` whose RTTI type descriptor
-`0x006313A0` names **`CTreeDetail`**. No startup path reaches it.
+Two independent corroborations, neither needed for the result but both narrowing it. The getter pair classifies the live value against two `.rdata` constants, `15.0` and `40.0` (`<15 → 0`, `15..40 → 1`, `>40 → 2`), so `30.0` sits **mid-band** of index 1 rather than merely equalling arm 1's immediate. And the only route to those arms is an options page: the dispatcher has one caller, a thunk that is slot 14 of a vtable whose RTTI type descriptor names **`CTreeDetail`**. No startup path reaches it.
 
-`0x006321A0` has exactly **five** writers and ten readers. The fifth,
-`0x004DD832`, writes `45.0` but is **dead in the shipped image**: its gate
-`0x00662F10` has two `.text` references and both are reads, and it lies past
-`.data`'s raw size so it is BSS and zero at load.
+The mesh-quality distance global has exactly **five** writers and ten readers. The fifth writes `45.0` but is **dead in the shipped image**: its gate has two `.text` references and both are reads, and it lies past `.data`'s raw size, so it is BSS and zero at load.
 
-The previous `70.0` came from this machine's `defaultoptions.bea` at OptionsTail
-`+0x0C` (file `0x26CA`), which is persisted run state. The decisive proof is in
-code, not in file comparison: the only writer of that file
-(`0x0051F595 → Serialise → OptionsTail_Write 0x00420B10`) reads the **live
-globals** — a load of the value at 0x6321a0 into ecx at `0x00420B9E` — so the file is by
-construction a snapshot of current state, and no path writes it from authored
-constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence
-is meaningful rather than a category gap. A value read from that file is a
-**user setting**, not a default. The static-world manifest (schema
-`onslaught.level100-static-world.v14`) owns the corrected value.
+The previous `70.0` came from this machine's `defaultoptions.bea` at OptionsTail `+0x0C`, which is persisted run state. The decisive proof is in code, not in file comparison: the only writer of that file serialises the **live globals**, so the file is by construction a snapshot of current state, and no path writes it from authored constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence is meaningful rather than a category gap. A value read from that file is a **user setting**, not a default. The static-world manifest (schema `onslaught.level100-static-world.v14`) owns the corrected value.
 
-> **Do not cite `proof_defaultoptions.bea` as a pristine specimen.** It is also
-> run state — it holds `12.0` at OptionsTail `+0x04` where the image initialiser
-> `0x006254F4` is `7.0`, so it is simply a run whose geometry detail happened to
-> sit at Medium. It corroborates that the field is user state; it is not
-> independent evidence of the authored value.
+> **Do not cite `proof_defaultoptions.bea` as a pristine specimen.** It is also run state — it holds `12.0` at OptionsTail `+0x04` where the image initialiser is `7.0`, so it is simply a run whose geometry detail happened to sit at Medium. It corroborates that the field is user state; it is not independent evidence of the authored value.
 After the world and global-imposter
 passes, `CDXTrees` submits one standing fast card selected by
 `(tree_object_address >> 4) & 3` and a fifth-view horizontal card only when the
@@ -613,7 +568,7 @@ unresolved runtime boundary.
 
 Exact source/output hashes live in the materializer and ignored generated manifest;
 detailed card, atlas, and render-state evidence lives in the Level 100 asset note and
-`reverse-engineering/binary-analysis/functions/DXTrees.cpp.md`.
+the [DXTrees function page](https://github.com/dlprentice/onslaught-preservation/blob/main/engine/render/DXTrees.md).
 The released Level 100 WRES
 records now set the player start heading, all 33 visible base-world objects,
 1,481 Steam-instantiated pines, trigger locations, and four Firing Range targets. The client
@@ -624,9 +579,7 @@ The supplied base-turret comparison resolves specifically to WRES type `8`
 index `58`, mesh `ft_sam`, and released runtime class `CCannon`; it is not a
 Target Tank. The authored transform is `(252.5, 261.25, -0.0)` with zero
 yaw/pitch/roll. Stuart's `CThing::Init` clips the authored pivot through
-`MAP.Collide` and then the water level, while Steam `CThing__Init` at
-`0x004F34A0` dispatches the `CCannon` clip slot (`+0xB0`, true), samples HFLD
-at `0x0047EB80`, then dispatches its underwater slot (`+0xC4`, false). HFLD
+`MAP.Collide` and then the water level, while Steam `CThing__Init` dispatches the `CCannon` clip slot (`+0xB0`, true), samples HFLD, then dispatches its underwater slot (`+0xC4`, false). HFLD
 unit `-10485` gives terrain Z `-9.599889755249023`, above water in the released
 Z-down relationship, so the initial retail transform is
 `(252.5, 261.25, -9.599889755249023)` with identity orientation. The 16-part
@@ -640,7 +593,7 @@ claimed to share this released grounding relationship.
 The loose mission scripts establish their order and 0.5-second event delays.
 The retained `HFLD` uses the released loader's 64×64 tiled sample layout,
 height scale, and complete 513×513 sample lattice. Core embeds the hash-verified
-chunk and implements Steam's `0x0047EB80` 24.8 fixed-point signed interpolation
+chunk and implements Steam's 24.8 fixed-point signed interpolation
 for hashed player-ground elevation. The released `MAPT`/`MMAP`, lighting-gradient,
 30-owner `SSHD`, and base `DMKR` paths produce the initial 512×512 root landscape
 texture. The materializer processes all 1,481 pine placements through the
@@ -648,18 +601,17 @@ released stamp rules and verifies the exact
 RGB565 payload as SHA-256
 `6EB202F450926097930BEDCA440F0163A1886572981E3C69B4EDF9289A68AE2B`.
 The archive serializes seven `MAPT` sources; the single-player landscape calls
-`CDXLandscape__CreateMipLevels` (`0x005447E0`) with five and selects mixer widths
+`CDXLandscape__CreateMipLevels` with five and selects mixer widths
 `16/32/64/128/256`. Those sources, all variable-length `MMAP` records, the
 lighting mask, sparse structure-shadow cells, and pine shadow descriptors are
 retained in the 1,382,734-byte hierarchy payload with SHA-256
 `541EACD0AA75FAE8BEFB8A3E1505EA52AE6B1F6C1367C15C65D7DD23B7CFE977`.
 Level 100
-selects exact 512×512 DXT1 `detail00`; the released terrain render path at
-`0x00545590` supplies its two world-coordinate scales, offset, exact 256×256
+selects exact 512×512 DXT1 `detail00`; the released terrain render path supplies its two world-coordinate scales, offset, exact 256×256
 DXT1 moving cloud-shadow stage, scroll rates, and observed modulation modes.
 The macro compositor follows the released row-major tile, texel, weight, and
-shade-mask addressing. `CHeightField__InitColorGradient` (`0x0047E8E0`) builds
-the 64-entry coefficients; the load tail at `0x0047F932` doubles, clamps, and
+shade-mask addressing. `CHeightField__InitColorGradient` builds
+the 64-entry coefficients; the load tail doubles, clamps, and
 masks them before `CLandscapeTexture__BlitTileRegionWithLightingMask` produces
 RGB565 texels. Steam's 20-byte terrain vertices contain position plus repeated
 landscape coordinates, but no normal or diffuse-color channel, so that prelit
@@ -684,8 +636,8 @@ the shared Godot material applies that exponential path from camera-space depth
 to terrain, static geometry, cockpit, targets, and water. Godot's
 `OUTPUT_IS_SRGB` contract selects the final transfer so the GL Compatibility
 renderer is not converted twice. Steam
-`CMeshRenderer__RenderMeshWithLayerPasses` (`0x0054D530`) evaluates the slots in
-order; `CDXMeshVB__Load` (`0x0054E160`) treats only `0xFFFFFFFF` as absent.
+`CMeshRenderer__RenderMeshWithLayerPasses` evaluates the slots in
+order; `CDXMeshVB__Load` treats only `0xFFFFFFFF` as absent.
 Controlled Level 100 runtime state enabled modes `0`, `1`, `2`, and `4` while
 disabling modes `3` and `5`. `CVBufTexture__RenderModePass` establishes mode 1
 as model-space `DOTPRODUCT3`, mode 2 as camera-space reflection coordinates with
@@ -711,11 +663,11 @@ HFLD level and color, camera-following 25×25 grid, two caustic stages, authored
 `reflection00` imagery sampled at the released absolute-world `1/256` transform,
 the stage-3 disable before the main grid, shoreline-only wave passes, and two
 exact `SURF` shoreline bands. Static
-Steam evidence at `CWaterRenderSystem__RenderMainPass` (`0x0055B6C0`) establishes
+Steam evidence at `CWaterRenderSystem__RenderMainPass` establishes
 the first-shoreline, grid, alpha-tested sun, and late additive-shoreline order.
 `CDXSurf__Render` requests projection depth-bias index `4` for its shoreline
 draw and then restores index `0`; `CDXEngine__SetProjectionDepthBiasIndex`
-at `0x005514A0` subtracts `index * ZBIAS_SCALER` from projection slot 14, while
+ subtracts `index * ZBIAS_SCALER` from projection slot 14, while
 the shipped `cardid.txt` value is `0.00014`. The client therefore applies
 the index-4 delta `0.00056` in reversed-Z clip space instead of translating
 the shoreline `0.002` world units. The separate index-6 water caller and
@@ -728,8 +680,8 @@ and no fog. One uninterrupted copied-Steam sample measured the main phase at
 the client advances those presentation phases from frame delta outside Core.
 The animated half-scale reflection transform belongs to the optional advanced
 path, which remained inactive in controlled Steam observation. Static analysis
-of `CDXLandscape__UpdateLOD` (`0x00546B40`) and
-`CLandscapeIB__CreateIndexBuffer` (`0x0048DF20`) establishes the complete
+of `CDXLandscape__UpdateLOD` and
+`CLandscapeIB__CreateIndexBuffer` establishes the complete
 eight-step base, the 4/2/1-step grids and 16 edge-stitch index variants,
 midpoint-error LOD score, camera-smoothed texture rings, and absolute cache
 coordinates. It does not establish the exact stateful gamut-row
@@ -750,15 +702,15 @@ leg's root-to-`Footbase` extension and chooses the closest frame independently
 for the current planted-foot distance. The retained chains are legs
 `18/21/22/23/24`, `28/30/31/32/33`, `46/51/52/53/54`, and
 `3/8/9/10/11`, with Footbase parts `25`, `34`, `55`, and `12`.
-Steam `CMeshPart__InterpolateSegmentTransform` at `0x004B0D00` linearly blends
+Steam `CMeshPart__InterpolateSegmentTransform` linearly blends
 all nine stored `HORI` matrix components and the position; the Godot loader now
 preserves that componentwise law instead of quaternion-slerping fractional
 poses. The current Level 100 walker, jet, and cockpit callers supply integral
-frames, so the separate `0x004B24D0` adjuster/round/wrap path remains explicitly
+frames, so the separate adjuster/round/wrap path remains explicitly
 unmodeled rather than being guessed into this API.
 
-`c_D3DXQuaternionSlerp` at `0x00577EAA` (pristine `74154bfa…`; linked D3DX
-library code that the RE lane matched byte for byte to `d3dx9.lib` on
+`c_D3DXQuaternionSlerp` (pristine `74154bfa…`; linked D3DX
+library code that the reverse-engineering evidence matched byte for byte to `d3dx9.lib` on
 2026-09-26, formerly labelled `Math__InterpolateVec4ByRatio`) separately
 establishes a shortest-sign, sine-weighted spherical interpolation law for unit
 quaternions.
@@ -769,9 +721,7 @@ actor-render interpolation caller, so that wider call-path identity remains open
 
 One fresh no-input control and two uninterrupted copied-retail repetitions used
 the same three-second idle, twelve-second forward hold, and fifteen-second rest
-over the authored Level 100 slope. Both active runs repeated the exact start
-`(288.6875, 243.25, -12.111499)` and end
-`(270.926941, 275.010376, -12.886998)`, then settled all four phase/lift fields
+over the authored Level 100 slope. Both active runs repeated the same start and end positions, then settled all four phase/lift fields
 to zero. Steam `CMCMech` establishes the consumed controller contract: body-local
 foot offsets `(-0.957,1.078)`, `(0.937,1.089)`, `(-0.882,-1.527)`, and
 `(0.937,-1.505)`; diagonal scheduling with at most two early swings; phase rate
@@ -788,7 +738,7 @@ translation and body-turn loop: equal forward/strafe acceleration, a 3.0-unit/s
 cap, `0.7` per-retail-update coast, yaw-velocity accumulation, and `0.8`
 retention. Core runs at that same 20 Hz, so those responses transfer without a
 rate conversion. The shipped `Aquila Prototype` configuration record independently
-stores `mGroundTurnRate = 1.0` (`0x3F800000`) at record offset `0x2F6` in
+stores `mGroundTurnRate = 1.0` in
 `battle engine configurations.dat`, SHA-256
 `58722b12a04cae97ad2163acb2cc2c1699f95a0688318bd8a86696714d94454a`.
 Joined to pinned `BattleEngineWalkerPart.cpp:347-350`, that makes full walker
@@ -801,11 +751,10 @@ therefore no longer uses the superseded fitted `1.7/75` gain that made turning
 earlier bounded measurements.
 
 Pinned `BattleEngine.cpp:2949-2995` and pristine PC retail
-`CBattleEngine::DeclareOnGround` at `0x0040C750-0x0040C983` establish the bounded
+`CBattleEngine::DeclareOnGround` establish the bounded
 terrain-touchdown algorithm now consumed by Core. The retail body is the primary
 vtable's slot 68, has a normalized-identical PC-demo twin, and carries the same
-branches and literal bytes: `0.2` at `0x005D8604`, `0.4` at `0x005D8C40`, `16.0`
-at `0x005D8BC0`, and `0.90` at `0x005D8BB0`. The resulting contract is a strict
+branches and literal bytes: `0.2`, `0.4`, `16.0`, and `0.90`. The resulting contract is a strict
 speed threshold of `0.4` released units/update in walker state and `0.2`
 otherwise; a nonzero walker dash counter returns before self-damage and the
 specialized velocity response; damaging contact applies
@@ -833,9 +782,9 @@ bound through copied `defaultoptions.bea`; launches used only `-skipfmv -level
 `2` with no render, animation, cockpit, or camera change. Both modified runs
 swapped the active render reader as state `1` began, committed state `3` after
 540.045 and 549.598 ms, and retained one first-person camera pointer/vtable.
-Steam `CBattleEngine::Morph` (`0x0040A580`) and the render-reader swap
-(`0x00406460`) establish that the 54-part jet hierarchy owns the external
-transition. `CBattleEngine::FinishedPlayingCurrentAnimation` (`0x0040EEB0`)
+Steam `CBattleEngine::Morph` and the render-reader swap
+ establish that the 54-part jet hierarchy owns the external
+transition. `CBattleEngine::FinishedPlayingCurrentAnimation`
 then changes its `walktofly` animation, virtual frames 25–50 at 20 Hz, to
 looping `fly` frame 0 after 1.243 and 1.241 seconds. The 21-part cockpit begins
 its independent `walktofly` path one step into its 26–50 table, displays frames
@@ -859,21 +808,17 @@ A fresh no-input Level 100 control and two repeated pointer, forward, coast, and
 strafe runs also traversed a `6.232587`-radian
 `CBattleEngineWalkerPart::UpdateWalkCycle` scalar. Static `CMCMech` analysis now
 establishes that this separate scalar does not index every leg through
-`LegMotion`; the retired renderer incorrectly conflated the two. The sampled
-ground normal remained `(0, 0, -0.99999976)` on that earlier flat route.
+`LegMotion`; the retired renderer incorrectly conflated the two. The sampled ground normal remained along the vertical axis on that earlier flat route.
 
 A pair of fresh, uninterrupted, no-input app-owned Level 100 runs repeated the
 same released opening-camera lifecycle. At event time `3.0`, Steam installed a
-`CPanCamera` (`0x004198D0`, vtable `0x005D92A8`) with length `6.0`, not Stuart's
-in-house `3.0` default. Both runs began at
-`(283.807220, 251.978271, -16.411499)` and ended at
-`(290.115509, 240.701736, -12.195276)` around the stationary Battle Engine at
-`(288.6875, 243.25, -12.111499)`. Steam's `CPlayer__GotoPanView` at `0x004D2C10`
+`CPanCamera` (, vtable) with length `6.0`, not Stuart's
+in-house `3.0` default. Both runs began and ended at sampled camera positions around the stationary Battle Engine. Steam's `CPlayer__GotoPanView`
 uses the released orientation with local points `(0,10,-4.3)`, `(5,0,1.3)`,
 `(0,-9,-1.3)`, and `(0,-2.5,0)` through its order-three clamped quadratic
 `CBSpline`. The camera changed to the first-person `CThingCamera` at event time
 `8.95`; game state remained panning until `9.0`. `CPlayer__ReceiveButtonAction`
-at `0x004D3110` rejects normal player actions below playing state. That establishes
+ rejects normal player actions below playing state. That establishes
 the six-second camera-state boundary: 180 ticks in the historical 30 Hz Core
 sample coordinates, or 120 ticks in the current 20 Hz Core. It does not itself enable Level 100 input;
 the later mission power gate is documented below. `CPanCamera::GetShowHUD` is
@@ -882,12 +827,11 @@ copied games were disposable and are not retained.
 
 A clean copied Level 100 run starts player zero with current/preferred view `1`.
 After that opening fly-in, five uninterrupted samples held the same active camera
-pointer and first-person `CThingCamera` vtable `0x005DBB88`. The Battle Engine
-position remained `(288.6875, 243.25, -12.111499)`, yaw remained `0.509829998`,
-and the horizontal forward column remained `(-0.488029, 0.872827)`. The camera
+pointer and first-person `CThingCamera` vtable. The Battle Engine
+position remained fixed, yaw remained `0.509829998`,
+and the horizontal forward column remained fixed. The camera
 position is the Battle Engine position, and the Steam 16:9/zoom-1 projection term
-`0.5625` gives a 58.7155-degree vertical field of view. The cockpit pointer at
-Battle Engine offset `0x528` selected animation index `1`; the exact `cockpit2.msh`
+`0.5625` gives a 58.7155-degree vertical field of view. The cockpit pointer selected animation index `1`; the exact `cockpit2.msh`
 `CAMD` table identifies that as `walk`, authored hierarchy frame 25. Runtime
 also reported the cockpit render flag enabled and no local position offset.
 The retained 21-part cockpit loads its exact hierarchy as ten material-group
@@ -896,9 +840,7 @@ vertical presentation adjustment selected against the clean retail frame and
 near-plane path; that adapter offset is not claimed as a retail model value.
 
 The attached-view zoom chain is now bounded across controller/player routing,
-Battle Engine initialization/move/zoom/morph, and the projection consumer at
-`0x0042E4D0`, `0x004D3110`, `0x00404DD0`, `0x004081C0`,
-`0x00409E80`–`0x00409EC0`, `0x0040A580`, and `0x00550B10`. Retail initializes
+Battle Engine initialization/move/zoom/morph, and the projection consumer. Retail initializes
 current and desired zoom to `1.0`, normal-weapon Zoom In selects `0.4`, Zoom Out
 selects `1.0`, and each 20 Hz move approaches the target by `0.1`; morphing
 forces the desired value back to `1.0`. Level 100's two walker weapons carry
@@ -913,7 +855,7 @@ A no-input control and two uninterrupted repetitions then bound attached-view
 aim at the same authored start. `Look Up`, `Look Down`, and `Look Left` were
 bound only through each copied `defaultoptions.bea`; launch used
 `-skipfmv -level 100`. Raw state remained walker `2`, view remained `1`, and
-position remained `(288.6875, 243.25, -12.111499)` during the aim phases. The
+position remained fixed during the aim phases. The
 first vertical input changed pitch by `0.008547009` radians (`1/117`) and left
 stored velocity `0.0068376074`; subsequent coast retained exactly `0.8`. Both
 runs stabilized at pitch `+0.5321228`; their opposite endpoints were
@@ -923,8 +865,7 @@ runs stabilized at pitch `+0.5321228`; their opposite endpoints were
 For a bounded shot witness, a disposable one-byte copied-archive setup changed
 only the initial `Pulse Cannon Pod` call descriptor from `DisableWeapon` to
 `EnableWeapon`. Two fresh runs produced player-owned `CRound` objects whose
-unit directions were `(-0.226261, 0.404663, -0.886032)` and
-`(-0.226194, 0.404543, -0.886105)` in Steam X/Y/Z axes. Their contemporaneous
+unit directions were recorded in Steam X/Y/Z axes. Their contemporaneous
 BattleEngine yaw/pitch values predict
 `(-sin(yaw)cos(pitch), cos(yaw)cos(pitch), sin(pitch))` with maximum component
 error `0.00119`. Core consumes the shipped pitch input `1/117` rad and
@@ -934,7 +875,7 @@ shot direction. Terrain-relative limits, mouse inversion, auto-aim, and vertical
 target collision remain unimplemented. The setup patch,
 copies, and raw samples were disposable.
 
-`ProjectileBurst__SpawnFromCurrentPreset` at `0x005069F0` closes the bounded
+`ProjectileBurst__SpawnFromCurrentPreset` closes the bounded
 per-projectile scatter law shared by actor and player weapons: it consumes two
 samples from the global gameplay stream, applies the second to yaw and the first
 to pitch, and scales both by the weapon mode's `CWeaponInaccuracy`. The exact
@@ -983,12 +924,12 @@ index and does not claim the retail global draw phase, world-index population
 or mutation, monitor execution, helper side effects, or autonomous actor wiring.
 
 The enclosing UnitAI slot-4 body independently contributes a second pure Core
-boundary. PC retail `[0x004FF4F0,0x004FF70B)` reads the source-bound
+boundary. PC retail reads the source-bound
 `CWorld::GetSquadNB()` set, walks its physical `CSquad*` nodes in retained
 order, skips the owner's current squad, and resolves a first representative for
 the side/capability gates. Squad virtual results supply position and percentage
 for the strict squared-range test. Every passing squad is resolved a second
-time and dispatched to `0x004FDAD0`; the loop does not select, deduplicate, or
+time and dispatched to the helper; the loop does not select, deduplicate, or
 stop, and the caller invokes the helper even with a null second result. It reads
 the live node successor only after that helper returns, allowing a newly spawned
 and tail-appended squad to enter the same scan. `RetailUnitAISquadSupportProbe`
@@ -1013,7 +954,7 @@ ordered adapter plan. Concrete pointer ownership, virtual helper execution, and
 autonomous actor scheduling remain outside Core.
 
 The preceding direct/current-target arm is a distinct phased owner. PC retail
-`[0x004FF4F7,0x004FF57E)` first clears a dying `+0x0C` reader, then admits the
+ first clears a dying `+0x0C` reader, then admits the
 arm only for a nonnull owner `+0x148` receiver whose raw virtual slot-83 result
 is zero. The recognized lifecycle binds that cell to `CNormalSquad`, but the
 virtual's authored name is not recovered. Admission writes `+0x18=0` before
@@ -1024,8 +965,8 @@ order. `RetailUnitAIDirectTargetArm` emits those stage-local observations and
 actions without merging them into the later selector/fallback transaction.
 
 The enclosing shared UnitAI slot 3 is now a fifth deterministic boundary. PC
-retail `CUnitAI__Update` `[0x004FEF40,0x004FF322)` is 994 bytes / 300
-instructions (SHA-256 `7aca029c…fffe`); demo `[0x004FEFF0,0x004FF3D2)` has
+retail `CUnitAI__Update` is 994 bytes / 300
+instructions (SHA-256 `7aca029c…fffe`); demo has
 the same 300-instruction normalized stream `d0cd8f0e…8b34`. It always invokes
 slot 4, then chooses a four-draw jittered-aim arm returning zero, a one-draw
 direct-aim arm returning `0.5+low16/65536`, a no-draw fire arm returning mounted
@@ -1040,11 +981,11 @@ bits. Concrete matrix/aim execution, helper effects, monitors, and actor/event
 wiring remain outside Core; no runtime or console equivalence is claimed.
 
 Deletion-aware reader feedback is now its own deterministic owner. Pristine PC
-`CGenericActiveReader__SetReader` `[0x00401000,0x00401034)` (52 bytes, SHA-256
+`CGenericActiveReader__SetReader` (52 bytes, SHA-256
 `5540848cb8c7cd9fd46fc6a2d068b76527166c61510dd33c36b2c4dc1e41dca2`)
-and `CMonitor__dtor_base` `[0x004BAC40,0x004BACA7)` (103 bytes, SHA-256
+and `CMonitor__dtor_base` (103 bytes, SHA-256
 `3f174f5a2ca14159ac4a5141ed32b7f292d79f9d0efe899eaeb9c3f1c4087adf`; the
-RE lane's second label cohort renamed it from `CMonitor__Shutdown` on
+reverse-engineering evidence renamed it from `CMonitor__Shutdown` on
 2026-09-26) establish same-target no-op, detach/publish/attach rebind order,
 newest-first reverse membership, direct reader-cell zeroing, and
 clear-after-walk teardown.
@@ -1060,7 +1001,7 @@ path writes them. Runtime storage, allocation, and object deletion remain
 adapter work.
 
 The same graph now supports one separately bounded player contract. Pristine
-PC `CPlayer::AssignBattleEngine` `[0x004d3080,0x004d30c5)` is 69 bytes / 26
+PC `CPlayer::AssignBattleEngine` is 69 bytes / 26
 instructions, SHA-256
 `17f1f2e24aa271c93f1a223b7ad871f34487e91d4e1e640c37056cb112593a10`.
 It calls `SetReader` first on player `+0x1c` with the engine, then on engine
@@ -1106,9 +1047,9 @@ the same fact to 1/1, and the adjacent assignment/reader/start gate to 54/54.
 
 The spawner reached by that helper is now a separately bounded Core
 transaction. Pristine PC retail `CSpawnerThng__DoSpawn`
-`[0x004E3C60,0x004E3F8B)` (811 bytes, SHA-256
+ (811 bytes, SHA-256
 `a21eb3fd7aad249edaca00b3dad1f9b42af222e5cb7b16251118130eb12316cc`),
-its member wave `[0x004E3F90,0x004E43BB)` (1,067 bytes, SHA-256
+its member wave (1,067 bytes, SHA-256
 `b2783b8993c6fae83fc3989f3e2d581d29568d23013f9485d3e206b46885f4d7`),
 the 39-byte completion predicate, and the 20-byte event callback establish the
 ordered start/retry/completion law. Pinned `InitThing.h` supplies the spawner and
@@ -1124,9 +1065,7 @@ open runtime reach are recorded in
 [`spawner-squad-cycle.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/spawner-squad-cycle.md).
 
 The transcript's former `SupportMinimum`/`SupportMaximum` names are corrected
-to selected attack-provider range results. Exact PC bodies show that
-`0x004FB840` mutates a `CUnit`'s selected weapon/spawner for one target, then
-`0x004FB780/0x004FB7E0` query the chosen provider's minimum/maximum range with
+to selected attack-provider range results. Exact PC bodies show that one helper mutates a `CUnit`'s selected weapon/spawner for one target, then two helpers query the chosen provider's minimum/maximum range with
 weapon-over-spawner priority and positive-zero fallback. PC demo, Xbox, and PS2
 correspondents preserve that transaction. Core still accepts those two results
 as caller-captured cells; reproducing provider selection itself requires actor
@@ -1134,9 +1073,9 @@ lists, active-reader state, terrain sampling, time, and full weapon ballistics.
 
 The copied Steam options bind Movement Forward/Backward/Left/Right to both
 `WASD` and the matching arrow keys, while Look Left/Right/Up/Down consume the
-mouse axes. Steam `CController::DoMappings` at `0x0042DB40` maps each centered
+mouse axes. Steam `CController::DoMappings` maps each centered
 cursor displacement as `clamp(sensitivity * pixels * 0.004333333, -1, 1)`;
-`Input::UpdateCursorCenterWithWindowScale` at `0x0042DA00` retains `10/17` of
+`Input::UpdateCursorCenterWithWindowScale` retains `10/17` of
 that displacement per 20 Hz update. Stuart's player and BattleEngine paths
 corroborate that the resulting analogue axes add walker yaw at
 `GroundTurnRate/75`, pitch at `1/117`, and then retain angular velocity by
@@ -1162,14 +1101,11 @@ remain unproven.
 > rule and not an authored default. Read
 > during this pass from the pristine specimen
 > (a private pristine copy, SHA-256
-> `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`): file
-> `0x2254F4` (VA `0x006254F4`) = `0x40E00000` = `7.0f`, file `0x1D8CC0`
-> (VA `0x005D8CC0`) = `3.0f`, file `0x1D97C8` (VA `0x005D97C8`) =
-> `0.004333333f`. This document already knew the first of those — see the
-> `proof_defaultoptions.bea` warning above, which cites `0x006254F4` as `7.0` —
+> `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`): the three globals' initialisers are `7.0f`, `3.0f` and `0.004333333f`. This document already knew the first of those — see the
+> `proof_defaultoptions.bea` warning above, which records that initialiser as `7.0` —
 > and simply never joined the two halves. The mapping measured here is
 > proportional, so it transfers; the shipped adapter now runs at the image
-> default `7.0` (`fed5829b`). `../CURRENT_CAPABILITIES.md` carries the same
+> default `7.0` (`fed5829b`). [Onslaught-Career-Editor's `CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) carries the same
 > withdrawal. **Unchanged, and deliberately so:** "Other sensitivity values,
 > inversion, and jet mouse response remain unproven" is still exactly true. A
 > sensitivity slider now exists in the client, but no run has been *measured* at
@@ -1178,10 +1114,8 @@ remain unproven.
 
 Separately, a disposable expected-byte-only change to the player constructor's
 preferred-view immediate
-from `1` to `2` selected the released third-person vtable at `0x005D9230`; the
-copy was restored and no retail patch is retained. The third-person constructor
-at `0x00418EF0`, position path at `0x004191C0`, and orientation path at
-`0x00419540` establish the previously inspected pitch-zero third-person
+from `1` to `2` selected the released third-person vtable; the
+copy was restored and no retail patch is retained. The third-person constructor, position path, and orientation path establish the previously inspected pitch-zero third-person
 geometry: camera five units behind and 3.25 units above the 1.9-unit center of
 gravity, looking six units ahead. Retained mesh bounds, the released
 Level 100 ground/start relationship, and copied-runtime framing independently
@@ -1195,10 +1129,10 @@ Fifty-five HUD textures and `Dial.raw` are **retained by the asset materializer*
 count) and are exact released files named
 by the Steam binary or the pinned Stuart weapon resource path. **This is the
 retention count, not the composition count**: the client loads and composes
-**twenty-nine** of them, which is the figure `CURRENT_CAPABILITIES.md` and
+**twenty-nine** of them, which is the figure in [`CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) and
 `rebuild/README.md` quote. The two numbers count different sets and do not
 conflict.
-*(Updated 2026-07-27: was "Fifty-four retained HUD textures"; `cdf8979d` added
+*(Updated 2026-07-27: was "Fifty-four retained HUD textures"; the commit that added
 `Hud/forseti-icon.texture.aya`. The manifest now carries 56 unique `Hud/`
 entries, one of which is `Hud/dial.raw`.)* A clean
 copied-runtime frame,
@@ -1207,9 +1141,8 @@ the first-person composition now used by Godot: the central threat compass and
 target layers, classified lower-left scanner/weapon stack, lower-right Level
 100 influence map or message portrait, objective/world markers, and the
 conditional segmented message panel.
-`CHud__RenderObjectiveProgressGaugeAndHeadingNeedle` at
-`0x004858D0`, `CHud__RenderBattleline` at `0x00487D10`,
-`CMessageBox__RenderOverlay` at `0x004B8850`, and the `CDXCompass` render path
+`CHud__RenderObjectiveProgressGaugeAndHeadingNeedle`, `CHud__RenderBattleline`,
+`CMessageBox__RenderOverlay`, and the `CDXCompass` render path
 provide the retained edge offsets, 45/46-unit scanner north/contact radii, and
 111.5/96/110/98-unit threat, damage, gauge-needle, and objective radii plus
 rotations, packed tints, and state ownership.
@@ -1285,35 +1218,22 @@ render pass is complete.
 Steam's exact dynamically written 16-bit ring pixels and exact portrait RNG
 initial phase remain unproven.
 
-One clean control and two fresh, uninterrupted app-owned Level 100 runs then
-repeated the first eight message boundaries within one 50 ms retail sample.
-In the historical 30 Hz Core sample coordinates, with tick zero aligned to
-Steam's game-time-`3.0` pan start, their intervals
-are HUD introduction `182..351`, threat circle `357..567`, scanner `573..756`,
-message log `762..926`, technician `932..998`, movement `1004..1220`, Target
-Zone 1 instruction `1226..1387`, and objective-scanner instruction `1393..1530`.
-The Battle Engine power flag at offset `0x580` changed `0 → 1` at tick `1000`;
-the released flight flag at `0x58C` and both initial weapon gates remained off.
-At tick `1223`, the object uniquely identified at Target Zone 1's authored
-position changed its `CThing` flags at offset `0x2C` from `0x0002` to `0x0022`,
-setting objective bit `0x20`. Exact English strings decoded from `english.dat`
-and the eight opening Ogg/Vorbis files drive the client.
+One clean control and two fresh, uninterrupted app-owned Level 100 runs then repeated the first eight message boundaries within one 50 ms retail sample. In the historical 30 Hz Core sample coordinates, with tick zero aligned to Steam's game-time-`3.0` pan start, the sampled tick lists are omitted from this public text; the claim rests on the boundary order and the 50 ms agreement. The Battle Engine power gate turned on during the opening sequence, while the released flight flag and both initial weapon gates stayed off. Later, the object uniquely identified at Target Zone 1's authored position gained that zone's objective bit. Exact English strings decoded from `english.dat` and the eight opening Ogg/Vorbis files drive the client.
 
 Two fresh uninterrupted player-input runs then repeated the first objective
 handoff. Target Zone 1's radius-5 volume remained active outside centre
 distances `5.44` and `5.54`, then overlapped the released Battle Engine's
 single-player `0.4` radius by distances `5.29` and `5.39`. Eleven 20 Hz updates
-later, both runs changed Target Zone 1 flags `0x22 → 0x02`, Firing Range flags
-`0x02 → 0x22`, and the active message to ID `4458134` in the same update. Steam
-Battle Engine vtable slot 16 at `0x0040DF80` independently returns `0.4` outside
-multiplayer. `CHud__RenderTacticalRadarContacts` at `0x00484C50` supplies the
+later, both runs changed the Target Zone 1 and Firing Range objective flags and the active message to ID `4458134` in the same update. Steam
+Battle Engine vtable slot 16 independently returns `0.4` outside
+multiplayer. `CHud__RenderTacticalRadarContacts` supplies the
 objective path's yaw rotation, 46-unit clamp, and fixed `0xFFFFFF00` tint used
 with the exact 16×16 DXT2 `CompassObjectiveMarker`. The ninth retained voice is
 exact `tutorial_02.ogg`, 237871 samples at 44.1 kHz.
 
 One clean control and three fresh uninterrupted runs then followed a
 predeclared observer from the Firing Range objective through the first weapon
-exercise. Steam's exact objective-list head at module RVA `0x455140` avoided a
+exercise. Steam's exact objective-list head avoided a
 broad heap scan. Every accepted run cleared the range objective, deactivated the
 player, advanced through message IDs for `TUTORIAL_03`, `HUD_05`,
 `TUTORIAL_PULSE_CANNON`, `TUTORIAL_OPEN_FIRE`, and
@@ -1337,21 +1257,20 @@ A no-fire control and fresh isolated copied-runtime runs then followed each of
 the three Target Tank pointers, player-owned round list, and objective set. Four
 releases at the first active charge bucket (`10`) created normal rounds with
 definition speed `35` and exact movement magnitude `1.75` per 20 Hz update.
-Generation 21 separately binds the shared retail slot-66 body at `0x004D8E40`
+A separate retained-trace check binds the shared retail slot-66 body
 to observed strict-`CRound` dispatch. Retained Level 522 and Level 741 traces
-contain 7,513 call-entry pairs through vtable `0x005DE82C`; the receiver is
+contain 7,513 call-entry pairs through vtable; the receiver is
 continuous in every pair, 7,204 returns are gap-free, and 309 raw returns are
-honestly orphaned across trace barriers. No `CMissile`-style vtable
-`0x005E3BA4` call was observed. This corroborates the placement and call
+honestly orphaned across trace barriers. No `CMissile`-style vtable call was observed. This corroborates the placement and call
 envelope used by `AdvanceActorRounds` / `SteerSeekingRound`, while leaving
 receiver writes, branch ordering, complete contact/lifetime/effect behavior,
 the shared `CMissile` placement, and source spelling open. The focused
 `ForsetiMissile_HomesOnAMovingTarget` test passes, but the mapping remains
 `PARTIAL_CONTRACT`; no reconstruction behavior changed for this admission.
-Generation 22 separately binds the shared retail slot-0 body at `0x004D9910`
+A separate retained-trace check binds the shared retail slot-0 body
 to an observed strict-`CRound` event-routing envelope. Retained Level 521 and
 independent Level 512 recordings contain 2,555 call-entry-arm paths through
-dispatcher `0x0044B68A` and vtable `0x005DE82C`, with receiver/event-pointer
+dispatcher and vtable, with receiver/event-pointer
 continuity and exactly one selected arm per invocation. Event 4002 and the
 shared `CMissile` placement were not observed; arm writes, callees, ordering,
 transitive effects, source spelling, and complete subclass behavior remain
@@ -1363,12 +1282,11 @@ behavior.
 
 The inbound Level 100 actor-round contact now uses the released player shape
 rather than the former target-origin sphere shortcut. Pristine
-`CBattleEngine::SetCollisionShape` `[0x004063B0,0x00406459)` constructs a
+`CBattleEngine::SetCollisionShape` constructs a
 `CCylinder` with single-player radius `0.4` and half-height `0.95`; default
-`SetShape` `[0x00426370,0x004263E6)` translates its centre, and
+`SetShape` translates its centre, and
 `CThing::GetCentrePos` places that centre at owner retail Z `+0.76`. Retail
-Z-down maps it to Core Y `-760` mm. The closed round-line dispatch reaches
-`[0x00440510,0x00440AB2)`, whose world-vertical radial and cap comparisons
+Z-down maps it to Core Y `-760` mm. The closed round-line dispatch reaches a body whose world-vertical radial and cap comparisons
 retain equality and apply no owner orientation. Core clips the
 integer-millimetre segment against the inclusive Y slab and evaluates the X/Z
 radial minimum as an exact rational comparison with radius 400 mm and
@@ -1413,11 +1331,11 @@ change this owner and is deferred until a multiplayer world is admitted.
 Each tank began at life `6` with no shield. Retained Level 100 observations
 recorded aggregate losses `6 → 4.2 → 2.4 → 0.6 → -1.2`; each target set its
 destroyed bit and left the objective set on shot four. One separate glancing
-mesh-part hit removed `1.0`. Pristine `CRound::Hit` (`0x004D8AE0`) sends the
+mesh-part hit removed `1.0`. Pristine `CRound::Hit` sends the
 configured direct `0.8` first, then creates an already-live small explosion.
 That explosion is not statically bound to the direct receiver: its initializer
 synchronously scans neighboring MapWho candidates, and `CExplosion::Hit`
-(`0x0044BF10`) applies radial falloff whose configured `1.0` is only the
+ applies radial falloff whose configured `1.0` is only the
 maximum. Existing generic traces prove six direct-then-explosion same-receiver
 `CUnit` pairs and part `-1`. Static Target Tank construction independently
 closes the same part: its segment-controller field remains null from factory
@@ -1457,7 +1375,7 @@ transaction as an unconditional `1.0` on the direct receiver. Tests pin that
 approximation; they are not spatial-explosion parity proof. With raw input
 geometry now carried by the existing materializer, the next boundary is a
 distinct synchronous explosion at the resolved round position minus
-`normalize(velocity)*0.1` can then apply primary-volume admission and
+`normalize(velocity)*0.1`; it can then apply primary-volume admission and
 per-candidate falloff. The
 [Warehouse report evidence](https://github.com/dlprentice/onslaught-preservation/blob/main/mechanics/cround-hit-damage-path.md#warehouse-segmented-explosion-report)
 now establishes up to six ordered part contacts, each using its own signed
@@ -1466,7 +1384,7 @@ segment controller; part `-1` does not apply aggregate segment damage.
 Natural Level 100 candidate order, actual Warehouse contact rows and cache/controller
 execution remain unresolved. The current one-part aggregate shortcut remains an
 explicit implementation gap.
-Generation 20 adds a narrower retained-trace check on the retail carrier: ten
+A narrower retained-trace check on the retail carrier finds ten
 internal slot-40 calls across three independent TTD sessions cover both
 `CExplosion::Hit` damage arms and carry source equal to the explosion object,
 `applyShields=1`, and mesh part `-1` in every observed call. Six same-receiver
@@ -1476,26 +1394,8 @@ controller-bearing segmented target, and the function entry, return, owned
 writes, nonnegative-part path, and universal behavior remain open. The campaign
 therefore keeps this reconstruction mapping `PARTIAL_CONTRACT`; it does not
 broaden the Warehouse implementation or claim engine-wide explosion parity.
-`CUnit__ApplyDamage` (`0x004F9A90`) receives the mesh-part index and
-`CUnit__MarkDestroyedAndCleanupLinks` (`0x004FD140`) owns the removal, so Core
-does not generalize the unmeasured part multiplier. It consumes only the
-three independently demonstrated direct-hit paths, the retained mesh bound,
-and the released per-update speed, which is now Core's per-tick speed.
-The pristine specimen also fixes the whole-body terminal threshold exactly.
-At VA `0x004F9E61` / file offset `0x000F9E61`, the 32-byte range through
-`0x004F9E80` is SHA-256
-`F6A5A6D8AAB47FFDDD06A16B493FBEDACD0583519277AF2F9E035FF314B087A2`:
-it loads life, subtracts damage, stores the remainder, compares the retained
-x87 value with the `+0.0f` constant at VA `0x005D856C` (file offset
-`0x001D856C`, the dword 0x00000000, SHA-256
-`DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119`),
-then tests x87 C0 and skips the destruction lane when C0 is clear. Finite
-positive and exact-zero remainders therefore survive; finite negative values
-enter the lane. A later `[ESI+0x2C] & 4` gate can still bypass cleanup, so this
-proves the comparison threshold rather than asserting that every negative
-`CUnit` is immediately terminal. The current Level 100 authored life and
-damage values are finite; retail's unordered/NaN C0 behavior remains outside
-this reconstruction contract.
+`CUnit__ApplyDamage` receives the mesh-part index and `CUnit__MarkDestroyedAndCleanupLinks` owns the removal, so Core does not generalize the unmeasured part multiplier. It consumes only the three independently demonstrated direct-hit paths, the retained mesh bound, and the released per-update speed, which is now Core's per-tick speed.
+The pristine specimen also fixes the whole-body terminal threshold exactly. The 32-byte body (SHA-256 `F6A5A6D8AAB47FFDDD06A16B493FBEDACD0583519277AF2F9E035FF314B087A2`) subtracts damage from life, stores the remainder, and compares it with the `+0.0f` constant (SHA-256 `DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119`). The destruction lane is skipped unless the comparison finds the remainder below zero, so finite positive and exact-zero remainders survive and finite negative values enter the lane. A later check of the unit's `+0x2C` flag bit `4` can still bypass cleanup, so this proves the comparison threshold rather than asserting that every negative `CUnit` is immediately terminal. The current Level 100 authored life and damage values are finite; retail's unordered/NaN C0 behavior remains outside this reconstruction contract.
 The speed-`35` physics record names `Mech Pulse Bolt Medium`; its released
 five-entry particle descriptor references four unique texture archives: Blue
 Spark 2, Blue Trail, Halo, and Energy Trail. Those exact archives and their
@@ -1517,12 +1417,7 @@ the in-level sun consumes a resolved effect today - `Sun Sprite`, per
 records 35, 106, and 102 supply the retained 44.1 kHz mono fire, small-impact,
 and medium-explosion PCM respectively. The record names, decoded lengths,
 high-nibble-first IMA-ADPCM output, and retained hashes were independently
-validated. A same-return CDB capture at released
-`CBattleEngine__GetLaunchPosition` (`0x0040C990`) then resolved cockpit emitter
-`Gun`, weapon index `1`, to `-0.005619` right, `+0.080066` forward, and
-`+0.259300` up in the live BattleEngine basis. Core consumes the corresponding
-rounded millimetre offset; the debugger stop supplied only that static return
-value, never timing. Descriptor color ranges, mode-1 tank-smoke blend,
+validated. A same-return debugger capture of the released `CBattleEngine__GetLaunchPosition` resolved the cockpit emitter `Gun`, weapon index `1`, to a live BattleEngine-basis offset. Core consumes the corresponding rounded millimetre offset; the debugger stop supplied only that static return value, never timing. Descriptor color ranges, mode-1 tank-smoke blend,
 secondary emitters, debris, and wreck geometry remain absent.
 
 The complete-Level-100 audio retention extends that same decode contract
@@ -1532,10 +1427,10 @@ Ogg files are retained. Version-103 `sounds.sfx` resolves the exact PCM records
 used by the bounded adapter and supplies their effect volume, pitch variance,
 loop, and language fields. Stuart's `CSoundManager::PlayEffect`, `PauseAllSamples`,
 `UnPauseAllSamples`, and `KillAllSamples` establish selection/randomization and
-lifecycle architecture. Canonical Steam bodies at `0x00404DD0`
-`CBattleEngine__Init`, `0x004081C0` `CBattleEngine__Move`, `0x00468770`
-`CFrontEnd__PlaySound`, `0x0046FAE0`/`0x0046FB00` game unpause/pause, and
-`0x004E1B20` `CSoundManager__UpdateStatus` independently retain the released
+lifecycle architecture. Canonical Steam bodies
+`CBattleEngine__Init`, `CBattleEngine__Move`,
+`CFrontEnd__PlaySound`, game unpause/pause, and
+ `CSoundManager__UpdateStatus` independently retain the released
 effect identities and pause boundary. The adapter consumes ordered numeric
 `Level100MessageRequested`, `AquilaFlightEvent`, and
 `Level100DestructionEvent` streams from `FrameAdvanceResult`. Its Aquila
@@ -1546,15 +1441,15 @@ message clips queue by exact retained ID, while frontend and pause lifecycles
 call the same adapter directly. No playback edge is inferred from a presentation
 snapshot delta. Script waits and playback-duration gates remain deterministic
 mission state.
-Released PC `CSoundManager::SetMasterVolume` at `0x004E04C0` stores the supplied
+Released PC `CSoundManager::SetMasterVolume` stores the supplied
 sound-option float directly; the retained-source tangent curve was not shipped.
 That direct master value and the externally supplied game-sound mix are
 presentation-only adapter inputs, so audio applies but never advances a failure
 fade or other ducking timeline.
 
-Tracked Steam function summaries for `PauseMenu__Init` at `0x004CDE60`,
-`CPauseMenu__Render` at `0x004D11D0`, input dispatch at `0x004D15D0`, action
-dispatch at `0x004D0810`, and resume helper `0x004D06E0` identify the retained
+Tracked Steam function summaries for `PauseMenu__Init`,
+`CPauseMenu__Render`, input dispatch, action
+dispatch, and the resume helper identify the retained
 Level 100 root, Retry/Quit confirmation, safe default to No, and back behavior.
 The retained English table supplies the localized copy; three exact locally
 materialized pause textures and the existing HUD fonts supply the asset inputs.
@@ -1577,7 +1472,7 @@ alphabetically ordered and `GetSong` is zero-based, so selection index `3`
 resolves to exact `data/Music/BEA_04(Master).ogg` (SHA-256
 `32D3E338964D74F50D0094536C585375F1E14AA2BAE6087487803F3529EAF360`).
 Selection playback repeats that track at completion. Released
-`CMusic::SetVolume` at `0x004BBA10` stores `round(option * 127)` as its integer
+`CMusic::SetVolume` stores `round(option * 127)` as its integer
 set volume while preserving the original career float. The adapter normalizes
 that integer only at the Godot presentation boundary; this is not a claim about
 DirectSound or audible-volume parity. Music remains outside `PauseAllSamples`
@@ -1585,7 +1480,7 @@ and is stopped by the level-exit owner.
 
 A shallow read-only parse of the supported copied `default physics.dat`
 correlates the Level 100 unit, weapon-mode, and explosion assignments. It
-establishes the Air Trainer's Forsetti flyby loop, the transport's bomber loop,
+establishes the Air Trainer's `Forsetti Fighter Flyby 02` loop, the transport's bomber loop,
 Target Drone's silent engine and silent missile-launch modes, Drone Vulcan's
 `Blaster 2`, shared Forseti/Micro Missile medium-impact audio, target/truck
 medium destruction, drone small-debris destruction,
@@ -1611,9 +1506,9 @@ The fixed-aim observer could not identify which segments received each earlier
 hit or the precise child-break order on the terminal hit, so it does not prove
 a synchronous cascade of the remaining intact parts. Core follows the static
 controller evidence instead: `CDestructableSegmentsController__ProcessNode`
-(`0x00444C10`) uses each non-root segment's greatest BBOX half extent as its
-weight; `CDestructableSegment__VFunc11` (`0x00442870`) scales that weight by the
-definition maximum life; and `CDestroyableCoreSegment__VFunc11` (`0x00443590`)
+ uses each non-root segment's greatest BBOX half extent as its
+weight; `CDestructableSegment__VFunc11` scales that weight by the
+definition maximum life; and `CDestroyableCoreSegment__VFunc11`
 applies the `5.0` core multiplier and zeros the first core root. The controller
 sums active, unbroken segments' initial health—not partially reduced current
 health—and reports terminal when root core children are gone or that sum is
@@ -1622,9 +1517,9 @@ segment detaches. Child-cascade scheduling uses the shared CRT random owner,
 whose live phase is unresolved, so Core stops at a typed terminal effect
 boundary without inventing cascade timing or debris trajectories.
 
-`CMeshCollisionVolume__VFunc_03` (`0x004AC6E0`) uses each part's BBOX as
+`CMeshCollisionVolume__VFunc_03` uses each part's BBOX as
 rejection metadata before dispatching mesh mode to the one-sided swept-sphere
-triangle path at `0x00478510`; explicit sphere and cylinder owners retain their
+triangle path; explicit sphere and cylinder owners retain their
 analytic primitive dispatch in Steam. This bounded Core owner consumes only the
 hash-verified, deterministically millimetre-quantized mesh projection needed by
 the current Pulse path rather than exposing unused generic primitive APIs or
@@ -1634,10 +1529,10 @@ velocity, health and lifecycle; destruction reports hit/dying/died facts back
 through that owner.
 
 The Thing/Actor base-state seam is source-first from pinned references/Onslaught
-commit 5352a81cdb838b145a57f7febc5d9fc4b0129ebb
-(thing.h/thing.cpp/actor.h/actor.cpp) and reviewed W2 receipt
+commit 5352a81cdb838b145a57f7febc5d9fc4b0129ebb (the pin when the seam was written, dated 2025-12-12)
+(thing.h/thing.cpp/actor.h/actor.cpp) and reviewed commit
 07fca645affb4d0483d35a52d0e70f39c784d15a, merged by
-561c2099acaaec7b2bc65e19b45cc734121967e1. Retail identity comes from the
+561c2099acaaec7b2bc65e19b45cc734121967e1. The current gitlink is c3d8ac464259942b83fa8aa7f867c856e77b734d (dated 2026-10-14; `git ls-tree HEAD references/`). Retail identity comes from the
 promoted CThing/CComplexThing/CActor semantic tables; this implementation made
 no new specimen, runtime, Ghidra, GUI, or raw-corpus measurement.
 

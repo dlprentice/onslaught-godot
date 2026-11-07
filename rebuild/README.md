@@ -1,12 +1,37 @@
 # Onslaught Rebuild
 
-Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a player's whole game from boot (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro.
-Last updated: 2026-11-06 (Verify section marked as the reference-only rebuild's and pointed to the live gate; engine download and lab folder stated; 2026-11-02: public contributor and film setup; 2026-10-29: floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
+Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured on one recorded tape of the whole game (PARITY, 2026-10-23, a maintainer's own input): from boot (new career, level 100 won, outro, debriefing, quit) it equals the native port on every probe field every Present, with the saved career byte for byte. On one recorded win the selected original-game process matches the measured probes and saved careers under the comparison's null-to-zero rule and port-observed sound and loading inputs (PARITY M5); the tutorial pilot's win route equals the port through the level's end and outro. Acceptance limits are stated under [Running the Host](#running-the-host) and [Running the earlier rebuild](#running-the-earlier-rebuild-history).
+Last updated: 2026-11-06 (terms glossary added; earlier lane marked reference only; retail offsets and change notes removed from this text; role labels replaced; Verify section marked as the reference-only rebuild's and pointed to the live gate; engine download and lab folder stated; 2026-11-02: public contributor and film setup; 2026-10-29: floating-point comparison limits and the recorded win's admitted inputs; earlier: the recorded win measured against the original game's fl2a process; retail byte dumps, instruction quotes and private paths removed from the evidence text; the Verify section no longer names the maintainer's distribution; 2026-10-28: diagnostic goodie mesh projection; 2026-10-27: opt-in live audio and bounded V12 device evidence; 2026-10-25: Host foundation scope limits, frontend sprite drawing and explicit reference-playback sound admission; 2026-10-23: the whole-game win route and the saved career equal the port; earlier entries keep their dates)
 Summary: the Godot/C# reconstruction: the floating-point parity core and its bounded comparisons, and the earlier fixed-point rebuild kept as reference.
 [`PROVENANCE.md`](PROVENANCE.md) is the authority for its evidence boundary.
 [`DETERMINISM.md`](DETERMINISM.md) states the Parity core's determinism contract.
 [`PARITY.md`](PARITY.md) defines what
 "1:1 parity" means operationally and what is currently graded.
+
+## Terms used in these documents
+
+| Term | Meaning |
+| --- | --- |
+| retail | The original 2003 PC release of *Battle Engine Aquila*, the game the rebuild is measured against. |
+| Steam install | The game's Steam installation on the user's machine. The Host reads it from `ONSLAUGHT_GAME_DIR`, else from the Linux Steam library's default folder; the materializer takes it as `--game-dir`. |
+| pristine specimen | An unmodified copy of the game's executable, kept outside this repository as the byte baseline. Each byte claim names its specimen with a SHA-256 prefix. |
+| tape, probe, golden | A tape is a recorded sequence of player input that the parity core replays. A probe is a game-state field sampled at each Present. A golden is a recorded reference run (tape plus probes) that a test compares against. |
+| oracle | The results of retail's own code run on captured inputs, used as a reference. |
+| Present | The point at which the game hands a finished frame to the display. The parity core is compared with recorded runs at every Present. |
+| Parity core | `OnslaughtRebuild.Parity`: the simulation. |
+| Host | `OnslaughtRebuild.Host`: the Godot project that runs the parity core and draws the game. |
+| Core, Client, Godot, Headless | The earlier fixed-point rebuild, kept as reference only. |
+| Onslaught CE (CE) | The native Linux and Windows port of the game, published as [onslaught-ce](https://github.com/dlprentice/onslaught-ce). |
+| PC24, PC53 | The x87 precision-control settings for a 24-bit and a 53-bit significand. The parity core's bounded matrix and pose arithmetic uses PC24; PC53 appears as a negative control in the tests. |
+| M5, M7 | Milestones in [PARITY.md](PARITY.md). M5 covers the win, the loss, the end-level data and the career save; M7 is the Godot host running the parity core. |
+| fl2a | The name of one original-game process in the recorded level-100 win comparison: one of the two debriefing outcomes the original game takes. |
+| AYA | The game's packed resource-record format (`.aya`) for textures and meshes. The asset folders keep released records under their AYA names. |
+| HFLD | The level's height-field data, a 64 × 64 tiled sample grid that the rebuild reads for ground height. |
+| MAPT, MMAP | The released landscape records: MAPT holds the terrain texture sources, and MMAP the variable-length material and weight records. |
+| CUnitAI | The original game's unit AI class, by its C++ name. The rebuild carries its close-target scoring kernel. |
+| MSL | The `.msl` mission-script files, such as `LevelScript.msl`, materialized locally with the other inputs. |
+| V12 | The label of the bounded production-device audio fixture recorded in [AUDIO.md](OnslaughtRebuild.Host/AUDIO.md). |
+| Federation Aquila | The released battle-engine model that Level 100 draws; its walker, jet and cockpit meshes are local inputs. |
 
 ## Working lane
 
@@ -14,11 +39,11 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
   `main` when its gate passes. The copy in Onslaught-Career-Editor's `rebuild/` is retained as a frozen reference.
   Build, test and develop the live Parity core and Host in this repository.
 - Builds, test runs and captures happen in a clone on an internal disk (or a worktree of it), never in a checkout on
-  slow or removable storage. Which clone and folders this machine uses is kept in an ignored local file
-  (`local-data/rebuild-env.sh`) and the maintainers' private notes, not in the repository.
+  slow or removable storage. Your own clone and folder paths are kept in an ignored local file
+  (`local-data/rebuild-env.sh`), not in the repository.
 - Public source setup and an authored-test example are in the [root README](../README.md#building-and-testing).
   Windows contributors follow its WSL2 route, with the checkout inside the distribution's Linux filesystem;
-  enabling or installing WSL requires the host owner's approval. Those checks do not establish native Windows acceptance.
+  enabling WSL or installing a distribution needs administrator rights on your machine; that decision is yours. Those checks do not establish native Windows acceptance.
   `python tools/public_build.py setup`, `build` and `test` use a pinned public toolchain inside this checkout and
   require no machine wrapper, private profile or retail inputs. Contributors can prepare changes without the
   maintainer's private reference inputs. The
@@ -43,7 +68,7 @@ Summary: the Godot/C# reconstruction: the floating-point parity core and its bou
 | `X87_ORACLE_OUT` | the pinned compiler's generated x87 tables, including `manifest.json` | `X87OracleTests` |
 
 ```bash
-source local-data/rebuild-env.sh          # the variables above, with this machine's folders
+source local-data/rebuild-env.sh          # the variables above, with your own folders
 export DOTNET_ROOT="$PWD/local-data/toolchains/rebuild/dotnet"
 export DOTNET_ROOT_X64="$DOTNET_ROOT"
 export PATH="$DOTNET_ROOT:$PATH"
@@ -63,7 +88,7 @@ not in the repository; [PARITY.md](PARITY.md) records what each measurement cove
 
 ## Proof of concept (2026-10-15)
 
-David reactivated this lane on 2026-10-15 as a scoped proof of concept: a C# Godot reimplementation that is 1:1 with
+The maintainer reactivated this lane on 2026-10-15 as a scoped proof of concept: a C# Godot reimplementation that is 1:1 with
 retail from startup to exit, with level 100 playable to completion and no other level. 1:1 is measured: retail replay
 tapes played into the rebuild must give retail's probe values at every sample, flow screens must match retail
 captures frame for frame, and the career saved after a win must be byte-identical to retail's. Milestones and pass
@@ -102,8 +127,7 @@ box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
 ### The Godot host (M7)
 
 `OnslaughtRebuild.Host` is the successor host: a Godot 4.8 .NET project, built in code, that runs the parity core and
-draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which is **reference only**: it is not built,
-gated or extended, and it stays (with Core and Client's earlier simulation) because the asset materializer, the
+draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which is **reference only**: it is not part of the Parity or Host gates and is not extended; the earlier launcher can still build and run it (see below), and it stays (with Core and Client's earlier simulation) because the asset materializer, the
 first-flight launcher, the static-mesh preview and several measurement probes still read its sources and recipes;
 pieces are copied into the Host only as needed, noting their origin. By default it renders one level-100
 Present; an experimental live mode (`HOST_LIVE=1`) runs level 100 from the parity core with ordinary input, or
@@ -151,7 +175,7 @@ The materializer's first argument is the output folder. It uses `--game-dir` for
 use the opt-in live audio adapter: a level can stop at an unsupported sound operation (the incoming-missile warning
 is one reproduced case).
 The whole-game preview does not yet admit physical mouse input; its career and options writes stay in memory and
-do not survive closing the Host. It is not yet a complete playable route or an audio acceptance result. Set `HOST_LIVE=1` for level 100
+do not survive closing the Host. At start, the Host copies the installation's `.bes` saves from its `savegames` folder into that memory card, unless `HOST_INSTALL_SAVES=0`. It is not yet a complete playable route or an audio acceptance result. Set `HOST_LIVE=1` for level 100
 alone, or `HOST_LIVE=` (empty) to draw a single Present (`HOST_PRESENT=150`, optionally `HOST_CAPTURE=<file.png>`);
 `python3 rebuild/OnslaughtRebuild.Host/tools/side_by_side.py <capture> <retail capture> <out.png>` compares a capture
 with a retail one.
@@ -203,15 +227,15 @@ This API does not enable live sound.
 
 ## The earlier rebuild (history)
 
-History: on 2026-10-15 David first parked the fixed-point rebuild in favour of the native source port of the
-byte-matching decompilation (now [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp)), then reactivated the lane the same day as the parity-core proof of
+History: on 2026-10-15 the maintainer first parked the fixed-point rebuild in favour of the native source port of the
+byte-matching decompilation (the decompilation is now published as [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp), and its native port as [Onslaught CE](https://github.com/dlprentice/onslaught-ce)), then reactivated the lane the same day as the parity-core proof of
 concept above. The fixed-point code described from here on is the state
 at the old tag archive/godot-rebuild-20260926 (kept in the private RE archive since the history flatten): C# only and built in code, Level 100 winnable through the player-input
 surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in the Godot
 host). Its retail-data decoders, determinism notes and RE contract citations remain useful reference; the sections
 below describe that state, not current work.
 
-## Ownership
+## Ownership (earlier fixed-point lane, reference only)
 
 - `OnslaughtRebuild.Core` owns deterministic simulation state and fixed 20 Hz
   stepping - retail's own rate, `GAME_FR 20.0` / `CLOCK_TICK 0.05`. It has no presentation, filesystem, clock, process, network, or GPU
@@ -222,12 +246,12 @@ below describe that state, not current work.
   state and rolling trace hashes.
 - `OnslaughtRebuild.Godot` (reference only) renders Core snapshots and supplies player input.
 
-The rebuild is C# only and built in code (David, 2026-09-25; see the repository
+The rebuild is C# only and built in code (the maintainer, 2026-09-25; see the repository
 `AGENTS.md`): no GDScript, no editor-authored scenes or resources, shader source
 inside C#. Its scene files are one-node entry wrappers (`Main.tscn` and the
 check scenes). From September 19 to 25 much of the Godot side was ported to
 typed GDScript and editor scenes. On September 25 it returned to the last
-all-code C# rebuild (`b0b9c5e7`), with the pause menu's tree built in code again
+all-code C# rebuild (`b0b9c5e7`, private pre-flatten history), with the pause menu's tree built in code again
 and the later C# changes that carry evidence: the strict AYA texture admission
 below, the 2,148-step smoke validator's state pin (re-pinned whenever an
 evidenced retail law changes the run; the smoke report contract in
@@ -256,7 +280,7 @@ loader short read; `--aya-expect=REPORT` also compares every case, including
 the decoded bytes of the actual textures, with a prior report. These rules
 change malformed input only.
 
-The current Godot app is the **Level 100 Opening Slice**. With locally
+The earlier Godot app (`OnslaughtRebuild.Godot`, reference only) ran the **Level 100 Opening Slice**. With locally
 materialized media, a plain launch plays the released Lost Toys logo, opening
 montage, and splash before click-to-start, v3 main-menu language, retail's
 career-name/load page, the bounded Godot level selector, the mission-briefing
@@ -269,10 +293,7 @@ those files.
 montage and English Level 100 intro audio are decoded beside their frames. The
 intro produced native audio on Linux; playback of the newly added logo/montage
 tracks still needs a live check.
-(*Extended 2026-07-28: this read "click-to-start page, v3 main-menu language, a
-Level 100-only level selector, and the released loading-screen language". The
-three pages added had already shipped; see* `## Current truth` *below for the
-full list and its authority.*) It renders the locally
+It renders the locally
 materialized released Federation Aquila; all 33 visible static objects
 serialized by Level 100; exact close meshes for the 1,481 pine placements
 instantiated by the Steam world loader; the released active-path water grid and
@@ -291,15 +312,7 @@ variants, and two target types retain bounded static conversions. The 1,481
 pine placements use their exact meshes inside the released out-of-box
 **Medium-detail 30-unit**
 mesh-quality boundary and their six-face imposters outside it.
-(*Corrected 2026-07-27, recorded here 2026-07-28: this read "inside the selected
-released high-quality 70-unit boundary".* `70.0` *is the released High-detail
-arm, but it was not the released out-of-box/current default; this workstation's
-saved* `defaultoptions.bea` *selected it.
-The image's own static initialiser is* `30.0f` *at file* `0x2321A0` *of the
-pristine specimen* (a private pristine copy)*,
-SHA-256* `74154bfa…`*, read again during this pass; the released out-of-box
-Geometry detail arm is Medium. Offset table and the proof that*
-`defaultoptions.bea` *is run state:* [`PROVENANCE.md`](PROVENANCE.md)*.*) The
+The image's own static initialiser is `30.0f` in the pristine specimen (a private pristine copy, SHA-256 `74154bfa…`), and the released out-of-box Geometry detail arm is Medium. `70.0` is the released High-detail arm, but not the out-of-box/current default; a saved options file (`defaultoptions.bea`, run state rather than an authored default) can select it. The offset table and the proof that the options file is run state are in [PROVENANCE.md](PROVENANCE.md). The
 reconstruction draws no third fast-tree path: no always-on camera-facing
 standing card and no height-gated horizontal card is rendered — the only pine
 representations are the gated close meshes and the six-face far imposters
@@ -323,8 +336,7 @@ bounded v3 crosshair, threat compass, lower-left scanner/weapon instrument,
 lower-right battleline/portrait, active-objective markers, and conditional
 message panel. The first seventeen released English tutorial messages through
 the first exercise's Vulcan handoff now use their exact text, shipped voice
-clips, proportional font metrics, and four released Tatiana/technician portrait
-poses. Core follows the observed
+clips, proportional font metrics, and four released portrait poses (Tatiana, the technician and Kramer). Core follows the observed
 power, objective, weapon-highlight, four-target, and Pulse Cannon activation
 boundaries while keeping flight disabled. Independently repeated lowest-charge
 Pulse Cannon runs now give all three training tanks their retail speed,
@@ -373,7 +385,7 @@ This section describes the earlier fixed-point rebuild's launcher (`rebuild/tool
 `OnslaughtRebuild.Godot`), kept for reference; to run the current rebuild, see
 [Running the Host](#running-the-host). The launcher looks for a Godot 4.8 beta1 .NET engine named `godot48-mono` (or
 the path it is given) and its bundled `Godot.NET.Sdk/4.8.0-beta.1` packages, and requires the exact identity
-`4.8.beta1.mono.official.4d10419ca`; the projects target `net10.0` (SDK 10.0.402, `global.json`).
+`4.8.beta1.mono.official.4d10419ca`; the projects target `net10.0` (SDK 10.0.402, `global.json`). The default engine name is `godot48-mono`, looked up on `PATH`. To use the engine that setup installed, pass its path with `--engine`, for example `npm run ref:godot-build -- --engine=local-data/toolchains/rebuild/engine/Godot_v4.8-beta1_mono_linux.x86_64`.
 
 ```bash
 npm run ref:godot-build
@@ -428,7 +440,7 @@ smoke and live startup into Level 100 establish Linux runtime execution; complet
 controls/audio/tutorial parity remains unverified.
 
 The Windows PowerShell launchers, their toolchain manifests and the Windows
-capture scripts were retired on 2026-09-26 (David: no PowerShell); Git keeps them.
+capture scripts were retired on 2026-09-26 (the maintainer's decision: no PowerShell); Git keeps them.
 The smoke's report contract and the capture's provenance stamp, health checks and
 scoring now live in the Linux launcher. There is no Windows launcher, so Windows
 acceptance needs a separately provided Windows environment and a launcher for it.
@@ -451,7 +463,7 @@ run); input/audio or GPU claims still require their
 actual environment. Do not defer a compatible update solely because it is a
 development build. No monitoring automation is implied.
 
-Controls:
+Earlier Godot app (reference only) controls:
 
 | Input | Action |
 | --- | --- |
@@ -466,18 +478,20 @@ Controls:
 | `Space` | Fire the selected implemented weapon after the tutorial enables it |
 | `R` | Reset the slice |
 
-## Current truth
+The current Host maps its keyboard through [`HostKeyMap.cs`](OnslaughtRebuild.Host/HostKeyMap.cs), which relates physical key positions to the game's PC virtual keys and scan codes; this README does not list the Host's controls.
+
+## Current truth (earlier fixed-point lane, reference only)
 
 World 110 constructs in Core (2026-09-26). `Simulation` builds it from the
 materialized static world (`Assets/Level110/level110-static-world.json`) in the
 retail load order: the shared base world, then the level rows with their
 squads, landing craft and turret children, fighters and scripts, then the
 pre-run and the start state, where the player is activated on frame 140. It
-follows the RE lane's construction contract. VALIDATION.md's "World 110
+follows the reverse-engineering construction contract. [VALIDATION.md](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/VALIDATION.md)'s "World 110
 construction and start state" lists what is carried and what is open:
 landing-craft flight, landing and cargo, and squad formation. Level 100's U-17
 flies its path, retreats to its side's nearest safe side and leaves
-(`Level100ActorDropshipRuntime`, from the RE lane's dropship contracts), and the
+(`Level100ActorDropshipRuntime`, from the reverse-engineering dropship contracts), and the
 Air Trainers leave the same way when their scripts call `Retreat`; World
 110's landing craft wait for the landing states, since one lands at once. A Level 100 win
 hands World 110 its surviving base world through the career ("World 110's
@@ -501,10 +515,6 @@ the Level 100 intro cutscene. The
 `RetailFrontendScreen` enum in
 `rebuild/OnslaughtRebuild.Client/RetailFrontendSession.cs` is authoritative for
 that list; read it rather than this sentence when the two disagree.
-(*Corrected 2026-07-28: this read "The frontend owns **only** click-to-start,
-Main Menu, the Level 100-only selector, and Loading." The word "only" made it a
-completeness claim and it was false — five further screens were already declared
-and shipping. Nothing was removed; the list was understated.*)
 `RetailCareerSaveCodec` is a deterministic Core reader over a caller-supplied
 byte span. It accepts only the measured 10,004-byte / `0x4BD1` PC container,
 validates the 43 campaign nodes and 86 structural link rows, retains a private
@@ -524,28 +534,7 @@ Core/Client can carry any loaded career's `SuggestedWorldNumber`, and
 does not project that general state: it does not read `SelectedWorldNumber` for
 rendering or implement LevelSelect keyboard traversal, its pointer path exposes
 only world 100 and unlocked world 110, and the host constructs only world 100.
-(*Updated 2026-08-22: the selector is no longer Level-100-only by law. The
-session carries the released 43-node career graph
-(`OnslaughtRebuild.Core/RetailWorldCatalog.cs`, Stuart's pinned
-`Career.cpp:24-70`) and `SelectWorld` admits a world exactly when retail's
-measured ReCalcLinks unlock admits it — the root always, any other world once a
-completed incoming link points at it. The launch edge was renamed
-`LevelLaunchRequested` and carries `ConsumeLaunchWorldNumber`. What a launch
-*constructs* is still Level 100 only. Core builds World 110 from retail data
-through its start state, with the career's carry-over from Level 100 (below),
-and the Client session can launch it, but the Godot host has no World 110
-lifecycle or presentation yet. The old relabeled-Level100 Simulation route is
-explicitly unsupported. After a Level 100 Won
-reaches `FrontEndHandoffReady`, Client applies
-the pinned FillOut/Career update, consumes the two Career Goodie latches in
-retail order, and opens `FEP_DEBRIEFING`. The settled page projects the measured
-mission status, objective-group summaries, and win-only grade and draws the
-exact locally materialized rank/ring surfaces. Confirm or Back then enters
-SELECT LEVEL, where world 110 is already selectable. The Episode-1 child node
-is clickable, but launching it returns to SELECT LEVEL rather than constructing
-Level 100 in its place. `SetCurrentLevelToHighestAvailable` is not in the source
-drop and is not invented — the highlight stays on the root until the player
-picks the child.*
+The selector is no longer Level-100-only by law. The session carries the released 43-node career graph (`OnslaughtRebuild.Core/RetailWorldCatalog.cs`, from Stuart Gillam's ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)) pinned `Career.cpp:24-70`), and `SelectWorld` admits a world exactly when retail's measured ReCalcLinks unlock admits it: the root always, and any other world once a completed incoming link points at it. The launch edge is `LevelLaunchRequested` and carries `ConsumeLaunchWorldNumber`. What a launch constructs is still Level 100 only. Core builds World 110 from retail data through its start state, with the career's carry-over from Level 100 (below), and the Client session can launch it, but the Godot host has no World 110 lifecycle or presentation yet. The old relabeled-Level100 Simulation route is explicitly unsupported. After a Level 100 Won reaches `FrontEndHandoffReady`, Client applies the pinned FillOut/Career update, consumes the two Career Goodie latches in retail order, and opens `FEP_DEBRIEFING`. The settled page projects the measured mission status, objective-group summaries and win-only grade, and draws the exact locally materialized rank/ring surfaces. Confirm or Back then enters SELECT LEVEL, where world 110 is already selectable. The Episode-1 child node is clickable, but launching it returns to SELECT LEVEL rather than constructing Level 100 in its place. `SetCurrentLevelToHighestAvailable` is not in the source drop and is not invented: the highlight stays on the root until the player picks the child.
 Each launch request makes the host construct a fresh canonical
 `InteractiveSession` from the materialized Level 100 actor definitions before
 gameplay activation. The frontend does not inspect
@@ -643,14 +632,12 @@ no-op and detach-old/publish-new/attach-new rebind order, and tracks each
 target's reverse memberships newest-first. Target shutdown nulls only those
 registered cells before clearing the reverse set; for the UnitAI retained
 target this leaves the adjacent gate and fire-result fields untouched. The PC
-UnitAI owner path also detaches outbound cells `+0x28`, `+0x24`, then `+0x0C`
-before invalidating readers aimed at the dying AI. Runtime objects and pointers
+UnitAI owner path also detaches its three outbound cells, in retail's order, before invalidating readers aimed at the dying AI. Runtime objects and pointers
 remain adapter-owned; Core models the deterministic relationship, not retail's
 allocation-failure crash.
 
 `RetailPlayerBattleEngineAssignment` now composes two of those graph writes at
-the next exact player boundary. Pristine `CPlayer::AssignBattleEngine`
-`[0x004d3080,0x004d30c5)` first binds the player's engine reader, then the
+the next exact player boundary. Pristine `CPlayer::AssignBattleEngine` (its address range is in the private evidence record) first binds the player's engine reader, then the
 engine's player reader. A same-target first call does not skip the second call;
 reassignment also leaves the old engine's backlink and the displaced player's
 forward link intact. Any nonzero raw player God word emits the exact later
@@ -740,7 +727,7 @@ or session owner exists, and the only constructed product world remains Level
 The walker now consumes the shipped Aquila configuration's exact `1.0/75`
 yaw-input gain instead of the older fitted `1.7/75` value. Terrain touchdown
 also consumes the pinned-source and pristine-PC-static Battle Engine contract:
-retail `CBattleEngine::DeclareOnGround` at `0x0040C750` has the same strict
+retail `CBattleEngine::DeclareOnGround` (its address is in the private evidence record) has the same strict
 walker/non-walker speed thresholds, dash self-damage immunity, incidence-squared
 shield-bypassing damage and whole-velocity retention, plus the low-speed jet's
 `0.90` retention. Core evaluates that contact against its deterministic Level
@@ -799,24 +786,7 @@ initialiser. What remains unproven is the *runtime mapping at any value other
 than the single one that was actually measured*; no run has been captured at a
 second sensitivity.
 
-> **Superseded 2026-07-27, recorded here 2026-07-28.** The list above previously
-> read "mouse inversion and sensitivity settings other than the copied Steam
-> `1.5` baseline". **`1.5` is not a released default or UI-selectable value.**
-> It was a copied-options test setting consumed by the retail executable.
-> Retail's slider law is `g_MouseSensitivity = (index + 1) * 3.0f` with max
-> index `0x14`, so the reachable set is `{3, 6, … 63}` and `1.5` is below the
-> floor; it reached the reconstruction from the copied `defaultoptions.bea` those
-> runs were configured through, which is persisted run state rather than an
-> authored value. Read this pass from the pristine specimen
-> (a private pristine copy), SHA-256
-> `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`: file
-> `0x2254F4` (VA `0x006254F4`) = `0x40E00000` = `7.0f`, `0x1D8CC0`
-> (VA `0x005D8CC0`) = `3.0f`, `0x1D97C8` (VA `0x005D97C8`) = `0.004333333f`.
-> The pointer scalar moved from `13/2000` to `91/3000` in `fed5829b` — aiming
-> had been 4.67× too slow at equal hand motion. See
-> Onslaught-Career-Editor's capability list of that time for the
-> withdrawal in full. **Unchanged:** mouse inversion really is still absent, and it stays in
-> the list above.
+`1.5` is not a released default or UI-selectable value; it was a copied-options test setting consumed by the retail executable. Retail's slider law is `g_MouseSensitivity = (index + 1) * 3.0f` with max index `0x14`, so the reachable values are 3, 6, … 63 and 1.5 is below the floor. The copied `defaultoptions.bea` those runs were configured through is persisted run state rather than an authored value. The image's own static initialiser, `7.0f`, is read from the pristine specimen (a private pristine copy, SHA-256 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`) and is not reachable from the slider; with the pointer scalar `13/3000`, it gives `91/3000`. Mouse inversion is still absent and stays in the list above.
 
 The client switches between the released walker's and jet's exact part
 hierarchies and independently animates the exact first-person cockpit. It
@@ -855,7 +825,7 @@ meshes, and range targets plus the four exact 64×64
 textures named by the medium Pulse Bolt descriptor. It also uses twenty-nine
 exact HUD textures, including the three released v3 crosshair layers,
 uncompressed proportional font atlas, scanner/north sprites, battleline,
-four-pose Tatiana/technician portrait/noise treatment, and objective marker. The
+four-pose Tatiana, technician and Kramer portrait/noise treatment, and objective marker. The
 observed player route uses Steam's
 5.4-unit overlap and delayed dispatch to replace Target Zone 1 with the Firing
 Range on that radar. A control and three repeated retail runs then establish the
@@ -909,7 +879,7 @@ This section verifies the earlier, reference-only rebuild (`OnslaughtRebuild.Cor
 `ref:*` scripts below belong to it and are not part of the contribution gate; `ref:core-tests`, `ref:client-tests` and
 `ref:headless` first run `prepare:rebuild-assets`, which materialises retail data from your own installation of the game. To check the live Parity core and Host, use the
 [contribution gate](../CONTRIBUTING.md#the-gate): `python tools/public_build.py test --filter ...` for the affected authored
-tests, `npm run build`, and the documentation, tools and safety checks.
+tests, `npm run build`, and the documentation, tools and safety checks. The whole Parity suite (`dotnet test rebuild/OnslaughtRebuild.Parity.Tests`) needs the recorded references, which only a maintainer has; list the checks you could not run in the pull request.
 
 For the earlier rebuild, on Linux, choose the smallest native command:
 
@@ -926,7 +896,7 @@ rendering/runtime path changed:
 npm run ref:godot-smoke
 ```
 
-The headless host loads the checked-in `first-flight.v1.json`, repeats it, and
+The headless host loads the checked-in `rebuild/scenarios/first-flight.v1.json`, repeats it, and
 fails if identical inputs diverge. It reports versioned state and trace hashes;
 callers may supply `--expect <trace-hash>` when they own an external expected
 result. Files are limited to 8 MiB and one invocation to 100,000 total steps.
@@ -940,7 +910,7 @@ only; it has no screenshot or visual-parity machinery.
 
 Visual regression is a separate gate. `npm run ref:godot-capture -- --plan
 PLAN` (`startup`, `gameplay`, `mainmenu` or `options`; `--size`, default
-640x480, retail's frontend) draws the rig's shots through `godot-offscreen`,
+640x480, retail's frontend) draws the rig's shots through an offscreen wrapper (`--offscreen`, default `godot-offscreen`, the maintainer's own tool; contributors use their own offscreen setup),
 stamps the manifest's provenance (`--purpose production` holds only for committed
 Godot source; dirty or unknown source is a `probe`), refuses shots on the wrong
 screen, unsaved, resized or missing, and scores the run with
