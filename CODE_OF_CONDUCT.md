@@ -9,4 +9,5 @@ This project follows the Contributor Covenant, version 2.1. Its text is at
 repository's issues, pull requests and discussions.
 
 To report unacceptable behaviour, use **Report a vulnerability** on this repository's Security tab
-(<https://github.com/dlprentice/onslaught-godot/security/advisories/new>). The report goes privately to the maintainer.
+(<https://github.com/dlprentice/onslaught-godot/security/advisories/new>). The report goes privately to the maintainer. If you would rather use email,
+write to the project inbox, <onslaughtce@gmail.com>.
