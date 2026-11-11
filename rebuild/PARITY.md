@@ -26,10 +26,10 @@ divergences and the gates. [PARITY-LOG.md](PARITY-LOG.md) holds the dated measur
 Milestone status as of 2026-10-29. The measurements behind each row are dated entries in [PARITY-LOG.md](PARITY-LOG.md);
 the milestones and their pass criteria are in [Proof-of-concept milestones](#proof-of-concept-milestones).
 
-**The required reference gate is incomplete.** Three cases of the Parity suite cannot run for lack of inputs: two
-occupancy-reference checks and one sample decoder/converter oracle check. The latest dated run is the first entry of
-the [log](PARITY-LOG.md#latest-entries-2026-11-02-to-2026-11-04). A missing reference, an empty selection and a new skip
-are not a pass.
+**The required reference gate is incomplete.** In the latest dated run (the first entry of the
+[log](PARITY-LOG.md#latest-entries-2026-11-02-to-2026-11-04)) three cases were skipped: two occupancy-reference checks,
+whose references are unavailable, and one sample decoder/converter oracle check, whose oracle results are unavailable.
+A missing reference, an empty selection and a new skip are not a pass.
 
 | # | Status |
 | --- | --- |
