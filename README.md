@@ -53,7 +53,7 @@ dozens of paths for no gain.
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
 | `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to run the Host, what is measured, where code comes from, the determinism contract |
 | `rebuild/PARITY-LOG.md`, `PARITY-EARLIER-LANE.md`, `EARLIER-REBUILD.md` | the dated measurements, and the earlier fixed-point rebuild's contract table and overview |
-| `references/Onslaught` | Stuart Gillam's GPL Onslaught project ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)), pinned as a submodule through the maintainer's public fork [dlprentice/Onslaught](https://github.com/dlprentice/Onslaught) |
+| `references/Onslaught` | Stuart Gillam's GPL Onslaught project ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)), pinned as a submodule through David's public fork [dlprentice/Onslaught](https://github.com/dlprentice/Onslaught) |
 | `tools/` | measurement and documentation tools the rebuild uses |
 | `tests_shared/fixtures/` | the one tracked career save, a test baseline |
 
@@ -150,7 +150,8 @@ the game's developer, publisher or rights holders.
 [CONTRIBUTING.md](CONTRIBUTING.md) says [where each kind of work belongs](CONTRIBUTING.md#where-to-contribute) across the
 project's public repositories, what to run in your [first hour](CONTRIBUTING.md#your-first-hour), the gate a change has
 to pass and the licence of contributions;
-[SECURITY.md](SECURITY.md) says how to report a security problem privately.
+[SECURITY.md](SECURITY.md) says how to report a security problem privately;
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) says how people are expected to behave and where to report otherwise.
 
 ## Related projects
 

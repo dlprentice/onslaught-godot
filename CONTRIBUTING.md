@@ -1,10 +1,11 @@
 # Contributing
 
 Status: active
-Last updated: 2026-11-11 (where things live and where to start added; the earlier lane's clean-clone limit stated; the Parity classes that need no references listed)
+Last updated: 2026-11-11 (where things live and where to start added; the earlier lane's clean-clone limit stated; the Parity classes that need no references listed; a code of conduct linked)
 Summary: where each kind of work belongs, how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
-Thank you for your interest. Please read this before opening an issue or a pull request.
+Thank you for your interest. Please read this before opening an issue or a pull request. Everyone taking part is
+expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Where to contribute
 
@@ -73,15 +74,17 @@ gate and read no installation or reference path, so they need only the checkout:
 `FrontEndInitTests`, `FrontEndMessageBoxTests`, `FrontEndTests`, `GameScriptMembersTests`, `GoodieMeshViewerTests`,
 `HostFlowKeyboardTests`, `HostSuspensionTests`, `InlineMatrixRangeTests`, `JoystickEnableTests`, `LeadTimeSumOrderTests`,
 `LevelSelectTests`, `LiveAudioOutputStartupTests`, `LiveAudioSuspensionTests`, `MatrixOrderTests`, `MechHierarchyTests`,
-`OriginalLossReferenceTests`, `PageTests`, `PlatformInputTests`, `RetailMatrixSubnormalTests`, `RoundDirectionTests`,
+`OriginalLossReferenceTests`, `PageTests`, `PlatformInputTests`, `ProbeTraceNullTests`, `RetailMatrixSubnormalTests`, `RoundDirectionTests`,
 `RoundSeekerTests`, `RoundWiggleTests`, `SPtrSetTests`, `SaveGameTests`, `ScriptAttackTests`, `ScriptVmTests`,
 `SeedUniformRandomNumberStreamTests`, `StraightAimTests`, `SubnormalDecayTests`, `SystemFlowTests`, `TextAndFontTests`,
 `UnitSoundLifetimeTests`, `UnitWeaponLifetimeTests`, `VirtualKeyboardTests`, `WorldSoundCallerTests`,
 `X87OracleAdmissionTests` and `X87Tests`. `CareerTests`, `DisplayResetTests`, `KeyboardPresetTests`, `LoadPathTests`
 and `ControllerTests` also run without references but read the repository's tracked career save fixture. Every other
 class has at least one test that is gated on game data, recordings, native-port logs or the retail oracle (the
-`GameDataFact`, `RetailDataFact`, `PortLogFact`, `RetailGoldenFact`, `RetailOracleFact` and `X87OracleTheory`
-attributes) or that reads a reference path itself, and its gated tests report skips on a clean clone. The list is a snapshot of the test sources:
+`GameDataFact`, `RetailDataFact`, `RetailFileFact`, `PortLogFact`, `RetailGoldenFact`, `RetailOracleFact` and
+`X87OracleTheory` attributes) or that reads a reference path itself, and its gated tests report skips on a clean clone.
+`BoundedPc24Tests` needs no references either, but it runs only on Linux x64 with glibc (`LinuxX64GlibcFact`) and skips
+elsewhere. The list is a snapshot of the test sources:
 a class can still fail for other reasons, and a new test can change its group, so check the gating attributes in the
 class you filter on.
 
