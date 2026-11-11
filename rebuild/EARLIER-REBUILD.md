@@ -17,7 +17,7 @@ line count it is most of the C# in this repository, and it cannot be built from 
   reserves that folder, and the asset folders of `OnslaughtRebuild.Godot`, for files materialized locally from your own installation of
   the game with `rebuild/tools/materialize_retail_assets.py` (`npm run prepare:rebuild-assets`). They are never tracked.
 - `Client`, `Godot` and `Headless` depend on Core, and so do the Core and Client tests.
-- `OnslaughtRebuild.slnx` and `OnslaughtRebuild.Visual.slnx` both include these projects. Do not build them from a clean
+- `OnslaughtRebuild.slnx` and `OnslaughtRebuild.Visual.slnx` both include Core (and so depend on its untracked assets). Do not build them from a clean
   clone; the supported route is `python tools/public_build.py build` and `test`, which build the Host and the Parity project and run a selection of authored tests
   only ([root README](../README.md#building-and-testing)).
 

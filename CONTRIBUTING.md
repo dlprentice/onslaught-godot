@@ -83,8 +83,8 @@ and `ControllerTests` also run without references but read the repository's trac
 class has at least one test that is gated on game data, recordings, native-port logs or the retail oracle (the
 `GameDataFact`, `RetailDataFact`, `RetailFileFact`, `PortLogFact`, `RetailGoldenFact`, `RetailOracleFact` and
 `X87OracleTheory` attributes) or that reads a reference path itself, and its gated tests report skips on a clean clone.
-`BoundedPc24Tests` needs no references either, but it runs only on Linux x64 with glibc (`LinuxX64GlibcFact`) and skips
-elsewhere. The list is a snapshot of the test sources:
+`BoundedPc24Tests` needs no references either; one of its tests runs only on Linux x64 with glibc
+(`LinuxX64GlibcFact`) and skips elsewhere. The list is a snapshot of the test sources:
 a class can still fail for other reasons, and a new test can change its group, so check the gating attributes in the
 class you filter on.
 
