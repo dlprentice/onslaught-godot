@@ -1,7 +1,7 @@
 # Earlier rebuild (reference only)
 
 Status: reference only — the earlier fixed-point rebuild (`OnslaughtRebuild.Core`, `Client`, `Godot`, `Headless`), kept for the decoders, notes and contract citations it holds; not extended
-Last updated: 2026-11-11 (moved out of README.md unchanged, with the clean-clone note added)
+Last updated: 2026-11-11 (moved out of README.md, with the clean-clone note added)
 Evidence: SOURCE — the project files, the repository's `.gitignore` and the earlier README text it was moved from; no claim here is a new measurement.
 Summary: what the earlier fixed-point rebuild is, who owns what in it, how its launcher and checks ran, and its state at the old tag archive/godot-rebuild-20260926.
 
@@ -14,11 +14,11 @@ The earlier rebuild is `OnslaughtRebuild.Core`, `Client`, `Godot` and `Headless`
 line count it is most of the C# in this repository, and it cannot be built from a clean clone:
 
 - `OnslaughtRebuild.Core` embeds level data from `rebuild/OnslaughtRebuild.Core/Assets/`. The repository's `.gitignore`
-  reserves that folder, and the Godot asset folders beside it, for files materialized locally from your own installation of
+  reserves that folder, and the asset folders of `OnslaughtRebuild.Godot`, for files materialized locally from your own installation of
   the game with `rebuild/tools/materialize_retail_assets.py` (`npm run prepare:rebuild-assets`). They are never tracked.
 - `Client`, `Godot` and `Headless` depend on Core, and so do the Core and Client tests.
 - `OnslaughtRebuild.slnx` and `OnslaughtRebuild.Visual.slnx` both include these projects. Do not build them from a clean
-  clone; the supported route is `python tools/public_build.py build` and `test`, which cover the Host and the Parity tests
+  clone; the supported route is `python tools/public_build.py build` and `test`, which build the Host and the Parity project and run a selection of authored tests
   only ([root README](../README.md#building-and-testing)).
 
 The projects stay in the tree because the asset materializer, the first-flight launcher, the static-mesh preview and
@@ -30,7 +30,7 @@ decision.
 
 History: on 2026-10-15 the maintainer first parked the fixed-point rebuild in favour of the native source port of the
 byte-matching decompilation (the decompilation is now published as [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp), and its native port as [Onslaught CE](https://github.com/dlprentice/onslaught-ce)), then reactivated the lane the same day as the parity-core proof of
-concept above. The fixed-point code described from here on is the state
+concept ([README.md](README.md#proof-of-concept-2026-10-15)). The fixed-point code described from here on is the state
 at the old tag archive/godot-rebuild-20260926 (kept in the private RE archive since the history flatten): C# only and built in code, Level 100 winnable through the player-input
 surface with a deterministic replay tape, World 110 built in Core from retail data (not playable in the Godot
 host). Its retail-data decoders, determinism notes and RE contract citations remain useful reference; the sections
@@ -194,10 +194,10 @@ npm run ref:godot-run
 ```
 
 `npm run ref:gate` (`rebuild/tools/rebuild_gate.py`) runs the lane's whole
-gate: the build, the Core suite (the cold-start test writes its won tape), the
+gate: the build of the earlier Godot project, the Parity suite, the Core suite (the cold-start test writes its won tape), the
 Core ferry-landing sweep, the Client suite, the pause and AYA checks in headless Godot, the headless smoke with its
 recorded tape, and two C# replays of each tape. Its summary prints the suite
-counts and the tapes' trace and state hashes; logs go to a fresh
+counts and the tapes' trace and state hashes. It does not build the Host. Logs go to a fresh
 `local-data/test-runs/rebuild-gate-*` directory. `--only core,client` runs a
 subset.
 
