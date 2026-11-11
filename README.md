@@ -24,7 +24,9 @@ It is not a playable release yet. To play the game, use [Onslaught CE](https://g
 - A recorded whole game (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe
   field at every Present, and the saved career and options file match the port's byte for byte.
 - One separately recorded level-100 win equals one of the original game's two debriefing outcomes on every probe at every
-  Present of that run, with the saved careers and the options file byte for byte. That was a private harness run with the
+  Present of that run, with the saved careers and the options file byte for byte. On 2,477 of that run's Presents, the
+  frames with no player, the original's probes record POS and LIFE as null, which the comparison counts as zero; 2 of
+  the 8 original processes that reach the debriefing take that path. That was a private harness run with the
   pristine game in Wine, not a suite test, and it admits a sound-pool seed and a goodie-load completion observed in port
   processes. Two other recorded level-100 loss routes match selected probes and modelled battle-engine fields against
   original processes, within each test's stated Present bounds.
@@ -45,7 +47,7 @@ dozens of paths for no gain.
 
 | Path | What |
 | --- | --- |
-| `rebuild/OnslaughtRebuild.Parity`, `.Parity.Tests` | the parity core and its suite; the public build route builds and tests them |
+| `rebuild/OnslaughtRebuild.Parity`, `.Parity.Tests` | the parity core and its suite; the public build route builds them and runs a selection of authored tests |
 | `rebuild/OnslaughtRebuild.Host` | the Godot host; the public build route builds it |
 | `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` (and the Core and Client tests) | the earlier fixed-point rebuild, kept as reference only. It cannot be built from a clean clone: Core embeds assets materialized from your own game installation ([EARLIER-REBUILD.md](rebuild/EARLIER-REBUILD.md)), and the two `.slnx` files in `rebuild/` include it |
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
@@ -158,7 +160,7 @@ to pass and the licence of contributions;
 - [onslaught-preservation](https://github.com/dlprentice/onslaught-preservation): the game's documentation (formats,
   mechanics, levels).
 - [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor) (the Toolkit): Onslaught Companion,
-  the app for saves, settings and lore, and the project's goal and plan (to be renamed onslaught-companion).
+  the app for saves, settings and lore, and the project's goal and plan.
 - [Stuart Gillam’s GPL Onslaught project](https://github.com/stuart73/Onslaught).
 
 ## Long-term direction
