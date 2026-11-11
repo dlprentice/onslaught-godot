@@ -62,6 +62,11 @@ There is no hosted CI, so the checks below are yours to run and report. What you
 | Anything that runs the game or compares with recordings | Your own copy of *Battle Engine Aquila*; the recorded references stay with the maintainers | List the checks you could not run in the pull request |
 | Any new file | Nothing more | `python3 tools/public_allowlist_safety_check.py --include-submodules` |
 
+To choose Parity tests for a C# change, look in `rebuild/OnslaughtRebuild.Parity.Tests/` for the test classes of the area you
+change and pass their names to `--filter`. The default selection runs three classes only. A test that needs game data or a
+recorded reference reports a skip, which is not a pass; check the run's report for skips, and list them in the pull request.
+Which classes run fully without references is not recorded in one place yet.
+
 The `npm run` forms of the documentation and safety checks (`npm run test:docs`, `npm run test:safety`) need Node 26
 and are equivalent; the [README](README.md#building-and-testing) has the full setup.
 
@@ -72,16 +77,8 @@ chat links, private paths and anything copied from the game.
 
 ### Terms you will meet
 
-- **Present**: the point at which the game hands a finished frame to the display. The parity core is compared with
-  recorded runs at every Present.
-- **Tape**: a recorded sequence of player input that the parity core replays ([determinism contract](rebuild/DETERMINISM.md)).
-- **Probe**: a field of game state sampled at each Present and compared between runs; **golden**: a recorded reference
-  run (tape plus probes) that a test compares against.
-- **Parity core** (`OnslaughtRebuild.Parity`): the simulation. **Host** (`OnslaughtRebuild.Host`): the Godot project that
-  runs it and draws the game.
-- **Reference-bearing check**: a check that needs recorded runs kept outside this repository; only a maintainer can run it.
-- **The Toolkit**: the Onslaught-Career-Editor repository (the Companion app, its tools and the project's goal and plan),
-  also called Onslaught Companion.
+Present, tape, probe, golden, parity core, Host, the Toolkit and the other terms the documents use are defined once, in the
+[glossary](rebuild/README.md#terms-used-in-these-documents).
 
 ## How changes are made
 
