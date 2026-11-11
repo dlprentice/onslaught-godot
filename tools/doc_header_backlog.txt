@@ -1,4 +1,4 @@
-# Documentation-header backlog -- see DOCUMENTATION.md.
+# Documentation-header backlog -- see CONTRIBUTING.md for the header fields.
 #
 # Documents listed here predate the header standard. They are reported by
 # tools/doc_header_check.py but do not fail it. Anything NOT listed here is

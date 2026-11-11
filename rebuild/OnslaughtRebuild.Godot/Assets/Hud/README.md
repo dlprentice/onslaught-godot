@@ -24,7 +24,7 @@ message treatment. Fifty-five exact textures plus the exact dial byte-sprite
 source are **retained** here; the executable manifest in
 `rebuild/tools/materialize_retail_assets.py` is authoritative.
 **Retained is not the same as composed**: the client loads and composes
-**twenty-nine** of these, which is the count [`CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) and
+**twenty-nine** of these, which is the count [`CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/e64df96d9/CURRENT_CAPABILITIES.md#reconstruction) and
 `rebuild/README.md` quote. Neither figure is wrong; they count different sets.
 
 | Curated file | Released source name | SHA-256 |

@@ -1105,7 +1105,7 @@ remain unproven.
 > `proof_defaultoptions.bea` warning above, which records that initialiser as `7.0` —
 > and simply never joined the two halves. The mapping measured here is
 > proportional, so it transfers; the shipped adapter now runs at the image
-> default `7.0` (`fed5829b`). [Onslaught-Career-Editor's `CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) carries the same
+> default `7.0` (`fed5829b`). [Onslaught-Career-Editor's `CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/e64df96d9/CURRENT_CAPABILITIES.md#reconstruction) carries the same
 > withdrawal. **Unchanged, and deliberately so:** "Other sensitivity values,
 > inversion, and jet mouse response remain unproven" is still exactly true. A
 > sensitivity slider now exists in the client, but no run has been *measured* at
@@ -1129,7 +1129,7 @@ Fifty-five HUD textures and `Dial.raw` are **retained by the asset materializer*
 count) and are exact released files named
 by the Steam binary or the pinned Stuart weapon resource path. **This is the
 retention count, not the composition count**: the client loads and composes
-**twenty-nine** of them, which is the figure in [`CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CURRENT_CAPABILITIES.md) and
+**twenty-nine** of them, which is the figure in [`CURRENT_CAPABILITIES.md`](https://github.com/dlprentice/Onslaught-Career-Editor/blob/e64df96d9/CURRENT_CAPABILITIES.md#reconstruction) and
 `rebuild/README.md` quote. The two numbers count different sets and do not
 conflict.
 *(Updated 2026-07-27: was "Fifty-four retained HUD textures"; the commit that added

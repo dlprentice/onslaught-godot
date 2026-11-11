@@ -1,7 +1,7 @@
 # Contributing
 
 Status: active
-Last updated: 2026-11-11 (where things live and where to start added; the earlier lane's clean-clone limit stated)
+Last updated: 2026-11-11 (where things live and where to start added; the earlier lane's clean-clone limit stated; the Parity classes that need no references listed)
 Summary: where each kind of work belongs, how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
 Thank you for your interest. Please read this before opening an issue or a pull request.
@@ -65,7 +65,25 @@ There is no hosted CI, so the checks below are yours to run and report. What you
 To choose Parity tests for a C# change, look in `rebuild/OnslaughtRebuild.Parity.Tests/` for the test classes of the area you
 change and pass their names to `--filter`. The default selection runs three classes only. A test that needs game data or a
 recorded reference reports a skip, which is not a pass; check the run's report for skips, and list them in the pull request.
-Which classes run fully without references is not recorded in one place yet.
+
+Read from the sources, not measured by a run, these Parity test classes carry no game-data, recording or native-port-log
+gate and read no installation or reference path, so they need only the checkout: `BattleEngineLaunchTests`,
+`BattleEngineSoundTests`, `BattleEngineZoomTests`, `CareerGoodieRulesTests`, `CrtRandTests`, `CylinderLineTests`,
+`DebriefingTests`, `EventManagerTests`, `ExplosionHitTests`, `FVectorHashTests`, `FeaturePostFireSoundTests`,
+`FrontEndInitTests`, `FrontEndMessageBoxTests`, `FrontEndTests`, `GameScriptMembersTests`, `GoodieMeshViewerTests`,
+`HostFlowKeyboardTests`, `HostSuspensionTests`, `InlineMatrixRangeTests`, `JoystickEnableTests`, `LeadTimeSumOrderTests`,
+`LevelSelectTests`, `LiveAudioOutputStartupTests`, `LiveAudioSuspensionTests`, `MatrixOrderTests`, `MechHierarchyTests`,
+`OriginalLossReferenceTests`, `PageTests`, `PlatformInputTests`, `RetailMatrixSubnormalTests`, `RoundDirectionTests`,
+`RoundSeekerTests`, `RoundWiggleTests`, `SPtrSetTests`, `SaveGameTests`, `ScriptAttackTests`, `ScriptVmTests`,
+`SeedUniformRandomNumberStreamTests`, `StraightAimTests`, `SubnormalDecayTests`, `SystemFlowTests`, `TextAndFontTests`,
+`UnitSoundLifetimeTests`, `UnitWeaponLifetimeTests`, `VirtualKeyboardTests`, `WorldSoundCallerTests`,
+`X87OracleAdmissionTests` and `X87Tests`. `CareerTests`, `DisplayResetTests`, `KeyboardPresetTests`, `LoadPathTests`
+and `ControllerTests` also run without references but read the repository's tracked career save fixture. Every other
+class has at least one test that is gated on game data, recordings, native-port logs or the retail oracle (the
+`GameDataFact`, `RetailDataFact`, `PortLogFact`, `RetailGoldenFact`, `RetailOracleFact` and `X87OracleTheory`
+attributes) or that reads a reference path itself, and its gated tests report skips on a clean clone. The list is a snapshot of the test sources:
+a class can still fail for other reasons, and a new test can change its group, so check the gating attributes in the
+class you filter on.
 
 The `npm run` forms of the documentation and safety checks (`npm run test:docs`, `npm run test:safety`) need Node 26
 and are equivalent; the [README](README.md#building-and-testing) has the full setup.

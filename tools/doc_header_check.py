@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-"""Enforce the tracked documentation header standard (``DOCUMENTATION.md``).
+"""Enforce the tracked documentation header standard.
+
+The standard is written up in the Toolkit repository's DOCUMENTATION.md (https://github.com/dlprentice/Onslaught-Career-Editor/blob/e64df96d9/DOCUMENTATION.md);
+this repository carries no copy, and CONTRIBUTING.md summarises the header fields.
 
 Why this exists
 ---------------
 Every convention in this repository that had no checker has rotted. The header
 patterns this tool enforces were not invented for it: they were measured out of
-the corpus on 2026-07-28 and written up in ``DOCUMENTATION.md``. This tool is
+the corpus on 2026-07-28 and written up in the Toolkit's DOCUMENTATION.md. This tool is
 the half that makes them survive.
 
 The single highest-value rule here is the **specimen rule**. There are two
@@ -58,7 +61,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 BACKLOG_PATH = REPO_ROOT / "tools" / "doc_header_backlog.txt"
 STANDARD_PATH = "DOCUMENTATION.md"
 
-# The date DOCUMENTATION.md took effect. Used only by the wave-shard ratchet,
+# The date the standard (the Toolkit's DOCUMENTATION.md) took effect. Used only by the wave-shard ratchet,
 # which gates its two optional fields on the shard's own `Reviewed at:` stamp
 # rather than on a backlog entry. See check_wave_shard.
 STANDARD_EFFECTIVE = _dt.date(2026, 7, 28)
@@ -545,7 +548,7 @@ def load_backlog(path: Path) -> set[str] | None:
 
 def write_backlog(path: Path, rels: list[str], counted: dict[str, int]) -> None:
     head = [
-        "# Documentation-header backlog -- see DOCUMENTATION.md.",
+        "# Documentation-header backlog -- see CONTRIBUTING.md for the header fields.",
         "#",
         "# Documents listed here predate the header standard. They are reported by",
         "# tools/doc_header_check.py but do not fail it. Anything NOT listed here is",
