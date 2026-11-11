@@ -1,22 +1,11 @@
 # onslaught-godot
 
-Status: active proof of concept. Goal: startup to exit 1:1 with retail, level 100 to completion. Measured: a whole-game
-win route from boot through the outro, debriefing and quit equals the native port on every probe field every Present;
-the saved career and options file match the port's byte for byte. Against the original game itself, one separately
-recorded level-100 win (2026-10-28) equals one of the original's two debriefing outcomes (its process fl2a; 2 of the 8
-original processes that reach the debriefing take that path) on every probe at all 12,312 Presents (on 2,477 of them,
-frames with no player, the original's probes record POS and LIFE as null, which the comparison counts as all-zero), with
-the saved careers and the options file byte for byte. That is a private harness run with the pristine game under the replay shim in Wine, not
-a suite test; it admits a sound-pool seed and a goodie-load completion observed in port processes. The suite's own retail
-references for the main level-100 run end at Present 10000. Two other recorded level-100 loss routes, one including Retry,
-match selected probes and modelled battle-engine fields against two original processes per route, within each test's stated
-Present bounds. These comparisons do not establish audio, picture or whole-campaign parity. The required reference gate is still incomplete; [rebuild/PARITY.md](rebuild/PARITY.md) lists the open cases.
-Last updated: 2026-11-06 (contribution routing and the open reference gate stated; 2026-11-02: public contributor setup, Windows WSL2 route and reference validation; 2026-10-29: the tracked game-generated save fixture named; earlier: the two bounded loss-route comparisons with original processes stated; the null POS and LIFE probes of the recorded win stated; the recorded win equals the original game's fl2a process after the lead-time sum-order correction; what is compared with retail and what with the native port, each route to its test's floor; the host's drawing comparison is in progress)
-Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET. Its simulation is compared
-Present by Present with recorded runs of the native port and selected original-game recordings, each within its stated
-bounds, and on one recorded win with the original's own process to the end (PARITY M5).
+Status: active proof of concept; not a playable release
+Last updated: 2026-11-11 (header shortened; measured state summarised and left to PARITY.md; layout and clean-clone limits stated)
+Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, compared Present by Present with recorded runs of the native port and with selected original-game recordings; how to build, test and contribute.
 
-onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. It has two parts:
+onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. The goal is startup to exit 1:1 with the
+original game, with level 100 playable to completion. It has two parts:
 
 - **The parity core** (`rebuild/OnslaughtRebuild.Parity`): the game's simulation, designed to be deterministic given its inputs (a
   replay tape, the retail data files and a virtual clock), compared at every Present with recorded runs of
@@ -25,8 +14,22 @@ onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. It has 
 - **The host** (`rebuild/OnslaughtRebuild.Host`): a Godot project, built in code, that runs the parity core and draws
   the game; its drawing is being compared with the native port's frames part by part (milestone M7, in progress).
 
-It is not a playable release yet: [rebuild/PARITY.md](rebuild/PARITY.md) records what is measured and what is open.
-To play the game, use [Onslaught CE](https://github.com/dlprentice/onslaught-ce).
+It is not a playable release yet. To play the game, use [Onslaught CE](https://github.com/dlprentice/onslaught-ce).
+
+## Where it stands
+
+[rebuild/PARITY.md](rebuild/PARITY.md) is the record; its dated measurements are in
+[rebuild/PARITY-LOG.md](rebuild/PARITY-LOG.md). In short:
+
+- A recorded whole game (new career, level 100 won, outro, debriefing, quit) equals the native port on every probe
+  field at every Present, and the saved career and options file match the port's byte for byte.
+- One separately recorded level-100 win equals one of the original game's two debriefing outcomes on every probe at every
+  Present of that run, with the saved careers and the options file byte for byte. That was a private harness run with the
+  pristine game in Wine, not a suite test, and it admits a sound-pool seed and a goodie-load completion observed in port
+  processes. Two other recorded level-100 loss routes match selected probes and modelled battle-engine fields against
+  original processes, within each test's stated Present bounds.
+- These comparisons do not establish audio, picture or whole-campaign parity. The required reference gate is still
+  incomplete; PARITY.md lists the open cases.
 
 ## You need your own copy of the game
 
@@ -42,12 +45,13 @@ dozens of paths for no gain.
 
 | Path | What |
 | --- | --- |
-| `rebuild/OnslaughtRebuild.Parity`, `.Parity.Tests` | the parity core and its suite |
-| `rebuild/OnslaughtRebuild.Host` | the Godot host |
-| `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` (and their tests) | the earlier fixed-point rebuild, kept as reference only |
+| `rebuild/OnslaughtRebuild.Parity`, `.Parity.Tests` | the parity core and its suite; the public build route builds and tests them |
+| `rebuild/OnslaughtRebuild.Host` | the Godot host; the public build route builds it |
+| `rebuild/OnslaughtRebuild.Core`, `.Client`, `.Godot`, `.Headless` (and the Core and Client tests) | the earlier fixed-point rebuild, kept as reference only. It cannot be built from a clean clone: Core embeds assets materialized from your own game installation ([EARLIER-REBUILD.md](rebuild/EARLIER-REBUILD.md)), and the two `.slnx` files in `rebuild/` include it |
 | `rebuild/tools/` | the rebuild's tools: the retail oracle, the asset materializer, captures |
-| `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to build and test, what is measured, where code comes from, the determinism contract |
-| `references/Onslaught` | Stuart Gillam's GPL Onslaught project ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)), pinned as a submodule through David's public fork [dlprentice/Onslaught](https://github.com/dlprentice/Onslaught) |
+| `rebuild/README.md`, `PARITY.md`, `PROVENANCE.md`, `DETERMINISM.md` | how to run the Host, what is measured, where code comes from, the determinism contract |
+| `rebuild/PARITY-LOG.md`, `PARITY-EARLIER-LANE.md`, `EARLIER-REBUILD.md` | the dated measurements, and the earlier fixed-point rebuild's contract table and overview |
+| `references/Onslaught` | Stuart Gillam's GPL Onslaught project ([stuart73/Onslaught](https://github.com/stuart73/Onslaught)), pinned as a submodule through the maintainer's public fork [dlprentice/Onslaught](https://github.com/dlprentice/Onslaught) |
 | `tools/` | measurement and documentation tools the rebuild uses |
 | `tests_shared/fixtures/` | the one tracked career save, a test baseline |
 
