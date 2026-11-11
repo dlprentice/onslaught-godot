@@ -1,7 +1,7 @@
 # Contributing
 
 Status: active
-Last updated: 2026-11-06 (where to contribute, first-hour checks, terms and the WSL approval wording)
+Last updated: 2026-11-11 (where things live and where to start added; the earlier lane's clean-clone limit stated)
 Summary: where each kind of work belongs, how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
 Thank you for your interest. Please read this before opening an issue or a pull request.
@@ -31,6 +31,24 @@ The full map, with how each repository takes pull requests, is
 [Where to contribute](https://github.com/dlprentice/Onslaught-Career-Editor/blob/main/CONTRIBUTING.md#where-to-contribute).
 Questions and ideas: https://github.com/dlprentice/onslaught-ce/discussions.
 Security problems go through [SECURITY.md](SECURITY.md); [REUSE.toml](REUSE.toml) says which licence covers which files.
+
+## Where things live
+
+- [README.md](README.md): what the project is, the layout, and how to build and test (the public route).
+- [rebuild/README.md](rebuild/README.md): the glossary, the reference environment and running the Host.
+- [rebuild/PARITY.md](rebuild/PARITY.md): what is measured and what is open; [rebuild/PARITY-LOG.md](rebuild/PARITY-LOG.md) holds
+  the dated measurements.
+- [rebuild/DETERMINISM.md](rebuild/DETERMINISM.md) and [rebuild/PROVENANCE.md](rebuild/PROVENANCE.md): the simulation contract,
+  and where each unit of code comes from.
+- [rebuild/EARLIER-REBUILD.md](rebuild/EARLIER-REBUILD.md): the earlier fixed-point rebuild (`OnslaughtRebuild.Core`, `Client`,
+  `Godot`, `Headless`). It is reference only and cannot be built from a clean clone, so a change to the Parity core or the Host
+  never needs it. Do not build the two `.slnx` files in `rebuild/`: both include it.
+
+## Where to start
+
+A first pull request that needs no game and no recordings can fix a stale or unclear sentence in the documents above (run the
+Markdown checks below), add an authored test for a Parity unit, or improve a tool in `tools/` with its `*_tests.py`. For a
+change to behaviour, open an issue first so the evidence it needs is agreed before you write code.
 
 ## Your first hour
 
@@ -79,9 +97,9 @@ git switch -c my-change
 Follow the [public source setup](README.md#building-and-testing), commit only the files for your change, push the
 branch to your fork, and open the pull request. People and automated agents use the same workflow; upstream write
 access, private repositories, the maintainer's computer and its local lab are not needed to prepare a contribution.
-Windows contributors use the documented WSL2 route and keep the checkout inside its Linux filesystem. Changes to your Windows machine
-needed to enable or install WSL require the approval of that machine's owner (on your own computer, that is you); WSL2 checks do not establish native Windows acceptance.
-Work on this repository's Parity core and Host; the Toolkit repository's `rebuild/` remains a frozen reference copy.
+Windows contributors use the WSL2 route in the [README](README.md#building-and-testing); WSL2 checks do not establish
+native Windows acceptance. Work on this repository's Parity core and Host; the Toolkit repository's `rebuild/` remains a
+frozen reference copy.
 
 Keep a pull request to one subject, say what it changes in behaviour, and name the evidence: the Present where the
 rebuild first differs from the reference, the capture or test that shows it, or the file and line of Stuart Gillam's GPL Onslaught project

@@ -1,17 +1,19 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-11-06 (WSL approval wording, the earlier launcher's commands and the maintainer named by role; 2026-11-02: public setup and contributor completion; commit messages: keep Co-Authored-By, no Claude-Session line, name no agent or role)
+Last updated: 2026-11-11 (the earlier lane's clean-clone limit and the split parity pages named)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
   owner and `rebuild/OnslaughtRebuild.Host` the presentation owner; Core, Client, Godot and Headless are reference
-  only. Setup, the reference environment and the gates are in [rebuild/README.md](rebuild/README.md).
+  only and cannot be built from a clean clone ([rebuild/EARLIER-REBUILD.md](rebuild/EARLIER-REBUILD.md)): do not build
+  the `.slnx` files in `rebuild/`, which include them. Setup, the reference environment and the gates are in
+  [rebuild/README.md](rebuild/README.md).
 - **Determinism:** the parity core must be deterministic given its inputs (the tape, the retail data and options files it
   reads as the game does, and the virtual clock). It must not read wall time, locale, environment or thread scheduling,
   and must have no presentation, process, network or GPU dependency ([rebuild/DETERMINISM.md](rebuild/DETERMINISM.md)).
   Tests compare it with recorded references Present by Present; a missing reference, an empty selection or a new
-  skip is not a pass. The contract is the intended behavior; passing tests establish only the exercised inputs and environments. For measured scope and open differences see [Parity](rebuild/PARITY.md); for audio evidence see [Audio](rebuild/OnslaughtRebuild.Host/AUDIO.md).
+  skip is not a pass. The contract is the intended behavior; passing tests establish only the exercised inputs and environments. For measured scope and open differences see [Parity](rebuild/PARITY.md) (dated measurements in its [log](rebuild/PARITY-LOG.md)); for audio evidence see [Audio](rebuild/OnslaughtRebuild.Host/AUDIO.md).
 - **Evidence:** every behaviour claim cites a capture, a byte comparison, a focused test, or a pinned source file and
   line. Static evidence establishes identities and structures; only controlled runtime evidence establishes values.
 - **No game files, ever:** never commit the game's executables, data, saves (beyond the one tracked fixture),
