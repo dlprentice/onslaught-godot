@@ -1,7 +1,7 @@
 # Level 100 pause assets
 
 Status: active
-Last updated: 2026-11-06 (materialize command added; header fields added; the 2026-07-28 correction moved to git history and its present reasons stated; commit identifiers removed)
+Last updated: 2026-11-11 (header shortened; Git has the change history)
 Summary: the four hash-gated pause-menu textures that the local materializer copies, and the state of the Level 100 pause menu.
 
 Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).

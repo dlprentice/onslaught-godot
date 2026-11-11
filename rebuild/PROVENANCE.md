@@ -1,7 +1,7 @@
 # Rebuild Provenance
 
 Status: active implementation boundary
-Last updated: 2026-11-06 (terms link; the decompilation named as public; retail addresses, offsets and dword values removed from the text, role labels replaced, file paths and links corrected; 2026-11-04: four inline orientation products retain the register exponent range; authored arithmetic controls); 2026-10-29 (out-of-line matrix register range; the battle engine's decays stored from the x87 register; the lead-time sum orders of the auto-aim and the predicted aim; retail byte dumps, instruction quotes and private paths removed from the evidence text); 2026-10-28 (site-specific matrix products, collision volume adaptation and cylinder-line sum order); 2026-10-26 (native stuck-contact recovery and sample PCM catalog; 2026-10-24: Host frontend sprite projection and measured replay sound-profile admission; 2026-10-23: the outro, the intro and the goodies page adapted; 2026-10-22: SPDX prose excluded from REUSE parsing; the decompilation cited as the public onslaught-decomp, the port as onslaught-ce; Ghidra-era wording marked historical; stale root MIT mention removed; private evidence named by its store; 2026-10-21: all rebuild code GPL-3.0-only; static identities from the specimen and the decompilation, not Ghidra; earlier entries keep their dates).
+Last updated: 2026-11-11 (header shortened; Git has the change history)
 Summary: the licence boundary, permitted evidence, and authority order for the
 `rebuild/` reconstruction lane, plus what the current slice actually covers.
 

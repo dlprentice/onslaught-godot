@@ -1,7 +1,7 @@
 # Rebuild determinism contract
 
 Status: active — the parity core's contract is the first section; the fixed-point Core sections below are reference only
-Last updated: 2026-11-06 (the Enforced-by list names the live Parity tests; the 20 Hz evidence and the queue link stated; terms link; 2026-10-29: the parity core's cross-host numerical evidence boundary; earlier: the specimen is cited without its private path; 2026-10-28: explicit goodie-load observation input; 2026-10-22: a private-archive citation stated inline; 2026-10-21: the parity core's contract added; the Core's sections below are unchanged since 2026-09-26)
+Last updated: 2026-11-11 (header shortened; the earlier Core's sections below are unchanged since 2026-09-26)
 Evidence: SOURCE and bounded copied-runtime observation — constants and behaviors cited against
 `references/Onslaught` (thing.h, eventmanager.cpp) and the tracked Core and
 Headless sources named in the Enforced-by list below; the retail 20 Hz step was MEASURED in

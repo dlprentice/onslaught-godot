@@ -1,7 +1,7 @@
 # Live audio adapter
 
 Status: experimental; direct production-device fixture measured, ordinary Host gameplay and audible acceptance unverified
-Last updated: 2026-11-06 (terms link; the TutorialAudio source tool is named; an internal owner label is removed; 2026-10-27)
+Last updated: 2026-11-11 (header shortened; Git has the change history)
 Summary: opt-in main-thread effects and prepared PCM voices, using Parity's single sound-event owner.
 Evidence: SOURCE — native MessageBox/PC sound-manager contracts and the buffer adapter; MEASURED — V12 production-device fixture and isolated nonzero PCM capture; UNKNOWN — ordinary Host gameplay, physical output and audio fidelity.
 

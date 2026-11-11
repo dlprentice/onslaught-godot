@@ -1,7 +1,7 @@
 # First-person HUD assets
 
 Status: active
-Last updated: 2026-11-06 (header fields added; the 2026-07-27 and 2026-07-28 notes moved to git history; capabilities and setup links added; commit identifier removed)
+Last updated: 2026-11-11 (header shortened; Git has the change history)
 Summary: the local HUD textures and the dial source that the Level 100 first-person slice consumes, and their identities.
 
 Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).

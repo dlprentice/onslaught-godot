@@ -1,7 +1,7 @@
 # Released frontend assets
 
 Status: active
-Last updated: 2026-11-06 (header fields added; cold-start media defaults and the Level 100 intro cutscene stated; dated correction and row-added notes moved to git history; retail-frame source and flag spelling made exact; 'lane' replaced; commit identifiers removed)
+Last updated: 2026-11-11 (header shortened; Git has the change history)
 Summary: the ignored, locally materialized frontend inputs for the bounded startup, main-menu, Level 100, loading and post-Won debriefing path, with their hashes.
 
 Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).

@@ -1,7 +1,7 @@
 # Retail oracle
 
 Status: active
-Last updated: 2026-11-06 (Prerequisites section; the ignored folder for the image and dumps named); 2026-10-21: float-consts.py takes the image and executable as inputs
+Last updated: 2026-11-11 (header shortened; Git has the change history)
 Summary: runs the retail game's own maths functions natively, as a bit-exact oracle for the parity core's float code.
 
 The parity core must compute every float exactly as retail does: 24-bit precision, and each sum in the order compiled

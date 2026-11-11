@@ -1,7 +1,7 @@
 # Level 100 opening assets
 
 Status: active
-Last updated: 2026-11-06 (text corrections: contact-owner pin claim, sun limits, Pulse PCM source, counts, task references and private-comparison wording; terms link; 'lane' replaced; commit identifiers removed; reference projects named in the ownership sentences; 2026-10-29: retail byte dumps, instruction quotes and private paths removed; 2026-10-22: a link to another repository's goal document stated inline; content otherwise as of 2026-09-08)
+Last updated: 2026-11-11 (header shortened; content otherwise as of 2026-09-08)
 Summary: locally materialized training assets, their identities and provenance.
 
 Terms used in this file are defined in the [glossary](../../../README.md#terms-used-in-these-documents).
