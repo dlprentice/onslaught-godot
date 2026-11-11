@@ -42,8 +42,16 @@ Where to read next:
 | MAPT, MMAP | The released landscape records: MAPT holds the terrain texture sources, and MMAP the variable-length material and weight records. |
 | CUnitAI | The original game's unit AI class, by its C++ name. The rebuild carries its close-target scoring kernel. |
 | MSL | The `.msl` mission-script files, such as `LevelScript.msl`, materialized locally with the other inputs. |
-| V12 | The label of the bounded production-device audio fixture recorded in [AUDIO.md](OnslaughtRebuild.Host/AUDIO.md). |
 | Federation Aquila | The released battle-engine model that Level 100 draws; its walker, jet and cockpit meshes are local inputs. |
+| Reference-bearing check | A check that needs recorded runs kept outside this repository; only a maintainer can run it. |
+| The Toolkit | The [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor) repository: the Companion app, its tools and the project's goal and plan. |
+| frame | One fixed 20 Hz simulation step. |
+| falsifier | The check that would disprove a stated claim. |
+| RED, restored, GREEN | A mutation made the named test fail, the owner was restored byte-identical, and the test passed again. |
+| Stuart | Stuart Gillam's GPL Onslaught project, pinned in `references/Onslaught`. Bare source names such as `game.cpp:371-373` cite that pinned tree; `src/` paths cite [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp). |
+| worktree | A second git checkout of this repository. |
+| god-mode-only | A policy call that runs only when the player's god-mode word (`PlayerGodWord`) is nonzero. |
+| V12 fixture | The measured production-device audio fixture in [AUDIO.md](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27). |
 
 ## Working lane
 
@@ -191,6 +199,17 @@ do not survive closing the Host. At start, the Host copies the installation's `.
 alone, or `HOST_LIVE=` (empty) to draw a single Present (`HOST_PRESENT=150`, optionally `HOST_CAPTURE=<file.png>`);
 `python3 rebuild/OnslaughtRebuild.Host/tools/side_by_side.py <capture> <retail capture> <out.png>` compares a capture
 with a retail one.
+
+The remaining switches of the whole-game mode (`HOST_LIVE=flow`) and the level-100 modes, as the Host source reads them:
+
+| Variable | Effect |
+| --- | --- |
+| `HOST_DRAW=0` | does not draw, so a tape runs as fast as it can; requires `HOST_TAPE`, and cannot be combined with `HOST_CAPTURE` |
+| `HOST_END_PRESENT=<n>` | stops the run at Present `n` (in the level-100 mode, at least the starting `HOST_PRESENT`) |
+| `HOST_FLOW_STRAIGHT=1` | runs the whole game straight through on one thread and writes the reference trace the stepped run must equal; requires `HOST_TAPE`, `HOST_END_PRESENT` and `HOST_TRACE` |
+| `HOST_SAVES="NAME=FILE;..."` | adds career saves from the files named to the in-memory memory card |
+| `HOST_SHOT_DIR=<folder>` | where `HOST_SHOTS` writes its pictures; `HOST_SHOTS` requires it |
+| `HOST_SHOT_LAYERS=1` | with `HOST_SHOTS`, also saves the level 2D overlay alone, from Godot and from the software rasterizer |
 
 For the separate level-100 ordinary-input preview, `HOST_LIVE=1 HOST_AUDIO=1` opts into effects and prepared PCM
 voices. It requires `ONSLAUGHT_VOICE_PCM`, a real Godot audio driver and supported sound options; it cannot be
