@@ -1,7 +1,7 @@
 # Earlier lane: carried retail contracts
 
 Status: reference only — the contract table and closure notes of the earlier fixed-point rebuild (`OnslaughtRebuild.Core`, `Client`, `Godot`, `Headless`); not extended
-Last updated: 2026-11-11 (moved out of PARITY.md unchanged)
+Last updated: 2026-11-11 (moved out of PARITY.md; the World 110 notes joined it)
 Evidence: MEASURED — every row of the table is MEASURED: its anchor re-derived from the pristine specimen and its mutation kill observed.
 Specimen: `BEA.exe.original.backup`, SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`
@@ -30,6 +30,21 @@ monitored/collision-ignore ownership and both altitude clamps. Original-code
 experiments and in-process restore/ordering tests support this prefix; normal
 control still resumes the older approximate script/weapon bridge. The unit's
 evidence (kept in the private RE archive) separates those boundaries from the measured arithmetic.
+
+## World 110 construction and the September 19 contract notes
+
+Since September 26 `Simulation` constructs World 110 from its materialized
+static world through its start state, with Level 100's surviving base world
+(the World 110 rows of the [earlier lane's contract table](PARITY-EARLIER-LANE.md#carried-retail-contracts--entity-owner-implementation-test)). The earlier, separate World 110 construction stage
+was retired that day in favour of that one owner; its retail evidence stays in
+[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md)
+and
+[`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md).
+
+The reverse-engineering notes supply the September 19
+projectile-readiness queue and maximum-speed-provider contracts in the Toolkit repository's frozen copy,
+`reverse-engineering/binary-analysis/functions/CEventManager.cpp.md` and
+`collisionseekingthing.cpp.md` (neither is in this repository).
 
 ## Carried retail contracts — entity, owner, implementation, test
 

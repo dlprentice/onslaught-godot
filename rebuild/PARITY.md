@@ -13,9 +13,9 @@ Summary: the gradeable dimensions of parity, the gate each currently has (or
 lacks), and the standing exceptions. This document names the gap; it does not
 claim the gap is closed.
 
-Terms used in this file are defined in the [glossary](README.md#terms-used-in-these-documents).
+Terms used in this file (Present, tape, probe, golden, frame, falsifier, RED/restored/GREEN, Stuart, the Toolkit and others) are defined in the [glossary](README.md#terms-used-in-these-documents).
 
-**Terms used below.** Present, tape, probe, golden, parity core and Host are defined in [CONTRIBUTING.md](../CONTRIBUTING.md#terms-you-will-meet). Here, *frame* is one fixed 20 Hz simulation step ([rebuild/README.md](README.md)); *falsifier* is the check that would disprove a stated claim; *RED, restored, GREEN* means a mutation made the named test fail, the owner was restored byte-identical, and the test passed again; *Stuart* is Stuart Gillam's GPL Onslaught project, pinned in `references/Onslaught`; bare source names such as `game.cpp:371-373` cite that pinned tree, and `src/` paths cite [onslaught-decomp](https://github.com/dlprentice/onslaught-decomp); *the Toolkit* is the Onslaught-Career-Editor repository; *worktree* is a second git checkout of this repository; *god-mode-only* means a policy call that runs only when the player's god-mode word (`PlayerGodWord`) is nonzero; *V12 fixture* is the measured production-device audio fixture in [AUDIO.md](OnslaughtRebuild.Host/AUDIO.md#measured-device-fixture-2026-10-27). Claims that cite *private evidence* or the maintainers' receipts cannot be re-run from a clone; tests named in the tables run from a clone only when they need no reference data ([CONTRIBUTING.md](../CONTRIBUTING.md#what-you-can-and-cannot-reproduce)).
+Claims that cite *private evidence* or the maintainers' receipts cannot be re-run from a clone; tests named in the tables run from a clone only when they need no reference data ([CONTRIBUTING.md](../CONTRIBUTING.md#what-you-can-and-cannot-reproduce)).
 
 Where the pages are: this page holds the current state, the milestones' pass criteria, the authority order, the known
 divergences and the gates. [PARITY-LOG.md](PARITY-LOG.md) holds the dated measurements behind the milestone table.
@@ -100,19 +100,10 @@ authority. The pristine retail specimen (`74154bfa…`) is the behavior
 authority. Where they disagree, the shipped bytes win — but only after a
 measurement proves the divergence, and the divergence is recorded.
 
-Since September 26 `Simulation` constructs World 110 from its materialized
-static world through its start state, with Level 100's surviving base world
-(the World 110 rows of the [earlier lane's contract table](PARITY-EARLIER-LANE.md#carried-retail-contracts--entity-owner-implementation-test)). The earlier, separate World 110 construction stage
-was retired that day in favour of that one owner; its retail evidence stays in
-[`world-110-initial-constructor-seeds.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-initial-constructor-seeds.md)
-and
-[`world-110-player-start-admission.md`](https://github.com/dlprentice/onslaught-preservation/blob/main/levels/world-110-player-start-admission.md).
+The earlier lane's World 110 construction history and its September 19 contract notes are in
+[PARITY-EARLIER-LANE.md](PARITY-EARLIER-LANE.md#world-110-construction-and-the-september-19-contract-notes).
 
-The reverse-engineering notes supply the September 19
-projectile-readiness queue and maximum-speed-provider contracts in the Toolkit repository's frozen copy,
-`reverse-engineering/binary-analysis/functions/CEventManager.cpp.md` and
-`collisionseekingthing.cpp.md` (neither is in this repository). The existing explicit PC53 scheduler path agrees
-with the controlled PC64 result for those bounded operands; it is not a general
+The explicit PC53 scheduler path agrees with the controlled PC64 result for the bounded operands of the projectile-readiness queue and maximum-speed-provider contracts; it is not a general
 PC64 implementation. **Open question:** which x87 precision context applies at
 the live scheduler entry for each relevant retail caller? The cheapest direct
 falsifier is a controlled observation of the control word and operands at the
@@ -164,8 +155,9 @@ is what distinguishes the two.
 
 ## What "done" would require (per dimension)
 
-- Sim: a retail-derived expected-trace source (e.g. a verified capture of
-  retail's own sequence) or an accepted contract per system.
+- Sim: a whole-run comparison with the original game that runs inside the suite. Retail-derived goldens cover the
+  level-100 runs to Present 10000, and one recorded win was compared with the original in a private harness
+  (M5, [log](PARITY-LOG.md)); neither is a suite gate for the whole run.
 - Visual: measured tolerance windows per region against retail frames, not
   just self-regression.
 - Audio: a playback contract (tracks, triggers, volume semantics).
