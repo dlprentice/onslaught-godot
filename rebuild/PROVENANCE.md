@@ -536,7 +536,7 @@ Two independent corroborations, neither needed for the result but both narrowing
 
 The mesh-quality distance global has exactly **five** writers and ten readers. The fifth writes `45.0` but is **dead in the shipped image**: its gate has two `.text` references and both are reads, and it lies past `.data`'s raw size, so it is BSS and zero at load.
 
-The previous `70.0` came from a saved `defaultoptions.bea` at OptionsTail `+0x0C`, which is persisted run state. The decisive proof is in code, not in file comparison: the only writer of that file serialises the **live globals**, so the file is by construction a snapshot of current state, and no path writes it from authored constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence is meaningful rather than a category gap. A value read from that file is a **user setting**, not a default. The static-world manifest (schema `onslaught.level100-static-world.v14`) owns the corrected value.
+The previous `70.0` came from a saved `defaultoptions.bea` at OptionsTail `+0x0C`, which is persisted run state. The decisive proof is in code, not in file comparison: the only writer of that file serialises the **live globals**, so the file is by construction a snapshot of current state, and no path writes it from authored constants. `INSTALL.LOG` lists `cardid.txt` but no `.bea` at all, so the absence is meaningful rather than a category gap. A value read from that file is a **user setting**, not a default. The static-world manifest (schema `onslaught.level100-static-world.v15`) owns the corrected value.
 
 > **Do not cite `proof_defaultoptions.bea` as a pristine specimen.** It is also run state — it holds `12.0` at OptionsTail `+0x04` where the image initialiser is `7.0`, so it is simply a run whose geometry detail happened to sit at Medium. It corroborates that the field is user state; it is not independent evidence of the authored value.
 After the world and global-imposter
@@ -556,7 +556,8 @@ unresolved runtime boundary.
 > superseded seven revisions ago. **Both claims attached to that label are
 > unchanged and still true** — the manifest owns the corrected `30.0`, and it
 > pins `fastStandingViewPhase` `0` — so this is a stale citation, not a false
-> claim. MEASURED: the manifest declares
+> claim. MEASURED on 2026-07-28 (the schema is `v15` now; the
+> materializer rejects anything else): the manifest declared
 > `onslaught.level100-static-world.v14`, and three tracked consumers reject
 > anything else — `OnslaughtRebuild.Client/Level100ActorDefinitionManifest.cs`,
 > `OnslaughtRebuild.Godot/Level100StaticWorldAsset.cs`, and

@@ -545,7 +545,8 @@ fixed-function/Godot sampler equivalence remain outside this slice.
 >    was superseded seven revisions ago. The claim itself is unchanged and still
 >    true: `fastStandingViewPhase` reads `0`. Only the version label was stale,
 >    so the text now names the schema string, which is greppable when it next
->    moves. MEASURED: the manifest declares
+>    moves. MEASURED on 2026-07-28 (the schema is `v15` now; the materializer
+>    rejects anything else): the manifest declared
 >    `onslaught.level100-static-world.v14`, and three tracked consumers reject
 >    anything else —
 >    `../../../OnslaughtRebuild.Client/Level100ActorDefinitionManifest.cs:39`,
