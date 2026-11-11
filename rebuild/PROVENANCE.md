@@ -65,7 +65,7 @@ runs still need a real sound-event backend.
 Each row names a C# unit of `OnslaughtRebuild.Parity` and the decompilation source it adapts. Every `src/` and `port/` path below is in onslaught-decomp or onslaught-ce, except `src/ViewPointCamera.cpp` and `src/GameMenu.cpp`, which are in neither public repository; the two rows that cite them rest on the private working decompilation. Units built only from
 the parity harness's own formats (tape, probe trace, comparator, runner) adapt nothing and are not listed. Neither is
 `Numerics/X87.cs`: it is original work (error-free transforms with one 24-bit rounding), checked against oracle tables
-from a VC6 SP5 harness at 24-bit precision control (`tools/x87_oracle`), and adapts no game source. Nor is
+from a VC6 SP5 harness at 24-bit precision control (`rebuild/tools/x87_oracle`), and adapts no game source. Nor is
 `Crt/CrtRand.cs`: the C runtime's `rand`/`srand` behaviour (a per-thread linear congruential state starting at 1),
 measured from the pinned VC6 SP5 LIBCMT's `rand.obj` and `tidtable.obj`, with no runtime code copied.
 
@@ -560,7 +560,7 @@ unresolved runtime boundary.
 > `onslaught.level100-static-world.v14`, and three tracked consumers reject
 > anything else — `OnslaughtRebuild.Client/Level100ActorDefinitionManifest.cs`,
 > `OnslaughtRebuild.Godot/Level100StaticWorldAsset.cs`, and
-> `tools/materialize_retail_assets.py` in two places. The text now names the
+> `rebuild/tools/materialize_retail_assets.py` in two places. The text now names the
 > schema string rather than a bare version number, so the next bump is
 > greppable. The same dead label was corrected in
 > `OnslaughtRebuild.Godot/Assets/Level100/README.md` in the same pass.
