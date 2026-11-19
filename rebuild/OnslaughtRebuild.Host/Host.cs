@@ -253,6 +253,10 @@ public partial class Host : Node
             Image image = _view.GetTexture().GetImage();
             Error error = image.SavePng(_capture);
             GD.Print($"HOST_CAPTURED {_capture} {error}");
+            // Release unreachable engine wrappers while the engine is still running, so their finalizers do not
+            // run during engine teardown.
+            System.GC.Collect();
+            System.GC.WaitForPendingFinalizers();
             GetTree().Quit();
         }
     }
