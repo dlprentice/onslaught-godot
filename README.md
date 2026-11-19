@@ -1,7 +1,7 @@
 # onslaught-godot
 
 Status: active proof of concept; not a playable release
-Last updated: 2026-11-11 (header shortened; measured state summarised and left to PARITY.md; layout and clean-clone limits stated)
+Last updated: 2026-11-19 (engine pin moved to Godot 4.8 beta4 .NET)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, compared Present by Present with recorded runs of the native port and with selected original-game recordings; how to build, test and contribute.
 
 onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. The goal is startup to exit 1:1 with the
@@ -69,7 +69,7 @@ Run the setup, build and authored-test commands below inside that Linux terminal
 
 The public setup route targets Linux x86_64. Start with Python 3.11 or newer with `venv` and pip; the Python tools suite needs
 Pillow. The npm shortcuts also need Node 26 and npm 11.19 or later in the 11.x series (`package.json`). The setup
-command installs the pinned .NET 10.0.402 SDK and Godot 4.8 beta1 .NET into this checkout's ignored `local-data/`.
+command installs the pinned .NET 10.0.402 SDK and Godot 4.8 beta4 .NET into this checkout's ignored `local-data/`.
 Your distribution must provide the native dependencies described in Microsoft's
 [Linux installation guidance](https://learn.microsoft.com/en-us/dotnet/core/install/linux#manual-installation).
 

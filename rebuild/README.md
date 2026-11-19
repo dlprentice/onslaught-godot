@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept — the Parity core and the Host; the earlier fixed-point rebuild is reference only
-Last updated: 2026-11-11 (the earlier rebuild moved to EARLIER-REBUILD.md; header shortened)
+Last updated: 2026-11-19 (engine pin moved to Godot 4.8 beta4 .NET)
 Summary: how to build, test and run the Godot/C# rebuild of *Battle Engine Aquila*: its floating-point parity core and the Godot host, and where the earlier fixed-point rebuild, the evidence and the contracts are kept.
 
 The rebuild's goal is startup to exit 1:1 with retail, with level 100 playable to completion. What is measured, and the
@@ -156,10 +156,10 @@ replays `HOST_TAPE` using its virtual sound device. `HOST_TRACE` records the liv
 
 #### Running the Host
 
-You need Godot 4.8 beta1 .NET and the .NET 10 SDK; `python tools/public_build.py setup` installs the pinned versions into
+You need Godot 4.8 beta4 .NET and the .NET 10 SDK; `python tools/public_build.py setup` installs the pinned versions into
 this checkout's ignored `local-data/`. If you install the engine yourself instead (the "Godot Engine - .NET" download of
-4.8 beta1 from [godotengine.org](https://godotengine.org/download/archive/)), its identity must be
-`4.8.beta1.mono.official.4d10419ca`, as pinned in [`tools/rebuild_toolchain.json`](../tools/rebuild_toolchain.json). You also need your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
+4.8 beta4 from [godotengine.org](https://godotengine.org/download/archive/)), its identity must be
+`4.8.beta4.mono.official.b070e63b1`, as pinned in [`tools/rebuild_toolchain.json`](../tools/rebuild_toolchain.json). You also need your own PC installation of *Battle Engine Aquila*. The Host reads the game's data files and saves
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
 (`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host reads film headers from that installation. `FilmLibrary` can read a library of decoded films at
 `ONSLAUGHT_FILMS`, but no Host code calls `FilmLibrary.FromEnvironment`, so the film lines in the setup block below are optional preparation. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
@@ -177,7 +177,7 @@ data and run the Host manually:
 export DOTNET_ROOT="$PWD/local-data/toolchains/rebuild/dotnet"
 export DOTNET_ROOT_X64="$DOTNET_ROOT"
 export PATH="$DOTNET_ROOT:$PATH"
-export GODOT="$PWD/local-data/toolchains/rebuild/engine/Godot_v4.8-beta1_mono_linux.x86_64"
+export GODOT="$PWD/local-data/toolchains/rebuild/engine/Godot_v4.8-beta4_mono_linux.x86_64"
 export ONSLAUGHT_GAME_DIR="/path/to/Battle Engine Aquila"
 export ONSLAUGHT_FILMS="$PWD/local-data/films"
 python -m pip install numpy

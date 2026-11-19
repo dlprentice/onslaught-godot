@@ -1,7 +1,7 @@
 # Earlier rebuild (reference only)
 
 Status: reference only — the earlier fixed-point rebuild (`OnslaughtRebuild.Core`, `Client`, `Godot`, `Headless`), kept for the decoders, notes and contract citations it holds; not extended
-Last updated: 2026-11-11 (moved out of README.md, with the clean-clone note added)
+Last updated: 2026-11-19 (launcher engine pin moved to Godot 4.8 beta4 .NET)
 Evidence: SOURCE — the project files, the repository's `.gitignore` and the earlier README text it was moved from; no claim here is a new measurement.
 Summary: what the earlier fixed-point rebuild is, who owns what in it, how its launcher and checks ran, and its state at the old tag archive/godot-rebuild-20260926.
 
@@ -184,9 +184,9 @@ live with the [`Frontend`](OnslaughtRebuild.Godot/Assets/Frontend/README.md),
 
 This section describes the earlier fixed-point rebuild's launcher (`rebuild/tools/first_flight.py`, which runs
 `OnslaughtRebuild.Godot`), kept for reference; to run the current rebuild, see
-[Running the Host](README.md#running-the-host). The launcher looks for a Godot 4.8 beta1 .NET engine named `godot48-mono` (or
-the path it is given) and its bundled `Godot.NET.Sdk/4.8.0-beta.1` packages, and requires the exact identity
-`4.8.beta1.mono.official.4d10419ca`; the projects target `net10.0` (SDK 10.0.402, `global.json`). The default engine name is `godot48-mono`, looked up on `PATH`. To use the engine that setup installed, pass its path with `--engine`, for example `npm run ref:godot-build -- --engine=local-data/toolchains/rebuild/engine/Godot_v4.8-beta1_mono_linux.x86_64`.
+[Running the Host](README.md#running-the-host). The launcher looks for a Godot 4.8 beta4 .NET engine named `godot48-mono` (or
+the path it is given) and its bundled `Godot.NET.Sdk/4.8.0-beta.4` packages, and requires the exact identity
+`4.8.beta4.mono.official.b070e63b1`; the projects target `net10.0` (SDK 10.0.402, `global.json`). The default engine name is `godot48-mono`, looked up on `PATH`. To use the engine that setup installed, pass its path with `--engine`, for example `npm run ref:godot-build -- --engine=local-data/toolchains/rebuild/engine/Godot_v4.8-beta4_mono_linux.x86_64`.
 
 ```bash
 npm run ref:godot-build
@@ -248,8 +248,8 @@ acceptance needs a separately provided Windows environment and a launcher for it
 
 ### Engine updates and recovery
 
-The engine pin is Godot 4.8 beta1 .NET (`4.8.beta1.mono.official.4d10419ca`, `Godot.NET.Sdk/4.8.0-beta.1`, .NET SDK
-10.0.402); 4.8 dev6, the previous pin, is retired, and it and the earlier 4.7.2 SDK/project pins remain recoverable
+The engine pin is Godot 4.8 beta4 .NET (`4.8.beta4.mono.official.b070e63b1`, `Godot.NET.Sdk/4.8.0-beta.4`, .NET SDK
+10.0.402); 4.8 beta1, the previous pin, and 4.8 dev6 before it are retired, and they and the earlier 4.7.2 SDK/project pins remain recoverable
 from Git. Downgrading would need that matching source baseline, the older engine and a fresh checkout-local import
 cache, not pointing current 4.8 managed assemblies at an older executable. Engine changes select compatibility checks;
 they do not authorize new visuals, altered imported retail defaults or replacement simulation physics.
