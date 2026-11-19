@@ -18,6 +18,7 @@ public partial class Host : Node
 {
     private SubViewport? _view;
     private string? _capture;
+    private TextureLibrary? _singleTextures;
     private int _frames;
 
     /// <summary>Retail's world (x east, y north, z down) in Godot's (y up, right-handed): (x, -z, -y).</summary>
@@ -74,7 +75,7 @@ public partial class Host : Node
         int present = int.TryParse(System.Environment.GetEnvironmentVariable("HOST_PRESENT"), out int n) ? n : 30;
         _capture = HostStart.OutputFile("HOST_CAPTURE");
 
-        var textures = new TextureLibrary(files.Read);
+        var textures = _singleTextures = new TextureLibrary(files.Read);
         var surf = new SurfView();
         // HOST_TAPE: a recorded input tape to replay (as the retail goldens do: with the virtual DirectSound voice model).
         string? tape = HostStart.Tape();

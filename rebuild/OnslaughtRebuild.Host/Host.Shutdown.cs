@@ -121,6 +121,8 @@ public partial class Host
             ReleaseStep("level textures", () => _flowLevelTextures?.Release());
             ReleaseStep("particle textures", () => _flowParticleTextures?.Release());
             ReleaseStep("live textures", () => _liveTextures?.Release());
+            ReleaseStep("single-Present textures", () => _singleTextures?.Release());
+            _singleTextures = null;
             _view = null;
             _liveWorld = null;
             _liveCamera = null;
@@ -152,18 +154,22 @@ public partial class Host
     }
 
     /// <summary>
-    /// Collects and runs pending finalizers until a pass releases no engine object: the engine's live object count
-    /// (Performance ObjectCount) after a pass is not below the count before it. At most MaxDrainPasses passes.
+    /// Collects and runs pending finalizers until two passes in a row release no engine object: the engine's live
+    /// object count (Performance ObjectCount) after each is not below the count before it. One quiet pass can follow
+    /// a finalizer that only made more garbage (a managed owner whose finalizer drops a wrapper), which the next pass
+    /// collects; two in a row also keeps the earlier minimum of two passes. At most MaxDrainPasses passes.
     /// </summary>
     private static void DrainFinalizers()
     {
         double before = Performance.GetMonitor(Performance.Monitor.ObjectCount);
+        int quiet = 0;
         for (int pass = 1; pass <= MaxDrainPasses; pass++)
         {
             System.GC.Collect();
             System.GC.WaitForPendingFinalizers();
             double after = Performance.GetMonitor(Performance.Monitor.ObjectCount);
-            if (after >= before)
+            quiet = after >= before ? quiet + 1 : 0;
+            if (quiet == 2)
             {
                 return;
             }

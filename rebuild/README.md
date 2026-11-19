@@ -211,7 +211,7 @@ The remaining switches of the whole-game mode (`HOST_LIVE=flow`) and the level-1
 | `HOST_SHOT_DIR=<folder>` | where `HOST_SHOTS` writes its pictures; `HOST_SHOTS` requires it |
 | `HOST_SHOT_LAYERS=1` | with `HOST_SHOTS`, also saves the level 2D overlay alone, from Godot and from the software rasterizer |
 | `HOST_EXIT_STRESS=<n>` | test only, any mode: at the Host's own quit, leaves 3n engine objects awaiting a slow release on the finalizer thread, a positive control for the shutdown routine (`Host.Shutdown.cs`); unset, it does nothing |
-| `HOST_EXIT_FAULT=flow-process` or `audio-start` | test only: raises one fault inside whole-game processing (after 120 frames) or in the live audio startup, to drive those error exits; unset, it does nothing |
+| `HOST_EXIT_FAULT=flow-process`, `audio-start`, `release-throw` or `audio-teardown` | test only: raises one fault inside whole-game processing (after 120 frames), in the live audio startup, in the shutdown's mode release, or in the live audio teardown at shutdown, to drive those error exits; unset, it does nothing |
 
 For the separate level-100 ordinary-input preview, `HOST_LIVE=1 HOST_AUDIO=1` opts into effects and prepared PCM
 voices. It requires `ONSLAUGHT_VOICE_PCM`, a real Godot audio driver and supported sound options; it cannot be

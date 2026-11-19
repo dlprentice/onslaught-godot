@@ -591,6 +591,11 @@ public partial class Host
     /// <summary>Ends the current mode's run: the flow run and its log, or the live session's audio, input and views.</summary>
     private void ReleaseMode()
     {
+        if (TakeExitFault("release-throw"))
+        {
+            throw ExitFaultError("release-throw");
+        }
+
         if (_flowMode)
         {
             // FinishFlow ends the run and its log; if it throws part way, each remaining part is ended on its own.
@@ -631,8 +636,14 @@ public partial class Host
         ReleaseStep("live particles manager", () => _liveSession?.Context.Particles?.Manager.Shutdown());
         _liveTrace = null;
         _liveSession = null;
+        ReleaseStep("live textures", () => _liveTextures?.Release());
         _liveTextures = null;
         _liveFiles = null;
+        if (_liveAudioTeardownFailed)
+        {
+            // DisposeLiveAudio logs and absorbs its own failure; at shutdown it still fails the exit.
+            _releaseFailures++;
+        }
     }
 
     private void CancelLiveAudioStartup()
@@ -641,15 +652,21 @@ public partial class Host
         _liveAudioStartup = null;
     }
 
+    private bool _liveAudioTeardownFailed;
+
     private void DisposeLiveAudio()
     {
-        try { _liveSoundDevice?.Dispose(); }
-        catch (Exception e) { GD.PrintErr($"HOST_AUDIO_TEARDOWN_ERROR: {e}"); _liveFailure = true; }
+        try
+        {
+            if (_liveDisposed && TakeExitFault("audio-teardown")) throw ExitFaultError("audio-teardown");
+            _liveSoundDevice?.Dispose();
+        }
+        catch (Exception e) { GD.PrintErr($"HOST_AUDIO_TEARDOWN_ERROR: {e}"); _liveFailure = true; _liveAudioTeardownFailed = true; }
         finally
         {
             _liveSoundDevice = null;
             try { _liveSoundPlayers?.Dispose(); }
-            catch (Exception e) { GD.PrintErr($"HOST_AUDIO_TEARDOWN_ERROR: {e}"); _liveFailure = true; }
+            catch (Exception e) { GD.PrintErr($"HOST_AUDIO_TEARDOWN_ERROR: {e}"); _liveFailure = true; _liveAudioTeardownFailed = true; }
             finally { _liveSoundPlayers = null; }
         }
     }

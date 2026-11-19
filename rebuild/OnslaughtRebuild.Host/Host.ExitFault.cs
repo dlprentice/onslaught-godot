@@ -7,9 +7,10 @@ public partial class Host
     private int _exitFaultCalls;
 
     /// <summary>
-    /// Test-only exit fault (HOST_EXIT_FAULT=flow-process or audio-start): reports once, at that point, that the test
-    /// asks it to fail, so the exits behind those two error boundaries can be driven offscreen. flow-process fires on its
-    /// 120th check (after the front end has drawn); audio-start fires on its first. Unset, it never fires.
+    /// Test-only exit fault (HOST_EXIT_FAULT=flow-process, audio-start, release-throw or audio-teardown): reports
+    /// once, at that point, that the test asks it to fail, so error exits that cannot otherwise be reached offscreen
+    /// can be driven: whole-game processing (on its 120th check, after the front end has drawn), the live audio
+    /// startup, the shutdown's mode release, and the live audio teardown during that release. Unset, it never fires.
     /// </summary>
     private bool TakeExitFault(string point)
     {
