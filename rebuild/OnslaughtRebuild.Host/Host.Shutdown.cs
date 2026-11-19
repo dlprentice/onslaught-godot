@@ -18,6 +18,7 @@ public partial class Host
     /// <summary>Quits the Host with this exit code after releasing what it built.</summary>
     private void QuitHost(int exitCode)
     {
+        ExitStress();
         ReleaseHost(freeNodes: true);
         GetTree().Quit(exitCode);
     }
