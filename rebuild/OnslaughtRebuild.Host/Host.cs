@@ -228,7 +228,7 @@ public partial class Host : Node
                 _flowFailure = true;
                 _flowStop = $"Presentation failed after Present {_flowLast?.Present}: {e.Message}";
                 GD.PrintErr($"HOST_FLOW_FAILED: {e}");
-                FinishFlow();
+                ReleaseStep("flow finish", FinishFlow);
                 QuitHost(1);
             }
             return;

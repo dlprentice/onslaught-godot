@@ -175,7 +175,7 @@ public static class WaterView
 
             _disposed = true;
             Node.GetParent()?.RemoveChild(Node);
-            Node.QueueFree();
+            Node.Free();
         }
     }
 

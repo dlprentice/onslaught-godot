@@ -239,7 +239,7 @@ public partial class Host
         }
         else if (++_flowSettle == 4)
         {
-            FinishFlow();
+            ReleaseStep("flow finish", FinishFlow);
             QuitHost(_flowFailure ? 1 : 0);
         }
     }

@@ -274,7 +274,7 @@ public sealed class MeshView(TextureLibrary textures, Landscape.TerrainTexture m
             if (entry.Root is { } root)
             {
                 root.GetParent()?.RemoveChild(root);
-                root.QueueFree();
+                root.Free();
                 entry.Root = null;
             }
 

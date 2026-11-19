@@ -190,7 +190,7 @@ public sealed class SurfView
 
             _disposed = true;
             Node.GetParent()?.RemoveChild(Node);
-            Node.QueueFree();
+            Node.Free();
         }
     }
 

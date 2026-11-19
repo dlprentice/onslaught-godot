@@ -28,6 +28,13 @@ public sealed class TextureLibrary(Func<string, (string Name, byte[] Bytes)> rea
 
     public int Count => _records.Count;
 
+    /// <summary>At shutdown: disposes the textures this library made.</summary>
+    public void Release()
+    {
+        foreach (ImageTexture? texture in _textures.Values) texture?.Dispose();
+        _textures.Clear();
+    }
+
     public int Missing { get; private set; }
 
     /// <summary>The resource reader's hook: reads a TEXT chunk's record and level counts; the rest is skipped.</summary>

@@ -101,6 +101,22 @@ public sealed class FrontEndView
 
     public SubViewport Viewport { get; }
 
+    /// <summary>At shutdown: disposes the shaders, materials and textures this view made; its nodes are freed with the tree.</summary>
+    public void Release()
+    {
+        foreach (ShaderMaterial material in _materials.Values) material.Dispose();
+        foreach (ShaderMaterial material in _depthMaterials.Values) material.Dispose();
+        foreach (Shader shader in _shaders.Values) shader.Dispose();
+        foreach (Shader? shader in _depthOnly) shader?.Dispose();
+        foreach (ImageTexture texture in _textures.Values) texture.Dispose();
+        _materials.Clear();
+        _depthMaterials.Clear();
+        _shaders.Clear();
+        Array.Clear(_depthOnly);
+        _textures.Clear();
+        _pool.Clear();
+    }
+
     public void Show(CanvasFrame frame, Node3D? particles = null)
     {
         if (frame.ClearColour is { } clear)

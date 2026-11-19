@@ -9,18 +9,33 @@ namespace OnslaughtRebuild.Host;
 /// leaving the tree as the engine finalizes it. A C# wrapper of an engine object that is finalized after the engine has
 /// shut down calls into it and crashes the process at exit; on Godot 4.8 beta4 that was seen as a SIGSEGV on a runtime
 /// thread in managed code while the main thread was already in exit(). So the Host drops every engine object it holds,
-/// then runs the collector and the pending finalizers before the engine goes.
+/// then runs the collector and the pending finalizers before the engine goes. Each release step is isolated: a step that
+/// throws is logged, the steps after it still run, the drain always runs, the quit always happens, and an exit that
+/// would have returned 0 returns 1.
 /// </summary>
 public partial class Host
 {
-    private bool _hostReleased;
+    private const int MaxDrainPasses = 8;
 
-    /// <summary>Quits the Host with this exit code after releasing what it built.</summary>
+    private bool _hostReleased;
+    private int _releaseFailures;
+
+    /// <summary>Quits the Host with this exit code (1 instead of 0 if a release step failed) after releasing what it built.</summary>
     private void QuitHost(int exitCode)
     {
-        ExitStress();
-        ReleaseHost(freeNodes: true);
-        GetTree().Quit(exitCode);
+        try
+        {
+            ExitStress();
+            ReleaseHost(freeNodes: true);
+        }
+        catch (Exception e)
+        {
+            ReleaseFailed("quit", e);
+        }
+        finally
+        {
+            GetTree().Quit(ExitCodeAfterRelease(exitCode));
+        }
     }
 
     public override void _Notification(int what)
@@ -28,11 +43,53 @@ public partial class Host
         // The window's close button: release now, while the main loop runs; the tree then quits (auto-accept quit).
         if (what == NotificationWMCloseRequest)
         {
-            ReleaseHost(freeNodes: true);
+            try
+            {
+                ReleaseHost(freeNodes: true);
+            }
+            catch (Exception e)
+            {
+                ReleaseFailed("close request", e);
+            }
+            finally
+            {
+                if (_releaseFailures > 0)
+                {
+                    GetTree().Quit(1);
+                }
+            }
         }
     }
 
-    public override void _ExitTree() => ReleaseHost(freeNodes: false);
+    public override void _ExitTree()
+    {
+        try
+        {
+            ReleaseHost(freeNodes: false);
+        }
+        catch (Exception e)
+        {
+            ReleaseFailed("exit tree", e);
+        }
+        finally
+        {
+            if (_releaseFailures > 0 && IsInsideTree())
+            {
+                GetTree().Quit(1);
+            }
+        }
+    }
+
+    private int ExitCodeAfterRelease(int exitCode)
+    {
+        if (_releaseFailures == 0 || exitCode != 0)
+        {
+            return exitCode;
+        }
+
+        GD.PrintErr($"HOST_SHUTDOWN_FAILED: {_releaseFailures} release step(s) failed; the Host exits with code 1");
+        return 1;
+    }
 
     /// <summary>
     /// Ends the mode's run, disposes and drops the views, nodes and resources the Host holds, clears the views' shared
@@ -45,17 +102,25 @@ public partial class Host
         if (!_hostReleased)
         {
             _hostReleased = true;
-            ReleaseMode();
+            ReleaseStep("mode", ReleaseMode);
             DisposeViews();
             if (freeNodes)
             {
                 foreach (Node child in GetChildren())
                 {
-                    RemoveChild(child);
-                    child.Free();
+                    ReleaseStep($"node {child.Name}", () =>
+                    {
+                        RemoveChild(child);
+                        child.Free();
+                    });
                 }
             }
 
+            ReleaseStep("front-end view", () => _flowView?.Release());
+            ReleaseStep("front-end overlay", () => _flowOverlay?.Release());
+            ReleaseStep("level textures", () => _flowLevelTextures?.Release());
+            ReleaseStep("particle textures", () => _flowParticleTextures?.Release());
+            ReleaseStep("live textures", () => _liveTextures?.Release());
             _view = null;
             _liveWorld = null;
             _liveCamera = null;
@@ -79,32 +144,67 @@ public partial class Host
             _liveTextures = null;
             _liveFiles = null;
             _liveSession = null;
-            WaterView.ReleaseShared();
-            ParticleView.ReleaseShared();
+            ReleaseStep("water shader", WaterView.ReleaseShared);
+            ReleaseStep("particle shaders", ParticleView.ReleaseShared);
         }
 
-        for (int pass = 0; pass < 2; pass++)
+        DrainFinalizers();
+    }
+
+    /// <summary>
+    /// Collects and runs pending finalizers until a pass releases no engine object: the engine's live object count
+    /// (Performance ObjectCount) after a pass is not below the count before it. At most MaxDrainPasses passes.
+    /// </summary>
+    private static void DrainFinalizers()
+    {
+        double before = Performance.GetMonitor(Performance.Monitor.ObjectCount);
+        for (int pass = 1; pass <= MaxDrainPasses; pass++)
         {
             System.GC.Collect();
             System.GC.WaitForPendingFinalizers();
+            double after = Performance.GetMonitor(Performance.Monitor.ObjectCount);
+            if (after >= before)
+            {
+                return;
+            }
+
+            before = after;
         }
     }
 
-    /// <summary>Disposes and drops the level and HUD views (each view's Dispose is idempotent).</summary>
+    private void ReleaseStep(string step, Action release)
+    {
+        try
+        {
+            release();
+        }
+        catch (Exception e)
+        {
+            ReleaseFailed(step, e);
+        }
+    }
+
+    private void ReleaseFailed(string step, Exception e)
+    {
+        _releaseFailures++;
+        GD.PrintErr($"HOST_RELEASE_FAILED {step}: {e.GetType().Name}: {e.Message.ReplaceLineEndings(" ")}");
+    }
+
+    /// <summary>Disposes and drops the level and HUD views, each in its own step (each view's Dispose is idempotent).</summary>
     private void DisposeViews()
     {
-        _liveHud?.Dispose();
-        _liveBattleLine?.Dispose();
-        _liveParticles?.Dispose();
-        _liveHudTextures?.Dispose();
-        _liveMeshes?.Dispose();
-        _targetBox?.Dispose();
-        _liveWater?.Dispose();
-        _liveSurf?.Dispose();
-        _liveTerrain?.Dispose();
-        _battleLine?.Height.Dispose();
-        _battleLine?.Influence.Dispose();
-        _flowParticles?.Dispose();
+        ReleaseStep("hud", () => _liveHud?.Dispose());
+        ReleaseStep("battle line", () => _liveBattleLine?.Dispose());
+        ReleaseStep("live particles", () => _liveParticles?.Dispose());
+        ReleaseStep("hud textures", () => _liveHudTextures?.Dispose());
+        ReleaseStep("meshes", () => _liveMeshes?.Dispose());
+        ReleaseStep("target box", () => _targetBox?.Dispose());
+        ReleaseStep("water", () => _liveWater?.Dispose());
+        ReleaseStep("surf", () => _liveSurf?.Dispose());
+        ReleaseStep("terrain", () => _liveTerrain?.Dispose());
+        ReleaseStep("battle line height", () => _battleLine?.Height.Dispose());
+        ReleaseStep("battle line influence", () => _battleLine?.Influence.Dispose());
+        ReleaseStep("flow particles", () => _flowParticles?.Dispose());
         _liveHud = _liveBattleLine = _liveParticles = _flowParticles = null;
         _liveHudTextures = null;
         _liveMeshes = null;

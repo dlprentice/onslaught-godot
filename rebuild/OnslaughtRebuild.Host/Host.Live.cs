@@ -401,7 +401,7 @@ public partial class Host
                 }
             }
 
-            FinishLiveLog();
+            ReleaseStep("live log", FinishLiveLog);
             QuitHost(exitCode);
         }
     }
@@ -591,11 +591,18 @@ public partial class Host
     {
         if (_flowMode)
         {
+            // FinishFlow ends the run and its log; if it throws part way, each remaining part is ended on its own.
             if (_flowRun is not null)
             {
-                FinishFlow();
+                ReleaseStep("flow finish", FinishFlow);
             }
 
+            ReleaseStep("flow keyboard", () => _flowKeyboard?.Stop());
+            ReleaseStep("flow trace", () => _flowTrace?.Dispose());
+            ReleaseStep("flow run", () => _flowRun?.Dispose());
+            _flowKeyboard = null;
+            _flowTrace = null;
+            _flowRun = null;
             return;
         }
 
@@ -605,30 +612,22 @@ public partial class Host
         }
 
         _liveDisposed = true;
-        CancelLiveAudioStartup();
-        DisposeLiveAudio();
-        FinishLiveLog();
-        if (_liveWindow is not null && GodotObject.IsInstanceValid(_liveWindow))
+        ReleaseStep("live audio startup", CancelLiveAudioStartup);
+        ReleaseStep("live audio", DisposeLiveAudio);
+        ReleaseStep("live log", FinishLiveLog);
+        ReleaseStep("live focus signals", () =>
         {
-            _liveWindow.FocusEntered -= LiveFocusEntered;
-            _liveWindow.FocusExited -= LiveFocusExited;
-        }
-
-        _liveInput?.SetFocused(false);
-        ReleaseLiveMouse();
-        _liveHud?.Dispose();
-        _liveBattleLine?.Dispose();
-        _liveParticles?.Dispose();
-        _liveHudTextures?.Dispose();
-        _liveMeshes?.Dispose();
-        _targetBox?.Dispose();
-        _liveWater?.Dispose();
-        _liveSurf?.Dispose();
-        _liveTerrain?.Dispose();
-        _battleLine?.Height.Dispose();
-        _battleLine?.Influence.Dispose();
-        _liveTrace?.Dispose();
-        _liveSession?.Context.Particles?.Manager.Shutdown();
+            if (_liveWindow is not null && GodotObject.IsInstanceValid(_liveWindow))
+            {
+                _liveWindow.FocusEntered -= LiveFocusEntered;
+                _liveWindow.FocusExited -= LiveFocusExited;
+            }
+        });
+        ReleaseStep("live input", () => _liveInput?.SetFocused(false));
+        ReleaseStep("live mouse", ReleaseLiveMouse);
+        ReleaseStep("live trace", () => _liveTrace?.Dispose());
+        ReleaseStep("live particles manager", () => _liveSession?.Context.Particles?.Manager.Shutdown());
+        _liveTrace = null;
         _liveSession = null;
         _liveTextures = null;
         _liveFiles = null;
