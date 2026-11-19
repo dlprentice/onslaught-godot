@@ -33,6 +33,7 @@ public partial class Host : Node
             }
             catch (Exception e)
             {
+                GD.PrintErr(HostStart.FailureLine(e));
                 GD.PrintErr($"HOST_FLOW_ERROR: {e}");
                 QuitHost(1);
             }
@@ -47,20 +48,36 @@ public partial class Host : Node
             }
             catch (Exception e)
             {
+                GD.PrintErr(HostStart.FailureLine(e));
                 FailLive(e);
                 QuitHost(1);
             }
             return;
         }
 
-        GameFiles files = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
+        try
+        {
+            ReadySingle();
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr(HostStart.FailureLine(e));
+            GD.PrintErr($"HOST_ERROR: {e}");
+            QuitHost(1);
+        }
+    }
+
+    /// <summary>The single-Present mode: level 100 drawn at HOST_PRESENT, optionally captured to HOST_CAPTURE.</summary>
+    private void ReadySingle()
+    {
+        GameFiles files = GameFiles.Require();
         int present = int.TryParse(System.Environment.GetEnvironmentVariable("HOST_PRESENT"), out int n) ? n : 30;
-        _capture = System.Environment.GetEnvironmentVariable("HOST_CAPTURE");
+        _capture = HostStart.OutputFile("HOST_CAPTURE");
 
         var textures = new TextureLibrary(files.Read);
         var surf = new SurfView();
         // HOST_TAPE: a recorded input tape to replay (as the retail goldens do: with the virtual DirectSound voice model).
-        string? tape = System.Environment.GetEnvironmentVariable("HOST_TAPE");
+        string? tape = HostStart.Tape();
         LevelSession session = LevelSession.Load(100, files.Read, tape is null ? null : LevelSession.VirtualVoiceFor(files.Read),
             (tag, c) => textures.ReadChunk(tag, c) || surf.ReadChunk(tag, c));
         if (tape is not null)
@@ -258,7 +275,12 @@ public partial class Host : Node
             Image image = _view.GetTexture().GetImage();
             Error error = image.SavePng(_capture);
             GD.Print($"HOST_CAPTURED {_capture} {error}");
-            QuitHost(0);
+            if (error != Error.Ok)
+            {
+                GD.PrintErr($"HOST_CAPTURE could not be written: {_capture} ({error})");
+            }
+
+            QuitHost(error == Error.Ok ? 0 : 1);
         }
     }
 

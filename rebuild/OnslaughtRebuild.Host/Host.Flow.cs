@@ -64,7 +64,7 @@ public partial class Host
     {
         _flowMode = true;
         _flowDraw = System.Environment.GetEnvironmentVariable("HOST_DRAW") != "0";
-        string? tape = System.Environment.GetEnvironmentVariable("HOST_TAPE");
+        string? tape = HostStart.Tape();
         _flowReplay = tape is not null;
         _flowFrontEndOnly = System.Environment.GetEnvironmentVariable("HOST_FRONTEND_ONLY") == "1";
         if (!_flowDraw && !_flowReplay)
@@ -82,7 +82,7 @@ public partial class Host
         string? soundProfile = System.Environment.GetEnvironmentVariable("HOST_REPLAY_SOUND_PROFILE");
         if (soundProfile is not null && tape is null)
             throw new ArgumentException("HOST_REPLAY_SOUND_PROFILE requires HOST_TAPE; recorded allocator state is not a player default");
-        GameFiles files = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
+        GameFiles files = GameFiles.Require();
         bool fullBoot = System.Environment.GetEnvironmentVariable("HOST_FULL_BOOT") == "1";
         var run = new GameRun(files.Read, id => new RetailPcText(files.Read("BEA.exe").Bytes, 0)[id],
             new InstalledFilmHeaders(files.Read), !fullBoot, LevelSession.VirtualVoiceFor(files.Read),
@@ -105,6 +105,7 @@ public partial class Host
 
         if (System.Environment.GetEnvironmentVariable("HOST_SAVES") is { } saves)
         {
+            HostStart.CheckSaves(saves);
             foreach (string entry in saves.Split(';', StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] pair = entry.Split('=', 2);
@@ -112,7 +113,7 @@ public partial class Host
             }
         }
 
-        if (System.Environment.GetEnvironmentVariable("HOST_TRACE") is { } trace)
+        if (HostStart.OutputFile("HOST_TRACE") is { } trace)
         {
             _flowTrace = new StreamWriter(File.Open(trace, FileMode.CreateNew));
         }
@@ -195,6 +196,11 @@ public partial class Host
         if (_flowRun is null)
         {
             return;
+        }
+
+        if (TakeExitFault("flow-process"))
+        {
+            throw ExitFaultError("flow-process");
         }
 
         if (_flowPendingShot is { } pending)

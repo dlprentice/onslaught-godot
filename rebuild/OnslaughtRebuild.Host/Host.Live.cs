@@ -63,13 +63,13 @@ public partial class Host
         if (_liveMode) throw new InvalidOperationException("Live startup was already requested.");
         _liveMode = true;
         _liveDraw = System.Environment.GetEnvironmentVariable("HOST_DRAW") != "0";
-        _capture = System.Environment.GetEnvironmentVariable("HOST_CAPTURE");
+        _capture = HostStart.OutputFile("HOST_CAPTURE");
         if (!_liveDraw && _capture is not null)
         {
             throw new ArgumentException("HOST_CAPTURE requires drawing; remove HOST_DRAW=0");
         }
 
-        string? tape = System.Environment.GetEnvironmentVariable("HOST_TAPE");
+        string? tape = HostStart.Tape();
         _liveReplay = tape is not null;
         if (!_liveDraw && !_liveReplay)
         {
@@ -105,7 +105,7 @@ public partial class Host
 
     private void CompleteReadyLive(int present, string? tape, string? voiceManifest, string? outputDevice)
     {
-        _liveFiles = GameFiles.Find() ?? throw new InvalidOperationException("the game installation was not found (set ONSLAUGHT_GAME_DIR)");
+        _liveFiles = GameFiles.Require();
         _liveTextures = new TextureLibrary(_liveFiles.Read);
         var surf = new SurfView();
         if (_liveAudioEnabled)
@@ -135,7 +135,7 @@ public partial class Host
             _liveSession.Tape = OnslaughtRebuild.Parity.RetailTape.Load(tape);
         }
 
-        if (System.Environment.GetEnvironmentVariable("HOST_TRACE") is { } trace)
+        if (HostStart.OutputFile("HOST_TRACE") is { } trace)
         {
             _liveTrace = new LiveHostTrace(trace, _liveDraw, _liveReplay);
         }
@@ -327,16 +327,18 @@ public partial class Host
     {
         // There is deliberately no session, input adapter, trace or core clock to advance while this is pending.
         // Pump before the null-session return, then discard this host frame's delta even when startup completes.
-        if (_liveAudioStartup is { } startup)
+        if (_liveAudioStartup is not null || TakeExitFault("audio-start"))
         {
             try
             {
+                LiveAudioOutputStartup startup = _liveAudioStartup ?? throw ExitFaultError("audio-start");
                 if (LiveTerminal) startup.Cancel();
                 else startup.Pump(delta);
                 if (!startup.Pending) _liveAudioStartup = null;
             }
             catch (Exception error)
             {
+                GD.PrintErr(HostStart.FailureLine(error));
                 FailLive(error);
                 QuitHost(1);
             }

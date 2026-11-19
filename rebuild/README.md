@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept — the Parity core and the Host; the earlier fixed-point rebuild is reference only
-Last updated: 2026-11-19 (engine pin moved to Godot 4.8 beta4 .NET; HOST_EXIT_STRESS documented)
+Last updated: 2026-11-19 (engine pin moved to Godot 4.8 beta4 .NET; HOST_EXIT_STRESS and HOST_EXIT_FAULT documented)
 Summary: how to build, test and run the Godot/C# rebuild of *Battle Engine Aquila*: its floating-point parity core and the Godot host, and where the earlier fixed-point rebuild, the evidence and the contracts are kept.
 
 The rebuild's goal is startup to exit 1:1 with retail, with level 100 playable to completion. What is measured, and the
@@ -211,6 +211,7 @@ The remaining switches of the whole-game mode (`HOST_LIVE=flow`) and the level-1
 | `HOST_SHOT_DIR=<folder>` | where `HOST_SHOTS` writes its pictures; `HOST_SHOTS` requires it |
 | `HOST_SHOT_LAYERS=1` | with `HOST_SHOTS`, also saves the level 2D overlay alone, from Godot and from the software rasterizer |
 | `HOST_EXIT_STRESS=<n>` | test only, any mode: at the Host's own quit, leaves 3n engine objects awaiting a slow release on the finalizer thread, a positive control for the shutdown routine (`Host.Shutdown.cs`); unset, it does nothing |
+| `HOST_EXIT_FAULT=flow-process` or `audio-start` | test only: raises one fault inside whole-game processing (after 120 frames) or in the live audio startup, to drive those error exits; unset, it does nothing |
 
 For the separate level-100 ordinary-input preview, `HOST_LIVE=1 HOST_AUDIO=1` opts into effects and prepared PCM
 voices. It requires `ONSLAUGHT_VOICE_PCM`, a real Godot audio driver and supported sound options; it cannot be
