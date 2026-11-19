@@ -64,7 +64,7 @@ class SdkBundleTests(unittest.TestCase):
         engine = root / "godot/godot"
         packages = engine.parent / "GodotSharp/Tools/nupkgs"
         packages.mkdir(parents=True)
-        with zipfile.ZipFile(packages / "Godot.NET.Sdk.4.8.0-beta.1.nupkg", "w") as archive:
+        with zipfile.ZipFile(packages / "Godot.NET.Sdk.4.8.0-beta.4.nupkg", "w") as archive:
             archive.writestr(entry, "<Project />")
         return dotnet, engine
 
@@ -72,23 +72,23 @@ class SdkBundleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             dotnet, engine = self.make_bundle(root)
-            combined = runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.1")
+            combined = runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.4")
             self.assertEqual(dotnet.parent / "sdk/10.0.402/Sdks/Microsoft.NET.Sdk",
                              (combined / "Microsoft.NET.Sdk").resolve())
             self.assertEqual("<Project />", (combined / "Godot.NET.Sdk/Sdk/Sdk.props").read_text())
             self.assertEqual("version metadata", (combined.parent / "Microsoft.NETCoreSdk.BundledVersions.props").read_text())
             self.assertFalse((dotnet.parent / "sdk/10.0.402/Sdks/Godot.NET.Sdk").exists())
-            self.assertEqual(combined, runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.1"))
+            self.assertEqual(combined, runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.4"))
             (combined / "Godot.NET.Sdk/Sdk/Sdk.props").write_text("changed")
             with self.assertRaisesRegex(ValueError, "changed"):
-                runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.1")
+                runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.4")
 
     def test_bundle_cannot_write_outside_its_extraction_root(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             dotnet, engine = self.make_bundle(root, "../escape")
             with self.assertRaisesRegex(ValueError, "package path"):
-                runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.1")
+                runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.4")
 
     def test_linked_sdk_cache_is_refused_without_writing_its_target(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -98,9 +98,9 @@ class SdkBundleTests(unittest.TestCase):
             cache.mkdir(parents=True)
             target = root / "retained"
             target.mkdir()
-            (cache / "4.8.0-beta.1").symlink_to(target, target_is_directory=True)
+            (cache / "4.8.0-beta.4").symlink_to(target, target_is_directory=True)
             with self.assertRaisesRegex(ValueError, "linked SDK cache"):
-                runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.1")
+                runner.sdk_directory(root, dotnet, engine, "10.0.402", "4.8.0-beta.4")
             self.assertEqual([], list(target.iterdir()))
 
 
