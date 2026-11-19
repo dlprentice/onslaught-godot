@@ -53,6 +53,15 @@ public static class ParticleView
     private static Shader? _shader;
     private static Shader? _frontEndShader;
 
+    /// <summary>Drops the shared shaders at shutdown, so their wrappers are not finalized after the engine.</summary>
+    internal static void ReleaseShared()
+    {
+        _shader?.Dispose();
+        _frontEndShader?.Dispose();
+        _shader = null;
+        _frontEndShader = null;
+    }
+
     public static Node3D Build(ParticleManager manager, TextureLibrary textures, FVector campos, FMatrix cori, float eventTime, bool frontEnd = false)
     {
         // Evaluating a colour/length function must never consume the simulation's random stream. The current

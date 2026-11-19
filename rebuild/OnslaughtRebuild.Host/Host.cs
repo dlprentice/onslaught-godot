@@ -34,7 +34,7 @@ public partial class Host : Node
             catch (Exception e)
             {
                 GD.PrintErr($"HOST_FLOW_ERROR: {e}");
-                GetTree().Quit(1);
+                QuitHost(1);
             }
             return;
         }
@@ -48,7 +48,7 @@ public partial class Host : Node
             catch (Exception e)
             {
                 FailLive(e);
-                GetTree().Quit(1);
+                QuitHost(1);
             }
             return;
         }
@@ -212,6 +212,11 @@ public partial class Host : Node
 
     public override void _Process(double delta)
     {
+        if (_hostReleased)
+        {
+            return;
+        }
+
         if (_flowMode)
         {
             try
@@ -224,7 +229,7 @@ public partial class Host : Node
                 _flowStop = $"Presentation failed after Present {_flowLast?.Present}: {e.Message}";
                 GD.PrintErr($"HOST_FLOW_FAILED: {e}");
                 FinishFlow();
-                GetTree().Quit(1);
+                QuitHost(1);
             }
             return;
         }
@@ -253,11 +258,7 @@ public partial class Host : Node
             Image image = _view.GetTexture().GetImage();
             Error error = image.SavePng(_capture);
             GD.Print($"HOST_CAPTURED {_capture} {error}");
-            // Release unreachable engine wrappers while the engine is still running, so their finalizers do not
-            // run during engine teardown.
-            System.GC.Collect();
-            System.GC.WaitForPendingFinalizers();
-            GetTree().Quit();
+            QuitHost(0);
         }
     }
 

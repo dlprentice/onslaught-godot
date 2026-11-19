@@ -240,7 +240,7 @@ public partial class Host
         else if (++_flowSettle == 4)
         {
             FinishFlow();
-            GetTree().Quit(_flowFailure ? 1 : 0);
+            QuitHost(_flowFailure ? 1 : 0);
         }
     }
 
@@ -545,7 +545,7 @@ public partial class Host
         _flowTrace.Dispose();
         _flowTrace = null;
         GD.Print($"HOST_FLOW_STRAIGHT_FINISHED present={run.Clock.PresentCount} result={result}");
-        GetTree().Quit(0);
+        QuitHost(0);
     }
 
     private void FinishFlow()

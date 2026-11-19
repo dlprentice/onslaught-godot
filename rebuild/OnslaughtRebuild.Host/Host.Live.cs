@@ -273,6 +273,11 @@ public partial class Host
 
     public override void _Input(InputEvent @event)
     {
+        if (_hostReleased)
+        {
+            return;
+        }
+
         if (_flowMode)
         {
             InputFlow(@event);
@@ -333,7 +338,7 @@ public partial class Host
             catch (Exception error)
             {
                 FailLive(error);
-                GetTree().Quit(1);
+                QuitHost(1);
             }
             return;
         }
@@ -397,7 +402,7 @@ public partial class Host
             }
 
             FinishLiveLog();
-            GetTree().Quit(exitCode);
+            QuitHost(exitCode);
         }
     }
 
@@ -581,7 +586,8 @@ public partial class Host
         }
     }
 
-    public override void _ExitTree()
+    /// <summary>Ends the current mode's run: the flow run and its log, or the live session's audio, input and views.</summary>
+    private void ReleaseMode()
     {
         if (_flowMode)
         {

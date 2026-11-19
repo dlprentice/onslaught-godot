@@ -50,6 +50,13 @@ public static class WaterView
 
     private static Shader? _shader;
 
+    /// <summary>Drops the shared shader at shutdown, so its wrapper is not finalized after the engine.</summary>
+    internal static void ReleaseShared()
+    {
+        _shader?.Dispose();
+        _shader = null;
+    }
+
     /// <summary>
     /// CDXWater::Render's state for one render: the grid at (camera x, y, level), and the three matrices from the
     /// camera's position, its up column and the drift angle (WATER_ADVANCE's angle2).
