@@ -481,6 +481,7 @@ def main(argv: list[str] | None = None) -> int:
                        XDG_CACHE_HOME=str(scratch_owner / "cache"),
                        XDG_CONFIG_HOME=str(scratch_owner / "config"),
                        DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1")
+            env.setdefault("DOTNET_ROLL_FORWARD", "LatestMinor")  # the engine plugins would otherwise roll to a newer major .NET
             version = run_process([str(engine), "--version"], cwd=project, env=env,
                                   timeout=30, capture=True).stdout.strip()
             if version != ENGINE_VERSION:
