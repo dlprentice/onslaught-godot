@@ -20,7 +20,7 @@
     "setup:toolchain": "python ./tools/public_build.py setup",
     "test:godot-host": "python ./tools/godot_host_tests.py && python ./rebuild/tools/first_flight_tests.py",
     "build": "python ./tools/public_build.py build",
-    "run:host": "npm run build && cd ./rebuild/OnslaughtRebuild.Host && HOST_LIVE=${HOST_LIVE-flow} \"${GODOT:-godot}\" --path .",
+    "run:host": "npm run build && cd ./rebuild/OnslaughtRebuild.Host && HOST_LIVE=${HOST_LIVE-flow} DOTNET_ROLL_FORWARD=${DOTNET_ROLL_FORWARD-LatestMinor} \"${GODOT:-godot}\" --path .",
     "ref:core-tests": "npm run prepare:rebuild-assets && dotnet test ./rebuild/OnslaughtRebuild.Core.Tests/OnslaughtRebuild.Core.Tests.csproj --nologo --filter \"FullyQualifiedName!~Level100FerryLandingTests\"",
     "ref:core-ferry-sweep": "npm run prepare:rebuild-assets && dotnet test ./rebuild/OnslaughtRebuild.Core.Tests/OnslaughtRebuild.Core.Tests.csproj --nologo --filter \"FullyQualifiedName~Level100FerryLandingTests\"",
     "ref:client-tests": "npm run prepare:rebuild-assets && dotnet test ./rebuild/OnslaughtRebuild.Client.Tests/OnslaughtRebuild.Client.Tests.csproj --nologo",
