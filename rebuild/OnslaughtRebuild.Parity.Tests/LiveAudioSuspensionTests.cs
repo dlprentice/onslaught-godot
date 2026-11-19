@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Authored boundaries with the real adapter/shared event owner; not actual Godot/device acceptance.
-// Godot 4d10419cacd6d3009976e8f9fd3abd970fd58018: AudioStreamPlayer3D::is_playing delegates to
-// AudioStreamPlayerInternal::is_playing, then AudioServer::is_playback_active. For streamed playback,
+// Godot b070e63b161aa816afac71dcfc9d60859d38f220 (4.8 beta4): AudioStreamPlayer3D::is_playing
+// (scene/3d/audio_stream_player_3d.cpp:677) delegates to AudioStreamPlayerInternal::is_playing
+// (scene/audio/audio_stream_player_internal.cpp:274), then AudioServer::is_playback_active
+// (servers/audio/audio_server.cpp:1251). For streamed playback,
 // PAUSED/FADE_OUT_TO_PAUSE is not PLAYING. Its paused getter distinguishes these from a natural end.
 using OnslaughtRebuild.Host;
 using OnslaughtRebuild.Parity.Clock;
