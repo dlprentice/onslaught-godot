@@ -1,7 +1,7 @@
 # Contributing
 
 Status: active
-Last updated: 2026-11-11 (where things live and where to start added; the earlier lane's clean-clone limit stated; the Parity classes that need no references listed; a code of conduct linked)
+Last updated: 2026-11-21 (updated Toolkit rebuild/ pointer notes)
 Summary: where each kind of work belongs, how to propose a change to the rebuild, the gate it has to pass, and the licence of contributions.
 
 Thank you for your interest. Please read this before opening an issue or a pull request. Everyone taking part is
@@ -22,8 +22,9 @@ reviews and merges pull requests here (no response time is promised). The short 
 - How the game works (file formats, saves, mechanics, levels, engine):
   [onslaught-preservation](https://github.com/dlprentice/onslaught-preservation).
 - The Companion (saves, backups, settings, lore, music) and the program's goals and plan:
-  [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor). Its `rebuild/` tree is a frozen copy
-  of this repository's `rebuild/`: rebuild work comes here.
+  [Onslaught-Career-Editor](https://github.com/dlprentice/Onslaught-Career-Editor). Its `rebuild/` folder is a pointer
+  page (the former frozen copy was removed on 2026-11-11 and archived at tag `archive/20261111-rebuild-frozen-copy`):
+  rebuild work comes here.
 - The [Onslaught](https://github.com/dlprentice/Onslaught) and
   [AYAResourceExtractor](https://github.com/dlprentice/AYAResourceExtractor) forks are pinned references, not
   contribution targets.
@@ -116,8 +117,9 @@ Follow the [public source setup](README.md#building-and-testing), commit only th
 branch to your fork, and open the pull request. People and automated agents use the same workflow; upstream write
 access, private repositories, the maintainer's computer and its local lab are not needed to prepare a contribution.
 Windows contributors use the WSL2 route in the [README](README.md#building-and-testing); WSL2 checks do not establish
-native Windows acceptance. Work on this repository's Parity core and Host; the Toolkit repository's `rebuild/` remains a
-frozen reference copy.
+native Windows acceptance. Work on this repository's Parity core and Host; the Toolkit repository's `rebuild/` is only a
+pointer page (the former frozen reference copy was replaced on 2026-11-11 and is archived at tag
+`archive/20261111-rebuild-frozen-copy`).
 
 Keep a pull request to one subject, say what it changes in behaviour, and name the evidence: the Present where the
 rebuild first differs from the reference, the capture or test that shows it, or the file and line of Stuart Gillam's GPL Onslaught project

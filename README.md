@@ -1,7 +1,7 @@
 # onslaught-godot
 
-Status: active proof of concept; not a playable release
-Last updated: 2026-11-19 (engine pin moved to Godot 4.8 beta4 .NET)
+Status: parked proof of concept on Godot 4.8 beta4 (`main`) while Onslaught CE incremental releases ship; not a playable release
+Last updated: 2026-11-21 (noted cleanly parked status on Godot 4.8 beta4 while CE incremental releases ship; added front-page Discussions link)
 Summary: a C# reimplementation of *Battle Engine Aquila* (Lost Toys, 2003) on Godot 4.8 .NET, compared Present by Present with recorded runs of the native port and with selected original-game recordings; how to build, test and contribute.
 
 onslaught-godot rebuilds *Battle Engine Aquila* in C# on Godot 4.8 .NET. The goal is startup to exit 1:1 with the
@@ -14,7 +14,10 @@ original game, with level 100 playable to completion. It has two parts:
 - **The host** (`rebuild/OnslaughtRebuild.Host`): a Godot project, built in code, that runs the parity core and draws
   the game; its drawing is being compared with the native port's frames part by part (milestone M7, in progress).
 
-It is not a playable release yet. To play the game, use [Onslaught CE](https://github.com/dlprentice/onslaught-ce).
+It is not a playable release yet, and `onslaught-godot` is currently cleanly parked on Godot 4.8 beta4 (`main`) while
+[Onslaught CE](https://github.com/dlprentice/onslaught-ce) incremental releases ship. To play the game, use
+[Onslaught CE](https://github.com/dlprentice/onslaught-ce). Questions and ideas across the project go to
+[Onslaught CE Discussions](https://github.com/dlprentice/onslaught-ce/discussions).
 
 ## Where it stands
 
@@ -152,6 +155,8 @@ project's public repositories, what to run in your [first hour](CONTRIBUTING.md#
 to pass and the licence of contributions;
 [SECURITY.md](SECURITY.md) says how to report a security problem privately;
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) says how people are expected to behave and where to report otherwise.
+For questions and ideas across the project, use
+[Onslaught CE Discussions](https://github.com/dlprentice/onslaught-ce/discussions).
 
 ## Related projects
 

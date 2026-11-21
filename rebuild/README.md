@@ -1,7 +1,7 @@
 # Onslaught Rebuild
 
 Status: active proof of concept — the Parity core and the Host; the earlier fixed-point rebuild is reference only
-Last updated: 2026-11-19 (engine pin moved to Godot 4.8 beta4 .NET; HOST_EXIT_STRESS and HOST_EXIT_FAULT documented)
+Last updated: 2026-11-21 (updated Toolkit rebuild/ pointer note and public asset-path wording)
 Summary: how to build, test and run the Godot/C# rebuild of *Battle Engine Aquila*: its floating-point parity core and the Godot host, and where the earlier fixed-point rebuild, the evidence and the contracts are kept.
 
 The rebuild's goal is startup to exit 1:1 with retail, with level 100 playable to completion. What is measured, and the
@@ -56,7 +56,8 @@ Where to read next:
 ## Working lane
 
 - The rebuild is developed in this repository (onslaught-godot) since 2026-10-22: work goes on a branch and merges into
-  `main` when its gate passes. The copy in Onslaught-Career-Editor's `rebuild/` is retained as a frozen reference.
+  `main` when its gate passes. Onslaught-Career-Editor's `rebuild/` was replaced with a pointer page on 2026-11-11
+  (the former frozen reference copy is archived at tag `archive/20261111-rebuild-frozen-copy`).
   Build, test and develop the live Parity core and Host in this repository.
 - Builds, test runs and captures happen in a clone on an internal disk (or a worktree of it), never in a checkout on
   slow or removable storage. Your own clone and folder paths are kept in an ignored local file
@@ -163,9 +164,8 @@ this checkout's ignored `local-data/`. If you install the engine yourself instea
 from that installation: it looks in `ONSLAUGHT_GAME_DIR`, else in the Linux Steam library's default folder
 (`~/.local/share/Steam/steamapps/common/Battle Engine Aquila`). The Host reads film headers from that installation. `FilmLibrary` can read a library of decoded films at
 `ONSLAUGHT_FILMS`, but no Host code calls `FilmLibrary.FromEnvironment`, so the film lines in the setup block below are optional preparation. Film preparation requires NumPy in the Python environment and FFmpeg with `ffprobe` on `PATH`.
-On Linux, `npm run prepare:rebuild-assets` (and the scripts that call it) writes the materialised game data under the
-ignored `rebuild-godot` folder of this checkout's `local-lab` directory (the checkout's canonical lab), not under
-`local-data`.
+On Linux, `npm run prepare:rebuild-assets` (and the scripts that call it) writes the materialised game data under an
+ignored `rebuild-godot` folder outside tracked source (in the configured local lab directory, not under `local-data/`).
 Those game data and film assets are not included in the repository; its one tracked game-generated career fixture
 is described in [`tests_shared/fixtures/README.md`](../tests_shared/fixtures/README.md).
 

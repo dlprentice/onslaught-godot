@@ -1,7 +1,7 @@
 # onslaught-godot: agent guide
 
 Status: active
-Last updated: 2026-11-11 (the earlier lane's clean-clone limit and the split parity pages named)
+Last updated: 2026-11-21 (updated Toolkit rebuild/ pointer note)
 Summary: the rules for working in this repository, for people and automated agents alike.
 
 - **What this is:** the C# Godot rebuild of *Battle Engine Aquila*. `rebuild/OnslaughtRebuild.Parity` is the simulation
@@ -30,7 +30,7 @@ Summary: the rules for working in this repository, for people and automated agen
   [README](README.md#building-and-testing); the application itself still sends nothing.
   The runner targets Linux x86_64; Windows contributors use that README's WSL2 route. Enabling or installing WSL
   requires the approval of the machine's owner, which on a contributor's own computer is the contributor. WSL2 checks are Linux evidence; native Windows acceptance stays separate.
-- The live `rebuild/` is developed in this repository. The Toolkit repository's `rebuild/` is a frozen reference copy; retain it until the maintainer explicitly decides otherwise. Build and test this repository's copy, not the frozen one.
+- The live `rebuild/` is developed in this repository. Onslaught-Career-Editor's `rebuild/` was replaced with a pointer page on 2026-11-11 (the former frozen reference copy is archived at tag `archive/20261111-rebuild-frozen-copy` in that repository). Build and test here.
 - **Windowed runs on the maintainer's machine:** runs that open a window (Host runs and captures, and the `capture` and `run` commands of the earlier launcher, `rebuild/tools/first_flight.py`) never
   open on a visible desktop: they go through an offscreen wrapper that renders on a hidden output, or through the engine's
   headless mode. The wrapper, its flags, the engine build and the capture folders are the machine's own and are set in the

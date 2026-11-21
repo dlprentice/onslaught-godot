@@ -1,7 +1,7 @@
 # Earlier lane: carried retail contracts
 
 Status: reference only — the contract table and closure notes of the earlier fixed-point rebuild (`OnslaughtRebuild.Core`, `Client`, `Godot`, `Headless`); not extended
-Last updated: 2026-11-11 (moved out of PARITY.md; the World 110 notes joined it)
+Last updated: 2026-11-21 (cleaned maintainer-worktree and local-data phrasing for public readers)
 Evidence: MEASURED — every row of the table is MEASURED: its anchor re-derived from the pristine specimen and its mutation kill observed.
 Specimen: `BEA.exe.original.backup`, SHA-256
 `74154bfae14ddc8ecb87a0766f5bc381c7b7f1ab334ed7a753040eda1e1e7750`
@@ -80,12 +80,12 @@ Owner paths are relative to the repository root; test names are relative to
 > than to trust the table.
 >
 > The world-110 player-start row has its separate measured receipt in the
-> ignored local-data folder on the maintainer's machine, at
+> private maintainer evidence archive, at
 > a private mutation-kill receipt (rebuild-world110-player-start-mutation-kill-20260830),
 > SHA-256
 > `900f22187dea14262846d968a229e7a324ec1a292302c3214ddf656ec7e56b3d`.
-> It is machine-local evidence in the maintainer's ignored local-data folder, excluded from
-> Git and absent from fresh clones and child worktrees.
+> These private receipts are excluded from Git and are not included in public
+> clones; re-running the listed `--filter` tests reproduces the checks locally.
 >
 > The adjacent bounded `CStart::Init` height row has its own receipt at
 > a private mutation-kill receipt (rebuild-world110-player-start-height-clamp-mutation-kill-20260830),
@@ -255,34 +255,16 @@ Owner paths are relative to the repository root; test names are relative to
 | Plane move orders and retreat | A plane's waypoint orders use the same slot 61 (`0x00403a90` in the `CPlane` vtable `0x005e1930`) as the dropship, so each target is raised to MinAltitude above the integer floor; arrival is the follower's stored 2D distance below 5.0 (slot 94, `0x0050e8e0`); `Retreat` (slot 100, `0x004fdd00`), the run-out and the SHUTDOWN (slot 116, `0x004fe5f0`) are the unit step's (`0x004fa8d0`, reached from the plane's Move `0x004d1cd0` through the air step `0x00402fa0`); a leaving unit's AI only polls (`0x004ff340-0x004ff34f`), so it neither thinks nor fires | `rebuild/OnslaughtRebuild.Core/Level100ActorPlaneRuntime.cs`, `Level100ActorDropshipRuntime.cs`, `Level100UnitCallbacks.cs`, `Level100ActorWeaponRuntime.cs`, `RetailIScriptFollowWaypoint.cs` | `Level100ActorMechanics.SetPlaneWaypointDestination`, `.RetreatAirUnit`, `.AdvanceLeaveState`, `.HandleAiEvent`, `RetailIScriptFollowWaypoint.Arrived` | `PlaneRetreatTests` (2), `Level100AirTrainerFlybyTests.Waypoints_TakeTheirLoadTimeGroundOrWaterHeight` | 2 | plane orders skipping slot 61; plane Retreat circling; a leaving plane steering at its target; a leaving plane firing; the plane's leave tail skipped; a leaving plane's AI thinking — each RED, restored |
 
 The September 26 Battle Engine rows have their mutation receipts in the
-rebuild worktree's ignored
-`local-data/test-runs/be-refresh-20260926/mutation-kills/` (the refresh rows:
-four mutations) and `local-data/test-runs/stores-shake-20260926/mutation-kills/`
-(the store, cooling and shake rows: six mutations) and
-`local-data/test-runs/missile-pod-20260926/mutation-kills/` (the four Missile
-Pod rows: eleven mutations) and
-`local-data/test-runs/launch-basis-20260926/mutation-kills/` (the launch-basis
-row: four mutations) and
-`local-data/test-runs/construction-order-20260926/mutation-kills/` (the three
-load-order and unit-callback rows: eleven mutations) and
-`local-data/test-runs/script-inits-20260926/mutation-kills/` (the INIT_SCRIPT
-row: five mutations) and
-`local-data/test-runs/pre-run-20260926/mutation-kills/` (the pre-run row:
-five mutations, plus one equivalent) and
-`local-data/test-runs/round-frames-20260926/mutation-kills/` (the round
-MOVE and life event row: eight mutations) and
-`local-data/test-runs/influence-warmup-20260926/mutation-kills/` (the
-influence-map and warm-up additions to the load-order and callback rows: six
-mutations) and
-`local-data/test-runs/emitters-20260926/mutation-kills/` (the emitter row: four
-mutations) and `local-data/test-runs/waypoint-routes-20260926/mutation-kills/`
-(the waypoint-walk row: six mutations) and
-`local-data/test-runs/world110-construction-20260926/mutation-kills/` (the four
-World 110 rows: twenty-three mutations) and
-`local-data/test-runs/walker-dash-20260926/mutation-kills/` (the walker-dash
-row: five mutations) and
-`local-data/test-runs/world110-carry-over-20260926/mutation-kills/` (the
-carry-over row: eight mutations), each with `mutate.py` and
+private archived test-run records (covering the refresh rows:
+four mutations; the store, cooling and shake rows: six mutations; the four Missile
+Pod rows: eleven mutations; the launch-basis row: four mutations; the three
+load-order and unit-callback rows: eleven mutations; the INIT_SCRIPT row: five
+mutations; the pre-run row: five mutations, plus one equivalent; the round
+MOVE and life event row: eight mutations; the influence-map and warm-up additions
+to the load-order and callback rows: six mutations; the emitter row: four
+mutations; the waypoint-walk row: six mutations; the four World 110 rows:
+twenty-three mutations; the walker-dash row: five mutations; and the carry-over
+row: eight mutations), each recorded with `mutate.py` and
 `mutation-results.json`; every mutation went RED, was restored byte-identical by
 SHA-256, then went GREEN. The shake offsets are not yet applied to the Battle
 Engine's orientation (`BattleEngine.cpp:1222-1224`), and the damage shake's
@@ -617,7 +599,7 @@ the precedent the jet-friction row set: a green replay suite there was
 *vacuous* with respect to the constant it was supposed to guard, because the
 jet throttle caps below the gate's band. The seventeenth through
 forty-first rows' mutation kills were measured on 2026-08-18, 2026-08-19,
-and 2026-08-22 in this worktree; they are
+and 2026-08-22 during development; they are
 not among the 17 files
 under a private mutation-kill folder (rebuild-parity-mutation-kills-2026-08-17).
 
