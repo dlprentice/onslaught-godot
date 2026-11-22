@@ -59,7 +59,7 @@ def prefix() -> Path:
         staging = PREFIX.with_name(PREFIX.name + ".partial")
         shutil.rmtree(staging, ignore_errors=True)
         shutil.copytree(BASE_PREFIX, staging, symlinks=True,
-                        ignore=shutil.ignore_patterns(".bea-decomp.lock", "ONSLAUGHT2"))
+                        ignore=shutil.ignore_patterns(".*.lock", "ONSLAUGHT2"))
         staging.rename(PREFIX)
     return PREFIX
 
