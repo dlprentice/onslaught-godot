@@ -149,7 +149,7 @@ box's answers, the save list) wait for `IFontMetrics` and are not modelled yet.
 
 `OnslaughtRebuild.Host` is the successor host: a Godot 4.8 .NET project, built in code, that runs the parity core and
 draws it as retail's renderer does. It replaces `OnslaughtRebuild.Godot`, which is **reference only**: it is not part of the Parity or Host gates and is not extended; the earlier launcher can still build and run it (see [EARLIER-REBUILD.md](EARLIER-REBUILD.md)), and it stays (with Core and Client's earlier simulation) because the asset materializer, the
-first-flight launcher, the static-mesh preview and several measurement probes still read its sources and recipes;
+first-flight launcher, the static-mesh preview and capture/scoring tools still read its sources and recipes;
 pieces are copied into the Host only as needed, noting their origin. By default it renders one level-100
 Present; an experimental live mode (`HOST_LIVE=1`) runs level 100 from the parity core with ordinary input, or
 replays `HOST_TAPE` using its virtual sound device. `HOST_TRACE` records the live trace. The whole-game mode

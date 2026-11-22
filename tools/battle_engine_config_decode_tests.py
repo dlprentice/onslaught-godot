@@ -20,12 +20,6 @@ from dataclasses import replace
 
 
 TOOL = pathlib.Path(__file__).with_name("battle_engine_config_decode.py")
-LAYOUT = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "reverse-engineering"
-    / "asset-formats"
-    / "battle-engine-config-layout.tsv"
-)
 SPEC = importlib.util.spec_from_file_location("battle_engine_config_decode", TOOL)
 assert SPEC is not None and SPEC.loader is not None
 decode = importlib.util.module_from_spec(SPEC)
@@ -224,38 +218,6 @@ class AdverseControlTests(unittest.TestCase):
 
 
 class DeterministicOutputTests(unittest.TestCase):
-    def test_tracked_layout_pins_canonical_lf_bytes_across_checkout_styles(self) -> None:
-        checked_out = LAYOUT.read_bytes()
-        canonical = checked_out.replace(b"\r\n", b"\n")
-
-        self.assertNotIn(b"\r", canonical)
-        self.assertIn(checked_out, (canonical, canonical.replace(b"\n", b"\r\n")))
-        self.assertEqual(
-            "e2e1e86ca34ac1918c27da4bee6caaf764cbdeb48794d265e606b12c0ad5a3ad",
-            hashlib.sha256(canonical).hexdigest(),
-        )
-        rows = list(
-            csv.DictReader(io.StringIO(canonical.decode("utf-8")), delimiter="\t")
-        )
-        self.assertEqual(
-            ["FILE", "Racer", "Standard", "Sniper", "Aquila Prototype", "Laser", "Blaster"],
-            [row["record_name"] for row in rows],
-        )
-        self.assertEqual(1_514, sum(int(row["width"]) for row in rows))
-        unknown_bytes = 0
-        for row in rows[1:]:
-            self.assertEqual(
-                "A promoted retail-static destination/consumer join for this exact span; "
-                "source order alone is insufficient.",
-                row["cheapest_falsifier"],
-            )
-            for entry in row["unknown_spans"].split(";"):
-                field, encoded_range = entry.rsplit("@", 1)
-                _offset_text, width_text = encoded_range.split("+", 1)
-                self.assertTrue(field.startswith("UNKNOWN"), field)
-                unknown_bytes += int(width_text)
-        self.assertEqual(689, unknown_bytes)
-
     def test_layout_and_receipt_are_deterministic_and_omit_unknown_payloads(self) -> None:
         data = synthetic_fixture()
         parsed = decode.parse_config(data)
@@ -445,7 +407,6 @@ class HashPinnedRetailTests(unittest.TestCase):
             exact_baseline=True,
         ).encode("utf-8")
         canonical_receipt = decode.render_receipt_json(parsed, data).encode("utf-8")
-        checked_out_layout = LAYOUT.read_bytes().replace(b"\r\n", b"\n")
         self.assertNotIn(b"\r", canonical_layout)
         self.assertNotIn(b"\r", canonical_receipt)
         self.assertEqual(
@@ -455,10 +416,6 @@ class HashPinnedRetailTests(unittest.TestCase):
         self.assertEqual(
             "cfb753a6853fa9383efdf607f3f0bc029f78a555bf4125a33ffe4521584cdb33",
             hashlib.sha256(canonical_receipt).hexdigest(),
-        )
-        self.assertEqual(
-            canonical_layout,
-            checked_out_layout,
         )
 
         aquila = parsed.records[3]

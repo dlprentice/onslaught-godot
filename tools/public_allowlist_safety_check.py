@@ -247,17 +247,7 @@ RETAIL_TEXT_ALLOW: dict[str, dict[str, str]] = {
         "local-lab/startup-media": "the test checks the tool's default startup-media path",
         "/home/someone/profile": "a synthetic profile path in a unit test; no real account",
     },
-    "tools/frontend_arc_bracket_fit.py": {
-        "local-lab/retail-reference-pristine/select-level/04-select-level-640x480.png":
-            "default reference image for the fit, read from the ignored lab folder",
-        "local-lab/retail-reference-pristine/choose-game-name/choose-game-name-640x480.png":
-            "default reference image for the fit, read from the ignored lab folder",
-    },
-    "tools/terrain_macro_inversion_probe.py": {
-        "local-lab/godot-captures/inv-probe": "an example value in an argparse help string",
-    },
     # --- tools whose job is to treat the ignored lab folder specially --------------------------------------------
-    "tools/check_installed_game_claims.py": {"local-lab/": "SKIP_PREFIXES: the ignored folder is not scanned"},
     "tools/md_link_check.py": {"local-lab/": "the scope note it prints says the ignored folder is invisible to the check"},
     "tools/doc_header_check.py": {
         "local-lab/": "the rule that excludes the ignored folder, and the self-test case that checks it",
